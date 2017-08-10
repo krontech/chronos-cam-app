@@ -1,0 +1,4 @@
+## Ignore project and compiled files
+src/camApp.pro.user
+build-camApp-Camera-Debug/
+build-camApp-Camera-Release/
