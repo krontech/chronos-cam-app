@@ -2,7 +2,7 @@
 #define UTIL_H
 
 void delayms(int ms);
-bool checkAndCreateDir(char * dir);
+bool checkAndCreateDir(const char * dir);
 
 
 #endif // UTIL_H

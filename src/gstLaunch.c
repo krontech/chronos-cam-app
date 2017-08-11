@@ -28,9 +28,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <signal.h>
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 #ifndef DISABLE_FAULT_HANDLER
 #include <sys/wait.h>
 #endif
@@ -88,8 +86,8 @@ xmllaunch_parse_cmdline (const gchar ** argv)
   gint i = 0;
 
   if (!(arg = argv[0])) {
-    g_printerr ("%s",
-        _("Usage: gst-xmllaunch <file.xml> [ element.property=value ... ]\n"));
+	g_printerr ("%s",
+		_("Usage: gst-xmllaunch <file.xml> [ element.property=value ... ]\n"));
 	exit (1);
   }
 
@@ -98,19 +96,19 @@ xmllaunch_parse_cmdline (const gchar ** argv)
   err = gst_xml_parse_file (xml, (guchar *) arg, NULL);
 
   if (err != TRUE) {
-    g_printerr (_("ERROR: parse of xml file '%s' failed.\n"), arg);
+	g_printerr (_("ERROR: parse of xml file '%s' failed.\n"), arg);
 	exit (1);
   }
 
   l = gst_xml_get_topelements (xml);
   if (!l) {
-    g_printerr (_("ERROR: no toplevel pipeline element in file '%s'.\n"), arg);
+	g_printerr (_("ERROR: no toplevel pipeline element in file '%s'.\n"), arg);
 	exit (1);
   }
 
   if (l->next) {
-    g_printerr ("%s",
-        _("WARNING: only one toplevel element is supported at this time.\n"));
+	g_printerr ("%s",
+		_("WARNING: only one toplevel element is supported at this time.\n"));
   }
 
   pipeline = GST_ELEMENT (l->data);
@@ -121,7 +119,7 @@ xmllaunch_parse_cmdline (const gchar ** argv)
 	value = strchr (element, '=');
 
 	if (!(element < property && property < value)) {
-      g_printerr (_("ERROR: could not parse command line argument %d: %s.\n"),
+	  g_printerr (_("ERROR: could not parse command line argument %d: %s.\n"),
 		  i, element);
 	  g_free (element);
 	  exit (1);
@@ -132,7 +130,7 @@ xmllaunch_parse_cmdline (const gchar ** argv)
 
 	e = gst_bin_get_by_name (GST_BIN (pipeline), element);
 	if (!e) {
-      g_printerr (_("WARNING: element named '%s' not found.\n"), element);
+	  g_printerr (_("WARNING: element named '%s' not found.\n"), element);
 	} else {
 	  gst_util_set_object_arg (G_OBJECT (e), property, value);
 	}
@@ -260,7 +258,7 @@ print_error_message (GstMessage * msg)
 
   g_printerr (_("ERROR: from element %s: %s\n"), name, err->message);
   if (debug != NULL)
-    g_printerr (_("Additional debug info:\n%s\n"), debug);
+	g_printerr (_("Additional debug info:\n%s\n"), debug);
 
   g_error_free (err);
   g_free (debug);
@@ -442,19 +440,19 @@ event_loop (GstElement * pipeline, gboolean blocking, GstState target_state)
 	  src_obj = GST_MESSAGE_SRC (message);
 
 	  if (GST_IS_ELEMENT (src_obj)) {
-        PRINT (_("Got message #%u from element \"%s\" (%s): "),
+		PRINT (_("Got message #%u from element \"%s\" (%s): "),
 			(guint) seqnum, GST_ELEMENT_NAME (src_obj),
 			GST_MESSAGE_TYPE_NAME (message));
 	  } else if (GST_IS_PAD (src_obj)) {
-        PRINT (_("Got message #%u from pad \"%s:%s\" (%s): "),
+		PRINT (_("Got message #%u from pad \"%s:%s\" (%s): "),
 			(guint) seqnum, GST_DEBUG_PAD_NAME (src_obj),
 			GST_MESSAGE_TYPE_NAME (message));
 	  } else if (GST_IS_OBJECT (src_obj)) {
-        PRINT (_("Got message #%u from object \"%s\" (%s): "),
+		PRINT (_("Got message #%u from object \"%s\" (%s): "),
 			(guint) seqnum, GST_OBJECT_NAME (src_obj),
 			GST_MESSAGE_TYPE_NAME (message));
 	  } else {
-        PRINT (_("Got message #%u (%s): "), (guint) seqnum,
+		PRINT (_("Got message #%u (%s): "), (guint) seqnum,
 			GST_MESSAGE_TYPE_NAME (message));
 	  }
 
@@ -486,7 +484,7 @@ event_loop (GstElement * pipeline, gboolean blocking, GstState target_state)
 		break;
 	  case GST_MESSAGE_EOS:{
 		waiting_eos = FALSE;
-        PRINT (_("Got EOS from element \"%s\".\n"),
+		PRINT (_("Got EOS from element \"%s\".\n"),
 			GST_MESSAGE_SRC_NAME (message));
 		goto exit;
 	  }
@@ -495,16 +493,16 @@ event_loop (GstElement * pipeline, gboolean blocking, GstState target_state)
 		  GstTagList *tags;
 
 		  if (GST_IS_ELEMENT (GST_MESSAGE_SRC (message))) {
-            PRINT (_("FOUND TAG      : found by element \"%s\".\n"),
+			PRINT (_("FOUND TAG      : found by element \"%s\".\n"),
 				GST_MESSAGE_SRC_NAME (message));
 		  } else if (GST_IS_PAD (GST_MESSAGE_SRC (message))) {
-            PRINT (_("FOUND TAG      : found by pad \"%s:%s\".\n"),
+			PRINT (_("FOUND TAG      : found by pad \"%s:%s\".\n"),
 				GST_DEBUG_PAD_NAME (GST_MESSAGE_SRC (message)));
 		  } else if (GST_IS_OBJECT (GST_MESSAGE_SRC (message))) {
-            PRINT (_("FOUND TAG      : found by object \"%s\".\n"),
+			PRINT (_("FOUND TAG      : found by object \"%s\".\n"),
 				GST_MESSAGE_SRC_NAME (message));
 		  } else {
-            PRINT (_("FOUND TAG\n"));
+			PRINT (_("FOUND TAG\n"));
 		  }
 
 		  gst_message_parse_tag (message, &tags);
@@ -519,7 +517,7 @@ event_loop (GstElement * pipeline, gboolean blocking, GstState target_state)
 
 		gst_message_parse_info (message, &gerror, &debug);
 		if (debug) {
-          PRINT (_("INFO:\n%s\n"), debug);
+		  PRINT (_("INFO:\n%s\n"), debug);
 		}
 		g_error_free (gerror);
 		g_free (debug);
@@ -536,9 +534,9 @@ event_loop (GstElement * pipeline, gboolean blocking, GstState target_state)
 			GST_DEBUG_GRAPH_SHOW_ALL, "gst-launch.warning");
 
 		gst_message_parse_warning (message, &gerror, &debug);
-        PRINT (_("WARNING: from element %s: %s\n"), name, gerror->message);
+		PRINT (_("WARNING: from element %s: %s\n"), name, gerror->message);
 		if (debug) {
-          PRINT (_("Additional debug info:\n%s\n"), debug);
+		  PRINT (_("Additional debug info:\n%s\n"), debug);
 		}
 		g_error_free (gerror);
 		g_free (debug);
@@ -566,7 +564,7 @@ event_loop (GstElement * pipeline, gboolean blocking, GstState target_state)
 		/* ignore when we are buffering since then we mess with the states
 		 * ourselves. */
 		if (buffering) {
-          PRINT (_("Prerolled, waiting for buffering to finish...\n"));
+		  PRINT (_("Prerolled, waiting for buffering to finish...\n"));
 		  break;
 		}
 
@@ -583,7 +581,7 @@ event_loop (GstElement * pipeline, gboolean blocking, GstState target_state)
 		gint percent;
 
 		gst_message_parse_buffering (message, &percent);
-        PRINT ("%s %d%%  \r", _("buffering..."), percent);
+		PRINT ("%s %d%%  \r", _("buffering..."), percent);
 
 		/* no state management needed for live pipelines */
 		if (is_live)
@@ -594,7 +592,7 @@ event_loop (GstElement * pipeline, gboolean blocking, GstState target_state)
 		  buffering = FALSE;
 		  /* if the desired state is playing, go back */
 		  if (target_state == GST_STATE_PLAYING) {
-            PRINT (_("Done buffering, setting pipeline to PLAYING ...\n"));
+			PRINT (_("Done buffering, setting pipeline to PLAYING ...\n"));
 			gst_element_set_state (pipeline, GST_STATE_PLAYING);
 		  } else
 			goto exit;
@@ -602,7 +600,7 @@ event_loop (GstElement * pipeline, gboolean blocking, GstState target_state)
 		  /* buffering busy */
 		  if (buffering == FALSE && target_state == GST_STATE_PLAYING) {
 			/* we were not buffering but PLAYING, PAUSE  the pipeline. */
-            PRINT (_("Buffering, setting pipeline to PAUSED ...\n"));
+			PRINT (_("Buffering, setting pipeline to PAUSED ...\n"));
 			gst_element_set_state (pipeline, GST_STATE_PAUSED);
 		  }
 		  buffering = TRUE;
@@ -611,7 +609,7 @@ event_loop (GstElement * pipeline, gboolean blocking, GstState target_state)
 	  }
 	  case GST_MESSAGE_LATENCY:
 	  {
-        PRINT (_("Redistribute latency...\n"));
+		PRINT (_("Redistribute latency...\n"));
 		gst_bin_recalculate_latency (GST_BIN (pipeline));
 		break;
 	  }
@@ -622,7 +620,7 @@ event_loop (GstElement * pipeline, gboolean blocking, GstState target_state)
 
 		gst_message_parse_request_state (message, &state);
 
-        PRINT (_("Setting state to %s as requested by %s...\n"),
+		PRINT (_("Setting state to %s as requested by %s...\n"),
 			gst_element_state_get_name (state), name);
 
 		gst_element_set_state (pipeline, state);

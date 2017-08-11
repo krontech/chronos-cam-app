@@ -17,6 +17,10 @@ QMAKE_CXXFLAGS += -Dxdc_target_types__=ti/targets/std.h -D__TMS470__ -DPlatform_
 #QMAKE_CFLAGS += -DPlatform_dm814x -DG_THREADS_MANDATORY -DG_DISABLE_CAST_CHECKS -DG_DISABLE_ASSERT -pthread -march=armv7-a -mtune=cortex-a8 -mfpu=neon -mfloat-abi=softfp
 #QMAKE_CXXFLAGS += -Dxdc_target_types__=ti/targets/std.h -D__TMS470__ -DPlatform_dm814x -DG_THREADS_MANDATORY -DG_DISABLE_CAST_CHECKS -DG_DISABLE_ASSERT
 
+## Fixes for GCC 4.x to 5.x compatibilitiy
+QMAKE_CFLAGS += -Wno-unused-parameter -Wno-sign-compare -ffreestanding
+QMAKE_CXXFLAGS += -Wno-unused-parameter -Wno-sign-compare -ffreestanding
+
 TEMPLATE = app
 INSTALLS += target
 INCLUDEPATH += $${QT_SYSROOT}/usr/include \

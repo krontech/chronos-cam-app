@@ -49,24 +49,17 @@ bool IO::readIO(UInt32 io)
 	{
 	case 1:
 		return false;
-		break;
 
 	case 2:
-
-
 		lseek(IO2InFD, 0, SEEK_SET);
 		read(IO2InFD, buf, sizeof(buf));
 
 		return ('1' == buf[0]) ? true : false;
-		break;
 
-	case 3:
+	default:
 		return false;
-		break;
 
 	}
-
-
 }
 
 
@@ -75,12 +68,12 @@ void IO::writeIO(UInt32 io, UInt32 val)
 	switch(io)
 	{
 	case 1:
-		gpmc->write32(IO_OUT_LEVEL_ADDR, gpmc->read32(IO_OUT_LEVEL_ADDR) & ~1 | (val & 1));
-		gpmc->write32(IO_OUT_LEVEL_ADDR, gpmc->read32(IO_OUT_LEVEL_ADDR) & ~2 | (val & 2));
+		gpmc->write32(IO_OUT_LEVEL_ADDR, (gpmc->read32(IO_OUT_LEVEL_ADDR) & ~1) | (val & 1));
+		gpmc->write32(IO_OUT_LEVEL_ADDR, (gpmc->read32(IO_OUT_LEVEL_ADDR) & ~2) | (val & 2));
 	break;
 
 	case 2:
-		gpmc->write32(IO_OUT_LEVEL_ADDR, gpmc->read32(IO_OUT_LEVEL_ADDR) & ~4 | (val ? 1 : 0));
+		gpmc->write32(IO_OUT_LEVEL_ADDR, (gpmc->read32(IO_OUT_LEVEL_ADDR) & ~4) | (val ? 1 : 0));
 	break;
 	}
 }

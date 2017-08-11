@@ -605,11 +605,8 @@ UInt32 Video::startVideo ()
 {
 
   OMX_U32 i;
-  OMX_S32 ret_value;
 
   OMX_ERRORTYPE eError = OMX_ErrorNone;
-  IL_CLIENT_PIPE_MSG pipeMsg;
-  OMX_VIDEO_CODINGTYPE coding;
   vgILClientExit = OMX_FALSE;
 
   pVAppData = NULL;
@@ -1074,7 +1071,6 @@ UInt32 Video::stopVideo()
   OMX_S32 ret_value;
   OMX_ERRORTYPE eError = OMX_ErrorNone;
   IL_CLIENT_PIPE_MSG pipeMsg;
-  OMX_VIDEO_CODINGTYPE coding;
   vgILClientExit = OMX_FALSE;
 
   printf (" tearing down the capture-display example\n ");
@@ -2002,8 +1998,6 @@ OMX_ERRORTYPE Video::VIL_ClientSetCaptureParams (IL_Client *pAppData)
 
   OMX_PARAM_VFCC_HWPORT_ID sHwPortId;
 
-  OMX_CONFIG_VFCC_FRAMESKIP_INFO sCapSkipFrames;
-
   OMX_PARAM_BUFFER_MEMORYTYPE memTypeCfg;
 
   OMX_PARAM_PORTDEFINITIONTYPE paramPort;
@@ -2073,6 +2067,7 @@ OMX_ERRORTYPE Video::VIL_ClientSetCaptureParams (IL_Client *pAppData)
 /*
   if (pAppData->nFrameRate == 30)
   {
+	OMX_CONFIG_VFCC_FRAMESKIP_INFO sCapSkipFrames;
 	OMX_INIT_PARAM (&sCapSkipFrames);
 	printf (" applying skip mask \n");
 
@@ -2843,7 +2838,7 @@ void* frameThread(void *arg)
 
 	while(!vInst->terminateGPIOThread)
 	{
-		if(ret = poll(&vInst->gpioPoll, 1, 200) > 0)	//If we returned due to a GPIO event rather than a timeout
+		if((ret = poll(&vInst->gpioPoll, 1, 200)) > 0)	//If we returned due to a GPIO event rather than a timeout
 		{
 			if (vInst->gpioPoll.revents & POLLPRI)
 			{

@@ -76,7 +76,7 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	ui->expSlider->setValue(camera->sensor->getIntegrationTime() * 100000000.0);
 	ui->cmdWB->setEnabled(camera->getIsColor());
 
-	char * myfifo = "/var/run/bmsFifo";
+	const char * myfifo = "/var/run/bmsFifo";
 
 
 	/* open, read, and display the message from the FIFO */

@@ -66,33 +66,27 @@ RecSettingsWindow::RecSettingsWindow(QWidget *parent, Camera * cameraInst) :
 	fp = fopen("resolutions", "r");
 	if (fp != NULL)
 	{
-		int ret;
+		while (fgets(line, 30, fp) != NULL) {
+			//Remove any newline or carrage return and replace with null
+			char *pos;
+			if ((pos=strchr(line, '\r')) != NULL)
+				*pos = '\0';
+			if ((pos=strchr(line, '\n')) != NULL)
+				*pos = '\0';
 
-		do{
-			ret = (int)fgets(line, 30, fp);	//Read a line
-			if(ret != NULL)				//If this wasn't the end of file, ret will be non-null
-			{
-				//Remove any newline or carrage return and replace with null
-				char *pos;
-				if ((pos=strchr(line, '\r')) != NULL)
-					*pos = '\0';
-				if ((pos=strchr(line, '\n')) != NULL)
-					*pos = '\0';
+			//Get the resolution and compute the maximum frame rate to be appended after the resolution
+			int hRes, vRes;
 
-				//Get the resolution and compute the maximum frame rate to be appended after the resolution
-				int hRes, vRes;
+			sscanf(line, "%dx%d", &hRes, &vRes);
 
-				sscanf(line, "%dx%d", &hRes, &vRes);
+			int fr =  100000000.0 / (double)camera->sensor->getMinFramePeriod(hRes, vRes);
+			qDebug() << "hres" << hRes << "vRes" << vRes << "mperiod" << camera->sensor->getMinFramePeriod(hRes, vRes) << "fr" << fr;
+			char tmp[20];
+			sprintf(tmp, " %d fps", fr);
+			strcat(line, tmp);
 
-				int fr =  100000000.0 / (double)camera->sensor->getMinFramePeriod(hRes, vRes);
-				qDebug() << "hres" << hRes << "vRes" << vRes << "mperiod" << camera->sensor->getMinFramePeriod(hRes, vRes) << "fr" << fr;
-				char tmp[20];
-				sprintf(tmp, " %d fps", fr);
-				strcat(line, tmp);
-
-				ui->comboRes->addItem(line);
-			}
-		} while (ret != NULL);
+			ui->comboRes->addItem(line);
+		}
 
 		fclose(fp);
 	}

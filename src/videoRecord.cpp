@@ -49,7 +49,6 @@ VideoRecord::~VideoRecord()
 
 Int32 VideoRecord::start(UInt32 hSize, UInt32 vSize, UInt32 frames)
 {
-	int err;
 	char path[1000];
 	char fname[1000];
 
@@ -267,6 +266,7 @@ UInt32 VideoRecord::stop2()
 
 	GstEvent*  event = gst_event_new_eos();
 	 gst_element_send_event(pipeline, event);
+	return CAMERA_SUCCESS;
 }
 
 
@@ -312,7 +312,7 @@ bus_call (GstBus     *bus,
 
 UInt32 VideoRecord::getSafeHRes(UInt32 hRes)
 {
-	return max((hRes + 15 & 0xFFFFFFF0), ENCODER_MIN_H_RES);
+	return max((hRes + 15) & 0xFFFFFFF0, ENCODER_MIN_H_RES);
 }
 
 UInt32 VideoRecord::getSafeVRes(UInt32 vRes)

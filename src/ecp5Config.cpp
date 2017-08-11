@@ -43,7 +43,7 @@ Ecp5Config::~Ecp5Config()
 }
 
 
-Int32 Ecp5Config::init(char * spiDev, char * pgmnGPIO, char * initnGPIO, char * doneGPIO, char * snGPIO, char * holdnGPIO, uint32_t speed_val)
+Int32 Ecp5Config::init(const char * spiDev, const char * pgmnGPIO, const char * initnGPIO, const char * doneGPIO, const char * snGPIO, const char * holdnGPIO, uint32_t speed_val)
 {
 	int ret;
 
@@ -120,7 +120,7 @@ void Ecp5Config::deinit(void)
 	}
 }
 
-Int32 Ecp5Config::configure(char * configFile)
+Int32 Ecp5Config::configure(const char * configFile)
 {
 	UInt8 cmd[4] = {0, 0, 0, 0};
 	UInt8 data[4];

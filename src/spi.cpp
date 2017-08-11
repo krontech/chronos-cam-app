@@ -16,7 +16,7 @@ SPI::SPI()
 
 }
 
-CameraErrortype SPI::Init(char * dev, uint8_t bits_val, uint32_t speed_val, bool cpol, bool cpha)
+CameraErrortype SPI::Init(const char * dev, uint8_t bits_val, uint32_t speed_val, bool cpol, bool cpha)
 {
 	delay = 0;
 	bits = bits_val;
@@ -29,7 +29,7 @@ CameraErrortype SPI::Init(char * dev, uint8_t bits_val, uint32_t speed_val, bool
 	return Open(dev);
 }
 
-CameraErrortype SPI::Open(char * dev)
+CameraErrortype SPI::Open(const char * dev)
 {
 
 	int ret;

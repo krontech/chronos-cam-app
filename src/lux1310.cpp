@@ -202,8 +202,6 @@ CameraErrortype LUX1310::init(GPMC * gpmc_inst)
 
 CameraErrortype LUX1310::initSensor()
 {
-	CameraErrortype retVal;
-
 	wavetableSize = 80;
 	gain = LUX1310_GAIN_1;
 
@@ -367,7 +365,7 @@ void LUX1310::SCIWriteBuf(UInt8 address, UInt8 * data, UInt32 dataLen)
 	//Set up address, transfer length and put data into FIFO
 	gpmc->write16(SENSOR_SCI_ADDRESS_ADDR, address);
 	gpmc->write16(SENSOR_SCI_DATALEN_ADDR, dataLen);
-	for(int i = 0; i < dataLen; i++)
+	for(UInt32 i = 0; i < dataLen; i++)
 		gpmc->write16(SENSOR_SCI_FIFO_WR_ADDR_ADDR, data[i]);
 
 	//Start transfer
@@ -651,8 +649,6 @@ double LUX1310::getMaxIntegrationTime(double period, UInt32 hRes, UInt32 vRes)
 {
 	//Round to nearest 10ns period
 	period = round(period * (100000000.0)) / 100000000.0;
-	double intTime = round(intTime * (100000000.0)) / 100000000.0;
-
 	return (double)getMaxExposure(period * 100000000.0) / 100000000.0;
 
 }
@@ -943,7 +939,7 @@ Int16 LUX1310::getADCOffset(UInt8 channel)
 		return val & 0x3FF;
 }
 
-Int32 LUX1310::loadADCOffsetsFromFile(char * filename)
+Int32 LUX1310::loadADCOffsetsFromFile(const char * filename)
 {
 	Int16 offsets[LUX1310_HRES_INCREMENT];
 	std::string fn = getFilename("cal/lux1310Offsets", ".bin");
@@ -969,7 +965,7 @@ Int32 LUX1310::loadADCOffsetsFromFile(char * filename)
 	return CAMERA_SUCCESS;
 }
 
-Int32 LUX1310::saveADCOffsetsToFile(char * filename)
+Int32 LUX1310::saveADCOffsetsToFile(const char * filename)
 {
 	Int16 offsets[LUX1310_HRES_INCREMENT];
 	std::string fn = getFilename("cal/lux1310Offsets", ".bin");
@@ -982,12 +978,12 @@ Int32 LUX1310::saveADCOffsetsToFile(char * filename)
 	for(int i = 0; i < LUX1310_HRES_INCREMENT; i++)
 		offsets[i] = offsetsA[i];
 
-	int i = 0;
 	//Ugly print to keep it all on one line
-	qDebug() << "Saving offsets to file" << fn.c_str() << "Offsets:" << offsets[i++] << offsets[i++] << offsets[i++]
-			 << offsets[i++] << offsets[i++] << offsets[i++] << offsets[i++] << offsets[i++] << offsets[i++]
-			 << offsets[i++] << offsets[i++] << offsets[i++] << offsets[i++] << offsets[i++] << offsets[i++]
-			 << offsets[i++];
+	qDebug() << "Saving offsets to file" << fn.c_str() << "Offsets:"
+			 << offsets[0] << offsets[1] << offsets[2] << offsets[3]
+			 << offsets[4] << offsets[5] << offsets[6] << offsets[7]
+			 << offsets[8] << offsets[9] << offsets[10] << offsets[11]
+			 << offsets[12] << offsets[13] << offsets[14] << offsets[15];
 
 	//Store to file
 	fwrite(offsets, sizeof(offsets[0]), LUX1310_HRES_INCREMENT, fp);
@@ -997,9 +993,9 @@ Int32 LUX1310::saveADCOffsetsToFile(char * filename)
 }
 
 //Generate a filename string used for calibration values that is specific to the current gain and wavetable settings
-std::string LUX1310::getFilename(char * filename, char * extension)
+std::string LUX1310::getFilename(const char * filename, const char * extension)
 {
-	char * gName, * wtName;
+	const char * gName, * wtName;
 
 	switch(gain)
 	{

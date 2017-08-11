@@ -150,9 +150,9 @@ public:
 	void updateWavetableSetting();
 	void setADCOffset(UInt8 channel, Int16 offset);
 	Int16 getADCOffset(UInt8 channel);
-	Int32 loadADCOffsetsFromFile(char * filename);
-	Int32 saveADCOffsetsToFile(char * filename);
-	std::string getFilename(char * filename, char * extension);
+	Int32 loadADCOffsetsFromFile(const char * filename);
+	Int32 saveADCOffsetsToFile(const char * filename);
+	std::string getFilename(const char * filename, const char * extension);
 	Int32 setGain(UInt32 gainSetting);
 	UInt8 getFilterColor(UInt32 h, UInt32 v);
 	Int32 setABNDelayClocks(UInt32 ABNOffset);

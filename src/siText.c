@@ -1,10 +1,11 @@
 #include "siText.h"
 #include <string.h>
 #include <ctype.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 
-char * prefixes[17] = {'y', 'z', 'a', 'f', 'p', 'n', 'u', 'm', '\0', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y'}; //10**0 is position 8
+char prefixes[17] = {'y', 'z', 'a', 'f', 'p', 'n', 'u', 'm', '\0', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y'}; //10**0 is position 8
 
 
 
@@ -88,7 +89,7 @@ void getSIText(char * buf, double val, UInt32 sigfigs, UInt32 options, Int32 res
 
 double siText2Double(const char * textIn)
 {
-	char * in = textIn;
+	const char * in = textIn;
 	char txt[100];
 	int ex = 0;
 	int j;

@@ -128,7 +128,7 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 
 	//Configure FPGA
 	Ecp5Config * config;
-	char * configFileName;
+	const char * configFileName;
 /*
 	//Get the file name based on the RAM installed
 	if(8 == ramSizeGBSlot0)
@@ -220,9 +220,9 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 	gpmc->write32(SEQ_LIVE_ADDR_2_ADDR, LIVE_FRAME_2_ADDRESS);
 	setRecRegionStartWords(REC_REGION_START);
 
-	int len = FRAME_SIZE;
 /*
 	//Test RAM
+	int len = FRAME_SIZE;
 	int errorCount = 0;
 	gpmc->write32(GPMC_PAGE_OFFSET_ADDR, 0);	//Set GPMC offset
 	srand(1);
@@ -263,7 +263,7 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 */
 
 	//enable video readout
-	gpmc->write32(DISPLAY_CTL_ADDR, gpmc->read32(DISPLAY_CTL_ADDR) & ~DISPLAY_CTL_READOUT_INH_MASK | (isColor ? DISPLAY_CTL_COLOR_MODE_MASK : 0));
+	gpmc->write32(DISPLAY_CTL_ADDR, (gpmc->read32(DISPLAY_CTL_ADDR) & ~DISPLAY_CTL_READOUT_INH_MASK) | (isColor ? DISPLAY_CTL_COLOR_MODE_MASK : 0));
 
 	printf("Starting rec data thread\n");
 	terminateRecDataThread = false;
@@ -456,7 +456,6 @@ UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 
 UInt32 Camera::setDisplaySettings(bool encoderSafe)
 {
-	ScalerSettings_t ss;
 	if(!sensor->isValidResolution(imagerSettings.stride, imagerSettings.vRes, imagerSettings.hOffset, imagerSettings.vOffset))
 		return CAMERA_INVALID_IMAGER_SETTINGS;
 
@@ -582,10 +581,9 @@ Int32 Camera::stopRecording(void)
 void Camera::endOfRec(void)
 {
 	UInt32 lastRecDataPos = recDataPos == 0 ? RECORD_DATA_LENGTH - 1 : recDataPos - 1;
-	UInt32 firstBlock, lastBlock, numBlocks;
+	UInt32 firstBlock, numBlocks;
 	UInt32 blockFrames;
 	UInt32 frames;
-	lastBlock = lastRecDataPos;
 
 	qDebug("EndOfRec");
 
@@ -722,6 +720,8 @@ UInt32 Camera::getPlayFrameAddr(UInt32 playFrame)
 			return getBlockFrameAddress(i, playFrame - frames);
 		frames += blockFrames;
 	}
+	/* Should not get here */
+	return 0;
 }
 
 bool Camera::getIsRecording(void)
@@ -790,7 +790,7 @@ void Camera::processPlay(void)
 			divisor = 1;
 
 		if(playbackSpeed > 0)
-			multiple = 1 << playbackSpeed-1;
+			multiple = 1 << (playbackSpeed-1);
 		else
 			multiple = 1;
 
@@ -1085,7 +1085,7 @@ void Camera::computeFPNCorrection()
 void Camera::computeFPNCorrection2(UInt32 framesToAverage, bool writeToFile, bool factory)
 {
 	char filename[1000];
-	char *formatStr;
+	const char *formatStr;
 
 	//Generate the filename for this particular resolution and offset
 	if(factory)
@@ -1102,7 +1102,7 @@ void Camera::computeFPNCorrection2(UInt32 framesToAverage, bool writeToFile, boo
 	{
 		qDebug() << "Writing FPN to file" << fn.c_str();
 		fp = fopen(fn.c_str(), "wb");
-		if(fp <= 0)
+		if(fp == NULL)
 		{
 			qDebug() << "Error: File couldn't be opened";
 			return;
@@ -1217,7 +1217,7 @@ UInt32 Camera::autoFPNCorrection(UInt32 framesToAverage, bool writeToFile, bool 
 
 }
 
-Int32 Camera::loadFPNFromFile(char * filename)
+Int32 Camera::loadFPNFromFile(const char * filename)
 {
 	char flname[1000];
 	std::string fn;
@@ -1294,7 +1294,7 @@ Int32 Camera::computeColGainCorrection(UInt32 framesToAverage, bool writeToFile)
 	UInt16 * fpnBuffer = new UInt16[pixelsPerFrame];
 	UInt32 * rawBuffer32 = new UInt32[bytesPerFrame / 4];
 	UInt8 * rawBuffer = (UInt8 *)rawBuffer32;
-	char * filename;
+	const char * filename;
 
 	recordFrames(1);
 
@@ -1400,9 +1400,10 @@ Int32 Camera::computeColGainCorrection(UInt32 framesToAverage, bool writeToFile)
 
 	delete buffer;
 	delete rawBuffer;
+	return CAMERA_SUCCESS;
 }
 
-Int32 Camera::loadColGainFromFile(char * filename)
+Int32 Camera::loadColGainFromFile(const char * filename)
 {
 	double gainCorrection[16];
 	size_t count = 0;
@@ -1452,7 +1453,7 @@ Int32 Camera::loadColGainFromFile(char * filename)
 	return CAMERA_SUCCESS;
 }
 
-UInt32 Camera::adcOffsetCorrection(UInt32 iterations, char * filename)
+UInt32 Camera::adcOffsetCorrection(UInt32 iterations, const char * filename)
 {
 	filename = "a";
 
@@ -1502,21 +1503,16 @@ void Camera::offsetCorrectionIteration(UInt32 wordAddress)
 		buffer[i % 16] = min(pix, buffer[i % 16]);
 
 	}
-	int i = 0;
-	qDebug() << "Min values" << buffer[i++] << buffer[i++] << buffer[i++]
-			 << buffer[i++] << buffer[i++] << buffer[i++] << buffer[i++] << buffer[i++] << buffer[i++]
-			 << buffer[i++] << buffer[i++] << buffer[i++] << buffer[i++] << buffer[i++] << buffer[i++]
-			 << buffer[i++];
-	i = 0;
-	qDebug() << "Offsets" << offsets[i++] << offsets[i++] << offsets[i++]
-			 << offsets[i++] << offsets[i++] << offsets[i++] << offsets[i++] << offsets[i++] << offsets[i++]
-			 << offsets[i++] << offsets[i++] << offsets[i++] << offsets[i++] << offsets[i++] << offsets[i++]
-			 << offsets[i++];
-
-//	qDebug() << "Min values:";
-//	for(int i = 0; i < 16; i++)
-//		qDebug() << buffer[i];
-
+	qDebug() << "Min values"
+			 << buffer[0] << buffer[1] << buffer[2] << buffer[3]
+			 << buffer[4] << buffer[5] << buffer[6] << buffer[7]
+			 << buffer[8] << buffer[9] << buffer[10] << buffer[11]
+			 << buffer[12] << buffer[13] << buffer[14] << buffer[15];
+	qDebug() << "Offsets"
+			 << offsets[0] << offsets[1] << offsets[2] << offsets[3]
+			 << offsets[4] << offsets[5] << offsets[6] << offsets[7]
+			 << offsets[8] << offsets[9] << offsets[10] << offsets[11]
+			 << offsets[12] << offsets[12] << offsets[13] << offsets[14];
 
 	for(int i = 0; i < 16; i++)
 	{
@@ -1778,7 +1774,7 @@ UInt32 Camera::getMiddlePixelValue(bool includeFPNCorrection)
 //frameBuffer must be a UInt16 array with enough elements to to hold all pixels at the current recording resolution
 Int32 Camera::readFrame(UInt32 frame, UInt16 * frameBuffer)
 {
-	char * filename;
+	const char * filename;
 	double gainCorrection[16];
 
 	UInt32 pixelsPerFrame = recordingData.is.stride * recordingData.is.vRes;
@@ -1945,7 +1941,7 @@ Int32 Camera::getRawCorrectedFramesAveraged(UInt32 frame, UInt32 framesToAverage
 
 Int32 Camera::readDCG(double * gainCorrection)
 {
-	char * filename;
+	const char * filename;
 
 	//Read in column gain values
 	if(recordingData.is.gain >= LUX1310_GAIN_4)
@@ -2211,7 +2207,8 @@ void Camera::setFocusAid(bool enable)
 
 bool Camera::getFocusAid()
 {
-
+	/* FIXME: Not implemented */
+	return false;
 }
 
 Int32 Camera::blackCalAllStdRes(bool factory)
@@ -2228,48 +2225,42 @@ Int32 Camera::blackCalAllStdRes(bool factory)
 	if (fp == NULL)
 		return CAMERA_FILE_ERROR;
 
-	int ret;
 	int g;
 
 	//For each gain
 	for(g = LUX1310_GAIN_1; g <= LUX1310_GAIN_16; g++)
 	{
 		retVal = fseek(fp, 0, SEEK_SET);
-		do
+		if (retVal != 0) {
+			return CAMERA_FILE_ERROR;
+		}
+		while(fgets(line, 30, fp) != NULL)
 		{	//For each resolution in the resolution list
-			if(0 != retVal)
-				return CAMERA_FILE_ERROR;
+			//Get the resolution and compute the maximum frame rate to be appended after the resolution
+			int hRes, vRes;
 
-			ret = (int)fgets(line, 30, fp);	//Read a line
-			if(ret != NULL)				//If this wasn't the end of file, ret will be non-null
-			{
-				//Get the resolution and compute the maximum frame rate to be appended after the resolution
-				int hRes, vRes;
+			sscanf(line, "%dx%d", &hRes, &vRes);
 
-				sscanf(line, "%dx%d", &hRes, &vRes);
+			settings.hRes = hRes;		//pixels
+			settings.vRes = vRes;		//pixels
+			settings.stride = hRes;		//Number of pixels per line (allows for dark pixels in the last column), always multiple of 16
+			settings.hOffset = (sensor->getMaxHRes() - hRes) / 2 & 0xFFFFFFFE;	//Active area offset from left
+			settings.vOffset = (sensor->getMaxVRes() - vRes) / 2 & 0xFFFFFFFE;		//Active area offset from top
+			settings.gain = g;
+			settings.period = sensor->getMinFramePeriod(hRes, vRes);
+			settings.exposure = sensor->getMaxExposure(settings.period);
 
-				settings.hRes = hRes;		//pixels
-				settings.vRes = vRes;		//pixels
-				settings.stride = hRes;		//Number of pixels per line (allows for dark pixels in the last column), always multiple of 16
-				settings.hOffset = (sensor->getMaxHRes() - hRes) / 2 & 0xFFFFFFFE;	//Active area offset from left
-				settings.vOffset = (sensor->getMaxVRes() - vRes) / 2 & 0xFFFFFFFE;		//Active area offset from top
-				settings.gain = g;
-				settings.period = sensor->getMinFramePeriod(hRes, vRes);
-				settings.exposure = sensor->getMaxExposure(settings.period);
+			retVal = setImagerSettings(settings);
+			if(CAMERA_SUCCESS != retVal)
+				return retVal;
 
-				retVal = setImagerSettings(settings);
-				if(CAMERA_SUCCESS != retVal)
-					return retVal;
+			qDebug() << "Doing FPN correction for " << hRes << "x" << vRes << "...";
+			retVal = autoFPNCorrection(16, true, false, factory);	//Factory mode
+			if(CAMERA_SUCCESS != retVal)
+				return retVal;
 
-				qDebug() << "Doing FPN correction for " << hRes << "x" << vRes << "...";
-				retVal = autoFPNCorrection(16, true, false, factory);	//Factory mode
-				if(CAMERA_SUCCESS != retVal)
-					return retVal;
-
-				qDebug() << "Done.";
-
-			}
-		} while (ret != NULL);
+			qDebug() << "Done.";
+		}
 	}
 
 
@@ -2311,7 +2302,7 @@ Int32 Camera::takeWhiteReferences(void)
 	UInt32 g;
 	FILE * fp;
 	char filename[1000];
-	char * gName;
+	const char * gName;
 	double exposures[] = {0.000244141,
 						0.000488281,
 						0.000976563,

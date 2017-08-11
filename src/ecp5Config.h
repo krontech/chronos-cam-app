@@ -20,9 +20,9 @@ public:
 
 	Ecp5Config();
 	~Ecp5Config();
-	Int32 init(char * dev, char * pgmnGPIO, char * initnGPIO, char * doneGPIO, char * snGPIO, char * holdnGPIO, uint32_t speed_val);
+	Int32 init(const char * dev, const char * pgmnGPIO, const char * initnGPIO, const char * doneGPIO, const char * snGPIO, const char * holdnGPIO, uint32_t speed_val);
 	void deinit(void);
-	Int32 configure(char * configFile);
+	Int32 configure(const char * configFile);
 
 private:
 	Int32 spiWrite(UInt8 * data, UInt32 len);

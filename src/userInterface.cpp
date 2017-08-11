@@ -212,7 +212,7 @@ void* encAThread(void *arg)
 
 	while(!uiInst->terminateEncThreads)
 	{
-		if(ret = poll(&uiInst->encAgpioPoll, 1, -1) > 0)	//If we returned due to a GPIO event rather than a timeout
+		if((ret = poll(&uiInst->encAgpioPoll, 1, -1)) > 0)	//If we returned due to a GPIO event rather than a timeout
 		{
 			if (uiInst->encAgpioPoll.revents & POLLPRI)
 			{
@@ -274,7 +274,7 @@ void* encBThread(void *arg)
 
 	while(!uiInst->terminateEncThreads)
 	{
-		if(ret = poll(&uiInst->encBgpioPoll, 1, -1) > 0)	//If we returned due to a GPIO event rather than a timeout
+		if((ret = poll(&uiInst->encBgpioPoll, 1, -1)) > 0)	//If we returned due to a GPIO event rather than a timeout
 		{
 			if (uiInst->encBgpioPoll.revents & POLLPRI)
 			{

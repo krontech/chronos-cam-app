@@ -8,7 +8,7 @@ void delayms(int ms)
 	nanosleep(&ts, NULL);
 }
 
-bool checkAndCreateDir(char * dir)
+bool checkAndCreateDir(const char * dir)
 {
 	struct stat st;
 

@@ -6,7 +6,7 @@
 #include <QWidget>
 #include <QDialog>
 
-#define DEFAULT_BACKGROUND_BUTTON	"background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 rgba(0, 0, 0, 255), stop:1 rgba(255, 255, 255, 255));"
+#define KEYBOARD_BACKGROUND_BUTTON	"background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 rgba(0, 0, 0, 255), stop:1 rgba(255, 255, 255, 255));"
 #define CHANGED_BACKGROUND_BUTTON	"background:lightgray;color:darkred;"
 
 enum {

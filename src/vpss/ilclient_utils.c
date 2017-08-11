@@ -240,8 +240,8 @@ void IL_ClientInit (IL_Client **pAppData, int width, int height, int frameRate,
                     int displayId , OMX_VIDEO_CODINGTYPE coding)
 {
   int i;
-  extern OMX_U8 PADX;
-  extern OMX_U8 PADY;
+  //extern OMX_U8 PADX;
+  //extern OMX_U8 PADY;
 
   IL_Client *pAppDataPtr;
   IL_CLIENT_INPORT_PARAMS *inPortParamsPtr;
@@ -989,8 +989,6 @@ OMX_ERRORTYPE IL_ClientSetCaptureParams (IL_Client *pAppData)
 
   OMX_PARAM_VFCC_HWPORT_ID sHwPortId;
 
-  OMX_CONFIG_VFCC_FRAMESKIP_INFO sCapSkipFrames;
-
   OMX_PARAM_BUFFER_MEMORYTYPE memTypeCfg;
 
   OMX_PARAM_PORTDEFINITIONTYPE paramPort;
@@ -1061,6 +1059,7 @@ OMX_ERRORTYPE IL_ClientSetCaptureParams (IL_Client *pAppData)
 /*
   if (pAppData->nFrameRate == 30)
   {
+    OMX_CONFIG_VFCC_FRAMESKIP_INFO sCapSkipFrames;
     OMX_INIT_PARAM (&sCapSkipFrames);
     printf (" applying skip mask \n");
 

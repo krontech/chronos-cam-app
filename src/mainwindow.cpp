@@ -36,17 +36,13 @@ void endOfRecCallback(void * arg);
 VideoRecord record;
 
 MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow(parent),
-    ui(new Ui::MainWindow)
+	QMainWindow(parent),
+	ui(new Ui::MainWindow)
 {
-    ui->setupUi(this);
+	ui->setupUi(this);
 
 }
 
-static uint8_t mode;
-static uint8_t bits = 8;
-static uint32_t speed = 500000;
-static uint16_t delay;
 /*
 SPI * spi;
 GPMC * gpmc;
@@ -56,7 +52,7 @@ Video * vinst;
 */
 MainWindow::~MainWindow()
 {
-    delete ui;
+	delete ui;
 }
 
 void pabort(const char * msg)
@@ -167,7 +163,7 @@ void MainWindow::on_cmdSetOffset_clicked()
 	return;
 
 	int file;
-	char *filename = "/dev/i2c-2";
+	const char *filename = "/dev/i2c-2";
 	if ((file = open(filename, O_RDWR)) < 0) {
 		/* ERROR HANDLING: you can check errno to see what went wrong */
 		perror("Failed to open the i2c bus");
@@ -306,7 +302,7 @@ void MainWindow::on_cmdFPN_clicked()
 	unsigned char writeBuf[8] = {'A', 'B', 'C', '1', '2', '3', 'X', 'D'};
 	unsigned char buf[8];
 
-	char *filename = "/dev/i2c-1";
+	const char *filename = "/dev/i2c-1";
 
 	/* if we are writing to eeprom, *READ* from file */
 	if ((file = open(filename, O_RDONLY)) < 0) {
@@ -332,16 +328,15 @@ void MainWindow::on_cmdFPN_clicked()
 	qDebug() <<"eeprom_read_large returned" << retVal;
 
 	::close(file);
-	int i = 0;
 	sprintf(msg, "Read = %x, %x, %x, %x, %x, %x, %x, %x",
-			(UInt32)buf[i++],
-			(UInt32)buf[i++],
-			(UInt32)buf[i++],
-			(UInt32)buf[i++],
-			(UInt32)buf[i++],
-			(UInt32)buf[i++],
-			(UInt32)buf[i++],
-			(UInt32)buf[i++]);
+			(UInt32)buf[0],
+			(UInt32)buf[1],
+			(UInt32)buf[2],
+			(UInt32)buf[3],
+			(UInt32)buf[4],
+			(UInt32)buf[5],
+			(UInt32)buf[6],
+			(UInt32)buf[7]);
 
 	QMessageBox Msgbox;
 
@@ -363,7 +358,6 @@ void MainWindow::on_cmdFrameNumbers_clicked()
 	return;
 			qDebug() << "FPN Address: " << camera->gpmc->read32(DISPLAY_FPN_ADDRESS_ADDR);
 	int FRAME_SIZE = 1296*1024*10/8;
-	int data;
 	for(int i = 0; i < FRAME_SIZE; i = i + 4)
 	{
 		camera->gpmc->writeRam32(i, camera->gpmc->readRam32(0x32A00*32+i));
@@ -438,14 +432,14 @@ void MainWindow::on_cmdSaveFrame_clicked()
 	FILE * fpUnpacked;
 	qDebug() << "Writing frame to file" << path;
 	fp = fopen(path, "wb");
-	if(fp <= 0)
+	if(fp == NULL)
 	{
 		qDebug() << "Error: File couldn't be opened";
 		return;
 	}
 
 	fpUnpacked = fopen(pathUnpacked, "wb");
-	if(fpUnpacked <= 0)
+	if(fpUnpacked == NULL)
 	{
 		qDebug() << "Error: File fpUnpacked couldn't be opened";
 		return;
@@ -470,7 +464,7 @@ void MainWindow::on_cmdSaveFrame_clicked()
 	fclose(fp);
 
 	//Unpack the FPN data
-	for(int i = 0; i < pixelsPerFrame; i++)
+	for(unsigned int i = 0; i < pixelsPerFrame; i++)
 	{
 		rawUnpacked[i] = camera->readPixelBuf12(rawBuffer, i);
 	}

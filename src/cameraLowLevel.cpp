@@ -222,7 +222,7 @@ bool Camera::getFocusPeakEnableLL(void)
 void Camera::setFocusPeakEnableLL(bool en)
 {
 	UInt32 reg = gpmc->read32(DISPLAY_CTL_ADDR);
-	gpmc->write32(DISPLAY_CTL_ADDR, reg & ~DISPLAY_CTL_FOCUS_PEAK_EN_MASK | (en ? DISPLAY_CTL_FOCUS_PEAK_EN_MASK : 0));
+	gpmc->write32(DISPLAY_CTL_ADDR, (reg & ~DISPLAY_CTL_FOCUS_PEAK_EN_MASK) | (en ? DISPLAY_CTL_FOCUS_PEAK_EN_MASK : 0));
 }
 
 
@@ -236,7 +236,7 @@ UInt8 Camera::getFocusPeakColor(void)
 void Camera::setFocusPeakColor(UInt8 color)
 {
 	UInt32 reg = gpmc->read32(DISPLAY_CTL_ADDR);
-	gpmc->write32(DISPLAY_CTL_ADDR, reg & ~DISPLAY_CTL_FOCUS_PEAK_COLOR_MASK | ((color & 7) << DISPLAY_CTL_FOCUS_PEAK_COLOR_OFFSET));
+	gpmc->write32(DISPLAY_CTL_ADDR, (reg & ~DISPLAY_CTL_FOCUS_PEAK_COLOR_MASK) | ((color & 7) << DISPLAY_CTL_FOCUS_PEAK_COLOR_OFFSET));
 }
 
 
@@ -250,7 +250,7 @@ bool Camera::getZebraEnableLL(void)
 void Camera::setZebraEnableLL(bool en)
 {
 	UInt32 reg = gpmc->read32(DISPLAY_CTL_ADDR);
-	gpmc->write32(DISPLAY_CTL_ADDR, reg & ~DISPLAY_CTL_ZEBRA_EN_MASK | (en ? DISPLAY_CTL_ZEBRA_EN_MASK : 0));
+	gpmc->write32(DISPLAY_CTL_ADDR, (reg & ~DISPLAY_CTL_ZEBRA_EN_MASK) | (en ? DISPLAY_CTL_ZEBRA_EN_MASK : 0));
 }
 
 void Camera::setFocusPeakThreshold(UInt32 thresh)
@@ -349,10 +349,11 @@ Int32 Camera::writeSerialNumber(char * src)
 	int file;
 	int len = strlen(src);
 
-	if(len > SERIAL_NUMBER_MAX_LEN);
+	if(len > SERIAL_NUMBER_MAX_LEN) {
 		len = SERIAL_NUMBER_MAX_LEN;
+	}
 
-	char *filename = RAM_SPD_I2C_BUS_FILE;
+	const char *filename = RAM_SPD_I2C_BUS_FILE;
 
 	/* if we are writing to eeprom, *READ* from file */
 	if ((file = open(filename, O_RDONLY)) < 0) {

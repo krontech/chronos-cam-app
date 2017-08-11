@@ -165,7 +165,7 @@ void keyboard::on_caps_clicked()
 	else
 	{
 		capslock = true;
-		ui->caps->setStyleSheet(QString(DEFAULT_BACKGROUND_BUTTON));
+		ui->caps->setStyleSheet(QString(KEYBOARD_BACKGROUND_BUTTON));
 	}
 }
 
@@ -189,7 +189,7 @@ void keyboard::on_shift_clicked()
 	else
 	{
 		shift = true;
-		ui->shift->setStyleSheet(QString(DEFAULT_BACKGROUND_BUTTON));
+		ui->shift->setStyleSheet(QString(KEYBOARD_BACKGROUND_BUTTON));
 	}
 }
 

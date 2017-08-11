@@ -104,7 +104,7 @@ void saveSettingsWindow::on_cmdClose_clicked()
 
 	//Keep the beginning of the combo box text (the path)
 	char str[100];
-	char * path;
+	const char * path;
 
 	if(ui->comboDrive->isEnabled())
 	{
