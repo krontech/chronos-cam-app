@@ -10,6 +10,7 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets multimedia
 
 TARGET = camApp
 CONFIG += qt console link_pkgconfig
+target.path = /home/root/qt
 
 QMAKE_CFLAGS += -Dxdc_target_types__=ti/targets/std.h -D__TMS470__ -DPlatform_dm814x -DG_THREADS_MANDATORY -DG_DISABLE_CAST_CHECKS -DG_DISABLE_ASSERT -pthread -march=armv7-a -mtune=cortex-a8 -mfpu=neon -mfloat-abi=softfp
 QMAKE_CXXFLAGS += -Dxdc_target_types__=ti/targets/std.h -D__TMS470__ -DPlatform_dm814x -DG_THREADS_MANDATORY -DG_DISABLE_CAST_CHECKS -DG_DISABLE_ASSERT -pthread -march=armv7-a -mtune=cortex-a8 -mfpu=neon -mfloat-abi=softfp
@@ -19,9 +20,9 @@ QMAKE_CXXFLAGS += -Dxdc_target_types__=ti/targets/std.h -D__TMS470__ -DPlatform_
 TEMPLATE = app
 INSTALLS += target
 INCLUDEPATH += $${QT_SYSROOT}/usr/include \
-                $${QT_SYSROOT}/usr/include/gstreamer-0.10 \
-                $${QT_SYSROOT}/usr/include/glib-2.0 \
-                $${QT_SYSROOT}/usr/lib/glib-2.0/include
+               $${QT_SYSROOT}/usr/include/gstreamer-0.10 \
+               $${QT_SYSROOT}/usr/include/glib-2.0 \
+               $${QT_SYSROOT}/usr/lib/glib-2.0/include
 
 ## Linker glue for TI OMX libraries and board support.
 INCLUDEPATH += ${EZSDK_PATH}/component-sources/xdctools_3_23_03_53/packages \
@@ -49,6 +50,7 @@ LIBS += -Xlinker --start-group -l:memcfg.av5T -l:domx.av5T -l:domx_delegates_shm
 #
 QMAKE_LIBDIR += $${QT_SYSROOT}/usr/lib $${QT_SYSROOT}/usr/lib/gstreamer-0.10
 LIBS += -lOMX_Core  -ldl -lgmodule-2.0 -lgobject-2.0 -lgstbase-0.10 -lgstreamer-0.10 -lm -lpthread -l:libxml2.so.2 -l:libz.so.1 -lgthread-2.0 -lrt -lglib-2.0
+LIBS += -static-libstdc++
 #LIBS += -lgstreamer-0.10 -lgobject-2.0 -lgthread-2.0 -lgmodule-2.0 -lrt -lglib-2.0
 
 SOURCES += main.cpp\
