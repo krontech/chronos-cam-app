@@ -26,25 +26,8 @@ INSTALLS += target
 INCLUDEPATH += $${QT_SYSROOT}/usr/include \
                $${QT_SYSROOT}/usr/include/gstreamer-0.10 \
                $${QT_SYSROOT}/usr/include/glib-2.0 \
-               $${QT_SYSROOT}/usr/lib/glib-2.0/include
-
-## Linker glue for TI OMX libraries and board support.
-INCLUDEPATH += ${EZSDK_PATH}/component-sources/xdctools_3_23_03_53/packages \
-                ${EZSDK_PATH}/component-sources/omx_05_02_00_48/include
-
-QMAKE_LIBDIR += ${EZSDK_PATH}/component-sources/omx_05_02_00_48/lib \
-        ${EZSDK_PATH}/component-sources/osal_1_22_01_09/packages/linuxdist/build/lib \
-        ${EZSDK_PATH}/component-sources/osal_1_22_01_09/packages/linuxdist/cstubs/lib \
-        ${EZSDK_PATH}/component-sources/framework_components_3_22_01_07/packages/ti/sdo/rcm/lib/debug \
-        ${EZSDK_PATH}/component-sources/framework_components_3_22_01_07/packages/ti/sdo/fc/memutils/lib/release \
-        ${EZSDK_PATH}/component-sources/osal_1_22_01_09/packages/ti/sdo/xdcruntime/linux/lib/debug \
-        ${EZSDK_PATH}/component-sources/framework_components_3_22_01_07/packages/ti/sdo/fc/global/lib/debug \
-        ${EZSDK_PATH}/component-sources/syslink_2_20_02_20/packages/ti/syslink/lib \
-        ${EZSDK_PATH}/component-sources/linuxutils_3_22_00_02/packages/ti/sdo/linuxutils/cmem/lib \
-        ${EZSDK_PATH}/component-sources/uia_1_01_01_14/packages/ti/uia/linux/lib
-
-LIBS += -Xlinker --start-group -l:memcfg.av5T -l:domx.av5T -l:domx_delegates_shmem.av5T -l:timmosal.av5T -l:omxcfg.av5T -l:osal.a -l:cstubs.a \
-        -l:rcm_syslink.av5T -l:memutils.av5T -l:osal_linux_470.av5T -l:fcsettings.av5T -l:syslink.a_debug -l:cmem.a470MV -l:servicemgr.a -Xlinker --end-group
+               $${QT_SYSROOT}/usr/lib/glib-2.0/include \
+               ${EZSDK_PATH}/component-sources/omx_05_02_00_48/include
 
 # Library notes:
 # In OMX documentation, it says to include omxcore.av5T in the above list. However, this conflicts with

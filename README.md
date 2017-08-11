@@ -96,7 +96,7 @@ Finally, a kit must be selected for the Chronos camera, which uses the
 compiler and QT version that we set up earlier. Select the `Kits` tab
 to add a new kit for the camera. The following settings are required:
 * Device type: Generic Linux Device
-* Sysroot: Path to the targetfs directory in the Chronos SDK
+* Sysroot: Path to the `targetfs` directory in the Chronos SDK
 * Compiler: The G++ cross compiler we set up earlier.
 * Qt Version: The cross compiled QT 4.8.7 that we set up earlier.
 * Environment: Click `Change` to add a variable `EZSDK_PATH` set to the

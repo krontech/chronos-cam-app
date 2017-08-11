@@ -60,7 +60,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <xdc/std.h>
 #include "vpss/ilclient.h"
 #include "platform_utils.h"
 
