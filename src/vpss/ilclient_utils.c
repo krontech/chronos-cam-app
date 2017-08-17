@@ -46,19 +46,19 @@
 #include <getopt.h>
 
 /*-------------------------program files -------------------------------------*/
-#include "ti/omx/interfaces/openMaxv11/OMX_Core.h"
-#include "ti/omx/interfaces/openMaxv11/OMX_Component.h"
-#include "OMX_TI_Common.h"
+#include <OMX_Core.h>
+#include <OMX_Component.h>
+#include <OMX_TI_Common.h>
 #include "ilclient.h"
 #include "ilclient_utils.h"
 #include "vpss/dm814x/platform_utils.h"
-#include <omx_vfcc.h>
-#include <omx_vdec.h>
-#include <omx_vfpc.h>
-#include <omx_vfdc.h>
-#include <omx_ctrl.h>
+#include <ti/omx/comp/vfcc/omx_vfcc.h>
+#include <ti/omx/comp/vdec/omx_vdec.h>
+#include <ti/omx/comp/vfpc/omx_vfpc.h>
+#include <ti/omx/comp/vfdc/omx_vfdc.h>
+#include <ti/omx/comp/ctrl/omx_ctrl.h>
 #include <OMX_TI_Index.h>
-#include "OMX_TI_Video.h"
+#include <OMX_TI_Video.h>
 #include "es_parser.h"
 
 /*--------------------------- defines ----------------------------------------*/

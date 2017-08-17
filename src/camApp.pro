@@ -27,7 +27,7 @@ INCLUDEPATH += $${QT_SYSROOT}/usr/include \
                $${QT_SYSROOT}/usr/include/gstreamer-0.10 \
                $${QT_SYSROOT}/usr/include/glib-2.0 \
                $${QT_SYSROOT}/usr/lib/glib-2.0/include \
-               ${EZSDK_PATH}/component-sources/omx_05_02_00_48/include
+               $${QT_SYSROOT}/usr/include/ti/omx/interfaces/openMaxv11
 
 # Library notes:
 # In OMX documentation, it says to include omxcore.av5T in the above list. However, this conflicts with

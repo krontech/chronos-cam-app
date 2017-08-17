@@ -64,8 +64,8 @@
 #include "platform_utils.h"
 
 #include <OMX_TI_Index.h>
-#include <omx_vfdc.h>
-#include <omx_ctrl.h>
+#include <ti/omx/comp/vfdc/omx_vfdc.h>
+#include <ti/omx/comp/ctrl/omx_ctrl.h>
 
 void IL_ClientSetSecondaryDisplayParams(void *pAppData)
 {
