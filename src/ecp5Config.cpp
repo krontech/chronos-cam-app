@@ -19,6 +19,7 @@ HOLDn		Out	AG6 : GP1[1]	33
 
 #include <fcntl.h>
 #include <sys/ioctl.h>
+#include <sys/stat.h>
 #include <linux/types.h>
 #include <linux/spi/spidev.h>
 #include <unistd.h>

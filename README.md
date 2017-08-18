@@ -3,7 +3,7 @@ The following packages were must be installed prior to building the camera
 application.
 
 ```
-    sudo apt-get install qtcreator gcc-arm-linux-gnueabi
+    sudo apt-get install qtcreator gcc-arm-linux-gnueabi g++-arm-linux-gnueabi
 ```
 
 # Building and Installing QT
@@ -60,12 +60,12 @@ SYSROOT=/home/osk/Work/chronos-sdk/targetfs
 
 ## All the configure arguments.
 ${QTPATH}configure -prefix $(pwd)/install -embedded arm \
-        -sysroot $SYSROOT -xplatform qws/linux-omap2-g++ \
+        -sysroot ${SYSROOT} -xplatform qws/linux-omap2-g++ \
         -depths 16,24,32 -no-mmx -no-3dnow -no-sse -no-sse2 -no-glib -no-cups \
         -no-largefile -no-accessibility -no-openssl -no-gtkstyle \
         -qt-mouse-pc -qt-mouse-linuxtp -qt-mouse-linuxinput \
         -plugin-mouse-linuxtp -plugin-mouse-pc -qt-mouse-tslib \
-        -qtlibinfix E -fast -D TSLIMBOUSEHANDLER_DEBUG
+        -qtlibinfix E -fast
 ```
 
 After configuring, make and install QT by running the commands
@@ -99,8 +99,6 @@ to add a new kit for the camera. The following settings are required:
 * Sysroot: Path to the `targetfs` directory in the Chronos SDK
 * Compiler: The G++ cross compiler we set up earlier.
 * Qt Version: The cross compiled QT 4.8.7 that we set up earlier.
-* Environment: Click `Change` to add a variable `EZSDK_PATH` set to the
-    path of the Chronos SDK.
 
 ![QT Creator QT kit](/doc/qtcreator_kits.png)
 
