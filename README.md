@@ -6,6 +6,13 @@ application.
     sudo apt-get install qtcreator gcc-arm-linux-gnueabi g++-arm-linux-gnueabi
 ```
 
+The above works on Ubuntu 16.04 LTS, newer versions of Ubuntu may require a different compiler version. In this case, use:
+
+```
+	sudo apt-get install qtcreator gcc-5-arm-linux-gnueabi g++-5-arm-linux-gnueabi
+
+```
+
 # Building and Installing QT
 The Chronos camera application is built using QT version 4.8, and must
 be cross compiled for a Cortex-A8 target. The generic ARM linux targets
@@ -47,16 +54,46 @@ load(qt_config)
 EOF
 ```
 
+If you installed the gcc-5 / g++-5 compilers, use the following qmake.conf instead of that shown above:
+
+```bash
+#
+# qmake configuration for building with arm-linux-gnueabi-g++
+#
+
+include(../../common/linux.conf)
+include(../../common/gcc-base-unix.conf)
+include(../../common/g++-unix.conf)
+include(../../common/qws.conf)
+
+# Compiler flags for OMAP2
+QMAKE_CFLAGS_RELEASE =   -O3 -march=armv7-a -mtune=cortex-a8 -mfpu=neon -mfloat-abi=softfp
+QMAKE_CXXFLAGS_RELEASE = -O3 -march=armv7-a -mtune=cortex-a8 -mfpu=neon -mfloat-abi=softfp
+
+# modifications to g++.conf
+QMAKE_CC                = arm-linux-gnueabi-gcc-5
+QMAKE_CXX               = arm-linux-gnueabi-g++-5
+QMAKE_LINK              = arm-linux-gnueabi-g++-5
+QMAKE_LINK_SHLIB        = arm-linux-gnueabi-g++-5
+
+# modifications to linux.conf
+QMAKE_AR                = arm-linux-gnueabi-gcc-ar-5 cqs
+QMAKE_OBJCOPY           = arm-linux-gnueabi-objcopy
+QMAKE_STRIP             = arm-linux-gnueabi-strip
+QMAKE_LIBS+= -lts
+
+load(qt_config)
+```
 
 The following shell script
 demonstrates the configuration provided to QT when used with the Chronos
-SDK.
+SDK. This assumes you have extracted the QT Everywhere package to ~/Work/, and have placed your targetfs in ~/Work/chronos-sdk/targetfs
 
 ```bash
 #!/bin/bash
 QTVER=4.8.7
-QTPATH=../qt-everywhere-opensource-src-${QTVER}/
-SYSROOT=/home/osk/Work/chronos-sdk/targetfs
+QTPATH=~/Work/qt-everywhere-opensource-src-${QTVER}/
+SYSROOT=~/Work/chronos-sdk/targetfs
 
 ## All the configure arguments.
 ${QTPATH}configure -prefix $(pwd)/install -embedded arm \
