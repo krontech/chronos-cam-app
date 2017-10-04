@@ -34,7 +34,7 @@
 #define SERIAL_NUMBER_OFFSET	0
 #define SERIAL_NUMBER_MAX_LEN	32		//Maximum number of characters in serial number
 
-#define CAMERA_APP_VERSION		"0.2"
+#define CAMERA_APP_VERSION		"0.2.1"
 #define ACCEPTABLE_FPGA_VERSION	2
 
 #endif // DEFINES_H

@@ -60,6 +60,8 @@ private slots:
 
 	void on_cmdEjectUSB_clicked();
 
+	void on_chkAutoSave_stateChanged(int arg1);
+
 private:
 	Ui::UtilWindow *ui;
 	Camera * camera;

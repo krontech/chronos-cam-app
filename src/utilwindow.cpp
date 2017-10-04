@@ -82,6 +82,8 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	ui->cmdSetSN->setVisible(false);
 	ui->lineSerialNumber->setVisible(false);
 
+	ui->chkAutoSave->setChecked(camera->autoSave);
+
 	connect(ui->cmdClose, SIGNAL(clicked()), this, SLOT(close()));
 }
 
@@ -572,4 +574,9 @@ void UtilWindow::on_cmdEjectUSB_clicked()
 		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
 		msg.exec();
 	}
+}
+
+void UtilWindow::on_chkAutoSave_stateChanged(int arg1)
+{
+	camera->autoSave = ui->chkAutoSave->isChecked();
 }

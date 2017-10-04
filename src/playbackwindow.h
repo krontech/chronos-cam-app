@@ -17,7 +17,7 @@ class playbackWindow : public QWidget
 	Q_OBJECT
 	
 public:
-	explicit playbackWindow(QWidget *parent = 0, Camera * cameraInst = NULL);
+	explicit playbackWindow(QWidget *parent = 0, Camera * cameraInst = NULL, bool autosave = false);
 	~playbackWindow();
 
 private slots:
@@ -63,6 +63,7 @@ private:
 	QTimer * timer;
 	QTimer * saveDoneTimer;
 	Int32 playbackRate;
+	bool autoSaveFlag;
 };
 
 #endif // PLAYBACKWINDOW_H

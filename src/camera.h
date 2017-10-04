@@ -260,6 +260,10 @@ private:
 	bool zebraEnabled;
 	char serialNumber[SERIAL_NUMBER_MAX_LEN+1];
 
+public:
+	bool autoSave;
+
+private:
 	bool lastRecording;
 	bool terminateRecDataThread;
 	UInt32 ramSize;

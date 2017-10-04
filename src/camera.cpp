@@ -33,6 +33,7 @@ Camera::Camera()
 		endOfRecCallback = NULL;
 		imgGain = 1.0;
 		recordingData.hasBeenSaved = true;		//Nothing in RAM at power up so there's nothing to lose
+		autoSave = false;
 		strcpy(serialNumber, "Not_Set");
 
 /*

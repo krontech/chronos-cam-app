@@ -12,7 +12,7 @@
 #include <QMessageBox>
 
 
-playbackWindow::playbackWindow(QWidget *parent, Camera * cameraInst) :
+playbackWindow::playbackWindow(QWidget *parent, Camera * cameraInst, bool autosave) :
 	QWidget(parent),
 	ui(new Ui::playbackWindow)
 {
@@ -20,6 +20,7 @@ playbackWindow::playbackWindow(QWidget *parent, Camera * cameraInst) :
 	this->setWindowFlags(Qt::Dialog /*| Qt::WindowStaysOnTopHint*/ | Qt::FramelessWindowHint);
 	this->move(600,0);
 	camera = cameraInst;
+	autoSaveFlag = autosave;
 
 	sw = new StatusWindow;
 
@@ -43,6 +44,10 @@ playbackWindow::playbackWindow(QWidget *parent, Camera * cameraInst) :
 	timer->start(30);
 
 	updateStatusText();
+
+	if(autoSaveFlag) {
+		on_cmdSave_clicked();
+	}
 }
 
 playbackWindow::~playbackWindow()
@@ -203,6 +208,10 @@ void playbackWindow::checkForSaveDone()
 		sw->close();
 		ui->cmdSave->setText("Save");
 		setControlEnable(true);
+
+		if(autoSaveFlag) {
+			close();
+		}
 	}
 }
 
