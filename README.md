@@ -85,9 +85,12 @@ QMAKE_LIBS+= -lts
 load(qt_config)
 ```
 
-The following shell script
-demonstrates the configuration provided to QT when used with the Chronos
-SDK. This assumes you have extracted the QT Everywhere package to ~/Work/, and have placed your targetfs in ~/Work/chronos-sdk/targetfs
+The following shell script demonstrates the configuration provided to QT
+when used with the Chronos SDK. This assumes you have extracted the QT 
+Everywhere package to ~/Work/, and have placed your targetfs in
+~/Work/chronos-sdk/targetfs
+Put the below content into a shell script, for example conf.sh.
+Place this file in the QT install directory, for example ~/Work/qt4-install/
 
 ```bash
 #!/bin/bash
@@ -105,7 +108,7 @@ ${QTPATH}configure -prefix $(pwd)/install -embedded arm \
         -qtlibinfix E -fast
 ```
 
-After configuring, make and install QT by running the commands
+Run the shell script ./conf.sh, from the QT install directory. After configuration is complete, make and install QT by running the commands
 
 ```
 make
