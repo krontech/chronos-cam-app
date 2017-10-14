@@ -119,7 +119,7 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 {
 	int FRAME_SIZE = 1280*1024*12/8;
 	CameraErrortype retVal;
-	UInt32 ramSizeGBSlot0, ramSizeGBSlot1;
+    UInt32 ramSizeGBSlot0, ramSizeGBSlot1;
 
 	//Get the memory size
 	retVal = (CameraErrortype)getRamSizeGB(&ramSizeGBSlot0, &ramSizeGBSlot1);
@@ -132,7 +132,7 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 	const char * configFileName;
 /*
 	//Get the file name based on the RAM installed
-	if(8 == ramSizeGBSlot0)
+    if(8 == ramSizeGBSlot0)
 		configFileName = "FPGA_8GB.bit";
 	else if(16 == ramSizeGBSlot0)
 		configFileName = "FPGA_16GB.bit";
@@ -159,7 +159,7 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 	vinst = vinstInst;
 	sensor = sensorInst;
 	ui = userInterface;
-	ramSize = ramSizeGBSlot0*1024/32*1024*1024;
+    ramSize = (ramSizeGBSlot0 + ramSizeGBSlot1)*1024/32*1024*1024;
 	isColor = readIsColor();
 	int err;
 
@@ -214,7 +214,8 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 	gpmc->write16(DISPLAY_H_BACK_PORCH_ADDR, 248);
 	gpmc->write16(DISPLAY_V_BACK_PORCH_ADDR, 38);*/
 
-	gpmc->write16(IMAGE_SENSOR_FIFO_STOP_W_THRESH_ADDR, 32);
+    gpmc->write16(IMAGE_SENSOR_FIFO_START_W_THRESH_ADDR, 0x00A0);
+    gpmc->write16(IMAGE_SENSOR_FIFO_STOP_W_THRESH_ADDR, 0x01D0);
 
 	gpmc->write32(SEQ_LIVE_ADDR_0_ADDR, LIVE_FRAME_0_ADDRESS);
 	gpmc->write32(SEQ_LIVE_ADDR_1_ADDR, LIVE_FRAME_1_ADDRESS);
@@ -262,6 +263,13 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 		qDebug() << "Memory test failed, " << errorCount << "errors, first at " << firstErrorAddr << ", first correct at " << firstCorrectAddr;
 	}
 */
+
+    if (ramSizeGBSlot1 != 0) {
+        if      (ramSizeGBSlot0 == 0)                         gpmc->write16(MMU_CONFIG_ADDR, MMU_INVERT_CS);
+        else if (ramSizeGBSlot0 == 8 && ramSizeGBSlot1 == 16) gpmc->write16(MMU_CONFIG_ADDR, MMU_INVERT_CS);
+        else if (ramSizeGBSlot0 == 8 && ramSizeGBSlot1 == 8)  gpmc->write16(MMU_CONFIG_ADDR, MMU_SWITCH_STUFFED);
+    }
+
 
 	//enable video readout
 	gpmc->write32(DISPLAY_CTL_ADDR, (gpmc->read32(DISPLAY_CTL_ADDR) & ~DISPLAY_CTL_READOUT_INH_MASK) | (isColor ? DISPLAY_CTL_COLOR_MODE_MASK : 0));

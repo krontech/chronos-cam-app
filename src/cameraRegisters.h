@@ -73,6 +73,8 @@
 #define WL_DYNDLY_2					0x278
 #define WL_DYNDLY_3					0x27A
 
+#define MMU_CONFIG_ADDRESS          0x290
+
 #define	SYSTEM_RESET				0x300
 #define FPGA_VERSION				0x302
 #define	DCG_MEM_START				0x800
@@ -204,6 +206,11 @@
 #define WL_DYNDLY_1_ADDR				(WL_DYNDLY_1 * 2)
 #define WL_DYNDLY_2_ADDR				(WL_DYNDLY_2 * 2)
 #define WL_DYNDLY_3_ADDR				(WL_DYNDLY_3 * 2)
+
+#define MMU_CONFIG_ADDR                 (MMU_CONFIG_ADDRESS * 2)
+#define MMU_INVERT_CS                   1
+#define MMU_SWITCH_STUFFED              2
+
 
 #define SYSTEM_RESET_ADDR				(SYSTEM_RESET * 2)
 

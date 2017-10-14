@@ -25,7 +25,7 @@
 #define	LIVE_FRAME_2_ADDRESS	(MAX_FRAME_LENGTH*3)
 #define REC_REGION_START		(MAX_FRAME_LENGTH*4)
 #define REC_REGION_LEN			ramSize
-#define FRAME_ALIGN_WORDS		8			//Align to 256 byte boundaries (8 32-byte words)
+#define FRAME_ALIGN_WORDS		32			//Align to 256 byte boundaries (8 32-byte words)
 
 #define MAX_FRAME_SIZE_H		1280
 #define MAX_FRAME_SIZE_V		1024
@@ -229,7 +229,7 @@ public:
 	void setZebraEnableLL(bool en);
 	void setFocusPeakThreshold(UInt32 thresh);
 	UInt32 getFocusPeakThreshold(void);
-	Int32 getRamSizeGB(UInt32 * stick0SizeGB, UInt32 * stick1SizeGB);
+    Int32 getRamSizeGB(UInt32 * stick0SizeGB, UInt32 * stick1SizeGB);
 	Int32 readSerialNumber(char * dest);
 	Int32 writeSerialNumber(char * src);
 	UInt16 getFPGAVersion(void);

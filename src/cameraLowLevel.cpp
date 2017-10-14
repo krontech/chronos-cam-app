@@ -270,7 +270,7 @@ Int32 Camera::getRamSizeGB(UInt32 * stick0SizeGB, UInt32 * stick1SizeGB)
 {
 	int retVal;
 	int file;
-	unsigned char buf;
+    unsigned char ram0_buf, ram1_buf;
 
 	/* if we are reading, *WRITE* to file */
 	if ((file = open(RAM_SPD_I2C_BUS_FILE, O_WRONLY|O_CREAT,0666)) < 0) {
@@ -286,34 +286,64 @@ Int32 Camera::getRamSizeGB(UInt32 * stick0SizeGB, UInt32 * stick1SizeGB)
 //		qDebug() << buf;
 //	}
 
+    // Read ram slot 0 size
+    retVal = eeprom_read(file, RAM_SPD_I2C_ADDRESS_STICK_0/*Address*/, 5/*Offset*/, &ram0_buf/*buffer*/, sizeof(ram0_buf)/*Length*/);
 
-	retVal = eeprom_read(file, RAM_SPD_I2C_ADDRESS_STICK_0/*Address*/, 5/*Offset*/, &buf/*buffer*/, sizeof(buf)/*Length*/);
-	close(file);
+    if(retVal < 0)
+    {
+        *stick0SizeGB = 0;
+    }
 
-	if(retVal < 0)
-	{
-		return CAMERA_ERROR_IO;
-	}
 
-	switch(buf & 0x07)	//Column size is in bits 2:0, and is row address width - 9
-	{
-		case 1:	//8GB, column address width is 10
-			*stick0SizeGB = 8;
+    switch(ram0_buf & 0x07)	//Column size is in bits 2:0, and is row address width - 9
+    {
+        case 1:	//8GB, column address width is 10
+            *stick0SizeGB = 8;
 
-			break;
-		case 2:	//16GB, column address width is 11
-			*stick0SizeGB = 16;
-			break;
-		default:
-			*stick0SizeGB = 0;
-			break;
-	}
+            break;
+        case 2:	//16GB, column address width is 11
+            *stick0SizeGB = 16;
+            break;
+        default:
+        *stick0SizeGB = 0;
+            break;
+    }
 
-	*stick1SizeGB = 0;
+    qDebug() << "Found" << *stick0SizeGB << "GB memory stick in slot 0";
 
-	qDebug() << "Found" << *stick0SizeGB << "GB memory stick in slot 0";
 
-	return CAMERA_SUCCESS;
+    // Read ram slot 1 size
+    retVal = eeprom_read(file, RAM_SPD_I2C_ADDRESS_STICK_1/*Address*/, 5/*Offset*/, &ram1_buf/*buffer*/, sizeof(ram1_buf)/*Length*/);
+
+    if(retVal < 0)
+    {
+        *stick1SizeGB = 0;
+    }
+    else {
+        switch(ram1_buf & 0x07)	//Column size is in bits 2:0, and is row address width - 9
+        {
+            case 1:	//8GB, column address width is 10
+                *stick1SizeGB = 8;
+
+                break;
+            case 2:	//16GB, column address width is 11
+                *stick1SizeGB = 16;
+                break;
+            default:
+                *stick1SizeGB = 0;
+                break;
+        }
+    }
+
+    qDebug() << "Found" << *stick1SizeGB << "GB memory stick in slot 1";
+
+    close(file);
+
+    if (*stick0SizeGB == 0 && *stick1SizeGB == 0) {
+        return CAMERA_ERROR_IO;
+    }
+
+    return CAMERA_SUCCESS;
 }
 
 //dest must be a char array that can handle SERIAL_NUMBER_MAX_LEN + 1 bytes
