@@ -215,7 +215,7 @@ Int32 VideoRecord::start(UInt32 hSize, UInt32 vSize, UInt32 frames)
 	running = true;
 
 	printf("VideoRecord start done\n");
-	return CAMERA_SUCCESS;
+	return SUCCESS;
 
 }
 
@@ -266,7 +266,7 @@ UInt32 VideoRecord::stop2()
 
 	GstEvent*  event = gst_event_new_eos();
 	 gst_element_send_event(pipeline, event);
-	return CAMERA_SUCCESS;
+	return SUCCESS;
 }
 
 

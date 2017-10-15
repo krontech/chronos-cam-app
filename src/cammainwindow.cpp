@@ -60,7 +60,7 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 
 	retVal = camera->init(gpmc, vinst, sensor, userInterface, 16*1024/32*1024*1024, true);
 
-	if(retVal != CAMERA_SUCCESS)
+	if(retVal != SUCCESS)
 	{
 
 		msg.setText(QString("Camera init failed, error") + QString::number((Int32)retVal));

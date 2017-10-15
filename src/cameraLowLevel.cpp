@@ -343,7 +343,7 @@ Int32 Camera::getRamSizeGB(UInt32 * stick0SizeGB, UInt32 * stick1SizeGB)
         return CAMERA_ERROR_IO;
     }
 
-    return CAMERA_SUCCESS;
+    return SUCCESS;
 }
 
 //dest must be a char array that can handle SERIAL_NUMBER_MAX_LEN + 1 bytes
@@ -370,7 +370,7 @@ Int32 Camera::readSerialNumber(char * dest)
 	qDebug() << "Read in serial number" << dest;
 	dest[SERIAL_NUMBER_MAX_LEN] = '\0';
 
-	return CAMERA_SUCCESS;
+	return SUCCESS;
 }
 
 Int32 Camera::writeSerialNumber(char * src)
@@ -398,7 +398,7 @@ Int32 Camera::writeSerialNumber(char * src)
 
 	delayms(250);
 
-	return CAMERA_SUCCESS;
+	return SUCCESS;
 }
 
 UInt16 Camera::getFPGAVersion(void)

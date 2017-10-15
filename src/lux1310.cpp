@@ -183,7 +183,7 @@ CameraErrortype LUX1310::init(GPMC * gpmc_inst)
 {
 	CameraErrortype retVal;
 	retVal = spi->Init(IMAGE_SENSOR_SPI, 16, 1000000, false, true);	//Invert clock phase
-	if(CAMERA_SUCCESS != retVal)
+	if(SUCCESS != retVal)
 		return retVal;
 
 	dacCSFD = open("/sys/class/gpio/gpio33/value", O_WRONLY);
@@ -194,10 +194,10 @@ CameraErrortype LUX1310::init(GPMC * gpmc_inst)
 
 	retVal = initSensor();
 	//mem problem before this
-	if(CAMERA_SUCCESS != retVal)
+	if(SUCCESS != retVal)
 		return retVal;
 
-	return CAMERA_SUCCESS;
+	return SUCCESS;
 }
 
 CameraErrortype LUX1310::initSensor()
@@ -319,7 +319,7 @@ CameraErrortype LUX1310::initSensor()
 	//mem problem before this
 	setIntegrationTime((double)getMaxExposure(currentPeriod) / 100000000.0, 1280, 1024);
 
-	return CAMERA_SUCCESS;
+	return SUCCESS;
 }
 
 void LUX1310::SCIWrite(UInt8 address, UInt16 data)
@@ -427,7 +427,7 @@ CameraErrortype LUX1310::autoPhaseCal(void)
 
 	int dataCorrect = getDataCorrect();
 	qDebug() << "datacorrect" << dataCorrect;
-	return CAMERA_SUCCESS;
+	return SUCCESS;
 
 //	setSyncToken(0x32A);	//Set sync token to lock to the training pattern (0x32A or 1100101010)
 
@@ -493,7 +493,7 @@ CameraErrortype LUX1310::autoPhaseCal(void)
 Int32 LUX1310::seqOnOff(bool on)
 {
 	gpmc->write32(IMAGER_INT_TIME_ADDR, 0);	//Disable integration
-	return CAMERA_SUCCESS;
+	return SUCCESS;
 
 }
 
@@ -962,7 +962,7 @@ Int32 LUX1310::loadADCOffsetsFromFile(const char * filename)
 	for(int i = 0; i < LUX1310_HRES_INCREMENT; i++)
 		setADCOffset(i, offsets[i]);
 
-	return CAMERA_SUCCESS;
+	return SUCCESS;
 }
 
 Int32 LUX1310::saveADCOffsetsToFile(const char * filename)
@@ -989,7 +989,7 @@ Int32 LUX1310::saveADCOffsetsToFile(const char * filename)
 	fwrite(offsets, sizeof(offsets[0]), LUX1310_HRES_INCREMENT, fp);
 	fclose(fp);
 
-	return CAMERA_SUCCESS;
+	return SUCCESS;
 }
 
 //Generate a filename string used for calibration values that is specific to the current gain and wavetable settings

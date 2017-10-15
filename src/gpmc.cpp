@@ -184,7 +184,7 @@ Int32 GPMC::init()
 	//enable CS
 	GPMC_CONFIG7_i(1) = GPMC_CONFIG7_i(1) | (1 << 6) /*CSVALID*/;
 
-	return CAMERA_SUCCESS;
+	return SUCCESS;
 }
 
 void GPMC::setTimeoutEnable(bool timeoutEnable)

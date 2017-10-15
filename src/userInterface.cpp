@@ -47,7 +47,7 @@ Int32 UserInterface::init(void)
 		return UI_THREAD_ERROR;
 
 	printf("UI init done\n");
-	return CAMERA_SUCCESS;
+	return SUCCESS;
 }
 
 UserInterface::UserInterface()

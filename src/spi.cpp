@@ -74,7 +74,7 @@ CameraErrortype SPI::Open(const char * dev)
 		return SPI_IOCTL_FAIL;
 
 	isOpen = true;
-	return CAMERA_SUCCESS;
+	return SUCCESS;
 
 }
 
@@ -104,5 +104,5 @@ Int32 SPI::Transfer(uint64_t txBuf, uint64_t rxBuf, uint32_t len)
 	if (ret < 1)
 		return SPI_IOCTL_FAIL;
 	else
-		return CAMERA_SUCCESS;
+		return SUCCESS;
 }

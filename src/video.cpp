@@ -2638,7 +2638,7 @@ Int32 Video::init(void)
 
 
 	printf("Video init done\n");
-	return CAMERA_SUCCESS;
+	return SUCCESS;
 }
 
 bool Video::setRunning(bool run)
@@ -2702,7 +2702,7 @@ CameraErrortype Video::setScaling(UInt32 startX, UInt32 startY, UInt32 cropX, UI
 	  printf ("failed to set input channel resolution\n");
 	  return VIDEO_OMX_ERROR;
 	}
-	return CAMERA_SUCCESS;
+	return SUCCESS;
 }
 
 CameraErrortype Video::setImagerResolution(UInt32 x, UInt32 y)
@@ -2735,7 +2735,7 @@ CameraErrortype Video::setImagerResolution(UInt32 x, UInt32 y)
 		displayWindowStartY = (480 - displayWindowYSize) / 2;
 
 	}
-	return CAMERA_SUCCESS;
+	return SUCCESS;
 }
 
 void Video::frameCB(void)

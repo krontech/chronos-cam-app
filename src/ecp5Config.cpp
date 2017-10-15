@@ -104,7 +104,7 @@ Int32 Ecp5Config::init(const char * spiDev, const char * pgmnGPIO, const char * 
 
 	isOpen = true;
 
-	return CAMERA_SUCCESS;
+	return SUCCESS;
 }
 
 void Ecp5Config::deinit(void)
@@ -244,7 +244,7 @@ Int32 Ecp5Config::configure(const char * configFile)
 	writeGPIO(snFD, true);
 	delayms(1);	//Just in case
 
-	return CAMERA_SUCCESS;
+	return SUCCESS;
 }
 
 void Ecp5Config::readStatus()
@@ -282,7 +282,7 @@ Int32 Ecp5Config::spiWrite(UInt8 * data, UInt32 len)
 	if (ret < 1)
 		return ECP5_IOCTL_FAIL;
 	else
-		return CAMERA_SUCCESS;
+		return SUCCESS;
 }
 
 //FPGA sends data in the opposite bit order it receives it in.
@@ -305,7 +305,7 @@ Int32 Ecp5Config::spiRead(UInt8 * data, UInt32 len)
 	if (ret < 1)
 		return ECP5_IOCTL_FAIL;
 
-	return CAMERA_SUCCESS;
+	return SUCCESS;
 
 }
 

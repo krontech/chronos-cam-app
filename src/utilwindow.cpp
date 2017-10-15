@@ -263,7 +263,7 @@ void UtilWindow::on_cmdAutoCal_clicked()
 	//ADC Offset calibration
 	retVal = camera->autoAdcOffsetCorrection();
 
-	if(CAMERA_SUCCESS != retVal)
+	if(SUCCESS != retVal)
 	{
 		sw.hide();
 		QMessageBox msg;
@@ -277,7 +277,7 @@ void UtilWindow::on_cmdAutoCal_clicked()
 	//Black cal all standard resolutions
 	retVal = camera->blackCalAllStdRes(true);
 
-	if(CAMERA_SUCCESS != retVal)
+	if(SUCCESS != retVal)
 	{
 		sw.hide();
 		QMessageBox msg;
@@ -293,7 +293,7 @@ void UtilWindow::on_cmdAutoCal_clicked()
 
 	retVal = camera->autoColGainCorrection();
 
-	if(CAMERA_SUCCESS != retVal)
+	if(SUCCESS != retVal)
 	{
 		sw.hide();
 		QMessageBox msg;
@@ -306,7 +306,7 @@ void UtilWindow::on_cmdAutoCal_clicked()
 /*
 	retVal = camera->takeWhiteReferences();
 
-	if(CAMERA_SUCCESS != retVal)
+	if(SUCCESS != retVal)
 	{
 		QMessageBox msg;
 		sprintf(text, "Error during white reference calibration, error %d", retVal);
@@ -343,7 +343,7 @@ void UtilWindow::on_cmdWhiteRef_clicked()
 
 	retVal = camera->takeWhiteReferences();
 
-	if(CAMERA_SUCCESS != retVal)
+	if(SUCCESS != retVal)
 	{
 		QMessageBox msg;
 		sprintf(text, "Error during white reference calibration, error %d", retVal);

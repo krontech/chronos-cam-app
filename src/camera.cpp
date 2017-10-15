@@ -124,7 +124,7 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 	//Get the memory size
 	retVal = (CameraErrortype)getRamSizeGB(&ramSizeGBSlot0, &ramSizeGBSlot1);
 
-	if(retVal != CAMERA_SUCCESS)
+	if(retVal != SUCCESS)
 		return retVal;
 
 	//Configure FPGA
@@ -146,13 +146,13 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 	retVal = (CameraErrortype)config->configure(configFileName);
 	delete config;
 
-	if(retVal != CAMERA_SUCCESS)
+	if(retVal != SUCCESS)
 		return retVal;
 
 
 	//Read serial number in
 	retVal = (CameraErrortype)readSerialNumber(serialNumber);
-	if(retVal != CAMERA_SUCCESS)
+	if(retVal != SUCCESS)
 		return retVal;
 
 	gpmc = gpmcInst;
@@ -284,7 +284,7 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 
 	retVal = sensor->init(gpmc);
 //mem problem before this
-	if(retVal != CAMERA_SUCCESS)
+	if(retVal != SUCCESS)
 	{
 		return retVal;
 	}
@@ -396,7 +396,7 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 
 	io = new IO(gpmc);
 	retVal = io->init();
-	if(retVal != CAMERA_SUCCESS)
+	if(retVal != SUCCESS)
 		return retVal;
 
 	//Set trigger for normally open switch on IO1
@@ -405,7 +405,7 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 	io->setTriggerDebounceEn(1);
 	io->setOutLevel((1 << 1));	//Enable strong pullup
 
-	return CAMERA_SUCCESS;
+	return SUCCESS;
 
 }
 
@@ -459,7 +459,7 @@ UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 				<< "frameSizeWords" << imagerSettings.frameSizeWords
 				<< "recRegionSizeFrames" << imagerSettings.recRegionSizeFrames;
 
-	return CAMERA_SUCCESS;
+	return SUCCESS;
 
 }
 
@@ -486,7 +486,7 @@ UInt32 Camera::setDisplaySettings(bool encoderSafe)
 	if(running)
 		vinst->setRunning(true);
 
-	return CAMERA_SUCCESS;
+	return SUCCESS;
 }
 
 
@@ -506,7 +506,7 @@ Int32 Camera::startRecording(void)
 	ui->setRecLEDBack(true);
 	recording = true;
 
-	return CAMERA_SUCCESS;
+	return SUCCESS;
 }
 
 Int32 Camera::setRecSequencerModeNormal()
@@ -537,7 +537,7 @@ Int32 Camera::setRecSequencerModeNormal()
 
 	setFrameSizeWords(imagerSettings.frameSizeWords);
 
-	return CAMERA_SUCCESS;
+	return SUCCESS;
 }
 
 Int32 Camera::setRecSequencerModeSingleBlock(UInt32 blockLength)
@@ -571,7 +571,7 @@ Int32 Camera::setRecSequencerModeSingleBlock(UInt32 blockLength)
 
 	setFrameSizeWords(imagerSettings.frameSizeWords);
 
-	return CAMERA_SUCCESS;
+	return SUCCESS;
 }
 
 Int32 Camera::stopRecording(void)
@@ -582,7 +582,7 @@ Int32 Camera::stopRecording(void)
 	terminateRecord();
 	//recording = false;
 
-	return CAMERA_SUCCESS;
+	return SUCCESS;
 }
 
 //Find the earliest fully valid block
@@ -761,7 +761,7 @@ UInt32 Camera::setPlayMode(bool playMode)
 
 	setDisplayFrameSource(!playMode);
 
-	return CAMERA_SUCCESS;
+	return SUCCESS;
 }
 
 /* setPlaybackRate
@@ -1191,11 +1191,11 @@ UInt32 Camera::autoFPNCorrection(UInt32 framesToAverage, bool writeToFile, bool 
 	qDebug() << "Starting record with a length of" << framesToAverage << "frames";
 
 	retVal = setRecSequencerModeSingleBlock(framesToAverage+1);
-	if(CAMERA_SUCCESS != retVal)
+	if(SUCCESS != retVal)
 		return retVal;
 
 	retVal = startRecording();
-	if(CAMERA_SUCCESS != retVal)
+	if(SUCCESS != retVal)
 		return retVal;
 
 	for(count = 0; (count < countMax) && recording; count++) {nanosleep(&ts, NULL);}
@@ -1209,7 +1209,7 @@ UInt32 Camera::autoFPNCorrection(UInt32 framesToAverage, bool writeToFile, bool 
 		qDebug() << "Error: Record failed to stop within timeout period. recDataLength =" << recDataLength;
 
 		retVal = stopRecording();
-		if(CAMERA_SUCCESS != retVal)
+		if(SUCCESS != retVal)
 			qDebug() << "Error: Stop Record failed";
 
 		return CAMERA_FPN_CORRECTION_ERROR;
@@ -1222,7 +1222,7 @@ UInt32 Camera::autoFPNCorrection(UInt32 framesToAverage, bool writeToFile, bool 
 	qDebug() << "FPN correction done";
 	recordingData.hasBeenSaved = true;
 
-	return CAMERA_SUCCESS;
+	return SUCCESS;
 
 }
 
@@ -1290,7 +1290,7 @@ Int32 Camera::loadFPNFromFile(const char * filename)
 	delete buffer;
 	delete packedBuf32;
 
-	return CAMERA_SUCCESS;
+	return SUCCESS;
 }
 
 Int32 Camera::computeColGainCorrection(UInt32 framesToAverage, bool writeToFile)
@@ -1409,7 +1409,7 @@ Int32 Camera::computeColGainCorrection(UInt32 framesToAverage, bool writeToFile)
 
 	delete buffer;
 	delete rawBuffer;
-	return CAMERA_SUCCESS;
+	return SUCCESS;
 }
 
 Int32 Camera::loadColGainFromFile(const char * filename)
@@ -1459,7 +1459,7 @@ Int32 Camera::loadColGainFromFile(const char * filename)
 	for(int i = 0; i < LUX1310_MAX_H_RES; i++)
 		writeDGCMem(gainCorrection[i % 16], i);
 
-	return CAMERA_SUCCESS;
+	return SUCCESS;
 }
 
 UInt32 Camera::adcOffsetCorrection(UInt32 iterations, const char * filename)
@@ -1476,7 +1476,7 @@ UInt32 Camera::adcOffsetCorrection(UInt32 iterations, const char * filename)
 		qDebug() << "Starting record for autoOffsetCorrection";
 
 		retVal = recordFrames(1);
-		if(CAMERA_SUCCESS != retVal)
+		if(SUCCESS != retVal)
 			return retVal;
 
 		qDebug() << "Record done, doing offset correction iteration";
@@ -1491,7 +1491,7 @@ UInt32 Camera::adcOffsetCorrection(UInt32 iterations, const char * filename)
 		sensor->saveADCOffsetsToFile(filename);
 	}
 
-	return CAMERA_SUCCESS;
+	return SUCCESS;
 }
 
 void Camera::offsetCorrectionIteration(UInt32 wordAddress)
@@ -1551,7 +1551,7 @@ Int32 Camera::autoAdcOffsetCorrection(void)
 	_is.gain = LUX1310_GAIN_1;
 
 	retVal = setImagerSettings(_is);
-	if(CAMERA_SUCCESS != retVal)
+	if(SUCCESS != retVal)
 		return retVal;
 
 	//Zero out the FPN area
@@ -1568,11 +1568,11 @@ Int32 Camera::autoAdcOffsetCorrection(void)
 		_is.gain = gain;
 		sensor->wavetableSelect = LUX1310_WAVETABLE_39;
 		retVal = setImagerSettings(_is);
-		if(CAMERA_SUCCESS != retVal)
+		if(SUCCESS != retVal)
 			return retVal;
 
 		retVal = adcOffsetCorrection(32);
-		if(CAMERA_SUCCESS != retVal)
+		if(SUCCESS != retVal)
 			return retVal;
 
 		qDebug() << "Done";
@@ -1587,11 +1587,11 @@ Int32 Camera::autoAdcOffsetCorrection(void)
 		sensor->wavetableSelect = LUX1310_WAVETABLE_80;
 
 		retVal = setImagerSettings(_is);
-		if(CAMERA_SUCCESS != retVal)
+		if(SUCCESS != retVal)
 			return retVal;
 
 		retVal = adcOffsetCorrection(32);
-		if(CAMERA_SUCCESS != retVal)
+		if(SUCCESS != retVal)
 			return retVal;
 
 		qDebug() << "Done";
@@ -1602,10 +1602,10 @@ Int32 Camera::autoAdcOffsetCorrection(void)
 	_is.gain = LUX1310_GAIN_1;
 
 	retVal = setImagerSettings(_is);
-	if(CAMERA_SUCCESS != retVal)
+	if(SUCCESS != retVal)
 		return retVal;
 
-	return CAMERA_SUCCESS;
+	return SUCCESS;
 }
 
 Int32 Camera::autoColGainCorrection(void)
@@ -1623,27 +1623,27 @@ Int32 Camera::autoColGainCorrection(void)
 	_is.gain = LUX1310_GAIN_1;
 
 	retVal = setImagerSettings(_is);
-	if(CAMERA_SUCCESS != retVal)
+	if(SUCCESS != retVal)
 		return retVal;
 
 	retVal = adjustExposureToValue(3584, 100, false);
-	if(CAMERA_SUCCESS != retVal)
+	if(SUCCESS != retVal)
 		return retVal;
 
 	computeColGainCorrection(1, true);
 
 	_is.gain = LUX1310_GAIN_4;
 	retVal = setImagerSettings(_is);
-	if(CAMERA_SUCCESS != retVal)
+	if(SUCCESS != retVal)
 		return retVal;
 
 	retVal = adjustExposureToValue(3584, 100, false);
-	if(CAMERA_SUCCESS != retVal)
+	if(SUCCESS != retVal)
 		return retVal;
 
 	computeColGainCorrection(1, true);
 
-	return CAMERA_SUCCESS;
+	return SUCCESS;
 }
 
 //Will only decrease exposure, fails if the current set exposure is not clipped
@@ -1658,7 +1658,7 @@ Int32 Camera::adjustExposureToValue(UInt32 level, UInt32 tolerance, bool include
 	//Repeat recording frames and halving the exposure until the pixel value is below the desired level
 	do {
 		retVal = recordFrames(1);
-		if(CAMERA_SUCCESS != retVal)
+		if(SUCCESS != retVal)
 			return retVal;
 
 		val = getMiddlePixelValue(includeFPNCorrection);
@@ -1670,7 +1670,7 @@ Int32 Camera::adjustExposureToValue(UInt32 level, UInt32 tolerance, bool include
 			qDebug() << "Reducing exposure";
 			_is.exposure /= 2;
 			retVal = setImagerSettings(_is);
-			if(CAMERA_SUCCESS != retVal)
+			if(SUCCESS != retVal)
 				return retVal;
 		}
 		iterationCount++;
@@ -1693,12 +1693,12 @@ Int32 Camera::adjustExposureToValue(UInt32 level, UInt32 tolerance, bool include
 		_is.exposure = (UInt32)((double)_is.exposure * ratio);
 		qDebug() << "newExp:" << _is.exposure;
 		retVal = setImagerSettings(_is);
-		if(CAMERA_SUCCESS != retVal)
+		if(SUCCESS != retVal)
 			return retVal;
 
 		//Check the value was correct
 		retVal = recordFrames(1);
-		if(CAMERA_SUCCESS != retVal)
+		if(SUCCESS != retVal)
 			return retVal;
 
 		val = getMiddlePixelValue(includeFPNCorrection);
@@ -1709,7 +1709,7 @@ Int32 Camera::adjustExposureToValue(UInt32 level, UInt32 tolerance, bool include
 	if(iterationCount > iterationCountMax)
 		return CAMERA_ITERATION_LIMIT_EXCEEDED;
 
-	return CAMERA_SUCCESS;
+	return SUCCESS;
 }
 
 Int32 Camera::recordFrames(UInt32 numframes)
@@ -1723,11 +1723,11 @@ Int32 Camera::recordFrames(UInt32 numframes)
 	qDebug() << "Starting record of one frame";
 
 	retVal = setRecSequencerModeSingleBlock(numframes + 1);
-	if(CAMERA_SUCCESS != retVal)
+	if(SUCCESS != retVal)
 		return retVal;
 
 	retVal = startRecording();
-	if(CAMERA_SUCCESS != retVal)
+	if(SUCCESS != retVal)
 		return retVal;
 
 	for(count = 0; (count < countMax) && recording; count++) {nanosleep(&ts, NULL);}
@@ -1737,7 +1737,7 @@ Int32 Camera::recordFrames(UInt32 numframes)
 		qDebug() << "Error: Record failed to stop within timeout period. recDataLength =" << recDataLength;
 
 		retVal = stopRecording();
-		if(CAMERA_SUCCESS != retVal)
+		if(SUCCESS != retVal)
 			qDebug() << "Error: Stop Record failed";
 
 		return CAMERA_RECORD_FRAME_ERROR;
@@ -1745,7 +1745,7 @@ Int32 Camera::recordFrames(UInt32 numframes)
 
 	qDebug() << "Record done";
 
-	return CAMERA_SUCCESS;
+	return SUCCESS;
 }
 
 UInt32 Camera::getMiddlePixelValue(bool includeFPNCorrection)
@@ -1847,7 +1847,7 @@ Int32 Camera::readFrame(UInt32 frame, UInt16 * frameBuffer)
 	delete fpnBuffer32;
 	delete rawFrameBuffer32;
 
-	return CAMERA_SUCCESS;
+	return SUCCESS;
 }
 
 //frameBuffer must be a UInt16 array with enough elements to to hold all pixels at the current recording resolution
@@ -1860,7 +1860,7 @@ Int32 Camera::getRawCorrectedFrame(UInt32 frame, UInt16 * frameBuffer)
 
 
 	retVal = readDCG(gainCorrection);
-	if(CAMERA_SUCCESS != retVal)
+	if(SUCCESS != retVal)
 		return retVal;
 
 	UInt16 * fpnUnpacked = new UInt16[pixelsPerFrame];
@@ -1868,14 +1868,14 @@ Int32 Camera::getRawCorrectedFrame(UInt32 frame, UInt16 * frameBuffer)
 		return CAMERA_MEM_ERROR;
 
 	retVal = readFPN(fpnUnpacked);
-	if(CAMERA_SUCCESS != retVal)
+	if(SUCCESS != retVal)
 	{
 		delete fpnUnpacked;
 		return retVal;
 	}
 
 	retVal = readCorrectedFrame(frame, frameBuffer, fpnUnpacked, gainCorrection);
-	if(CAMERA_SUCCESS != retVal)
+	if(SUCCESS != retVal)
 	{
 		delete fpnUnpacked;
 		return retVal;
@@ -1883,7 +1883,7 @@ Int32 Camera::getRawCorrectedFrame(UInt32 frame, UInt16 * frameBuffer)
 
 	delete fpnUnpacked;
 
-	return CAMERA_SUCCESS;
+	return SUCCESS;
 }
 
 //frameBuffer must be a UInt16 array with enough elements to to hold all pixels at the current recording resolution
@@ -1896,7 +1896,7 @@ Int32 Camera::getRawCorrectedFramesAveraged(UInt32 frame, UInt32 framesToAverage
 
 
 	retVal = readDCG(gainCorrection);
-	if(CAMERA_SUCCESS != retVal)
+	if(SUCCESS != retVal)
 		return retVal;
 
 	UInt16 * fpnUnpacked = new UInt16[pixelsPerFrame];
@@ -1904,7 +1904,7 @@ Int32 Camera::getRawCorrectedFramesAveraged(UInt32 frame, UInt32 framesToAverage
 		return CAMERA_MEM_ERROR;
 
 	retVal = readFPN(fpnUnpacked);
-	if(CAMERA_SUCCESS != retVal)
+	if(SUCCESS != retVal)
 	{
 		delete fpnUnpacked;
 		return retVal;
@@ -1925,7 +1925,7 @@ Int32 Camera::getRawCorrectedFramesAveraged(UInt32 frame, UInt32 framesToAverage
 	{
 		//Read in the frame
 		retVal = readCorrectedFrame(frame + i, frameBuffer, fpnUnpacked, gainCorrection);
-		if(CAMERA_SUCCESS != retVal)
+		if(SUCCESS != retVal)
 		{
 			delete fpnUnpacked;
 			delete summingBuffer;
@@ -1945,7 +1945,7 @@ Int32 Camera::getRawCorrectedFramesAveraged(UInt32 frame, UInt32 framesToAverage
 	delete fpnUnpacked;
 	delete summingBuffer;
 
-	return CAMERA_SUCCESS;
+	return SUCCESS;
 }
 
 Int32 Camera::readDCG(double * gainCorrection)
@@ -1972,7 +1972,7 @@ Int32 Camera::readDCG(double * gainCorrection)
 	if(LUX1310_HRES_INCREMENT != count)
 		return CAMERA_FILE_ERROR;
 
-	return CAMERA_SUCCESS;
+	return SUCCESS;
 }
 
 Int32 Camera::readFPN(UInt16 * fpnUnpacked)
@@ -1998,7 +1998,7 @@ Int32 Camera::readFPN(UInt16 * fpnUnpacked)
 
 	delete fpnBuffer32;
 
-	return CAMERA_SUCCESS;
+	return SUCCESS;
 }
 
 
@@ -2037,7 +2037,7 @@ Int32 Camera::readCorrectedFrame(UInt32 frame, UInt16 * frameBuffer, UInt16 * fp
 
 	delete rawFrameBuffer32;
 
-	return CAMERA_SUCCESS;
+	return SUCCESS;
 }
 
 
@@ -2065,7 +2065,7 @@ Int32 Camera::startSave(UInt32 startFrame, UInt32 length)
 
 	retVal = recorder->start((recordingData.is.hRes + 15) & 0xFFFFFFF0, recordingData.is.vRes, length+2);
 
-	if(retVal != CAMERA_SUCCESS)
+	if(retVal != SUCCESS)
 	{
 		setDisplaySyncInhibit(false);
 		vinst->setRunning(true);
@@ -2088,7 +2088,7 @@ Int32 Camera::startSave(UInt32 startFrame, UInt32 length)
 
 	recordingData.hasBeenSaved = true;
 
-	return CAMERA_SUCCESS;
+	return SUCCESS;
 }
 
 #define COLOR_MATRIX_MAXVAL	((1 << SENSOR_DATA_WIDTH) * (1 << COLOR_MATRIX_INT_BITS))
@@ -2169,7 +2169,7 @@ Int32 Camera::setWhiteBalance(UInt32 x, UInt32 y)
 	qDebug() << "Setting WB matrix to " << wbMat[0] << wbMat[1] << wbMat[2];
 
 	setCCMatrix(wbMat);
-	return CAMERA_SUCCESS;
+	return SUCCESS;
 
 }
 
@@ -2260,12 +2260,12 @@ Int32 Camera::blackCalAllStdRes(bool factory)
 			settings.exposure = sensor->getMaxExposure(settings.period);
 
 			retVal = setImagerSettings(settings);
-			if(CAMERA_SUCCESS != retVal)
+			if(SUCCESS != retVal)
 				return retVal;
 
 			qDebug() << "Doing FPN correction for " << hRes << "x" << vRes << "...";
 			retVal = autoFPNCorrection(16, true, false, factory);	//Factory mode
-			if(CAMERA_SUCCESS != retVal)
+			if(SUCCESS != retVal)
 				return retVal;
 
 			qDebug() << "Done.";
@@ -2285,20 +2285,20 @@ Int32 Camera::blackCalAllStdRes(bool factory)
 	settings.exposure = sensor->getMaxExposure(settings.period);
 
 	retVal = setImagerSettings(settings);
-	if(CAMERA_SUCCESS != retVal)
+	if(SUCCESS != retVal)
 		return retVal;
 
 	retVal = setDisplaySettings(false);
-	if(CAMERA_SUCCESS != retVal)
+	if(SUCCESS != retVal)
 		return retVal;
 
 	retVal = loadFPNFromFile(FPN_FILENAME);
-	if(CAMERA_SUCCESS != retVal)
+	if(SUCCESS != retVal)
 		return retVal;
 
 	vinst->setRunning(true);
 
-	return CAMERA_SUCCESS;
+	return SUCCESS;
 }
 
 
@@ -2351,14 +2351,14 @@ Int32 Camera::takeWhiteReferences(void)
 
 
 		retVal = setImagerSettings(_is);
-		if(CAMERA_SUCCESS != retVal)
+		if(SUCCESS != retVal)
 		{
 			delete frameBuffer;
 			return retVal;
 		}
 
 		retVal = adjustExposureToValue(4096*3/4);
-		if(CAMERA_SUCCESS != retVal)
+		if(SUCCESS != retVal)
 		{
 			delete frameBuffer;
 			return retVal;
@@ -2384,7 +2384,7 @@ Int32 Camera::takeWhiteReferences(void)
 			_is.exposure = (UInt32)((double)nomExp * exposures[i]);
 
 			retVal = setImagerSettings(_is);
-			if(CAMERA_SUCCESS != retVal)
+			if(SUCCESS != retVal)
 			{
 				delete frameBuffer;
 				return retVal;
@@ -2393,7 +2393,7 @@ Int32 Camera::takeWhiteReferences(void)
 			qDebug() << "Recording frames for gain" << gName << "exposure" << i;
 			//Record frames
 			retVal = recordFrames(16);
-			if(CAMERA_SUCCESS != retVal)
+			if(SUCCESS != retVal)
 			{
 				delete frameBuffer;
 				return retVal;
@@ -2402,7 +2402,7 @@ Int32 Camera::takeWhiteReferences(void)
 			//Get the frames averaged and save to file
 			qDebug() << "Doing getRawCorrectedFramesAveraged()";
 			retVal = getRawCorrectedFramesAveraged(0, 16, frameBuffer);
-			if(CAMERA_SUCCESS != retVal)
+			if(SUCCESS != retVal)
 			{
 				delete frameBuffer;
 				return retVal;
@@ -2424,7 +2424,7 @@ Int32 Camera::takeWhiteReferences(void)
 	}
 
 	delete frameBuffer;
-	return CAMERA_SUCCESS;
+	return SUCCESS;
 }
 
 bool Camera::getFocusPeakEnable(void)

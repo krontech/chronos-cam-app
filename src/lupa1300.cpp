@@ -68,16 +68,16 @@ CameraErrortype LUPA1300::init(GPMC * gpmc_inst)
 {
 	CameraErrortype retVal;
 	retVal = spi->Init(IMAGE_SENSOR_SPI, IMAGE_SENSOR_SPI_BITS, IMAGE_SENSOR_SPI_SPEED);
-	if(CAMERA_SUCCESS != retVal)
+	if(SUCCESS != retVal)
 		return retVal;
 
 	gpmc = gpmc_inst;
 
 	retVal = initSensor();
-	if(CAMERA_SUCCESS != retVal)
+	if(SUCCESS != retVal)
 		return retVal;
 
-	return CAMERA_SUCCESS;
+	return SUCCESS;
 }
 
 CameraErrortype LUPA1300::initSensor()
@@ -88,7 +88,7 @@ CameraErrortype LUPA1300::initSensor()
 
 	//dumpRegisters();
 
-	if(CAMERA_SUCCESS != (retVal = autoPhaseCal()))
+	if(SUCCESS != (retVal = autoPhaseCal()))
 		return retVal;
 
 	setSyncToken(0x059);
@@ -134,7 +134,7 @@ CameraErrortype LUPA1300::initSensor()
 	//clkPhase = 0;
 	masterMode = true;
 
-	return CAMERA_SUCCESS;
+	return SUCCESS;
 }
 
 Int32 LUPA1300::setOffset(UInt8 offset)

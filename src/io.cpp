@@ -37,7 +37,7 @@ CameraErrortype IO::init()
 	io1DAC.setDuty(io1Thresh / IO_DAC_FS);
 	io2DAC.setDuty(io2Thresh / IO_DAC_FS);
 
-	return CAMERA_SUCCESS;
+	return SUCCESS;
 
 }
 
