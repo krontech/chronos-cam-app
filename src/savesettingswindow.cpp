@@ -16,6 +16,7 @@
 #include <QMessageBox>
 #include <QTimer>
 #include <QDebug>
+#include <QSettings>
 
 //Defining this here because something in the preprocessor undefines this somewhere up above
 #define min(a,b) \
@@ -27,19 +28,21 @@ saveSettingsWindow::saveSettingsWindow(QWidget *parent, Camera * camInst) :
 	QWidget(parent),
 	ui(new Ui::saveSettingsWindow)
 {
+	QSettings settings;
 	ui->setupUi(this);
 	this->setWindowFlags(Qt::Dialog /*| Qt::WindowStaysOnTopHint*/ | Qt::FramelessWindowHint);
 	camera = camInst;
 
-	ui->spinBitrate->setValue(camera->recorder->bitsPerPixel);
-	ui->spinMaxBitrate->setValue(camera->recorder->maxBitrate);
-	ui->spinFramerate->setValue(camera->recorder->framerate);
-	ui->lineFilename->setText(camera->recorder->filename);
+	
+	ui->spinBitrate->setValue(settings.value("recorder/bitsPerPixel", camera->recorder->bitsPerPixel).toDouble());
+	ui->spinMaxBitrate->setValue(settings.value("recorder/maxBitrate", camera->recorder->maxBitrate).toDouble());
+	ui->spinFramerate->setValue(settings.value("recorder/framerate", camera->recorder->framerate).toDouble());
+	ui->lineFilename->setText(settings.value("recorder/filename", camera->recorder->filename).toString());
 
 	refreshDriveList();
 
 	//Select the entry corresponding to the last selected path
-	Int32 index = ui->comboDrive->findText(camera->recorder->fileDirectory);
+	Int32 index = ui->comboDrive->findText(settings.value("recorder/fileDirectory", camera->recorder->fileDirectory).toString());
 	if ( index != -1 ) { // -1 for not found
 		ui->comboDrive->setCurrentIndex(index);
 	}
@@ -50,7 +53,8 @@ saveSettingsWindow::saveSettingsWindow(QWidget *parent, Camera * camInst) :
 	ui->comboProfile->addItem("Extended");
 	ui->comboProfile->addItem("High");
 
-	UInt32 val = camera->recorder->profile;	//Compute base 2 logarithm to get index
+	UInt32 val = settings.value("recorder/profile", camera->recorder->profile).toUInt();
+	//Compute base 2 logarithm to get index
 	index = 0;
 	while (val >>= 1) ++index;
 	ui->comboProfile->setCurrentIndex(index);
@@ -73,7 +77,8 @@ saveSettingsWindow::saveSettingsWindow(QWidget *parent, Camera * camInst) :
 	ui->comboLevel->addItem("Level 5");
 	ui->comboLevel->addItem("Level 51");
 
-	val = camera->recorder->level;	//Compute base 2 logarithm to get index
+	val = settings.value("recorder/level", camera->recorder->level).toUInt();
+	//Compute base 2 logarithm to get index
 	index = 0;
 	while (val >>= 1) ++index;
 	ui->comboLevel->setCurrentIndex(index);
@@ -94,6 +99,7 @@ saveSettingsWindow::~saveSettingsWindow()
 
 void saveSettingsWindow::on_cmdClose_clicked()
 {
+	QSettings settings;
 	camera->recorder->bitsPerPixel = ui->spinBitrate->value();
 	camera->recorder->maxBitrate = ui->spinMaxBitrate->value();
 	camera->recorder->framerate = ui->spinFramerate->value();
@@ -117,6 +123,15 @@ void saveSettingsWindow::on_cmdClose_clicked()
 		path = "";
 
 	strcpy(camera->recorder->fileDirectory, path);
+
+	settings.setValue("recorder/bitsPerPixel", camera->recorder->bitsPerPixel);
+	settings.setValue("recorder/maxBitrate", camera->recorder->maxBitrate);
+	settings.setValue("recorder/framerate", camera->recorder->framerate);
+	settings.setValue("recorder/filename", camera->recorder->filename);
+	settings.setValue("recorder/fileDirectory", camera->recorder->fileDirectory);
+	settings.setValue("recorder/profile", camera->recorder->profile);
+	settings.setValue("recorder/level", camera->recorder->level);
+
 	close();
 }
 
