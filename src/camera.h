@@ -29,6 +29,7 @@
 
 #define MAX_FRAME_SIZE_H		1280
 #define MAX_FRAME_SIZE_V		1024
+#define MAX_FRAME_SIZE          (MAX_FRAME_SIZE_H * MAX_FRAME_SIZE_V * 8 / 12)
 #define MAX_STRIDE				1280
 #define BITS_PER_PIXEL			12
 #define BYTES_PER_WORD			32
@@ -39,6 +40,8 @@
 #define COLOR_MATRIX_INT_BITS	3
 
 #define IMAGE_GAIN_FUDGE_FACTOR 1.0		//Multiplier to make sure clipped ADC value actually clips image
+
+#define SETTING_FLAG_TEMPORARY  1
 
 /*
 typedef enum CameraErrortype
@@ -98,6 +101,9 @@ typedef struct {
 	UInt32 gain;
 	UInt32 frameSizeWords;
 	UInt32 recRegionSizeFrames;
+	struct {
+		unsigned temporary : 1; // set this to disable saving of state
+	};
 } ImagerSettings_t;
 
 
@@ -152,6 +158,7 @@ public:
 	RecordSettings_t recordingData;
 	ImagerSettings_t getImagerSettings() { return imagerSettings; }
 	UInt32 setImagerSettings(ImagerSettings_t settings);
+	UInt32 setIntegrationTime(double intTime, UInt32 hRes, UInt32 vRes, UInt32 flags);
 	UInt32 setDisplaySettings(bool encoderSafe);
 	UInt32 setPlayMode(bool playMode);
 	UInt32 playFrame;

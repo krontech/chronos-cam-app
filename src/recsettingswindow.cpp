@@ -141,7 +141,6 @@ RecSettingsWindow::~RecSettingsWindow()
 
 
 
-
 void RecSettingsWindow::on_cmdOK_clicked()
 {
 	ImagerSettings_t settings;
@@ -169,6 +168,7 @@ void RecSettingsWindow::on_cmdOK_clicked()
 
 	settings.exposure = exp * 100000000.0;
 
+	settings.temporary = 0;
 	camera->setImagerSettings(settings);
 	camera->setDisplaySettings(false);
 

@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <QDebug>
 #include <semaphore.h>
+#include <QSettings>
 
 #include "font.h"
 #include "camera.h"
@@ -117,9 +118,10 @@ Camera::~Camera()
 
 CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * sensorInst, UserInterface * userInterface, UInt32 ramSizeVal, bool color)
 {
-	int FRAME_SIZE = 1280*1024*12/8;
+	//int FRAME_SIZE = 1280*1024*12/8;
 	CameraErrortype retVal;
     UInt32 ramSizeGBSlot0, ramSizeGBSlot1;
+	QSettings appSettings;
 
 	//Get the memory size
 	retVal = (CameraErrortype)getRamSizeGB(&ramSizeGBSlot0, &ramSizeGBSlot1);
@@ -291,11 +293,11 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 
 	imagerSettings.hRes = MAX_FRAME_SIZE_H;
 	imagerSettings.vRes = MAX_FRAME_SIZE_V;
-	imagerSettings.stride = MAX_STRIDE;
+	imagerSettings.stride = imagerSettings.hRes;
 	//frameSizeWords must always be even. Set it larger than needed if required.
 	imagerSettings.frameSizeWords = ROUND_UP_MULT((imagerSettings.stride * (imagerSettings.vRes+0) * BITS_PER_PIXEL / 8 + (BYTES_PER_WORD-1)) / BYTES_PER_WORD, FRAME_ALIGN_WORDS);
 	imagerSettings.recRegionSizeFrames = (ramSize - REC_REGION_START) / imagerSettings.frameSizeWords;
-	imagerSettings.period = sensor->getMinFramePeriod(MAX_STRIDE, MAX_FRAME_SIZE_V);
+	imagerSettings.period = sensor->getMinFramePeriod(imagerSettings.hRes, imagerSettings.vRes);
 	imagerSettings.exposure = sensor->getMaxExposure(imagerSettings.period);
 
 	vinst->frameCallbackArg = (void *)this;
@@ -305,15 +307,15 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 	//Set to full resolution
 	ImagerSettings_t settings;
 
-	settings.hRes = 1280;		//pixels
-	settings.vRes = 1024;		//pixels
-	settings.stride = 1280;		//Number of pixels per line (allows for dark pixels in the last column)
-	settings.hOffset = 0;	//Active area offset from left
-	settings.vOffset = 0;		//Active area offset from top
-	settings.period = sensor->getMinMasterFramePeriod(settings.stride, settings.vRes) * 100000000.0;
-	//settings.period = 1.0 / 500 * 100000000.0;
-	settings.exposure = sensor->getMaxIntegrationTime((double)settings.period / 100000000.0, settings.stride, settings.vRes) * 100000000.0 ;
-	settings.gain = LUX1310_GAIN_1;
+	settings.hRes      = appSettings.value("camera/hRes", MAX_FRAME_SIZE_H).toInt();
+	settings.vRes      = appSettings.value("camera/vRes", MAX_FRAME_SIZE_V).toInt();
+	settings.stride    = appSettings.value("camera/stride", settings.hRes).toInt();
+	settings.hOffset   = appSettings.value("camera/hOffset", 0).toInt();
+	settings.vOffset   = appSettings.value("camera/vOffset", 0).toInt();
+	settings.gain      = appSettings.value("camera/gain", 0).toInt();
+	settings.period    = appSettings.value("camera/period", sensor->getMinFramePeriod(settings.hRes, settings.vRes)).toInt();
+	settings.exposure  = appSettings.value("camera/exposure", sensor->getMaxExposure(settings.period)).toInt();
+	settings.temporary = 1;
 	setImagerSettings(settings);
 	setDisplaySettings(false);
 
@@ -324,14 +326,8 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 	recorder->eosCallback = recordEosCallback;
 	recorder->eosCallbackArg = (void *)this;
 
-	//If the FPN file exists, read it in, otherwise write the FPN area with zeroes
 	if(CAMERA_FILE_NOT_FOUND == loadFPNFromFile(FPN_FILENAME))
-	{
-		for(int i = 0; i < FRAME_SIZE; i = i + 4)
-			{
-				gpmc->writeRam32(i, 0);
-			}
-	}
+		autoFPNCorrection(2, false, true);
 	/*
 	//If the FPN file exists, read it in
 	if( access( "fpn.raw", R_OK ) != -1 )
@@ -400,17 +396,19 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 		return retVal;
 
 	//Set trigger for normally open switch on IO1
-	io->setTriggerInvert(1);
-	io->setTriggerEnable(1);
-	io->setTriggerDebounceEn(1);
-	io->setOutLevel((1 << 1));	//Enable strong pullup
+    //io->setTriggerInvert(1);
+    //io->setTriggerEnable(1);
+    //io->setTriggerDebounceEn(1);
+    //io->setOutLevel((1 << 1));	//Enable strong pullup
 
+	
 	return SUCCESS;
 
 }
 
 UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 {
+	QSettings appSettings;
 	if(!sensor->isValidResolution(settings.stride, settings.vRes, settings.hOffset, settings.vOffset))
 		return CAMERA_INVALID_IMAGER_SETTINGS;
 
@@ -459,8 +457,33 @@ UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 				<< "frameSizeWords" << imagerSettings.frameSizeWords
 				<< "recRegionSizeFrames" << imagerSettings.recRegionSizeFrames;
 
+	if (settings.temporary) {
+		qDebug() << "--- settings --- temporary, not saving";
+	}
+	else {
+		qDebug() << "--- settings --- saving";
+		appSettings.setValue("camera/hRes",     imagerSettings.hRes);
+		appSettings.setValue("camera/vRes",     imagerSettings.vRes);
+		appSettings.setValue("camera/stride",   imagerSettings.stride);
+		appSettings.setValue("camera/hOffset",  imagerSettings.hOffset);
+		appSettings.setValue("camera/vOffset",  imagerSettings.vOffset);
+		appSettings.setValue("camera/gain",     imagerSettings.gain);
+		appSettings.setValue("camera/period",   imagerSettings.period);
+		appSettings.setValue("camera/exposure", imagerSettings.exposure);
+	}
+	
 	return SUCCESS;
+}
 
+UInt32 Camera::setIntegrationTime(double intTime, UInt32 hRes, UInt32 vRes, UInt32 flags)
+{
+	UInt32 validTime;
+	validTime = (UInt32) (sensor->setIntegrationTime(intTime, hRes, vRes) * 100000000.0);
+	if (!(flags && SETTING_FLAG_TEMPORARY)) {
+		QSettings appSettings;
+		appSettings.setValue("camera/exposure", validTime);
+	}
+	return SUCCESS;
 }
 
 UInt32 Camera::setDisplaySettings(bool encoderSafe)
@@ -1891,9 +1914,9 @@ Int32 Camera::getRawCorrectedFramesAveraged(UInt32 frame, UInt32 framesToAverage
 {
 	Int32 retVal;
 	double gainCorrection[16];
-
+	
 	UInt32 pixelsPerFrame = recordingData.is.stride * recordingData.is.vRes;
-
+	
 
 	retVal = readDCG(gainCorrection);
 	if(SUCCESS != retVal)
@@ -2313,18 +2336,18 @@ Int32 Camera::takeWhiteReferences(void)
 	char filename[1000];
 	const char * gName;
 	double exposures[] = {0.000244141,
-						0.000488281,
-						0.000976563,
-						0.001953125,
-						0.00390625,
-						0.0078125,
-						0.015625,
-						0.03125,
-						0.0625,
-						0.125,
-						0.25,
-						0.5,
-						1};
+						  0.000488281,
+						  0.000976563,
+						  0.001953125,
+						  0.00390625,
+						  0.0078125,
+						  0.015625,
+						  0.03125,
+						  0.0625,
+						  0.125,
+						  0.25,
+						  0.5,
+						  1};
 
 	_is.hRes = 1280;		//pixels
 	_is.vRes = 1024;		//pixels

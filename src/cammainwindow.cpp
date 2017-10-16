@@ -374,7 +374,7 @@ void CamMainWindow::on_cmdFocusAid_clicked()
 
 void CamMainWindow::on_expSlider_sliderMoved(int position)
 {
-	camera->sensor->setIntegrationTime((double)position / 100000000.0, 0, 0);
+    camera->setIntegrationTime((double)position / 100000000.0, 0, 0, 0);
 	updateCurrentSettingsLabel();
 }
 

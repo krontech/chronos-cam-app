@@ -13,6 +13,8 @@
 
 #include "types.h"
 #include "lux1310.h"
+
+#include <QSettings>
 /*
  *
  * LUPA1300-2 defaults
@@ -315,9 +317,9 @@ CameraErrortype LUX1310::initSensor()
 
 	currentHRes = 1280;
 	currentVRes = 1024;
-	setFramePeriod(getMinFramePeriod(1280, 1024)/100000000.0, 1280, 1024);
+	setFramePeriod(getMinFramePeriod(currentHRes, currentVRes)/100000000.0, currentHRes, currentVRes);
 	//mem problem before this
-	setIntegrationTime((double)getMaxExposure(currentPeriod) / 100000000.0, 1280, 1024);
+	setIntegrationTime((double)getMaxExposure(currentPeriod) / 100000000.0, currentHRes, currentVRes);
 
 	return SUCCESS;
 }
@@ -633,6 +635,7 @@ double LUX1310::setFramePeriod(double period, UInt32 hRes, UInt32 vRes)
 
 	period = within(period, minPeriod, maxPeriod);
 	currentPeriod = period * 100000000.0;
+
 	setSlavePeriod(currentPeriod);
 	return period;
 }
@@ -702,7 +705,7 @@ double LUX1310::setIntegrationTime(double intTime, UInt32 hRes, UInt32 vRes)
 	double maxIntTime = (double)getMaxExposure(currentPeriod) / 100000000.0;
 	double minIntTime = LUX1310_MIN_INT_TIME;
 	intTime = within(intTime, minIntTime, maxIntTime);
-	currentExposure = intTime * 100000000.0;
+	currentExposure = intTime * 100000000.0;	
 	setSlaveExposure(currentExposure);
 	return intTime;
 }
@@ -727,7 +730,6 @@ void LUX1310::setSlavePeriod(UInt32 period)
 
 void LUX1310::setSlaveExposure(UInt32 exposure)
 {
-
 	//hack to fix line issue. Not perfect, need to properly register this on the sensor clock.
 	double linePeriod = max((currentHRes / LUX1310_HRES_INCREMENT)+2, (wavetableSize + 3)) * 1.0/LUX1310_SENSOR_CLOCK;	//Line period in seconds
 	UInt32 startDelay = (double)startDelaySensorClocks * TIMING_CLOCK_FREQ / LUX1310_SENSOR_CLOCK;

@@ -1,5 +1,6 @@
 //#include <stdio.h>
 #include <QDebug>
+#include <QSettings>
 #include <fcntl.h>
 #include <unistd.h>
 #include "io.h"
@@ -11,14 +12,14 @@
 #include "types.h"
 
 
-
-IO::IO(GPMC * gpmcInst)
+IO::IO(GPMC* gpmcInst)
 {
 	gpmc = gpmcInst;
 }
 
 CameraErrortype IO::init()
 {
+	QSettings appSettings;
 	IO2InFD = open(IO2IN_PATH, O_RDONLY);
 
 	if (-1 == IO2InFD)
@@ -32,10 +33,23 @@ CameraErrortype IO::init()
 
 	io1DAC.setPeriod(6600);
 	io2DAC.setPeriod(6600);
-	io1Thresh = 2.5;
-	io2Thresh = 2.5;
+	io1Thresh = appSettings.value("io/thresh1", 2.5).toDouble();
+	io2Thresh = appSettings.value("io/thresh2", 2.5).toDouble();
 	io1DAC.setDuty(io1Thresh / IO_DAC_FS);
 	io2DAC.setDuty(io2Thresh / IO_DAC_FS);
+
+	setTriggerEnable(       appSettings.value("io/triggerEnable",       getTriggerEnable()).toUInt());
+	setTriggerInvert(       appSettings.value("io/triggerInvert",       getTriggerInvert()).toUInt());
+	setTriggerDebounceEn(   appSettings.value("io/triggerDebounce",     getTriggerDebounceEn()).toUInt());
+	setTriggerDelayFrames(  appSettings.value("io/triggerDelayFrames",  getTriggerDelayFrames()).toUInt());
+	
+	setOutInvert(           appSettings.value("io/outInvert",           getOutInvert()).toUInt());
+	setOutSource(           appSettings.value("io/outSource",           getOutSource()).toUInt());
+	setOutLevel(            appSettings.value("io/outLevel",            getOutLevel()).toUInt());
+	
+	setTriggeredExpEnable(  appSettings.value("io/triggeredExpEnable",  getTriggeredExpEnable()).toBool());
+	setExtShutterSrcEn(     appSettings.value("io/extShutterSrcEn",     getExtShutterSrcEn()).toUInt());
+	setShutterGatingEnable( appSettings.value("io/shutterGatingEnable", getShutterGatingEnable()).toBool());
 
 	return SUCCESS;
 
@@ -81,15 +95,18 @@ void IO::writeIO(UInt32 io, UInt32 val)
 
 void IO::setThreshold(UInt32 io, double thresholdVolts)
 {
+	QSettings appSettings;
 	switch(io)
 	{
 	case 1:
 		io1Thresh = within(thresholdVolts, 0, IO_DAC_FS);
+		appSettings.setValue("io/thresh1", io1Thresh);
 		io1DAC.setDuty(io1Thresh / IO_DAC_FS);
 		break;
 
 	case 2:
 		io2Thresh = within(thresholdVolts, 0, IO_DAC_FS);
+		appSettings.setValue("io/thresh2", io2Thresh);
 		io2DAC.setDuty(io2Thresh / IO_DAC_FS);
 		break;
 	}
@@ -114,22 +131,30 @@ double IO::getThreshold(UInt32 io)
 
 void IO::setTriggerEnable(UInt32 source)
 {
+	QSettings appSettings;
 	gpmc->write16(TRIG_ENABLE_ADDR, source);
+	appSettings.setValue("io/triggerEnable", source);
 }
 
 void IO::setTriggerInvert(UInt32 invert)
 {
+	QSettings appSettings;
 	gpmc->write16(TRIG_INVERT_ADDR, invert);
+	appSettings.setValue("io/triggerInvert", invert);
 }
 
 void IO::setTriggerDebounceEn(UInt32 dbEn)
 {
+	QSettings appSettings;
 	gpmc->write16(TRIG_DEBOUNCE_ADDR, dbEn);
+	appSettings.setValue("io/triggerDebounce", dbEn);
 }
 
 void IO::setTriggerDelayFrames(UInt32 delayFrames)
 {
+	QSettings appSettings;
 	gpmc->write32(SEQ_TRIG_DELAY_ADDR, delayFrames);
+	appSettings.setValue("io/triggerDelayFrames", delayFrames);
 }
 
 UInt32 IO::getTriggerEnable()
@@ -154,17 +179,23 @@ UInt32 IO::getTriggerDelayFrames()
 
 void IO::setOutLevel(UInt32 level)
 {
+	QSettings appSettings;
 	gpmc->write16(IO_OUT_LEVEL_ADDR, level);
+	appSettings.setValue("io/outLevel", level);
 }
 
 void IO::setOutSource(UInt32 source)
 {
+	QSettings appSettings;
 	gpmc->write16(IO_OUT_SOURCE_ADDR, source);
+	appSettings.setValue("io/outSource", source);
 }
 
 void IO::setOutInvert(UInt32 invert)
 {
+	QSettings appSettings;
 	gpmc->write16(IO_OUT_INVERT_ADDR, invert);
+	appSettings.setValue("io/outInvert", invert);
 }
 
 UInt32 IO::getOutLevel()
@@ -204,15 +235,21 @@ bool IO::getShutterGatingEnable()
 
 void IO::setTriggeredExpEnable(bool en)
 {
+	QSettings appSettings;
 	gpmc->write16(EXT_SHUTTER_CTL_ADDR, (gpmc->read16(EXT_SHUTTER_CTL_ADDR) & ~EXT_SH_TRIGD_EXP_EN_MASK) | ((en ? 1 : 0) << EXT_SH_TRIGD_EXP_EN_OFFSET));
+	appSettings.setValue("io/triggeredExpEnable", en);
 }
 
 void IO::setExtShutterSrcEn(UInt32 extShutterSrcEn)
 {
+	QSettings appSettings;
 	gpmc->write16(EXT_SHUTTER_CTL_ADDR, (gpmc->read16(EXT_SHUTTER_CTL_ADDR) & ~EXT_SH_SRC_EN_MASK) | ((extShutterSrcEn ? 1 : 0) << EXT_SH_SRC_EN_OFFSET));
+	appSettings.setValue("io/extShutterSrcEn", extShutterSrcEn);
 }
 
 void IO::setShutterGatingEnable(bool en)
 {
+	QSettings appSettings;
 	gpmc->write16(EXT_SHUTTER_CTL_ADDR, (gpmc->read16(EXT_SHUTTER_CTL_ADDR) & ~EXT_SH_GATING_EN_MASK) | ((en ? 1 : 0) << EXT_SH_GATING_EN_OFFSET));
+	appSettings.setValue("io/shutterGatingEnable", en);
 }

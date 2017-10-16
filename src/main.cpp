@@ -49,6 +49,8 @@ volatile sig_atomic_t done = 0;
 
 void term(int signum)
 {
+	QSettings settings;
+	settings.sync();
 	qApp->exit();
 }
 
@@ -56,6 +58,11 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
+	QCoreApplication::setOrganizationName("KronTech");
+	QCoreApplication::setOrganizationDomain("krontech.ca");
+	QCoreApplication::setApplicationName("camApp");
+	QSettings settings;
+	
 	//Set up SIGTERM handler to cleanly exit the application
 	struct sigaction action;
 	memset(&action, 0, sizeof(struct sigaction));

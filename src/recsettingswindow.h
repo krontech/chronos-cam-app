@@ -53,8 +53,6 @@ private slots:
 
 	void on_comboRes_activated(const QString &arg1);
 
-    void on_comboRes_activated(int index);
-
 private:
 	void updateOffsetLimits();
 	void updateInfoText();
