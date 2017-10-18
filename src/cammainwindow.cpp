@@ -313,9 +313,9 @@ void CamMainWindow::updateRecordingState(bool recording)
 	else	//Not recording
 	{
 		ui->cmdRec->setText("Record");
+		ui->cmdPlay->setEnabled(true);
 		//ui->cmdDebugWnd->setEnabled(true);
 		//ui->cmdRecSettings->setEnabled(true);
-		//ui->cmdPlay->setEnabled(true);
 		//ui->cmdFPNCal->setEnabled(true);
 		//ui->cmdWB->setEnabled(true);
 		//ui->cmdIOSettings->setEnabled(true);

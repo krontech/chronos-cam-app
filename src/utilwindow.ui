@@ -26,7 +26,7 @@
     <enum>QTabWidget::East</enum>
    </property>
    <property name="currentIndex">
-    <number>0</number>
+    <number>1</number>
    </property>
    <widget class="QWidget" name="tabMain">
     <attribute name="title">
@@ -371,7 +371,7 @@ USB</string>
      <property name="geometry">
       <rect>
        <x>510</x>
-       <y>130</y>
+       <y>180</y>
        <width>151</width>
        <height>41</height>
       </rect>
@@ -398,7 +398,7 @@ USB</string>
      <property name="geometry">
       <rect>
        <x>510</x>
-       <y>80</y>
+       <y>130</y>
        <width>191</width>
        <height>41</height>
       </rect>
@@ -419,6 +419,53 @@ USB</string>
      </property>
      <property name="tristate">
       <bool>false</bool>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QWidget" name="tabSettings">
+    <attribute name="title">
+     <string>Settings</string>
+    </attribute>
+    <widget class="QPushButton" name="cmdDefaults">
+     <property name="geometry">
+      <rect>
+       <x>440</x>
+       <y>70</y>
+       <width>121</width>
+       <height>51</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Revert
+to defaults</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="cmdBackupSettings">
+     <property name="geometry">
+      <rect>
+       <x>80</x>
+       <y>70</y>
+       <width>121</width>
+       <height>51</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Backup
+Settings Data</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="cmdRestoreSettings">
+     <property name="geometry">
+      <rect>
+       <x>230</x>
+       <y>70</y>
+       <width>121</width>
+       <height>51</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Restore Settings
+from backup</string>
      </property>
     </widget>
    </widget>

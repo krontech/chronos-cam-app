@@ -219,8 +219,8 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 	gpmc->write16(DISPLAY_H_BACK_PORCH_ADDR, 248);
 	gpmc->write16(DISPLAY_V_BACK_PORCH_ADDR, 38);*/
 
-    gpmc->write16(IMAGE_SENSOR_FIFO_START_W_THRESH_ADDR, 0x0098);
-    gpmc->write16(IMAGE_SENSOR_FIFO_STOP_W_THRESH_ADDR, 0x0100);
+    gpmc->write16(IMAGE_SENSOR_FIFO_START_W_THRESH_ADDR, 0x00A0);
+    gpmc->write16(IMAGE_SENSOR_FIFO_STOP_W_THRESH_ADDR, 0x00A0);
 
 	gpmc->write32(SEQ_LIVE_ADDR_0_ADDR, LIVE_FRAME_0_ADDRESS);
 	gpmc->write32(SEQ_LIVE_ADDR_1_ADDR, LIVE_FRAME_1_ADDRESS);

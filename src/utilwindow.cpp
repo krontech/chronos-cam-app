@@ -4,6 +4,7 @@
 #include <QDebug>
 #include <QMessageBox>
 #include <QTimer>
+#include <QSettings>
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -586,3 +587,158 @@ void UtilWindow::on_chkAutoRecord_stateChanged(int arg1)
 {
 	camera->set_autoRecord(ui->chkAutoRecord->isChecked());
 }
+
+void UtilWindow::on_cmdDefaults_clicked()
+{
+	QMessageBox::StandardButton reply;
+	reply = QMessageBox::question(this, "Revert settings", "Are you sure you want to delete all settings and return to defaults?", QMessageBox::Yes|QMessageBox::No);
+	if(QMessageBox::Yes != reply)
+		return;
+
+	QSettings appSettings;
+	appSettings.clear();
+}
+
+void UtilWindow::on_cmdBackupSettings_clicked()
+{
+	QSettings appSettings;
+	StatusWindow sw;
+	QMessageBox msg;
+	Int32 retVal;
+	char str[500];
+	struct stat st;
+
+	appSettings.sync();
+
+	retVal = stat("/media/sda1",&st);
+	if(retVal != 0)
+	{
+		msg.setText("stat() failed");
+		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
+		msg.exec();
+		return;
+	}
+
+	if(S_ISDIR(st.st_mode) == false)
+	{
+		msg.setText("Error: /media/sda1 not present");
+		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
+		msg.exec();
+		return;
+	}
+
+	//Check that the directory is writable
+	if(access("/media/sda1", W_OK) != 0)
+	{	//Not writable
+		msg.setText("Error: /media/sda1 is not present or not writable");
+		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
+		msg.exec();
+		return;
+	}
+
+	struct stat mp, mp_parent;
+	stat("/media/sda1",&mp);
+	stat("/media/sda1/..",&mp_parent);
+
+	if(mp.st_dev == mp_parent.st_dev)
+	{
+		msg.setText("Error: no device is mounted to /media/sda1");
+		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
+		msg.exec();
+		return;
+	}
+
+	sw.setText("Saving user settings to /media/sda1. Please wait...");
+	sw.show();
+	QCoreApplication::processEvents();
+
+	sprintf(str, "tar -cf /media/sda1/user_settings.tar /home/root/Settings/KronTech");
+
+	retVal = system(str);	//tar cal files
+
+	if(0 != retVal)
+	{
+		sw.hide();
+		msg.setText("Error: tar command failed");
+		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
+		msg.exec();
+		return;
+	}
+
+	sw.hide();
+	msg.setText("User settings backup successful!");
+	msg.setWindowFlags(Qt::WindowStaysOnTopHint);
+	msg.exec();
+}
+
+void UtilWindow::on_cmdRestoreSettings_clicked()
+{
+	StatusWindow sw;
+	QMessageBox msg;
+	Int32 retVal;
+	char str[500];
+	struct stat st;
+
+	retVal = stat("/media/sda1",&st);
+	if(retVal != 0)
+	{
+		msg.setText("stat() failed");
+		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
+		msg.exec();
+		return;
+	}
+
+	if(S_ISDIR(st.st_mode) == false)
+	{
+		msg.setText("Error: /media/sda1 not present");
+		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
+		msg.exec();
+		return;
+	}
+
+	//Check that the directory is writable
+	if(access("/media/sda1", R_OK) != 0)
+	{	//Not readable
+		msg.setText("Error: /media/sda1 is not present or not readable");
+		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
+		msg.exec();
+		return;
+	}
+
+	struct stat mp, mp_parent;
+	stat("/media/sda1",&mp);
+	stat("/media/sda1/..",&mp_parent);
+
+	if(mp.st_dev == mp_parent.st_dev)
+	{
+		msg.setText("Error: no device is mounted to /media/sda1");
+		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
+		msg.exec();
+		return;
+	}
+
+	sw.setText("Restoring user settings from /media/sda1. Please wait...");
+	sw.show();
+	QCoreApplication::processEvents();
+
+	sprintf(str, "tar -xf /media/sda1/user_settings.tar -C /home/root/Settings");
+
+	retVal = system(str);	//tar cal files
+
+	if(0 != retVal)
+	{
+		sw.hide();
+		msg.setText("Error: tar command failed");
+		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
+		msg.exec();
+		return;
+	}
+	QSettings appSettings;
+	appSettings.sync();
+
+	sw.hide();
+	msg.setText("User settings restore successful!");
+	msg.setWindowFlags(Qt::WindowStaysOnTopHint);
+	msg.exec();
+}
+

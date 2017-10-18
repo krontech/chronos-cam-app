@@ -64,6 +64,12 @@ private slots:
 
     void on_chkAutoRecord_stateChanged(int arg1);
 
+    void on_cmdDefaults_clicked();
+
+    void on_cmdRestoreSettings_clicked();
+
+    void on_cmdBackupSettings_clicked();
+
 private:
 	Ui::UtilWindow *ui;
 	Camera * camera;
