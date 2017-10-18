@@ -54,6 +54,7 @@ playbackWindow::~playbackWindow()
 {
 	camera->setPlayMode(false);
 	timer->stop();
+	emit finishedSaving();
 	delete sw;
 	delete ui;
 }

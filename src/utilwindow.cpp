@@ -83,6 +83,7 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	ui->lineSerialNumber->setVisible(false);
 
 	ui->chkAutoSave->setChecked(camera->autoSave);
+	ui->chkAutoRecord->setChecked(camera->autoRecord);
 
 	connect(ui->cmdClose, SIGNAL(clicked()), this, SLOT(close()));
 }
@@ -578,5 +579,10 @@ void UtilWindow::on_cmdEjectUSB_clicked()
 
 void UtilWindow::on_chkAutoSave_stateChanged(int arg1)
 {
-	camera->autoSave = ui->chkAutoSave->isChecked();
+	camera->set_autoSave(ui->chkAutoSave->isChecked());
+}
+
+void UtilWindow::on_chkAutoRecord_stateChanged(int arg1)
+{
+	camera->set_autoRecord(ui->chkAutoRecord->isChecked());
 }

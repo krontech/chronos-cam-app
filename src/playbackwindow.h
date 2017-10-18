@@ -64,6 +64,9 @@ private:
 	QTimer * saveDoneTimer;
 	Int32 playbackRate;
 	bool autoSaveFlag;
+
+signals:
+	void finishedSaving();
 };
 
 #endif // PLAYBACKWINDOW_H

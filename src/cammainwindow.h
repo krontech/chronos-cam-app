@@ -32,6 +32,8 @@ private slots:
 
 	void on_cmdPlay_clicked();
 
+	void playFinishedSaving();
+
 	void on_cmdRecSettings_clicked();
 
 	void on_cmdFPNCal_clicked();
@@ -76,6 +78,8 @@ private:
 	Int32 mbTemperature;
 	UInt8 flags;
 	UInt8 fanPWM;
+
+	bool autoSaveActive;
 };
 
 #endif // CAMMAINWINDOW_H

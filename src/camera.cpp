@@ -23,19 +23,22 @@ void recordEosCallback(void * arg);
 
 Camera::Camera()
 {
-		recDataPos = 0;
-		terminateRecDataThread = false;
-		lastRecording = false;
-		playbackMode = false;
-		recording = false;
-		playbackSpeed = 0;
-		playbackForward = true;
-		playDivisorCount = 0;
-		endOfRecCallback = NULL;
-		imgGain = 1.0;
-		recordingData.hasBeenSaved = true;		//Nothing in RAM at power up so there's nothing to lose
-		autoSave = false;
-		strcpy(serialNumber, "Not_Set");
+	QSettings appSettings;
+	
+	recDataPos = 0;
+	terminateRecDataThread = false;
+	lastRecording = false;
+	playbackMode = false;
+	recording = false;
+	playbackSpeed = 0;
+	playbackForward = true;
+	playDivisorCount = 0;
+	endOfRecCallback = NULL;
+	imgGain = 1.0;
+	recordingData.hasBeenSaved = true;		//Nothing in RAM at power up so there's nothing to lose
+	autoSave = appSettings.value("camera/autoSave", 0).toBool();
+	autoRecord = appSettings.value("camera/autoRecord", 0).toBool();
+	strcpy(serialNumber, "Not_Set");
 
 /*
 		//WPPLS
@@ -216,8 +219,8 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 	gpmc->write16(DISPLAY_H_BACK_PORCH_ADDR, 248);
 	gpmc->write16(DISPLAY_V_BACK_PORCH_ADDR, 38);*/
 
-    gpmc->write16(IMAGE_SENSOR_FIFO_START_W_THRESH_ADDR, 0x00A0);
-    gpmc->write16(IMAGE_SENSOR_FIFO_STOP_W_THRESH_ADDR, 0x01D0);
+    gpmc->write16(IMAGE_SENSOR_FIFO_START_W_THRESH_ADDR, 0x0098);
+    gpmc->write16(IMAGE_SENSOR_FIFO_STOP_W_THRESH_ADDR, 0x0100);
 
 	gpmc->write32(SEQ_LIVE_ADDR_0_ADDR, LIVE_FRAME_0_ADDRESS);
 	gpmc->write32(SEQ_LIVE_ADDR_1_ADDR, LIVE_FRAME_1_ADDRESS);
@@ -267,10 +270,17 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 */
 
     if (ramSizeGBSlot1 != 0) {
-        if      (ramSizeGBSlot0 == 0)                         gpmc->write16(MMU_CONFIG_ADDR, MMU_INVERT_CS);
-        else if (ramSizeGBSlot0 == 8 && ramSizeGBSlot1 == 16) gpmc->write16(MMU_CONFIG_ADDR, MMU_INVERT_CS);
-        else if (ramSizeGBSlot0 == 8 && ramSizeGBSlot1 == 8)  gpmc->write16(MMU_CONFIG_ADDR, MMU_SWITCH_STUFFED);
+        if      (ramSizeGBSlot0 == 0)                         { gpmc->write16(MMU_CONFIG_ADDR, MMU_INVERT_CS);      qDebug("--- memory --- invert CS remap"); }  
+        else if (ramSizeGBSlot0 == 8 && ramSizeGBSlot1 == 16) { gpmc->write16(MMU_CONFIG_ADDR, MMU_INVERT_CS);		qDebug("--- memory --- invert CS remap"); }
+		else if (ramSizeGBSlot0 == 8 && ramSizeGBSlot1 == 8)  { gpmc->write16(MMU_CONFIG_ADDR, MMU_SWITCH_STUFFED); qDebug("--- memory --- switch stuffed remap"); }
+		else {
+			qDebug("--- memory --- no remap");
+		}
     }
+	else {
+		qDebug("--- memory --- no remap");
+	}
+	qDebug("--- memory --- remap register: 0x%04X", gpmc->read32(MMU_CONFIG_ADDR));
 
 
 	//enable video readout
@@ -385,8 +395,8 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 	qDebug() << gpmc->read16(CCM_21_ADDR) << gpmc->read16(CCM_22_ADDR) << gpmc->read16(CCM_23_ADDR);
 	qDebug() << gpmc->read16(CCM_31_ADDR) << gpmc->read16(CCM_32_ADDR) << gpmc->read16(CCM_33_ADDR);
 
-	setFocusPeakEnable(false);
-	setZebraEnable(true);
+	setZebraEnable(appSettings.value("camera/zebra", true).toBool());;
+	setFocusPeakEnable(appSettings.value("camera/focusPeak", false).toBool());;
 
 	printf("Video init done\n");
 
@@ -2456,8 +2466,10 @@ bool Camera::getFocusPeakEnable(void)
 }
 void Camera::setFocusPeakEnable(bool en)
 {
+	QSettings appSettings;
 	setFocusPeakEnableLL(en);
 	focusPeakEnabled = en;
+	appSettings.setValue("camera/focusPeak", en);
 }
 bool Camera::getZebraEnable(void)
 {
@@ -2465,9 +2477,24 @@ bool Camera::getZebraEnable(void)
 }
 void Camera::setZebraEnable(bool en)
 {
+	QSettings appSettings;
 	setZebraEnableLL(en);
 	zebraEnabled = en;
+	appSettings.setValue("camera/zebra", en);
 }
+
+void Camera::set_autoSave(bool state) {
+	QSettings appSettings;
+	autoSave = state;
+	appSettings.setValue("camera/autoSave", state);
+}
+
+void Camera::set_autoRecord(bool state) {
+	QSettings appSettings;
+	autoRecord = state;
+	appSettings.setValue("camera/autoRecord", state);
+}
+
 
 void* recDataThread(void *arg)
 {
@@ -2543,3 +2570,4 @@ void recordEosCallback(void * arg)
 	camera->vinst->setRunning(true);
 	fflush(stdout);
 }
+

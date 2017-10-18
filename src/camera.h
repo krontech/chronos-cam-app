@@ -269,6 +269,10 @@ private:
 
 public:
 	bool autoSave;
+	void set_autoSave(bool state);
+
+	bool autoRecord;
+	void set_autoRecord(bool state);
 
 private:
 	bool lastRecording;

@@ -62,6 +62,8 @@ private slots:
 
 	void on_chkAutoSave_stateChanged(int arg1);
 
+    void on_chkAutoRecord_stateChanged(int arg1);
+
 private:
 	Ui::UtilWindow *ui;
 	Camera * camera;
