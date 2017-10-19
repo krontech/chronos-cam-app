@@ -19,6 +19,7 @@
 #define FOCUS_PEAK_THRESH_MED	25
 #define FOCUS_PEAK_THRESH_HIGH	15
 
+
 bool copyFile(const char * fromfile, const char * tofile);
 
 UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
@@ -83,8 +84,8 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	ui->cmdSetSN->setVisible(false);
 	ui->lineSerialNumber->setVisible(false);
 
-	ui->chkAutoSave->setChecked(camera->autoSave);
-	ui->chkAutoRecord->setChecked(camera->autoRecord);
+	ui->chkAutoSave->setChecked(camera->get_autoSave());
+	ui->chkAutoRecord->setChecked(camera->get_autoRecord());
 
 	connect(ui->cmdClose, SIGNAL(clicked()), this, SLOT(close()));
 }
@@ -597,6 +598,14 @@ void UtilWindow::on_cmdDefaults_clicked()
 
 	QSettings appSettings;
 	appSettings.clear();
+	appSettings.sync();
+
+	QMessageBox::StandardButton reply2;
+	reply2 = QMessageBox::question(this, "Restart app?", "Current settings are cleared. Is it okay to restart the app so defaults can be selected?", QMessageBox::Yes|QMessageBox::No);
+	if(QMessageBox::Yes != reply2)
+		return;
+	
+	system("killall camApp && /etc/init.d/camera restart");
 }
 
 void UtilWindow::on_cmdBackupSettings_clicked()
@@ -740,5 +749,12 @@ void UtilWindow::on_cmdRestoreSettings_clicked()
 	msg.setText("User settings restore successful!");
 	msg.setWindowFlags(Qt::WindowStaysOnTopHint);
 	msg.exec();
+
+	QMessageBox::StandardButton reply;
+	reply = QMessageBox::question(this, "Restart app?", "To apply the restored settings the app must restart. Is it okay to restart?", QMessageBox::Yes|QMessageBox::No);
+	if(QMessageBox::Yes != reply)
+		return;
+	
+	system("killall camApp && /etc/init.d/camera restart");
 }
 

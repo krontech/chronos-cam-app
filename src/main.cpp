@@ -56,8 +56,8 @@ void term(int signum)
 
 int main(int argc, char *argv[])
 {
-    QApplication a(argc, argv);
-
+	QApplication a(argc, argv);
+	
 	QCoreApplication::setOrganizationName("KronTech");
 	QCoreApplication::setOrganizationDomain("krontech.ca");
 	QCoreApplication::setApplicationName("camApp");
@@ -68,26 +68,26 @@ int main(int argc, char *argv[])
 	memset(&action, 0, sizeof(struct sigaction));
 	action.sa_handler = term;
 	sigaction(SIGTERM, &action, NULL);
-
+		
 	//Check for and create required directories
 	checkAndCreateDir("cal");
 	checkAndCreateDir("cal/factoryFPN");
 	checkAndCreateDir("userFPN");
-
-
+	
+	
 	//Set frame buffer blending
 	int fd = open ("/dev/fb0", O_RDWR);
-
+	
 	if (fd <= 0)
 	{
-	  perror ("Could not open device\n");
-	  exit(1);
+		perror ("Could not open device\n");
+		exit(1);
 	}
-
+	
 	struct ti81xxfb_region_params  regp;
 	if (ioctl(fd, TIFB_GET_PARAMS, &regp) < 0) {
 		perror("TIFB_GET_PARAMS\n");
-			close(fd);
+		close(fd);
 		exit(1);
 	}
 	/*Set Pixel Alpha Blending*/
@@ -97,25 +97,25 @@ int main(int argc, char *argv[])
 		close(fd);
 		exit(1);
 	}
-
+	
 	close(fd);
-
+	
 #ifdef Q_WS_QWS
 //	app.setOverrideCursor( QCursor( Qt::BlankCursor ) );
 	QWSServer::setCursorVisible( false );
 	//QWSServer::setBackground(QBrush(Qt::black));
 	QWSServer::setBackground(QBrush(Qt::transparent));  // have not tested
 #endif
-
+	
 	//Disable stdout buffering so prints work rather than just filling the buffer.
 //	setbuf(stdout, NULL);
-
+	
 	//Set the minimum size of buttons and other UI interaction elements
 	QApplication::setGlobalStrut(QSize(40, 40));
-
+	
 	MyInputPanelContext *ic = new MyInputPanelContext;
 	a.setInputContext(ic);
-
+	
 	printf("testing print 2\n");
 	qDebug("Testing QDebug");
 //	fflush(stdout);
@@ -123,7 +123,7 @@ int main(int argc, char *argv[])
 	w.setWindowFlags(Qt::FramelessWindowHint);
 	w.move(600,0);
 //	MainWindow w;
-    w.show();
-    
+	w.show();
+	
 	return a.exec();
 }

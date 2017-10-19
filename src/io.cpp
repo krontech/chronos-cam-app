@@ -52,7 +52,12 @@ CameraErrortype IO::init()
 	setShutterGatingEnable( appSettings.value("io/shutterGatingEnable", getShutterGatingEnable()).toBool());
 
 	return SUCCESS;
+}
 
+void IO::resetToDefaults() {
+	setThreshold(1, 2.5);
+	setThreshold(2, 2.5);
+	setTriggerEnable(0);
 }
 
 bool IO::readIO(UInt32 io)
@@ -114,15 +119,14 @@ void IO::setThreshold(UInt32 io, double thresholdVolts)
 
 double IO::getThreshold(UInt32 io)
 {
+	QSettings appSettings;
 	switch(io)
 	{
 	case 1:
-		return io1Thresh;
-		break;
+		return appSettings.value("io/thresh1", io1Thresh).toDouble();
 
 	case 2:
-		return io2Thresh;
-		break;
+		return appSettings.value("io/thresh2", io2Thresh).toDouble();
 
 	default:
 		return 0.0;

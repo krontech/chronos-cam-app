@@ -111,12 +111,12 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	ui->lblExp->setVisible(false);
 */
 
-	if (camera->autoRecord) {
+	if (camera->get_autoRecord()) {
 		camera->setRecSequencerModeNormal();
 		camera->startRecording();
 	}
-	if (camera->autoSave) autoSaveActive = true;
-	else                  autoSaveActive = false;
+	if (camera->get_autoSave()) autoSaveActive = true;
+	else                        autoSaveActive = false;
 }
 
 CamMainWindow::~CamMainWindow()
@@ -167,7 +167,7 @@ void CamMainWindow::on_cmdRec_clicked()
 
 		camera->setRecSequencerModeNormal();
 		camera->startRecording();
-		if (camera->autoSave) autoSaveActive = true;
+		if (camera->get_autoSave()) autoSaveActive = true;
 
 //		ui->cmdRec->setText("Stop");
 //		ui->cmdPlay->setEnabled(false);
@@ -194,8 +194,8 @@ void CamMainWindow::on_cmdPlay_clicked()
 void CamMainWindow::playFinishedSaving()
 {
 	qDebug("--- Play Finished ---");
-	if (camera->autoRecord) {
-		if (camera->autoSave) autoSaveActive = true;
+	if (camera->get_autoRecord()) {
+		if (camera->get_autoSave()) autoSaveActive = true;
 		camera->setRecSequencerModeNormal();
 		camera->startRecording();
 		qDebug("--- started recording ---");
@@ -322,7 +322,7 @@ void CamMainWindow::updateRecordingState(bool recording)
 		//ui->cmdUtil->setEnabled(true);
 		////ui->cmdClose->setEnabled(true);
 
-		if(camera->autoSave && autoSaveActive)
+		if(camera->get_autoSave() && autoSaveActive)
 		{
 			playbackWindow *w = new playbackWindow(NULL, camera, true);
 			connect(w, SIGNAL(finishedSaving()),this, SLOT(playFinishedSaving()));
@@ -350,7 +350,7 @@ void CamMainWindow::on_MainWindowTimer()
 			QWidgetList qwl = QApplication::topLevelWidgets();	//Hack to stop you from starting record when another window is open. Need to get modal dialogs working for proper fix
 			if(qwl.count() <= 3)
 			{
-				if(false == camera->recordingData.hasBeenSaved && false == camera->autoSave)	//If there is unsaved video in RAM, prompt to start record
+				if(false == camera->recordingData.hasBeenSaved && false == camera->get_autoSave())	//If there is unsaved video in RAM, prompt to start record
 				{
 					QMessageBox::StandardButton reply;
 					reply = QMessageBox::question(this, "Unsaved video in RAM", "Start recording anyway and discard the unsaved video in RAM?", QMessageBox::Yes|QMessageBox::No);
@@ -364,7 +364,7 @@ void CamMainWindow::on_MainWindowTimer()
 				{
 					camera->setRecSequencerModeNormal();
 					camera->startRecording();
-					if (camera->autoSave) autoSaveActive = true;
+					if (camera->get_autoSave()) autoSaveActive = true;
 				}
 			}
 		}

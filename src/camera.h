@@ -270,9 +270,11 @@ private:
 public:
 	bool autoSave;
 	void set_autoSave(bool state);
+	bool get_autoSave();
 
 	bool autoRecord;
 	void set_autoRecord(bool state);
+	bool get_autoRecord();
 
 private:
 	bool lastRecording;

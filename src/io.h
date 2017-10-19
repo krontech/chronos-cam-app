@@ -11,6 +11,7 @@ class IO {
 public:
 	IO(GPMC * gpmcInst);
 	CameraErrortype init();
+	void resetToDefaults();
 	bool readIO(UInt32 io);
 	void writeIO(UInt32 io, UInt32 val);
 

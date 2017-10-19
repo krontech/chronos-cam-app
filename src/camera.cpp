@@ -2462,7 +2462,8 @@ Int32 Camera::takeWhiteReferences(void)
 
 bool Camera::getFocusPeakEnable(void)
 {
-	return focusPeakEnabled;
+	QSettings appSettings;
+	return appSettings.value("camera/focusPeak", focusPeakEnabled).toBool();
 }
 void Camera::setFocusPeakEnable(bool en)
 {
@@ -2473,7 +2474,8 @@ void Camera::setFocusPeakEnable(bool en)
 }
 bool Camera::getZebraEnable(void)
 {
-	return zebraEnabled;
+	QSettings appSettings;
+	return appSettings.value("camera/zebra", zebraEnabled).toBool();
 }
 void Camera::setZebraEnable(bool en)
 {
@@ -2489,10 +2491,20 @@ void Camera::set_autoSave(bool state) {
 	appSettings.setValue("camera/autoSave", state);
 }
 
+bool Camera::get_autoSave() {
+	QSettings appSettings;
+	return appSettings.value("camera/autoSave", autoSave).toBool();
+}
+
 void Camera::set_autoRecord(bool state) {
 	QSettings appSettings;
 	autoRecord = state;
 	appSettings.setValue("camera/autoRecord", state);
+}
+
+bool Camera::get_autoRecord() {
+	QSettings appSettings;
+	return appSettings.value("camera/autoRecord", autoRecord).toBool();
 }
 
 
