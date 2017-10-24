@@ -1,8 +1,19 @@
-#-------------------------------------------------
+#------------------------------------------------------------------------------
+#   Copyright (C) 2013-2017 Kron Technologies Inc <http://www.krontech.ca>.
 #
-# Project created by QtCreator 2013-04-28T14:58:59
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
 #
-#-------------------------------------------------
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#------------------------------------------------------------------------------
 
 QT       += core gui
 
@@ -37,6 +48,7 @@ INCLUDEPATH += $${QT_SYSROOT}/usr/include \
 #
 QMAKE_LIBDIR += $${QT_SYSROOT}/usr/lib $${QT_SYSROOT}/usr/lib/gstreamer-0.10
 LIBS += -lOMX_Core  -ldl -lgmodule-2.0 -lgobject-2.0 -lgstbase-0.10 -lgstreamer-0.10 -lm -lpthread -l:libxml2.so.2 -l:libz.so.1 -lgthread-2.0 -lrt -lglib-2.0
+LIBS += -lgstapp-0.10
 LIBS += -static-libstdc++
 #LIBS += -lgstreamer-0.10 -lgobject-2.0 -lgthread-2.0 -lgmodule-2.0 -lrt -lglib-2.0
 
