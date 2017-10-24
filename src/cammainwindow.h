@@ -25,7 +25,6 @@
 #include "statuswindow.h"
 #include "util.h"
 #include "camera.h"
-#include "keyboard/widgetKeyBoard.h"
 
 namespace Ui {
 class CamMainWindow;
@@ -76,8 +75,7 @@ private:
 	void updateRecordingState(bool recording);
 	void updateCurrentSettingsLabel(void);
 	Ui::CamMainWindow *ui;
-	StatusWindow * sw;
-	widgetKeyBoard  *myKeyboard;
+    StatusWindow * sw;
 	QTimer * timer;
 	bool lastShutterButton;
 	bool lastRecording;

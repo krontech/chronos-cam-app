@@ -43,8 +43,6 @@
 
 #include <QtGui/QInputContext>
 
-//#include "myinputpanel.h"
-//#include "keyboard/widgetKeyBoard.h"
 #include "keyboard.h"
 class MyInputPanel;
 
@@ -74,8 +72,6 @@ private slots:
 public:
 	keyboard *inputPanel;
 private:
-	//widgetKeyBoard *inputPanel;
-	//MyInputPanel *inputPanel;
 	QPoint originalPos;
 	bool keyboardActive;
 };

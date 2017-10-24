@@ -49,7 +49,7 @@ QTimer * menuTimeoutTimer;
 
 CamMainWindow::CamMainWindow(QWidget *parent) :
 	QDialog(parent),
-	ui(new Ui::CamMainWindow), myKeyboard(NULL)
+    ui(new Ui::CamMainWindow)
 {
 	QMessageBox msg;
 	CameraErrortype retVal;

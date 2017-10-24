@@ -58,13 +58,8 @@ SOURCES += main.cpp\
     lupa1300.cpp \
     spi.cpp \
     gpmc.cpp \
- #   vpss/ilmain.c \
- #   vpss/ilclient.c \
     vpss/ilclient_utils.c \
- #   vpss/Fb_blending.c \
- #   vpss/es_parser.c \
     vpss/semp.c \
- #   vpss/msgq.c \
     vpss/dm814x/platform_utils.c \
     video.cpp \
     cammainwindow.cpp \
@@ -102,13 +97,8 @@ HEADERS  += mainwindow.h \
     defines.h \
     types.h \
     cameraRegisters.h \
-#    vpss/ilmain.h \
-#    vpss/ilclient.h \
     vpss/ilclient_utils.h \
-#    vpss/app_cfg.h \
-#    vpss/es_parser.h \
     vpss/semp.h \
-#    vpss/msgq.h \
     vpss/dm814x/platform_utils.h \
     video.h \
     cammainwindow.h \
