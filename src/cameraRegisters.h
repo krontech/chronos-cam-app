@@ -77,6 +77,7 @@
 
 #define	SYSTEM_RESET				0x300
 #define FPGA_VERSION				0x302
+#define FPGA_SUBVERSION             0x304
 #define	DCG_MEM_START				0x800
 
 //Image sensor control register
@@ -214,6 +215,7 @@
 #define SYSTEM_RESET_ADDR				(SYSTEM_RESET * 2)
 
 #define FPGA_VERSION_ADDR				(FPGA_VERSION * 2)
+#define FPGA_SUBVERSION_ADDR            (FPGA_SUBVERSION * 2)
 
 #define	DCG_MEM_START_ADDR				(DCG_MEM_START * 2)
 

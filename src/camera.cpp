@@ -219,8 +219,8 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 	gpmc->write16(DISPLAY_H_BACK_PORCH_ADDR, 248);
 	gpmc->write16(DISPLAY_V_BACK_PORCH_ADDR, 38);*/
 
-    gpmc->write16(IMAGE_SENSOR_FIFO_START_W_THRESH_ADDR, 0x00A0);
-    gpmc->write16(IMAGE_SENSOR_FIFO_STOP_W_THRESH_ADDR, 0x00A0);
+    gpmc->write16(IMAGE_SENSOR_FIFO_START_W_THRESH_ADDR, 0x0100);
+    gpmc->write16(IMAGE_SENSOR_FIFO_STOP_W_THRESH_ADDR, 0x0100);
 
 	gpmc->write32(SEQ_LIVE_ADDR_0_ADDR, LIVE_FRAME_0_ADDRESS);
 	gpmc->write32(SEQ_LIVE_ADDR_1_ADDR, LIVE_FRAME_1_ADDRESS);
@@ -336,6 +336,8 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 	recorder->eosCallback = recordEosCallback;
 	recorder->eosCallbackArg = (void *)this;
 
+	loadColGainFromFile("cal/dcgL.bin");
+	
 	if(CAMERA_FILE_NOT_FOUND == loadFPNFromFile(FPN_FILENAME))
 		autoFPNCorrection(2, false, true);
 	/*
@@ -372,7 +374,6 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 		}
 	}
 	*/
-	loadColGainFromFile("cal/dcgL.bin");
 
 	//For mono version, set color matrix to just pass straight through
 	if(!isColor)

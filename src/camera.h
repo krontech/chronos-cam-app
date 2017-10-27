@@ -240,6 +240,7 @@ public:
 	Int32 readSerialNumber(char * dest);
 	Int32 writeSerialNumber(char * src);
 	UInt16 getFPGAVersion(void);
+	UInt16 getFPGASubVersion(void);
 private:
 	void endOfRec(void);
 	UInt32 getNumFrames(UInt32 start, UInt32 end);

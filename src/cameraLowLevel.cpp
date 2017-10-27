@@ -405,3 +405,8 @@ UInt16 Camera::getFPGAVersion(void)
 {
 	return gpmc->read16(FPGA_VERSION_ADDR);
 }
+
+UInt16 Camera::getFPGASubVersion(void)
+{
+	return gpmc->read16(FPGA_SUBVERSION_ADDR);
+}
