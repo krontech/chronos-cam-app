@@ -1,3 +1,19 @@
+/****************************************************************************
+ *  Copyright (C) 2013-2017 Kron Technologies Inc <http://www.krontech.ca>. *
+ *                                                                          *
+ *  This program is free software: you can redistribute it and/or modify    *
+ *  it under the terms of the GNU General Public License as published by    *
+ *  the Free Software Foundation, either version 3 of the License, or       *
+ *  (at your option) any later version.                                     *
+ *                                                                          *
+ *  This program is distributed in the hope that it will be useful,         *
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of          *
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           *
+ *  GNU General Public License for more details.                            *
+ *                                                                          *
+ *  You should have received a copy of the GNU General Public License       *
+ *  along with this program.  If not, see <http://www.gnu.org/licenses/>.   *
+ ****************************************************************************/
 #include <pthread.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -310,7 +326,7 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 	imagerSettings.period = sensor->getMinFramePeriod(imagerSettings.hRes, imagerSettings.vRes);
 	imagerSettings.exposure = sensor->getMaxExposure(imagerSettings.period);
 
-	vinst->frameCallbackArg = (void *)this;
+    vinst->frameCallbackArg = (void *)this;
 	vinst->frameCallback = frameCallback;
 	vinst->init();
 
@@ -333,7 +349,7 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 
 	recorder = new VideoRecord();
 
-	recorder->eosCallback = recordEosCallback;
+    recorder->eosCallback = recordEosCallback;
 	recorder->eosCallbackArg = (void *)this;
 
 	loadColGainFromFile("cal/dcgL.bin");
