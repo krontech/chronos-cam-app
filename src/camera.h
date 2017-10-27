@@ -41,7 +41,7 @@
 #define	LIVE_FRAME_2_ADDRESS	(MAX_FRAME_LENGTH*3)
 #define REC_REGION_START		(MAX_FRAME_LENGTH*4)
 #define REC_REGION_LEN			ramSize
-#define FRAME_ALIGN_WORDS		32			//Align to 256 byte boundaries (8 32-byte words)
+#define FRAME_ALIGN_WORDS		64			//Align to 256 byte boundaries (8 32-byte words)
 
 #define MAX_FRAME_SIZE_H		1280
 #define MAX_FRAME_SIZE_V		1024
