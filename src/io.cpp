@@ -53,18 +53,18 @@ CameraErrortype IO::init()
 	io1DAC.setDuty(io1Thresh / IO_DAC_FS);
 	io2DAC.setDuty(io2Thresh / IO_DAC_FS);
 
-	setTriggerEnable(       appSettings.value("io/triggerEnable",       getTriggerEnable()).toUInt());
-	setTriggerInvert(       appSettings.value("io/triggerInvert",       getTriggerInvert()).toUInt());
-	setTriggerDebounceEn(   appSettings.value("io/triggerDebounce",     getTriggerDebounceEn()).toUInt());
-	setTriggerDelayFrames(  appSettings.value("io/triggerDelayFrames",  getTriggerDelayFrames()).toUInt());
+	setTriggerEnable(       appSettings.value("io/triggerEnable",       1).toUInt());
+	setTriggerInvert(       appSettings.value("io/triggerInvert",       1).toUInt());
+	setTriggerDebounceEn(   appSettings.value("io/triggerDebounce",     0).toUInt());
+	setTriggerDelayFrames(  appSettings.value("io/triggerDelayFrames",  0).toUInt());
 	
-	setOutInvert(           appSettings.value("io/outInvert",           getOutInvert()).toUInt());
-	setOutSource(           appSettings.value("io/outSource",           getOutSource()).toUInt());
-	setOutLevel(            appSettings.value("io/outLevel",            getOutLevel()).toUInt());
+	setOutInvert(           appSettings.value("io/outInvert",           0).toUInt());
+	setOutSource(           appSettings.value("io/outSource",           0).toUInt());
+	setOutLevel(            appSettings.value("io/outLevel",            2).toUInt());
 	
-	setTriggeredExpEnable(  appSettings.value("io/triggeredExpEnable",  getTriggeredExpEnable()).toBool());
-	setExtShutterSrcEn(     appSettings.value("io/extShutterSrcEn",     getExtShutterSrcEn()).toUInt());
-	setShutterGatingEnable( appSettings.value("io/shutterGatingEnable", getShutterGatingEnable()).toBool());
+	setExtShutterSrcEn(     appSettings.value("io/extShutterSrcEn",     0).toUInt());
+	setTriggeredExpEnable(  appSettings.value("io/triggeredExpEnable",  false).toBool());
+	setShutterGatingEnable( appSettings.value("io/shutterGatingEnable", false).toBool());
 
 	return SUCCESS;
 }
