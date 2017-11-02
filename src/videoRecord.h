@@ -178,6 +178,7 @@ public:
 
 private:
 	bool running;
+    int fd;
 
 	UInt32 imgXSize;	//Input resolution coming from imager
 	UInt32 imgYSize;

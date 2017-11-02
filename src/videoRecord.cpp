@@ -21,9 +21,17 @@
 #include <time.h>
 #include <QDebug>
 #include <unistd.h>
+#include <fcntl.h>
 
 #include "videoRecord.h"
 
+/* DEBUG: Enabling sync is a great way to reproduce IO issues, but it almost certainly will drop frames. */
+static gboolean
+filesink_buffer_fsync(GstPad *pad, GstBuffer *buffer, gpointer data)
+{
+    //fsync((int)data);
+    return TRUE;
+}
 
 void * recordThread(void *arg);
 gboolean bus_call (GstBus     *bus,
@@ -49,7 +57,7 @@ VideoRecord::VideoRecord()
 
 	running = false;
 
-	recordRunning = false;
+    recordRunning = false;
 
 	bitsPerPixel = 0.7;
 	maxBitrate = 40.0;
@@ -121,6 +129,10 @@ Int32 VideoRecord::start(UInt32 hSize, UInt32 vSize, UInt32 frames)
 	{	//Not writable
 		return RECORD_DIRECTORY_NOT_WRITABLE;
 	}
+    fd = open(path, O_WRONLY | O_CREAT | O_TRUNC | S_IWUSR | S_IRGRP | S_IROTH);
+    if (fd < 0) {
+        return RECORD_DIRECTORY_NOT_WRITABLE;
+    }
 
 	printf("Saving file to %s\r\n", path);
 
@@ -129,6 +141,7 @@ Int32 VideoRecord::start(UInt32 hSize, UInt32 vSize, UInt32 frames)
 	qDebug() << "Starting save at bitrate " << bitrate << " framerate " << framerate;
 	GstElement *source, *perf, *encoder, *queue, *parser, *mux, *sink;
 	GstBus *bus;
+    GstPad *pad;
 
 	eosFlag = false;
 	error = false;
@@ -144,11 +157,12 @@ Int32 VideoRecord::start(UInt32 hSize, UInt32 vSize, UInt32 frames)
 	queue =		gst_element_factory_make ("queue",			"queue");
 	parser =	gst_element_factory_make ("rr_h264parser",	"h264-parser");
 	mux =		gst_element_factory_make ("mp4mux",			"mp4-mux");
-	sink =		gst_element_factory_make ("filesink",		"file-sink");
+    sink =		gst_element_factory_make ("fdsink",			"file-sink");
 
 
 	if (!pipeline || !source || !perf || !encoder || !queue || !parser || !mux || !sink) {
 	  g_printerr ("One element could not be created. Exiting.\n");
+      close(fd);
 	  return -1;
 	}
 
@@ -178,8 +192,10 @@ Int32 VideoRecord::start(UInt32 hSize, UInt32 vSize, UInt32 frames)
 
 	g_object_set (G_OBJECT (mux), "dts-method", (guint)0, NULL);
 
-	g_object_set (G_OBJECT (sink), "location", path, NULL);
-
+    g_object_set (G_OBJECT (sink), "fd", (gint)fd, NULL);
+    pad = gst_element_get_static_pad(sink, "sink");
+    gst_pad_add_buffer_probe(pad, G_CALLBACK(filesink_buffer_fsync), (gpointer)fd);
+    gst_object_unref(pad);
 
 	//Add bus message handler, which will be handled by QT since it also uses a Glib loop
 	bus = gst_pipeline_get_bus (GST_PIPELINE (pipeline));
@@ -271,6 +287,10 @@ UInt32 VideoRecord::stop()
 	gst_object_unref (GST_OBJECT (pipeline));
 	g_source_remove (bus_watch_id);
 
+    g_print ("Closing output file\n");
+    fsync(fd);
+    close(fd);
+
 	running = false;
 
 }
@@ -293,7 +313,7 @@ bus_call (GstBus     *bus,
 {
 	VideoRecord* gstDia = (VideoRecord*)data;
 
-	printf("Message received: %d", GST_MESSAGE_TYPE (msg));
+    printf("Message received: %s\n", GST_MESSAGE_TYPE_NAME (msg));
 
 	switch (GST_MESSAGE_TYPE (msg)) {
 
