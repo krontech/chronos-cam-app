@@ -2582,9 +2582,25 @@ void frameCallback(void * arg)
 	{
 		sem_wait(&cInst->playMutex);
 
-		cInst->processPlay();
+        /*
+         * In case of flow control issues, start throttling the FPGA's video
+         * output to avoid dropping frames due to the fragile nature of TI's
+         * OMX elements.
+         */
+        if (!cInst->recorder->flowReady()) {
+            UInt16 display_ctl = cInst->gpmc->read16(DISPLAY_CTL_ADDR);
+            cInst->gpmc->write16(DISPLAY_CTL_ADDR, display_ctl | DISPLAY_CTL_SYNC_INH_MASK);
+            while (!cInst->recorder->flowReady()) {
+                delayms(10);
+            }
+            cInst->gpmc->write16(DISPLAY_CTL_ADDR, display_ctl);
+        }
+
+        cInst->processPlay();
 
 		cInst->setDisplayFrameAddress(cInst->getPlayFrameAddr(cInst->playFrame));
+
+        cInst->recorder->debug();
 
 		sem_post(&cInst->playMutex);
 	}

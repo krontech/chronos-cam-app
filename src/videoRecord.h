@@ -25,7 +25,6 @@
 #include "types.h"
 
 
-
 /*
   bitrate             : Encoding bit-rate
 						flags: readable, writable
@@ -153,6 +152,8 @@ public:
 	int start(unsigned int hSize, unsigned int vSize, unsigned int frames);
 	unsigned int stop();
 	unsigned int stop2();
+    bool flowReady();
+    void debug();
 	UInt32 getSafeHRes(UInt32 hRes);
 	UInt32 getSafeVRes(UInt32 vRes);
 	bool endOfStream();
@@ -178,14 +179,15 @@ public:
 
 private:
 	bool running;
+    int frameCount;
     int fd;
 
 	UInt32 imgXSize;	//Input resolution coming from imager
 	UInt32 imgYSize;
 	UInt32 numFrames;
 
-
 	GstElement *pipeline;
+    GstElement *source;
 	guint bus_watch_id;
 	bool eosFlag;
 	bool error;
@@ -195,8 +197,6 @@ private:
 			GstMessage *msg,
 			gpointer    data);
 	void frameCB(void);
-
-
 };
 
 

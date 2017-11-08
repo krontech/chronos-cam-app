@@ -63,12 +63,11 @@ VideoRecord::VideoRecord()
 	maxBitrate = 40.0;
 	framerate = 60;
 	strcpy(filename, "");
-	strcpy(fileDirectory, "/media/mmcblk1p1");
+    strcpy(fileDirectory, "/media/mmcblk1p1");
 }
 
 VideoRecord::~VideoRecord()
 {
-
 }
 
 Int32 VideoRecord::start(UInt32 hSize, UInt32 vSize, UInt32 frames)
@@ -139,7 +138,7 @@ Int32 VideoRecord::start(UInt32 hSize, UInt32 vSize, UInt32 frames)
 	bitrate = min(bitsPerPixel * imgXSize * imgYSize * framerate, min(60000000, (UInt32)(maxBitrate * 1000000.0)) * framerate / 60);	//Max of 60Mbps
 
 	qDebug() << "Starting save at bitrate " << bitrate << " framerate " << framerate;
-	GstElement *source, *perf, *encoder, *queue, *parser, *mux, *sink;
+    GstElement *perf, *encoder, *queue, *parser, *mux, *sink;
 	GstBus *bus;
     GstPad *pad;
 
@@ -172,7 +171,7 @@ Int32 VideoRecord::start(UInt32 hSize, UInt32 vSize, UInt32 frames)
 	g_object_set (G_OBJECT (source), "input-interface", "VIP1_PORTA", NULL);
 	g_object_set (G_OBJECT (source), "capture-mode", "SC_DISCRETESYNC_ACTVID_VSYNC", NULL);
 	g_object_set (G_OBJECT (source), "vif-mode", "24BIT", NULL);
-	g_object_set (G_OBJECT (source), "output-buffers", (guint)10, NULL);
+    g_object_set (G_OBJECT (source), "output-buffers", (guint)10, NULL);
 	g_object_set (G_OBJECT (source), "skip-frames", (guint)0, NULL);
 	if(0 != numFrames)
 		g_object_set (G_OBJECT (source), "num-buffers", numFrames, NULL);
@@ -245,6 +244,7 @@ Int32 VideoRecord::start(UInt32 hSize, UInt32 vSize, UInt32 frames)
 
 
 	running = true;
+    frameCount = 0;
 
 	printf("VideoRecord start done\n");
 	return SUCCESS;
@@ -260,6 +260,7 @@ UInt32 VideoRecord::stop()
 
 	/* Out of the main loop, clean up nicely */
 	g_print ("Returned, stopping playback\n");
+    running = false;
 
 	gst_element_get_state (pipeline, &state, &pending, GST_CLOCK_TIME_NONE);
 	g_print ("Current state: %d, pending state: %d\n", state, pending);
@@ -282,7 +283,6 @@ UInt32 VideoRecord::stop()
 	gst_element_get_state (pipeline, &state, &pending, GST_CLOCK_TIME_NONE);
 	g_print ("Current state: %d, pending state: %d\n", state, pending);
 
-
 	g_print ("Deleting pipeline\n");
 	gst_object_unref (GST_OBJECT (pipeline));
 	g_source_remove (bus_watch_id);
@@ -290,9 +290,6 @@ UInt32 VideoRecord::stop()
     g_print ("Closing output file\n");
     fsync(fd);
     close(fd);
-
-	running = false;
-
 }
 
 UInt32 VideoRecord::stop2()
@@ -305,6 +302,30 @@ UInt32 VideoRecord::stop2()
 	return SUCCESS;
 }
 
+bool VideoRecord::flowReady()
+{
+    if (running) {
+        gint level = 10;
+        g_object_get (G_OBJECT (source), "buffer-level", &level, NULL);
+        return (level > 1);
+    }
+    return TRUE;
+}
+
+void VideoRecord::debug()
+{
+    if (running) {
+        frameCount++;
+#if 0
+        if (!(frameCount % 60)) {
+            gint level = 77;
+            gint drops = 0;
+            g_object_get (G_OBJECT (source), "buffer-level", &level, "dropped-frames", &drops, NULL);
+            printf("omx_vfcc: buffer-level=%d dropped-frames=%d\n", level, drops);
+        }
+#endif
+    }
+}
 
 gboolean
 bus_call (GstBus     *bus,
