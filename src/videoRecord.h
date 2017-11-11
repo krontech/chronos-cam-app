@@ -24,6 +24,14 @@
 #include "errorCodes.h"
 #include "types.h"
 
+typedef enum {
+	SAVE_MODE_H264 = 0,
+	SAVE_MODE_RAW16,
+	SAVE_MODE_RAW16RJ,
+	SAVE_MODE_RAW12,
+	SAVE_MODE_RAW16_PNG
+} save_mode_type;
+
 
 /*
   bitrate             : Encoding bit-rate
@@ -149,7 +157,7 @@ public:
 	Int32 init(void);
 	VideoRecord();
 	~VideoRecord();
-	int start(unsigned int hSize, unsigned int vSize, unsigned int frames);
+	int start(unsigned int hSize, unsigned int vSize, unsigned int frames, save_mode_type save_mode = SAVE_MODE_H264);
 	unsigned int stop();
 	unsigned int stop2();
     bool flowReady();

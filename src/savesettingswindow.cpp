@@ -98,6 +98,15 @@ saveSettingsWindow::saveSettingsWindow(QWidget *parent, Camera * camInst) :
 	while (val >>= 1) ++index;
 	ui->comboLevel->setCurrentIndex(index);
 
+	ui->comboSaveFormat->clear();
+	// these must line up with the enum in videoRecord.h
+	ui->comboSaveFormat->addItem("H.264");            // SAVE_MODE_H264
+	ui->comboSaveFormat->addItem("Raw 16bit");        // SAVE_MODE_RAW16
+	ui->comboSaveFormat->addItem("Raw 16RJ");         // SAVE_MODE_RAW16RJ
+	ui->comboSaveFormat->addItem("Raw 12bit packed"); // SAVE_MODE_RAW12
+	
+	ui->comboSaveFormat->setCurrentIndex(settings.value("recorder/saveFormat", 0).toUInt());
+	
 	driveCount = 0;
 	timer = new QTimer(this);
 	connect(timer, SIGNAL(timeout()), this, SLOT(updateDrives()));
@@ -121,6 +130,8 @@ void saveSettingsWindow::on_cmdClose_clicked()
 	camera->recorder->profile = 1 << ui->comboProfile->currentIndex();
 	camera->recorder->level = 1 << ui->comboLevel->currentIndex();
 
+	settings.setValue("recorder/saveFormat", ui->comboSaveFormat->currentIndex());
+		
 	strcpy(camera->recorder->filename, ui->lineFilename->text().toStdString().c_str());
 
 	//Keep the beginning of the combo box text (the path)

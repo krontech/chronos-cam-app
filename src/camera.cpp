@@ -2097,6 +2097,16 @@ Int16 getADCOffset(UInt8 channel);
 Int32 Camera::startSave(UInt32 startFrame, UInt32 length)
 {
 	Int32 retVal;
+	QSettings appSettings;
+	save_mode_type record_mode;
+
+	switch (appSettings.value("recorder/saveFormat", SAVE_MODE_H264).toUInt()) {
+	case 0:  record_mode = SAVE_MODE_H264; break;
+	case 1:  record_mode = SAVE_MODE_RAW16; break;
+	case 2:  record_mode = SAVE_MODE_RAW16RJ; break;
+	case 3:  record_mode = SAVE_MODE_RAW12; break;
+	default: record_mode = SAVE_MODE_H264;
+	}
 
 	if(startFrame + length > recordingData.totalFrames)
 		return CAMERA_INVALID_SETTINGS;
@@ -2113,8 +2123,13 @@ Int32 Camera::startSave(UInt32 startFrame, UInt32 length)
 
 	setDisplaySyncInhibit(true);
 
-	retVal = recorder->start((recordingData.is.hRes + 15) & 0xFFFFFFF0, recordingData.is.vRes, length+2);
-
+	
+	if (record_mode == SAVE_MODE_RAW12)   { gpmc->write16(DISPLAY_PIPELINE_ADDR, DISPLAY_PIPELINE_RAW_12BPP); }
+	if (record_mode == SAVE_MODE_RAW16)   { gpmc->write16(DISPLAY_PIPELINE_ADDR, DISPLAY_PIPELINE_RAW_16BPP); }
+	if (record_mode == SAVE_MODE_RAW16RJ) { gpmc->write16(DISPLAY_PIPELINE_ADDR, DISPLAY_PIPELINE_RAW_12BPP | DISPLAY_PIPELINE_RAW_RIGHT_JUSTIFY); }
+	
+	retVal = recorder->start((recordingData.is.hRes + 15) & 0xFFFFFFF0, recordingData.is.vRes, length+2, record_mode);
+	
 	if(retVal != SUCCESS)
 	{
 		setDisplaySyncInhibit(false);
@@ -2612,6 +2627,7 @@ void recordEosCallback(void * arg)
 	camera->setPlaybackRate(0, true);
 	camera->recorder->stop();
 	camera->setDisplaySettings(false);
+	camera->gpmc->write16(DISPLAY_PIPELINE_ADDR, 0x0000); // turn off raw/bipass modes, if they're set
 	camera->vinst->setRunning(true);
 	fflush(stdout);
 }

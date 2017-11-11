@@ -50,7 +50,7 @@ QSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}<
     <property name="geometry">
      <rect>
       <x>370</x>
-      <y>110</y>
+      <y>140</y>
       <width>151</width>
       <height>31</height>
      </rect>
@@ -142,7 +142,7 @@ QSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}<
     <property name="geometry">
      <rect>
       <x>370</x>
-      <y>50</y>
+      <y>90</y>
       <width>151</width>
       <height>31</height>
      </rect>
@@ -160,7 +160,7 @@ QSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}<
     <property name="geometry">
      <rect>
       <x>370</x>
-      <y>90</y>
+      <y>120</y>
       <width>141</width>
       <height>17</height>
      </rect>
@@ -173,7 +173,7 @@ QSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}<
     <property name="geometry">
      <rect>
       <x>370</x>
-      <y>30</y>
+      <y>70</y>
       <width>141</width>
       <height>17</height>
      </rect>
@@ -254,6 +254,40 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
     </property>
     <property name="text">
      <string>Max Bitrate (Mbps)</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_8">
+    <property name="geometry">
+     <rect>
+      <x>370</x>
+      <y>10</y>
+      <width>141</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Save Format</string>
+    </property>
+   </widget>
+   <widget class="QComboBox" name="comboSaveFormat">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>370</x>
+      <y>30</y>
+      <width>151</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>16</pointsize>
+      <weight>75</weight>
+      <italic>true</italic>
+      <bold>true</bold>
+     </font>
     </property>
    </widget>
   </widget>
