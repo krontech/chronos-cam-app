@@ -206,34 +206,7 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 		return CAMERA_WRONG_FPGA_VERSION;
 	}
 
-/*
-	LUX1310 * lux1310 = new LUX1310();
-	retVal = lux1310->init(gpmc);
-*/
-
-	//Set video timing
-	/*
-	//Old video timing that works with monitors
-	gpmc->write16(DISPLAY_H_PERIOD_ADDR, 1296+48+112+248-1);
-	gpmc->write16(DISPLAY_V_PERIOD_ADDR, 1024+1+3+38-1);
-	gpmc->write16(DISPLAY_H_SYNC_LEN_ADDR, 112);
-	gpmc->write16(DISPLAY_V_SYNC_LEN_ADDR, 3);
-	gpmc->write16(DISPLAY_H_BACK_PORCH_ADDR, 248);
-	gpmc->write16(DISPLAY_V_BACK_PORCH_ADDR, 38);
-	*/
-	//LUPA1300
-	gpmc->write16(DISPLAY_H_PERIOD_ADDR, 1296+50+50+166-1);
-	gpmc->write16(DISPLAY_V_PERIOD_ADDR, 1024+2+3+38-1);
-	gpmc->write16(DISPLAY_H_SYNC_LEN_ADDR, 50);
-	gpmc->write16(DISPLAY_V_SYNC_LEN_ADDR, 3);
-	gpmc->write16(DISPLAY_H_BACK_PORCH_ADDR, 166);
-	gpmc->write16(DISPLAY_V_BACK_PORCH_ADDR, 38);
-/*	gpmc->write16(DISPLAY_H_PERIOD_ADDR, 1296+48+112+248-1);
-	gpmc->write16(DISPLAY_V_PERIOD_ADDR, 1024+1+3+38-1);
-	gpmc->write16(DISPLAY_H_SYNC_LEN_ADDR, 112);
-	gpmc->write16(DISPLAY_V_SYNC_LEN_ADDR, 3);
-	gpmc->write16(DISPLAY_H_BACK_PORCH_ADDR, 248);
-	gpmc->write16(DISPLAY_V_BACK_PORCH_ADDR, 38);*/
+    setLiveOutputTiming(1296, 1024, 1280, 1024, MAX_LIVE_FRAMERATE);
 
     gpmc->write16(IMAGE_SENSOR_FIFO_START_W_THRESH_ADDR, 0x0100);
     gpmc->write16(IMAGE_SENSOR_FIFO_STOP_W_THRESH_ADDR, 0x0100);
@@ -343,7 +316,7 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 	settings.exposure  = appSettings.value("camera/exposure", sensor->getMaxExposure(settings.period)).toInt();
 	settings.temporary = 1;
 	setImagerSettings(settings);
-	setDisplaySettings(false);
+    setDisplaySettings(false, MAX_LIVE_FRAMERATE);
 
 	vinst->setRunning(true);
 
@@ -513,7 +486,7 @@ UInt32 Camera::setIntegrationTime(double intTime, UInt32 hRes, UInt32 vRes, UInt
 	return SUCCESS;
 }
 
-UInt32 Camera::setDisplaySettings(bool encoderSafe)
+UInt32 Camera::setDisplaySettings(bool encoderSafe, UInt32 maxFps)
 {
 	if(!sensor->isValidResolution(imagerSettings.stride, imagerSettings.vRes, imagerSettings.hOffset, imagerSettings.vOffset))
 		return CAMERA_INVALID_IMAGER_SETTINGS;
@@ -523,12 +496,9 @@ UInt32 Camera::setDisplaySettings(bool encoderSafe)
 	if(running)
 		vinst->setRunning(false);
 
-	//setLiveOutputTiming(imagerSettings.stride, imagerSettings.vRes, encoderSafe ? (imagerSettings.hRes + 15) & 0xFFFFFFF0 : imagerSettings.hRes);	//Multiple of 16 is safe for encoder
-	setLiveOutputTiming2(imagerSettings.stride,
-						 imagerSettings.vRes,
-						 encoderSafe ? recorder->getSafeHRes(imagerSettings.hRes) : imagerSettings.hRes,
-						 encoderSafe ? recorder->getSafeVRes(imagerSettings.vRes) : imagerSettings.vRes,
-						 encoderSafe);	//Multiple of 16 is safe for encoder
+    setLiveOutputTiming(imagerSettings.hRes, imagerSettings.vRes,
+                        imagerSettings.hRes, imagerSettings.vRes,
+                        maxFps);
 
 	vinst->setImagerResolution(imagerSettings.hRes, imagerSettings.vRes);
 
@@ -2113,7 +2083,7 @@ Int32 Camera::startSave(UInt32 startFrame, UInt32 length)
 
 	vinst->setRunning(false);
 	delayms(100); //Gstreamer crashes with no delay here, OMX needs time to deinit stuff?
-	setDisplaySettings(true);	//Set to encoder safe mode (width multiple of 16)
+    setDisplaySettings(true, MAX_RECORD_FRAMERATE);	//Set to encoder safe mode, and increase the framerate.
 
 	//Set the start frame. This will advance by one before recording starts.
 	if(0 == startFrame)
@@ -2353,7 +2323,7 @@ Int32 Camera::blackCalAllStdRes(bool factory)
 	if(SUCCESS != retVal)
 		return retVal;
 
-	retVal = setDisplaySettings(false);
+    retVal = setDisplaySettings(false, MAX_LIVE_FRAMERATE);
 	if(SUCCESS != retVal)
 		return retVal;
 
@@ -2626,7 +2596,7 @@ void recordEosCallback(void * arg)
 	Camera * camera = (Camera *)arg;
 	camera->setPlaybackRate(0, true);
 	camera->recorder->stop();
-	camera->setDisplaySettings(false);
+    camera->setDisplaySettings(false, MAX_LIVE_FRAMERATE);
 	camera->gpmc->write16(DISPLAY_PIPELINE_ADDR, 0x0000); // turn off raw/bipass modes, if they're set
 	camera->vinst->setRunning(true);
 	fflush(stdout);

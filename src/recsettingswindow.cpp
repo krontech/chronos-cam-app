@@ -186,7 +186,7 @@ void RecSettingsWindow::on_cmdOK_clicked()
 
 	settings.temporary = 0;
 	camera->setImagerSettings(settings);
-	camera->setDisplaySettings(false);
+    camera->setDisplaySettings(false, MAX_LIVE_FRAMERATE);
 
 	if(CAMERA_FILE_NOT_FOUND == camera->loadFPNFromFile(FPN_FILENAME))
 		camera->autoFPNCorrection(2, false, true);
@@ -222,7 +222,7 @@ void RecSettingsWindow::on_cmdOK_clicked()
 	settings.exposure = exp * 100000000.0;
 
 	camera->setImagerSettings(settings);
-	camera->setDisplaySettings(false);
+    camera->setDisplaySettings(false, MAX_LIVE_FRAMERATE);
 
 	camera->loadFPNFromFile(FPN_FILENAME);
 

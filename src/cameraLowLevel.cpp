@@ -54,39 +54,33 @@ void Camera::setDisplayFrameAddress(UInt32 address)
 	gpmc->write32(DISPLAY_FRAME_ADDRESS_ADDR, address);
 }
 
-void Camera::setLiveOutputTiming(UInt32 hRes, UInt32 vRes, UInt32 stride)
+void Camera::setLiveOutputTiming(UInt32 hRes, UInt32 vRes, UInt32 hOutRes, UInt32 vOutRes, UInt32 maxFps)
 {
-	gpmc->write16(DISPLAY_H_RES_ADDR, hRes);
-	gpmc->write16(DISPLAY_H_OUT_RES_ADDR, stride);
-	gpmc->write16(DISPLAY_V_RES_ADDR, vRes);
-}
+    const UInt32 pxClock = 100000000;
+    const UInt32 hSync = 50;
+    const UInt32 hPorch = 166;
+    const UInt32 vSync = 3;
+    const UInt32 vPorch = 38;
+    UInt32 hPeriod = hOutRes + (2 * hSync) + hPorch;
+    UInt32 vPeriod = (pxClock / (hPeriod * maxFps));
 
-void Camera::setLiveOutputTiming2(UInt32 hRes, UInt32 vRes, UInt32 stride, UInt32 vOutRes, bool encoderSafe)
-{
 	gpmc->write16(DISPLAY_H_RES_ADDR, hRes);
-	gpmc->write16(DISPLAY_H_OUT_RES_ADDR, stride);
+    gpmc->write16(DISPLAY_H_OUT_RES_ADDR, hOutRes);
 	gpmc->write16(DISPLAY_V_RES_ADDR, vRes);
-	gpmc->write16(DISPLAY_V_OUT_RES_ADDR, vOutRes);
-/*
-	if( || encoderSafe)
-	{
-		gpmc->write16(DISPLAY_H_PERIOD_ADDR, stride+48+112+248-1);
-		gpmc->write16(DISPLAY_V_PERIOD_ADDR, vRes+1+3+38-1);
-		gpmc->write16(DISPLAY_H_SYNC_LEN_ADDR, 112);
-		gpmc->write16(DISPLAY_V_SYNC_LEN_ADDR, 3);
-		gpmc->write16(DISPLAY_H_BACK_PORCH_ADDR, 248);
-		gpmc->write16(DISPLAY_V_BACK_PORCH_ADDR, 38);
-	}
-	else
-	{
-		gpmc->write16(DISPLAY_H_PERIOD_ADDR, 1296+48+112+248-1);
-		gpmc->write16(DISPLAY_V_PERIOD_ADDR, 1024+1+3+38-1);
-		gpmc->write16(DISPLAY_H_SYNC_LEN_ADDR, 112);
-		gpmc->write16(DISPLAY_V_SYNC_LEN_ADDR, 3);
-		gpmc->write16(DISPLAY_H_BACK_PORCH_ADDR, 248);
-		gpmc->write16(DISPLAY_V_BACK_PORCH_ADDR, 38);
-	}
-*/
+    gpmc->write16(DISPLAY_V_OUT_RES_ADDR, vOutRes);
+
+    /* Setup the the horizontal timing for speed. */
+    gpmc->write16(DISPLAY_H_PERIOD_ADDR, hPeriod-1);
+    gpmc->write16(DISPLAY_H_SYNC_LEN_ADDR, hSync);
+    gpmc->write16(DISPLAY_H_BACK_PORCH_ADDR, hPorch);
+
+    /* Setup the vertical timing to match the desired framerate. */
+    if (vPeriod < (vOutRes + 2*vSync + vPorch)) {
+        vPeriod = vOutRes + 2*vSync + vPorch;
+    }
+    gpmc->write16(DISPLAY_V_PERIOD_ADDR, vPeriod - 1);
+    gpmc->write16(DISPLAY_V_SYNC_LEN_ADDR, vSync);
+    gpmc->write16(DISPLAY_V_BACK_PORCH_ADDR, vPorch);
 }
 
 bool Camera::getRecDataFifoIsEmpty(void)

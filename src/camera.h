@@ -50,6 +50,9 @@
 #define BITS_PER_PIXEL			12
 #define BYTES_PER_WORD			32
 
+#define MAX_LIVE_FRAMERATE      60
+#define MAX_RECORD_FRAMERATE    110
+
 #define FPN_AVERAGE_FRAMES		16	//Number of frames to average to get FPN correction data
 
 #define SENSOR_DATA_WIDTH		12
@@ -175,7 +178,7 @@ public:
 	ImagerSettings_t getImagerSettings() { return imagerSettings; }
 	UInt32 setImagerSettings(ImagerSettings_t settings);
 	UInt32 setIntegrationTime(double intTime, UInt32 hRes, UInt32 vRes, UInt32 flags);
-	UInt32 setDisplaySettings(bool encoderSafe);
+    UInt32 setDisplaySettings(bool encoderSafe, UInt32 maxFps);
 	UInt32 setPlayMode(bool playMode);
 	UInt32 playFrame;
 	void setPlaybackRate(Int32 speed, bool forward);
@@ -225,9 +228,8 @@ private:
 public:
 	void setDisplaySyncInhibit(bool syncInhibit);
 private:
-	void setDisplayFrameAddress(UInt32 address);
-	void setLiveOutputTiming(UInt32 hRes, UInt32 vRes, unsigned int stride);
-	void setLiveOutputTiming2(UInt32 hRes, UInt32 vRes, UInt32 stride, UInt32 vOutRes, bool encoderSafe);
+    void setDisplayFrameAddress(UInt32 address);
+    void setLiveOutputTiming(UInt32 hRes, UInt32 vRes, UInt32 hOutRes, UInt32 vOutRes, UInt32 maxFps);
 	bool getRecDataFifoIsEmpty(void);
 	UInt32 readRecDataFifo(void);
 	bool getRecording(void);
