@@ -224,9 +224,7 @@ public:
 	void setSerialNumber(const char * sn) {strcpy(serialNumber, sn);}
 	bool getIsColor() {return isColor;}
 private:
-	void setDisplayFrameSource(bool liveDisplaySource);
-public:
-	void setDisplaySyncInhibit(bool syncInhibit);
+    void setDisplayFrameSource(bool liveDisplaySource);
 private:
     void setDisplayFrameAddress(UInt32 address);
     void setLiveOutputTiming(UInt32 hRes, UInt32 vRes, UInt32 hOutRes, UInt32 vOutRes, UInt32 maxFps);

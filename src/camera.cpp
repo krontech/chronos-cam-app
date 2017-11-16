@@ -760,21 +760,26 @@ bool Camera::getIsRecording(void)
 
 UInt32 Camera::setPlayMode(bool playMode)
 {
+    UInt32 displayCtl;
+
 	if(recording)
 		return CAMERA_ALREADY_RECORDING;
 	if(!recordingData.valid)
 		return CAMERA_NO_RECORDING_PRESENT;
 
-	playbackMode = playMode;
+    playbackMode = playMode;
 
-	if(playMode)
-	{
-		setDisplayFrameAddress(getPlayFrameAddr(playFrame));
+    displayCtl = gpmc->read32(DISPLAY_CTL_ADDR);
+    if(playMode)
+    {
+        gpmc->write32(DISPLAY_CTL_ADDR, displayCtl | DISPLAY_CTL_SYNC_INH_MASK);
+        setDisplayFrameAddress(getPlayFrameAddr(playFrame));
 		setFocusPeakEnableLL(false);	//Disable focus peaking and zebras
 		setZebraEnableLL(false);
 	}
 	else
-	{
+    {
+        gpmc->write32(DISPLAY_CTL_ADDR, displayCtl & ~DISPLAY_CTL_SYNC_INH_MASK);
 		setFocusPeakEnableLL(getFocusPeakEnable());	//Enable focus peaking and zebras if they were enabled previously
 		setZebraEnableLL(getZebraEnable());
 	}
@@ -2091,9 +2096,6 @@ Int32 Camera::startSave(UInt32 startFrame, UInt32 length)
 	else
 		playFrame = startFrame - 1;		//Will advance 1 frame before start of record
 
-	setDisplaySyncInhibit(true);
-
-	
 	if (record_mode == SAVE_MODE_RAW12)   { gpmc->write16(DISPLAY_PIPELINE_ADDR, DISPLAY_PIPELINE_RAW_12BPP); }
 	if (record_mode == SAVE_MODE_RAW16)   { gpmc->write16(DISPLAY_PIPELINE_ADDR, DISPLAY_PIPELINE_RAW_16BPP); }
 	if (record_mode == SAVE_MODE_RAW16RJ) { gpmc->write16(DISPLAY_PIPELINE_ADDR, DISPLAY_PIPELINE_RAW_12BPP | DISPLAY_PIPELINE_RAW_RIGHT_JUSTIFY); }
@@ -2101,8 +2103,7 @@ Int32 Camera::startSave(UInt32 startFrame, UInt32 length)
 	retVal = recorder->start((recordingData.is.hRes + 15) & 0xFFFFFFF0, recordingData.is.vRes, length+2, record_mode);
 	
 	if(retVal != SUCCESS)
-	{
-		setDisplaySyncInhibit(false);
+    {
 		vinst->setRunning(true);
 		if(RECORD_DIRECTORY_NOT_WRITABLE == retVal)
 			return RECORD_DIRECTORY_NOT_WRITABLE;
@@ -2114,8 +2115,9 @@ Int32 Camera::startSave(UInt32 startFrame, UInt32 length)
 
 	delayms(100);	//A few frames are skipped without this delay
 
+    /* Start recording by playing the first frame. */
 	sem_wait(&playMutex);
-	setDisplaySyncInhibit(false);
+    setDisplayFrameAddress(playFrame);
 	setPlaybackRate(1, true);
 	sem_post(&playMutex);
 
@@ -2512,7 +2514,7 @@ bool Camera::get_autoRecord() {
 
 void* recDataThread(void *arg)
 {
-	Camera * cInst = (Camera *)arg;
+    Camera * cInst = (Camera *)arg;
 	int ms = 100;
 	struct timespec ts = { ms / 1000, (ms % 1000) * 1000 * 1000 };
 	bool recording;
@@ -2564,26 +2566,19 @@ void frameCallback(void * arg)
 {
 	Camera * cInst = (Camera *)arg;
 	if(cInst->playbackMode)
-	{
-		sem_wait(&cInst->playMutex);
+    {
+        sem_wait(&cInst->playMutex);
 
         /*
-         * In case of flow control issues, start throttling the FPGA's video
-         * output to avoid dropping frames due to the fragile nature of TI's
-         * OMX elements.
+         * Wait for flow control issues to clear before the next frame.
          */
-        if (!cInst->recorder->flowReady()) {
-            UInt16 display_ctl = cInst->gpmc->read16(DISPLAY_CTL_ADDR);
-            cInst->gpmc->write16(DISPLAY_CTL_ADDR, display_ctl | DISPLAY_CTL_SYNC_INH_MASK);
-            while (!cInst->recorder->flowReady()) {
-                delayms(10);
-            }
-            cInst->gpmc->write16(DISPLAY_CTL_ADDR, display_ctl);
+        while (!cInst->recorder->flowReady()) {
+            delayms(10);
         }
 
         cInst->processPlay();
 
-		cInst->setDisplayFrameAddress(cInst->getPlayFrameAddr(cInst->playFrame));
+        cInst->setDisplayFrameAddress(cInst->getPlayFrameAddr(cInst->playFrame));
 
         cInst->recorder->debug();
 

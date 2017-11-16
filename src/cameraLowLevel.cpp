@@ -40,18 +40,12 @@ void Camera::setDisplayFrameSource(bool liveDisplaySource)
 		gpmc->write32(DISPLAY_CTL_ADDR, displayCtl | DISPLAY_CTL_ADDRESS_SEL_MASK);
 }
 
-void Camera::setDisplaySyncInhibit(bool syncInhibit)
-{
-	UInt32 displayCtl = gpmc->read32(DISPLAY_CTL_ADDR);
-	if(syncInhibit)
-		gpmc->write32(DISPLAY_CTL_ADDR, displayCtl | DISPLAY_CTL_SYNC_INH_MASK);
-	else
-		gpmc->write32(DISPLAY_CTL_ADDR, displayCtl & ~DISPLAY_CTL_SYNC_INH_MASK);
-}
-
 void Camera::setDisplayFrameAddress(UInt32 address)
 {
+    UInt32 displayCtl = gpmc->read32(DISPLAY_CTL_ADDR);
 	gpmc->write32(DISPLAY_FRAME_ADDRESS_ADDR, address);
+    gpmc->write16(DISPLAY_CTL_ADDR, displayCtl | DISPLAY_CTL_MANUAL_SYNC_MASK);
+
 }
 
 void Camera::setLiveOutputTiming(UInt32 hRes, UInt32 vRes, UInt32 hOutRes, UInt32 vOutRes, UInt32 maxFps)
