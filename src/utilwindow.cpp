@@ -677,7 +677,7 @@ void UtilWindow::on_cmdBackupSettings_clicked()
 	sw.show();
 	QCoreApplication::processEvents();
 
-	sprintf(str, "tar -cf /media/sda1/user_settings.tar /home/root/Settings/KronTech");
+	sprintf(str, "tar -cf /media/sda1/user_settings.tar /Settings/KronTech");
 
 	retVal = system(str);	//tar cal files
 
@@ -746,7 +746,7 @@ void UtilWindow::on_cmdRestoreSettings_clicked()
 	sw.show();
 	QCoreApplication::processEvents();
 
-	sprintf(str, "tar -xf /media/sda1/user_settings.tar -C /home/root/Settings");
+	sprintf(str, "tar -xf /media/sda1/user_settings.tar -C /Settings");
 
 	retVal = system(str);	//tar cal files
 

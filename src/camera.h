@@ -51,7 +51,7 @@
 #define BYTES_PER_WORD			32
 
 #define MAX_LIVE_FRAMERATE      60
-#define MAX_RECORD_FRAMERATE    110
+#define MAX_RECORD_FRAMERATE    220
 
 #define FPN_AVERAGE_FRAMES		16	//Number of frames to average to get FPN correction data
 
