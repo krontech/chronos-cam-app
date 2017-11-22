@@ -27,10 +27,10 @@
 
 /* DEBUG: Enabling sync is a great way to reproduce IO issues, but it almost certainly will drop frames. */
 static gboolean
-filesink_buffer_fsync(GstPad *pad, GstBuffer *buffer, gpointer data)
+filesink_buffer_probe(GstPad *pad, GstBuffer *buffer, gpointer data)
 {
-    //fsync((int)data);
-    return TRUE;
+	//fsync((int)data);
+	return TRUE;
 }
 
 void * recordThread(void *arg);
@@ -72,6 +72,10 @@ VideoRecord::~VideoRecord()
 
 Int32 VideoRecord::start(UInt32 hSize, UInt32 vSize, UInt32 frames, save_mode_type save_mode)
 {
+	GstElement *perf, *sink;
+	GstBus *bus;
+	GstPad *pad;
+
 	char path[1000];
 	char fname[1000];
 	char sequencePath[1000];
@@ -83,7 +87,10 @@ Int32 VideoRecord::start(UInt32 hSize, UInt32 vSize, UInt32 frames, save_mode_ty
 	imgYSize = vSize;
 	numFrames = frames;
 
-	//Build the filename
+	/*-------------------------------------------------
+	 * Setup the Output File
+	 *-------------------------------------------------
+	 */
 	if(strlen(fileDirectory) == 0)
 		return RECORD_NO_DIRECTORY_SET;
 
@@ -129,8 +136,6 @@ Int32 VideoRecord::start(UInt32 hSize, UInt32 vSize, UInt32 frames, save_mode_ty
 		break;
 	}
 
-	//Check if a file already exists at this path
-
 	//If a file of this name already exists
 	struct stat buffer;
 	if(stat (path, &buffer) == 0)
@@ -143,58 +148,81 @@ Int32 VideoRecord::start(UInt32 hSize, UInt32 vSize, UInt32 frames, save_mode_ty
 	{	//Not writable
 		return RECORD_DIRECTORY_NOT_WRITABLE;
 	}
-    fd = open(path, O_WRONLY | O_CREAT | O_TRUNC | S_IWUSR | S_IRGRP | S_IROTH);
-    if (fd < 0) {
-        return RECORD_DIRECTORY_NOT_WRITABLE;
-    }
+	fd = open(path, O_RDWR | O_CREAT | O_TRUNC | O_LARGEFILE, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+	if (fd < 0) {
+		return RECORD_DIRECTORY_NOT_WRITABLE;
+	}
 
-	printf("Saving file to %s\r\n", path);
+	printf("Saving video to %s\r\n", path);
 
+	/*-------------------------------------------------
+	 * Setup the Pipeline and Source Elements
+	 *-------------------------------------------------
+	 */
+	eosFlag = false;
+	error = false;
+
+	gst_init(NULL, NULL);
+
+	/* Create gstreamer elements */
+	pipeline =	gst_pipeline_new ("video-record");
+	if (!pipeline) {
+		g_printerr ("Pipeline could not be created. Exiting.\n");
+		close(fd);
+		return -1;
+	}
+
+	source = gst_element_factory_make("omx_camera", "vfcc-source");
+	if (!source) {
+		g_printerr ("OMX Camera could not be created. Exiting.\n");
+		close(fd);
+		return -1;
+	}
+	g_object_set(G_OBJECT(source), "input-interface", "VIP1_PORTA", NULL);
+	g_object_set(G_OBJECT(source), "capture-mode", "SC_DISCRETESYNC_ACTVID_VSYNC", NULL);
+	g_object_set(G_OBJECT(source), "vif-mode", "24BIT", NULL);
+	g_object_set(G_OBJECT(source), "output-buffers", (guint)10, NULL);
+	g_object_set(G_OBJECT(source), "skip-frames", (guint)0, NULL);
+	if(0 != numFrames) {
+		g_object_set(G_OBJECT(source), "num-buffers", numFrames, NULL);
+	}
+	//printf("about to override colorspace\n");
+	//g_object_set(G_OBJECT(source), "override-colorspace", (gboolean)TRUE, NULL);
+	//printf("done override colorspace\r\n");
+
+	perf = gst_element_factory_make("gstperf", "perf-count");
+	if (!perf) {
+		g_printerr ("GST perf element could not be created. Exiting.\n");
+		close(fd);
+		return -1;
+	}
+	g_object_set(G_OBJECT(perf), "print-arm-load", (gboolean)TRUE, NULL);
+	g_object_set(G_OBJECT(perf), "print-fps", (gboolean)TRUE, NULL);
+
+	gst_bin_add_many(GST_BIN(pipeline), source, perf, NULL);
+
+	/*-------------------------------------------------
+	 * Setup the Pipeline for h.264 Encoding
+	 *-------------------------------------------------
+	 */
 	if (save_mode == SAVE_MODE_H264) {
-		bitrate = min(bitsPerPixel * imgXSize * imgYSize * framerate, min(60000000, (UInt32)(maxBitrate * 1000000.0)) * framerate / 60);	//Max of 60Mbps
+		GstElement *encoder, *queue, *parser, *mux;
 
+		bitrate = min(bitsPerPixel * imgXSize * imgYSize * framerate, min(60000000, (UInt32)(maxBitrate * 1000000.0)) * framerate / 60);	//Max of 60Mbps
 		qDebug() << "Starting save at bitrate " << bitrate << " framerate " << framerate;
-		GstElement *perf, *encoder, *queue, *parser, *mux, *sink;
-		GstBus *bus;
-		GstPad *pad;
-		
-		eosFlag = false;
-		error = false;
-		
-		gst_init (NULL, NULL);
-		
-		/* Create gstreamer elements */
-		pipeline =	gst_pipeline_new ("video-record");
-		
-		source =	gst_element_factory_make ("omx_camera",		"vfcc-source");
-		perf  =		gst_element_factory_make ("gstperf",		"perf-count");
+
 		encoder =	gst_element_factory_make ("omx_h264enc",	"h264-encoder");
 		queue =		gst_element_factory_make ("queue",			"queue");
 		parser =	gst_element_factory_make ("rr_h264parser",	"h264-parser");
 		mux =		gst_element_factory_make ("mp4mux",			"mp4-mux");
 		sink =		gst_element_factory_make ("fdsink",			"file-sink");
-		
-		
-		if (!pipeline || !source || !perf || !encoder || !queue || !parser || !mux || !sink) {
+		if (!encoder || !queue || !parser || !mux || !sink) {
 			g_printerr ("One element could not be created. Exiting.\n");
 			close(fd);
 			return -1;
 		}
-		
-		/* Set up the pipeline */
-		
-		//Set up the elements as required
-		g_object_set (G_OBJECT (source), "input-interface", "VIP1_PORTA", NULL);
-		g_object_set (G_OBJECT (source), "capture-mode", "SC_DISCRETESYNC_ACTVID_VSYNC", NULL);
-		g_object_set (G_OBJECT (source), "vif-mode", "24BIT", NULL);
-		g_object_set (G_OBJECT (source), "output-buffers", (guint)10, NULL);
-		g_object_set (G_OBJECT (source), "skip-frames", (guint)0, NULL);
-		if(0 != numFrames)
-			g_object_set (G_OBJECT (source), "num-buffers", numFrames, NULL);
-		
-		g_object_set (G_OBJECT (perf), "print-arm-load", (gboolean)TRUE, NULL);
-		g_object_set (G_OBJECT (perf), "print-fps", (gboolean)TRUE, NULL);
-		
+		gst_bin_add_many (GST_BIN (pipeline), encoder, queue, parser, mux, sink, NULL);
+
 		g_object_set (G_OBJECT (encoder), "force-idr-period", (guint)force_idr_period, NULL);
 		g_object_set (G_OBJECT (encoder), "i-period", (guint)i_period, NULL);
 		g_object_set (G_OBJECT (encoder), "bitrate", (guint)bitrate, NULL);
@@ -206,25 +234,13 @@ Int32 VideoRecord::start(UInt32 hSize, UInt32 vSize, UInt32 frames, save_mode_ty
 		g_object_set (G_OBJECT (parser), "singleNalu", (gboolean)TRUE, NULL);
 		
 		g_object_set (G_OBJECT (mux), "dts-method", (guint)0, NULL);
-		
+
 		g_object_set (G_OBJECT (sink), "fd", (gint)fd, NULL);
-		pad = gst_element_get_static_pad(sink, "sink");
-		gst_pad_add_buffer_probe(pad, G_CALLBACK(filesink_buffer_fsync), (gpointer)fd);
-		gst_object_unref(pad);
-		
-		//Add bus message handler, which will be handled by QT since it also uses a Glib loop
-		bus = gst_pipeline_get_bus (GST_PIPELINE (pipeline));
-		bus_watch_id = gst_bus_add_watch (bus, bus_call, this);
-		gst_object_unref (bus);
-		
-		//Add all the elements to the pipeline
-		gst_bin_add_many (GST_BIN (pipeline),
-						  source, perf, encoder, queue, parser, mux, sink, NULL);
-		
+
 		//Link the source and perf element with caps
 		gboolean link_ok;
 		GstCaps *caps;
-		
+
 		caps = gst_caps_new_simple ("video/x-raw-yuv",
 									"format", GST_TYPE_FOURCC,
 									GST_MAKE_FOURCC('N', 'V', '1', '2'),
@@ -233,96 +249,39 @@ Int32 VideoRecord::start(UInt32 hSize, UInt32 vSize, UInt32 frames, save_mode_ty
 									"framerate", GST_TYPE_FRACTION, framerate, 1,
 									//"buffer-count-requested", G_TYPE_INT, 10,
 									NULL);
-		
+
 		link_ok = gst_element_link_filtered (source, perf, caps);
 		gst_caps_unref (caps);
-		
 		if (!link_ok) {
 			g_printerr ("Failed to link source to perf with caps. Exiting.\n");
 			return -1;
 		}
-		
+
 		//Link the rest normally
-		if(!gst_element_link_many (perf, encoder, queue, parser, mux, sink, NULL))
-		{
+		if(!gst_element_link_many (perf, encoder, queue, parser, mux, sink, NULL)) {
 			g_printerr ("Failed to link elements. Exiting.\n");
 			return -1;
 		}
 	}
 	else if (save_mode == SAVE_MODE_RAW16_PNG) {
-		GstElement *perf, *encoder, *queue, *parser, *mux, *sink;
-		GstBus *bus;
-		GstPad *pad;
+		GstElement *encoder, *queue, *mux;
 
-		eosFlag = false;
-		error = false;
-		
-		gst_init (NULL, NULL);
-		
-		/* Create gstreamer elements */
-		pipeline =	gst_pipeline_new ("video-record");
-		
-		source =	gst_element_factory_make ("omx_camera",		"vfcc-source");
-		perf  =		gst_element_factory_make ("gstperf",		"perf-count");
 		queue =		gst_element_factory_make ("queue",			"queue");
 		encoder =   gst_element_factory_make ("pngenc",         "encoder");
 		sink =		gst_element_factory_make ("multifilesink",	"file-sink");
-		
-		printf("gst objects made\n");
-
-		if (!pipeline || !source || !perf || !queue || !encoder || !sink) {
+		if (!perf || !queue || !encoder || !sink) {
 			printf("One element could not be created\n");
-			if (!pipeline) printf("pipeline\n");
-			if (!perf) printf("perf\n");
 			if (!queue) printf("queue\n");
+			if (!encoder) printf("encoder\n");
 			if (!sink) printf("sink\n");
 
 			g_printerr ("One element could not be created. Exiting.\n");
 			close(fd);
 			return -1;
 		}
-		
-		/* Set up the pipeline */
-		
-		//Set up the elements as required
-		g_object_set (G_OBJECT (source), "input-interface", "VIP1_PORTA", NULL);
-		g_object_set (G_OBJECT (source), "capture-mode", "SC_DISCRETESYNC_ACTVID_VSYNC", NULL);
-		g_object_set (G_OBJECT (source), "vif-mode", "24BIT", NULL);
-		g_object_set (G_OBJECT (source), "output-buffers", (guint)10, NULL);
-		g_object_set (G_OBJECT (source), "skip-frames", (guint)0, NULL);
-		//printf("about to override colorspace\n");
-		//g_object_set (G_OBJECT (source), "override-colorspace", (gboolean)TRUE, NULL);
-		//printf("done override colorspace\r\n");
-		if(0 != numFrames)
-			g_object_set (G_OBJECT (source), "num-buffers", numFrames, NULL);
-		
-		printf("gst source set up\r\n");
+		gst_bin_add_many (GST_BIN (pipeline), queue, encoder, sink, NULL);
 
-		g_object_set (G_OBJECT (perf), "print-arm-load", (gboolean)TRUE, NULL);
-		g_object_set (G_OBJECT (perf), "print-fps", (gboolean)TRUE, NULL);
-
-		printf("gst perf set up\r\n");
-
-		
 		g_object_set (G_OBJECT (sink), "location", sequencePath, NULL);
-		//pad = gst_element_get_static_pad(sink, "sink");
-		//gst_pad_add_buffer_probe(pad, G_CALLBACK(filesink_buffer_fsync), (gpointer)fd);
-		//gst_object_unref(pad);
-		
-		printf("gst sink set up\r\n");
-
-		//Add bus message handler, which will be handled by QT since it also uses a Glib loop
-		bus = gst_pipeline_get_bus (GST_PIPELINE (pipeline));
-		bus_watch_id = gst_bus_add_watch (bus, bus_call, this);
-		gst_object_unref (bus);
-
-		printf("gst bus handler\r\n");
-
-		//Add all the elements to the pipeline
-		gst_bin_add_many (GST_BIN (pipeline),
-						  source, perf, queue, sink, NULL);
-
-		printf("gst pipeline made\r\n");
 
 		//Link the source and perf element with caps
 		gboolean link_ok;
@@ -335,51 +294,29 @@ Int32 VideoRecord::start(UInt32 hSize, UInt32 vSize, UInt32 frames, save_mode_ty
 									"framerate", GST_TYPE_FRACTION, framerate, 1,
 									//"buffer-count-requested", G_TYPE_INT, 10,
 									NULL);
-			
-		
+
+
 		link_ok = gst_element_link_filtered (source, perf, caps);
 		gst_caps_unref (caps);
-
-		printf("gst caps set\r\n");
 
 		if (!link_ok) {
 			g_printerr ("Failed to link source to perf with caps. Exiting.\n");
 			return -1;
 		}
-		
+
 		//Link the rest normally
-		if(!gst_element_link_many (perf, queue, sink, NULL))
-		{
+		if(!gst_element_link_many (perf, queue, sink, NULL)) {
 			g_printerr ("Failed to link elements. Exiting.\n");
 			return -1;
 		}
-		
-		printf("gst linked\r\n");
 	}
 	else { // one of the raw modes
-		GstElement *perf, *encoder, *queue, *parser, *mux, *sink;
-		GstBus *bus;
-		GstPad *pad;
-		
-		eosFlag = false;
-		error = false;
-		
-		gst_init (NULL, NULL);
-		
-		/* Create gstreamer elements */
-		pipeline =	gst_pipeline_new ("video-record");
-		
-		source =	gst_element_factory_make ("omx_camera",		"vfcc-source");
-		perf  =		gst_element_factory_make ("gstperf",		"perf-count");
-		queue =		gst_element_factory_make ("queue",			"queue");
-		sink =		gst_element_factory_make ("fdsink",			"file-sink");
-		
-		printf("gst objects made\n");
+		GstElement *encoder, *queue, *parser, *mux;
 
-		if (!pipeline || !source || !perf || !queue || !sink) {
+		queue =		gst_element_factory_make ("queue", "queue");
+		sink =		gst_element_factory_make ("fdsink", "file-sink");
+		if (!queue || !sink) {
 			printf("One element could not be created\n");
-			if (!pipeline) printf("pipeline\n");
-			if (!perf) printf("perf\n");
 			if (!queue) printf("queue\n");
 			if (!sink) printf("sink\n");
 
@@ -387,47 +324,9 @@ Int32 VideoRecord::start(UInt32 hSize, UInt32 vSize, UInt32 frames, save_mode_ty
 			close(fd);
 			return -1;
 		}
-		
-		/* Set up the pipeline */
-		
-		//Set up the elements as required
-		g_object_set (G_OBJECT (source), "input-interface", "VIP1_PORTA", NULL);
-		g_object_set (G_OBJECT (source), "capture-mode", "SC_DISCRETESYNC_ACTVID_VSYNC", NULL);
-		g_object_set (G_OBJECT (source), "vif-mode", "24BIT", NULL);
-		g_object_set (G_OBJECT (source), "output-buffers", (guint)10, NULL);
-		g_object_set (G_OBJECT (source), "skip-frames", (guint)0, NULL);
-		//printf("about to override colorspace\n");
-		//g_object_set (G_OBJECT (source), "override-colorspace", (gboolean)TRUE, NULL);
-		//printf("done override colorspace\r\n");
-		if(0 != numFrames)
-			g_object_set (G_OBJECT (source), "num-buffers", numFrames, NULL);
-		
-		printf("gst source set up\r\n");
-
-		g_object_set (G_OBJECT (perf), "print-arm-load", (gboolean)TRUE, NULL);
-		g_object_set (G_OBJECT (perf), "print-fps", (gboolean)TRUE, NULL);
-
-		printf("gst perf set up\r\n");
+		gst_bin_add_many (GST_BIN (pipeline), queue, sink, NULL);
 
 		g_object_set (G_OBJECT (sink), "fd", (gint)fd, NULL);
-		pad = gst_element_get_static_pad(sink, "sink");
-		gst_pad_add_buffer_probe(pad, G_CALLBACK(filesink_buffer_fsync), (gpointer)fd);
-		gst_object_unref(pad);
-		
-		printf("gst sink set up\r\n");
-
-		//Add bus message handler, which will be handled by QT since it also uses a Glib loop
-		bus = gst_pipeline_get_bus (GST_PIPELINE (pipeline));
-		bus_watch_id = gst_bus_add_watch (bus, bus_call, this);
-		gst_object_unref (bus);
-
-		printf("gst bus handler\r\n");
-
-		//Add all the elements to the pipeline
-		gst_bin_add_many (GST_BIN (pipeline),
-						  source, perf, queue, sink, NULL);
-
-		printf("gst pipeline made\r\n");
 
 		//Link the source and perf element with caps
 		gboolean link_ok;
@@ -453,45 +352,44 @@ Int32 VideoRecord::start(UInt32 hSize, UInt32 vSize, UInt32 frames, save_mode_ty
 										NULL);
 			printf("gst set up as x-raw-rgb\r\n");
 		}
-			
-		
+
 		link_ok = gst_element_link_filtered (source, perf, caps);
 		gst_caps_unref (caps);
-
-		printf("gst caps set\r\n");
 
 		if (!link_ok) {
 			g_printerr ("Failed to link source to perf with caps. Exiting.\n");
 			return -1;
 		}
-		
+
 		//Link the rest normally
-		if(!gst_element_link_many (perf, queue, sink, NULL))
-		{
+		if(!gst_element_link_many (perf, queue, sink, NULL)) {
 			g_printerr ("Failed to link elements. Exiting.\n");
 			return -1;
 		}
-		
-		printf("gst linked\r\n");
 	}
-		
-		
+
+	/* Add bus and pad callbacks */
+	pad = gst_element_get_static_pad(sink, "sink");
+	gst_pad_add_buffer_probe(pad, G_CALLBACK(filesink_buffer_probe), (gpointer)fd);
+	gst_object_unref(pad);
+
+	bus = gst_pipeline_get_bus (GST_PIPELINE (pipeline));
+	bus_watch_id = gst_bus_add_watch (bus, bus_call, this);
+	gst_object_unref (bus);
+
 	//Set pipeline to playing
 	g_print ("Now playing\n");
 	GstStateChangeReturn scr = gst_element_set_state (pipeline, GST_STATE_PLAYING);
-	if(GST_STATE_CHANGE_FAILURE == scr)
-	{
+	if(GST_STATE_CHANGE_FAILURE == scr) {
 		g_printerr ("Failed to change pipeline state. Exiting.\n");
 		return -1;
 	}
 	
-
 	running = true;
-    frameCount = 0;
+	frameCount = 0;
 
 	printf("VideoRecord start done\n");
 	return SUCCESS;
-
 }
 
 UInt32 VideoRecord::stop()
@@ -503,7 +401,7 @@ UInt32 VideoRecord::stop()
 
 	/* Out of the main loop, clean up nicely */
 	g_print ("Returned, stopping playback\n");
-    running = false;
+	running = false;
 
 	gst_element_get_state (pipeline, &state, &pending, GST_CLOCK_TIME_NONE);
 	g_print ("Current state: %d, pending state: %d\n", state, pending);
@@ -530,9 +428,9 @@ UInt32 VideoRecord::stop()
 	gst_object_unref (GST_OBJECT (pipeline));
 	g_source_remove (bus_watch_id);
 
-    g_print ("Closing output file\n");
-    fsync(fd);
-    close(fd);
+	g_print ("Closing output file\n");
+	fsync(fd);
+	close(fd);
 }
 
 UInt32 VideoRecord::stop2()
@@ -589,12 +487,11 @@ bus_call (GstBus     *bus,
 			break;
 
 		case GST_MESSAGE_ERROR:
-			{
+            {
 				gchar  *debug;
 				GError *error;
 
 				gst_message_parse_error (msg, &error, &debug);
-				g_free (debug);
 
 				g_printerr ("Error: %s\n", error->message);
 				gstDia->error = true;
