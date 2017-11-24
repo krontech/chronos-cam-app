@@ -183,7 +183,7 @@ Int32 GPMC::init()
 						7;			/*OEONTIME*/
 
 	GPMC_CONFIG5_i(1) =	0 << 24 |	/*PAGEBURSTACCESSTIME*/
-						17 << 16 |	/*RDACCESSTIME*/
+						16 << 16 |	/*RDACCESSTIME*/
 						19 << 8 |	/*WRCYCLETIME*/
 						19;			/*RDCYCLETIME*/
 

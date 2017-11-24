@@ -42,10 +42,8 @@ void Camera::setDisplayFrameSource(bool liveDisplaySource)
 
 void Camera::setDisplayFrameAddress(UInt32 address)
 {
-    UInt32 displayCtl = gpmc->read32(DISPLAY_CTL_ADDR);
 	gpmc->write32(DISPLAY_FRAME_ADDRESS_ADDR, address);
-    gpmc->write16(DISPLAY_CTL_ADDR, displayCtl | DISPLAY_CTL_MANUAL_SYNC_MASK);
-
+    gpmc->write16(DISPLAY_MANUAL_SYNC_ADDR, DISPLAY_MANUAL_SYNC_MASK);
 }
 
 void Camera::setLiveOutputTiming(UInt32 hRes, UInt32 vRes, UInt32 hOutRes, UInt32 vOutRes, UInt32 maxFps)
@@ -61,8 +59,8 @@ void Camera::setLiveOutputTiming(UInt32 hRes, UInt32 vRes, UInt32 hOutRes, UInt3
 
 	/* check to make sure we aren't beyond the video inputs vRes limit */
 	fps = pxClock / (hPeriod * vPeriod);
-	if (vPeriod > (1080 + vSync + (2*hPorch))) {
-		vPeriod = (1080 + vSync + (2*hPorch));
+	if (vPeriod > (1024 + vSync + (2*hPorch))) {
+		vPeriod = (1024 + vSync + (2*hPorch));
 	}
 
 	/* make sure fps is within limit */
@@ -79,11 +77,9 @@ void Camera::setLiveOutputTiming(UInt32 hRes, UInt32 vRes, UInt32 hOutRes, UInt3
     }
 
 	fps = pxClock / (vPeriod * hPeriod);
-	qDebug("setLiveOutputTiming: %d*%d@%d (max: %d)",
-		   (hPeriod - hSync - 2*hPorch),
-		   (vPeriod - vSync - 2*vPorch),
-		   fps,
-		   maxFps);
+	qDebug("setLiveOutputTiming: %d*%d@%d (%d*%d max: %d)",
+		   (hPeriod - hSync - 2*hPorch), (vPeriod - vSync - 2*vPorch), fps,
+		   hOutRes, vOutRes, maxFps);
 	
 	gpmc->write16(DISPLAY_H_RES_ADDR, hRes);
     gpmc->write16(DISPLAY_H_OUT_RES_ADDR, hOutRes);
