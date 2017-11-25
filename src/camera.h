@@ -158,6 +158,7 @@ public:
 	CameraErrortype init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * sensorInst, UserInterface * userInterface, UInt32 ramSizeVal, bool color);
 	Int32 startRecording(void);
 	Int32 setRecSequencerModeNormal();
+    Int32 setRecSequencerModeGatedBurst();
 	Int32 setRecSequencerModeSingleBlock(UInt32 blockLength);
 	Int32 stopRecording(void);
 	bool getIsRecording(void);

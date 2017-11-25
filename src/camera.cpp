@@ -517,6 +517,8 @@ Int32 Camera::startRecording(void)
 	if(playbackMode)
 		return CAMERA_IN_PLAYBACK_MODE;
 
+    setRecSequencerModeGatedBurst();    //TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST
+
 	recDataPos = 0;
 	recDataLength = 0;
 	recordingData.valid = false;
@@ -558,6 +560,56 @@ Int32 Camera::setRecSequencerModeNormal()
 	setFrameSizeWords(imagerSettings.frameSizeWords);
 
 	return SUCCESS;
+}
+
+Int32 Camera::setRecSequencerModeGatedBurst()
+{
+    SeqPgmMemWord pgmWord;
+
+    if(recording)
+        return CAMERA_ALREADY_RECORDING;
+    if(playbackMode)
+        return CAMERA_IN_PLAYBACK_MODE;
+
+    //Set to one plus the last valid address in the record region
+    setRecRegionEndWords(REC_REGION_START + imagerSettings.recRegionSizeFrames * imagerSettings.frameSizeWords);
+
+    //Two instruction program
+    //Instruction 0 records to a single frame while trigger is inactive
+    //Instruction 1 records as normal while trigger is active
+
+    //When trigger is inactive, we sit in this 1-frame block, continuously overwriting that frame
+    pgmWord.settings.termRecTrig = 0;
+    pgmWord.settings.termRecMem = 0;
+    pgmWord.settings.termRecBlkEnd = 0;
+    pgmWord.settings.termBlkFull = 0;
+    pgmWord.settings.termBlkLow = 0;
+    pgmWord.settings.termBlkHigh = 1;       //Terminate when trigger becomes active
+    pgmWord.settings.termBlkFalling = 0;
+    pgmWord.settings.termBlkRising = 0;
+    pgmWord.settings.next = 1;              //Go to next block when this one terminates
+    pgmWord.settings.blkSize = 0;           //Set to number of frames desired minus one
+    pgmWord.settings.pad = 0;
+
+    writeSeqPgmMem(pgmWord, 0);
+
+    pgmWord.settings.termRecTrig = 0;
+    pgmWord.settings.termRecMem = 0;
+    pgmWord.settings.termRecBlkEnd = 0;
+    pgmWord.settings.termBlkFull = 0;
+    pgmWord.settings.termBlkLow = 1;       //Terminate when trigger becomes inactive
+    pgmWord.settings.termBlkHigh = 0;
+    pgmWord.settings.termBlkFalling = 0;
+    pgmWord.settings.termBlkRising = 0;
+    pgmWord.settings.next = 0;              //Go back to block 0
+    pgmWord.settings.blkSize = imagerSettings.recRegionSizeFrames-1; //Set to number of frames desired minus one
+    pgmWord.settings.pad = 0;
+
+    writeSeqPgmMem(pgmWord, 1);
+
+    setFrameSizeWords(imagerSettings.frameSizeWords);
+
+    return SUCCESS;
 }
 
 Int32 Camera::setRecSequencerModeSingleBlock(UInt32 blockLength)
