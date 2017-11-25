@@ -18,6 +18,15 @@
 #define UTIL_H
 
 void delayms(int ms);
+
+/* delayms_events:
+ *   ms - miliseconds to delay for
+ *
+ * Note this runs the event loop in 10ms blocks (max) so assume
+ * the timing will be within 10ms only.
+ */
+void delayms_events(int ms);
+
 bool checkAndCreateDir(const char * dir);
 
 

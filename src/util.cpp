@@ -17,11 +17,20 @@
 #include "time.h"
 #include "QDebug"
 #include <sys/stat.h>
+#include <QCoreApplication>
+#include <QTime>
 
 void delayms(int ms)
 {
 	struct timespec ts = { ms / 1000, (ms % 1000) * 1000 * 1000 };
 	nanosleep(&ts, NULL);
+}
+
+void delayms_events(int ms) {
+	QTime dieTime = QTime::currentTime().addMSecs(ms);
+	while (QTime::currentTime() < dieTime) {
+		QCoreApplication::processEvents(QEventLoop::AllEvents, 10);
+	}
 }
 
 bool checkAndCreateDir(const char * dir)
