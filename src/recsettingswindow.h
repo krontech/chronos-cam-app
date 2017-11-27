@@ -69,6 +69,8 @@ private slots:
 
 	void on_comboRes_activated(const QString &arg1);
 
+    void on_cmdRecMode_clicked();
+
 private:
 	void updateOffsetLimits();
 	void updateInfoText();

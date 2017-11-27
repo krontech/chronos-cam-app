@@ -79,6 +79,13 @@ typedef enum CameraErrortype
 	CAMERA_INVALID_SETTINGS
 } CameraErrortype;
 */
+
+typedef enum CameraRecordModes
+{
+    RECORD_MODE_NORMAL = 0,
+    RECORD_MODE_GATED_BURST
+} CameraRecordModeType;
+
 typedef struct {
 	UInt32 blockStart;
 	UInt32 blockEnd;
@@ -120,8 +127,14 @@ typedef struct {
 	UInt32 gain;
 	UInt32 frameSizeWords;
 	UInt32 recRegionSizeFrames;
+    CameraRecordModeType mode;
+    UInt32 segments;
+    UInt32 segmentLengthFrames;
+    UInt32 prerecordFrames; //Used in gated burst mode
+
 	struct {
 		unsigned temporary : 1; // set this to disable saving of state
+        unsigned disableRingBuffer : 1;
 	};
 } ImagerSettings_t;
 
@@ -158,7 +171,7 @@ public:
 	CameraErrortype init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * sensorInst, UserInterface * userInterface, UInt32 ramSizeVal, bool color);
 	Int32 startRecording(void);
 	Int32 setRecSequencerModeNormal();
-    Int32 setRecSequencerModeGatedBurst();
+    Int32 setRecSequencerModeGatedBurst(UInt32 prerecord = 0);
 	Int32 setRecSequencerModeSingleBlock(UInt32 blockLength);
 	Int32 stopRecording(void);
 	bool getIsRecording(void);

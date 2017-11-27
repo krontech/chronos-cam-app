@@ -86,7 +86,8 @@ SOURCES += main.cpp\
     ecp5Config.cpp \
     utilwindow.cpp \
     statuswindow.cpp \
-    eeprom.c
+    eeprom.c \
+    recmodewindow.cpp
 
 HEADERS  += mainwindow.h \
     gpmc.h \
@@ -128,7 +129,8 @@ HEADERS  += mainwindow.h \
     utilwindow.h \
     statuswindow.h \
     i2c/i2c-dev.h \
-    eeprom.h
+    eeprom.h \
+    recmodewindow.h
 
 
 
@@ -143,7 +145,8 @@ FORMS    += mainwindow.ui \
     ramwindow.ui \
     iosettingswindow.ui \
     utilwindow.ui \
-    statuswindow.ui
+    statuswindow.ui \
+    recmodewindow.ui
 
 RESOURCES += \
     Images.qrc

@@ -298,6 +298,11 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 	imagerSettings.recRegionSizeFrames = (ramSize - REC_REGION_START) / imagerSettings.frameSizeWords;
 	imagerSettings.period = sensor->getMinFramePeriod(imagerSettings.hRes, imagerSettings.vRes);
 	imagerSettings.exposure = sensor->getMaxExposure(imagerSettings.period);
+    imagerSettings.disableRingBuffer = 0;
+    imagerSettings.mode = RECORD_MODE_NORMAL;
+    imagerSettings.prerecordFrames = 1;
+    imagerSettings.segmentLengthFrames = imagerSettings.recRegionSizeFrames;
+    imagerSettings.segments = 1;
 
     vinst->frameCallbackArg = (void *)this;
 	vinst->frameCallback = frameCallback;
@@ -314,7 +319,12 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 	settings.gain      = appSettings.value("camera/gain", 0).toInt();
 	settings.period    = appSettings.value("camera/period", sensor->getMinFramePeriod(settings.hRes, settings.vRes)).toInt();
 	settings.exposure  = appSettings.value("camera/exposure", sensor->getMaxExposure(settings.period)).toInt();
-	settings.temporary = 1;
+    settings.disableRingBuffer = 0;
+    settings.mode = RECORD_MODE_NORMAL;
+    settings.prerecordFrames = 1;
+    settings.segmentLengthFrames = imagerSettings.recRegionSizeFrames;
+    settings.segments = 1;
+    settings.temporary = 0;
 	setImagerSettings(settings);
     setDisplaySettings(false, MAX_LIVE_FRAMERATE);
 
@@ -435,6 +445,11 @@ UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 	imagerSettings.period = settings.period;
 	imagerSettings.exposure = settings.exposure;
 	imagerSettings.gain = settings.gain;
+    imagerSettings.disableRingBuffer = settings.disableRingBuffer;
+    imagerSettings.mode = settings.mode;
+    imagerSettings.prerecordFrames = settings.prerecordFrames;
+    imagerSettings.segmentLengthFrames = settings.segmentLengthFrames;
+    imagerSettings.segments = settings.segments;
 
 	imagerSettings.frameSizeWords = ROUND_UP_MULT((settings.stride * (settings.vRes+0) * 12 / 8 + (BYTES_PER_WORD - 1)) / BYTES_PER_WORD, FRAME_ALIGN_WORDS);	//Enough words to fit the frame, but make it even
 	imagerSettings.recRegionSizeFrames = (ramSize - REC_REGION_START) / imagerSettings.frameSizeWords;
@@ -517,7 +532,19 @@ Int32 Camera::startRecording(void)
 	if(playbackMode)
 		return CAMERA_IN_PLAYBACK_MODE;
 
-    setRecSequencerModeGatedBurst();    //TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST
+    switch(imagerSettings.mode)
+    {
+        case RECORD_MODE_NORMAL:
+            setRecSequencerModeNormal();
+        break;
+
+        case RECORD_MODE_GATED_BURST:
+            setRecSequencerModeGatedBurst(imagerSettings.prerecordFrames);
+        break;
+
+    }
+
+
 
 	recDataPos = 0;
 	recDataLength = 0;
@@ -533,7 +560,7 @@ Int32 Camera::startRecording(void)
 
 Int32 Camera::setRecSequencerModeNormal()
 {
-	SeqPgmMemWord pgmWord;
+    SeqPgmMemWord pgmWord;
 
 	if(recording)
 		return CAMERA_ALREADY_RECORDING;
@@ -544,17 +571,19 @@ Int32 Camera::setRecSequencerModeNormal()
 	setRecRegionEndWords(REC_REGION_START + imagerSettings.recRegionSizeFrames * imagerSettings.frameSizeWords);
 
 	pgmWord.settings.termRecTrig = 0;
-	pgmWord.settings.termRecMem = 0;
-	pgmWord.settings.termRecBlkEnd = 1;
+    pgmWord.settings.termRecMem = imagerSettings.disableRingBuffer ? 1 : 0;
+    pgmWord.settings.termRecBlkEnd = (imagerSettings.segments > 1) ? 0 : 1;
 	pgmWord.settings.termBlkFull = 0;
 	pgmWord.settings.termBlkLow = 0;
 	pgmWord.settings.termBlkHigh = 0;
 	pgmWord.settings.termBlkFalling = 0;
 	pgmWord.settings.termBlkRising = 1;
 	pgmWord.settings.next = 0;
-	pgmWord.settings.blkSize = imagerSettings.recRegionSizeFrames-1; //Set to number of frames desired minus one
+    pgmWord.settings.blkSize = (imagerSettings.recRegionSizeFrames / imagerSettings.segments)-1; //Set to number of frames desired minus one
 	pgmWord.settings.pad = 0;
 
+    qDebug() << "Setting record sequencer mode to normal, disableRingBuffer =" << imagerSettings.disableRingBuffer << "segments ="
+             << imagerSettings.segments << "blkSize =" << pgmWord.settings.blkSize;
 	writeSeqPgmMem(pgmWord, 0);
 
 	setFrameSizeWords(imagerSettings.frameSizeWords);
@@ -562,7 +591,7 @@ Int32 Camera::setRecSequencerModeNormal()
 	return SUCCESS;
 }
 
-Int32 Camera::setRecSequencerModeGatedBurst()
+Int32 Camera::setRecSequencerModeGatedBurst(UInt32 prerecord)
 {
     SeqPgmMemWord pgmWord;
 
@@ -588,13 +617,13 @@ Int32 Camera::setRecSequencerModeGatedBurst()
     pgmWord.settings.termBlkFalling = 0;
     pgmWord.settings.termBlkRising = 0;
     pgmWord.settings.next = 1;              //Go to next block when this one terminates
-    pgmWord.settings.blkSize = 0;           //Set to number of frames desired minus one
+    pgmWord.settings.blkSize = prerecord - 1;           //Set to number of frames desired minus one
     pgmWord.settings.pad = 0;
 
     writeSeqPgmMem(pgmWord, 0);
 
     pgmWord.settings.termRecTrig = 0;
-    pgmWord.settings.termRecMem = 0;
+    pgmWord.settings.termRecMem = imagerSettings.disableRingBuffer ? 1 : 0;;
     pgmWord.settings.termRecBlkEnd = 0;
     pgmWord.settings.termBlkFull = 0;
     pgmWord.settings.termBlkLow = 1;       //Terminate when trigger becomes inactive
@@ -602,8 +631,10 @@ Int32 Camera::setRecSequencerModeGatedBurst()
     pgmWord.settings.termBlkFalling = 0;
     pgmWord.settings.termBlkRising = 0;
     pgmWord.settings.next = 0;              //Go back to block 0
-    pgmWord.settings.blkSize = imagerSettings.recRegionSizeFrames-1; //Set to number of frames desired minus one
+    pgmWord.settings.blkSize = imagerSettings.recRegionSizeFrames-3; //Set to number of frames desired minus one
     pgmWord.settings.pad = 0;
+
+    qDebug() << "---- Sequencer ---- Set to Gated burst mode, second block size:" << pgmWord.settings.blkSize+1;
 
     writeSeqPgmMem(pgmWord, 1);
 
@@ -666,7 +697,9 @@ void Camera::endOfRec(void)
 	UInt32 blockFrames;
 	UInt32 frames;
 
-	qDebug("EndOfRec");
+    qDebug("EndOfRec");
+
+    qDebug() << "--- Sequencer --- Total record region size:" << imagerSettings.recRegionSizeFrames;
 
 	if(0 == recDataLength)
 	{
@@ -686,6 +719,10 @@ void Camera::endOfRec(void)
 			frames += blockFrames;
 
 			numBlocks++;
+
+            qDebug() << "--- Sequencer --- Found block, size:" << blockFrames << ", location:" << lastRecDataPos << ", total frames:" << frames
+                     << ", total blocks:" << numBlocks << "Start addr:" << recData[lastRecDataPos].blockStart << ", End addr:" << recData[lastRecDataPos].blockEnd;
+
 			if(0 == lastRecDataPos)
 				lastRecDataPos = RECORD_DATA_LENGTH - 1;
 			else
@@ -697,10 +734,15 @@ void Camera::endOfRec(void)
 		{
 			frames -= blockFrames;	//total valid frames
 			numBlocks--;
+            lastRecDataPos = (lastRecDataPos + 1) % RECORD_DATA_LENGTH;
+
+            qDebug() << "--- Sequencer --- Earliest block is partially overwritten, discarding. Total frames:" << frames << ", total blocks:" << numBlocks;
 		}
 
 		//We've now iterated through all the valid blocks and are now on the first invalid one
 		firstBlock = (lastRecDataPos + 1) % RECORD_DATA_LENGTH;
+
+        qDebug() << "--- Sequencer --- Earliest block is at:" << firstBlock;
 
 		//Copy the data for valid blocks into the record data structure
 		for(UInt32 i = 0; i < numBlocks; i++)
@@ -1626,6 +1668,12 @@ Int32 Camera::autoAdcOffsetCorrection(void)
 	_is.exposure = 100000;	//10ns increments
 	_is.period = 500000;		//Frame period in 10ns increments
 	_is.gain = LUX1310_GAIN_1;
+    _is.disableRingBuffer = 0;
+    _is.mode = RECORD_MODE_NORMAL;
+    _is.prerecordFrames = 1;
+    _is.segmentLengthFrames = imagerSettings.recRegionSizeFrames;
+    _is.segments = 1;
+    _is.temporary = 1;
 
 	retVal = setImagerSettings(_is);
 	if(SUCCESS != retVal)
@@ -1698,6 +1746,12 @@ Int32 Camera::autoColGainCorrection(void)
 	_is.exposure = 400000;	//10ns increments
 	_is.period = 500000;		//Frame period in 10ns increments
 	_is.gain = LUX1310_GAIN_1;
+    _is.disableRingBuffer = 0;
+    _is.mode = RECORD_MODE_NORMAL;
+    _is.prerecordFrames = 1;
+    _is.segmentLengthFrames = imagerSettings.recRegionSizeFrames;
+    _is.segments = 1;
+    _is.temporary = 1;
 
 	retVal = setImagerSettings(_is);
 	if(SUCCESS != retVal)
@@ -2347,6 +2401,12 @@ Int32 Camera::blackCalAllStdRes(bool factory)
 			settings.gain = g;
 			settings.period = sensor->getMinFramePeriod(hRes, vRes);
 			settings.exposure = sensor->getMaxExposure(settings.period);
+            settings.disableRingBuffer = 0;
+            settings.mode = RECORD_MODE_NORMAL;
+            settings.prerecordFrames = 1;
+            settings.segmentLengthFrames = imagerSettings.recRegionSizeFrames;
+            settings.segments = 1;
+            settings.temporary = 0;
 
 			retVal = setImagerSettings(settings);
 			if(SUCCESS != retVal)
@@ -2422,6 +2482,12 @@ Int32 Camera::takeWhiteReferences(void)
 	_is.vOffset = 0;		//Active area offset from top
 	_is.exposure = 400000;	//10ns increments
 	_is.period = 500000;		//Frame period in 10ns increments
+    _is.disableRingBuffer = 0;
+    _is.mode = RECORD_MODE_NORMAL;
+    _is.prerecordFrames = 1;
+    _is.segmentLengthFrames = imagerSettings.recRegionSizeFrames;
+    _is.segments = 1;
+    _is.temporary = 0;
 
 	UInt32 pixelsPerFrame = _is.stride * _is.vRes;
 

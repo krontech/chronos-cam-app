@@ -16,6 +16,7 @@
  ****************************************************************************/
 #include "recsettingswindow.h"
 #include "ui_recsettingswindow.h"
+#include "recmodewindow.h"
 
 #include <QDebug>
 #include <cstdio>
@@ -169,6 +170,12 @@ void RecSettingsWindow::on_cmdOK_clicked()
 	settings.hOffset = ui->spinHOffset->value();	//Active area offset from left
 	settings.vOffset = ui->spinVOffset->value();		//Active area offset from top
 	settings.gain = ui->comboGain->currentIndex();
+    settings.disableRingBuffer = camera->getImagerSettings().disableRingBuffer;
+    settings.mode = camera->getImagerSettings().mode;
+    settings.prerecordFrames = camera->getImagerSettings().prerecordFrames;
+    settings.segmentLengthFrames = camera->getImagerSettings().segmentLengthFrames;
+    settings.segments = camera->getImagerSettings().segments;
+    settings.temporary = 0;
 
 	double framePeriod = camera->sensor->getActualFramePeriod(siText2Double(ui->linePeriod->text().toStdString().c_str()),
 													   ui->spinHRes->value(),
@@ -700,4 +707,12 @@ void RecSettingsWindow::on_comboRes_activated(const QString &arg1)
 	QByteArray ba = arg1.toLatin1();
 
 	setResFromText(ba.data());
+}
+
+void RecSettingsWindow::on_cmdRecMode_clicked()
+{
+    recModeWindow *w = new recModeWindow(NULL, camera);
+    //w->camera = camera;
+    w->setAttribute(Qt::WA_DeleteOnClose);
+    w->show();
 }
