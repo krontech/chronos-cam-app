@@ -83,6 +83,7 @@ typedef enum CameraErrortype
 typedef enum CameraRecordModes
 {
     RECORD_MODE_NORMAL = 0,
+    RECORD_MODE_SEGMENTED,
     RECORD_MODE_GATED_BURST
 } CameraRecordModeType;
 
@@ -237,6 +238,7 @@ public:
 	char * getSerialNumber(void) {return serialNumber;}
 	void setSerialNumber(const char * sn) {strcpy(serialNumber, sn);}
 	bool getIsColor() {return isColor;}
+    UInt32 getMaxRecordRegionSizeFrames(UInt32 hSize, UInt32 vSize) {return (ramSize - REC_REGION_START) / (ROUND_UP_MULT((hSize * (vSize) * BITS_PER_PIXEL / 8 + (BYTES_PER_WORD-1)) / BYTES_PER_WORD, FRAME_ALIGN_WORDS));}
 private:
     void setDisplayFrameSource(bool liveDisplaySource);
 private:

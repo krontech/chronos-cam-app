@@ -221,7 +221,7 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
       <string>Record Length (frames)</string>
      </property>
     </widget>
-    <widget class="QGroupBox" name="groupBox_2">
+    <widget class="QGroupBox" name="grpSegmented">
      <property name="geometry">
       <rect>
        <x>20</x>
@@ -530,7 +530,7 @@ QSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}<
      <x>590</x>
      <y>10</y>
      <width>181</width>
-     <height>111</height>
+     <height>171</height>
     </rect>
    </property>
    <property name="title">
@@ -567,7 +567,7 @@ QSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}<
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>60</y>
+      <y>120</y>
       <width>171</width>
       <height>41</height>
      </rect>
@@ -590,12 +590,42 @@ QSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}<
      <bool>true</bool>
     </property>
    </widget>
+   <widget class="QRadioButton" name="radioSegmented">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>70</y>
+      <width>171</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>16</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QRadioButton::indicator {
+     width: 40px;
+     height: 40px;
+}</string>
+    </property>
+    <property name="text">
+     <string>Segmented</string>
+    </property>
+    <property name="checked">
+     <bool>false</bool>
+    </property>
+   </widget>
   </widget>
   <widget class="QCheckBox" name="chkDisableRing">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
    <property name="geometry">
     <rect>
-     <x>600</x>
-     <y>130</y>
+     <x>590</x>
+     <y>190</y>
      <width>181</width>
      <height>41</height>
     </rect>

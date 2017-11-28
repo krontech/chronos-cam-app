@@ -26,6 +26,16 @@ private slots:
 
     void on_radioGated_clicked();
 
+    void on_radioSegmented_clicked();
+
+    void on_cmdMax_clicked();
+
+    void on_spinRecLengthSeconds_valueChanged(double arg1);
+
+    void on_spinRecLengthSeconds_editingFinished();
+
+    void on_spinRecLengthFrames_editingFinished();
+
 private:
     Camera * camera;
     ImagerSettings_t is;

@@ -170,6 +170,7 @@ void RecSettingsWindow::on_cmdOK_clicked()
 	settings.hOffset = ui->spinHOffset->value();	//Active area offset from left
 	settings.vOffset = ui->spinVOffset->value();		//Active area offset from top
 	settings.gain = ui->comboGain->currentIndex();
+    settings.recRegionSizeFrames = camera->getImagerSettings().recRegionSizeFrames;
     settings.disableRingBuffer = camera->getImagerSettings().disableRingBuffer;
     settings.mode = camera->getImagerSettings().mode;
     settings.prerecordFrames = camera->getImagerSettings().prerecordFrames;

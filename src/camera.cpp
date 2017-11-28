@@ -452,8 +452,15 @@ UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
     imagerSettings.segments = settings.segments;
 
 	imagerSettings.frameSizeWords = ROUND_UP_MULT((settings.stride * (settings.vRes+0) * 12 / 8 + (BYTES_PER_WORD - 1)) / BYTES_PER_WORD, FRAME_ALIGN_WORDS);	//Enough words to fit the frame, but make it even
-	imagerSettings.recRegionSizeFrames = (ramSize - REC_REGION_START) / imagerSettings.frameSizeWords;
-	setFrameSizeWords(imagerSettings.frameSizeWords);
+
+    UInt32 maxRecRegionSize = getMaxRecordRegionSizeFrames(imagerSettings.hRes, imagerSettings.vRes);  //(ramSize - REC_REGION_START) / imagerSettings.frameSizeWords;
+
+    if(settings.recRegionSizeFrames > maxRecRegionSize)
+        imagerSettings.recRegionSizeFrames = maxRecRegionSize;
+    else
+        imagerSettings.recRegionSizeFrames = settings.recRegionSizeFrames;
+
+    setFrameSizeWords(imagerSettings.frameSizeWords);
 
 	qDebug() << "About to sensor->loadADCOffsetsFromFile"; sensor->loadADCOffsetsFromFile("a");
 
@@ -535,6 +542,7 @@ Int32 Camera::startRecording(void)
     switch(imagerSettings.mode)
     {
         case RECORD_MODE_NORMAL:
+        case RECORD_MODE_SEGMENTED:
             setRecSequencerModeNormal();
         break;
 
@@ -571,18 +579,20 @@ Int32 Camera::setRecSequencerModeNormal()
 	setRecRegionEndWords(REC_REGION_START + imagerSettings.recRegionSizeFrames * imagerSettings.frameSizeWords);
 
 	pgmWord.settings.termRecTrig = 0;
-    pgmWord.settings.termRecMem = imagerSettings.disableRingBuffer ? 1 : 0;
-    pgmWord.settings.termRecBlkEnd = (imagerSettings.segments > 1) ? 0 : 1;
+    pgmWord.settings.termRecMem = imagerSettings.disableRingBuffer ? 1 : 0;     //This currently doesn't work, bug in record sequencer hardware
+    pgmWord.settings.termRecBlkEnd = (RECORD_MODE_SEGMENTED == imagerSettings.mode && imagerSettings.segments > 1) ? 0 : 1;
 	pgmWord.settings.termBlkFull = 0;
 	pgmWord.settings.termBlkLow = 0;
 	pgmWord.settings.termBlkHigh = 0;
 	pgmWord.settings.termBlkFalling = 0;
 	pgmWord.settings.termBlkRising = 1;
 	pgmWord.settings.next = 0;
-    pgmWord.settings.blkSize = (imagerSettings.recRegionSizeFrames / imagerSettings.segments)-1; //Set to number of frames desired minus one
+    pgmWord.settings.blkSize = (imagerSettings.mode == RECORD_MODE_NORMAL ?
+                                    imagerSettings.recRegionSizeFrames :
+                                    imagerSettings.recRegionSizeFrames / imagerSettings.segments) - 1; //Set to number of frames desired minus one
 	pgmWord.settings.pad = 0;
 
-    qDebug() << "Setting record sequencer mode to normal, disableRingBuffer =" << imagerSettings.disableRingBuffer << "segments ="
+    qDebug() << "Setting record sequencer mode to" << (imagerSettings.mode == RECORD_MODE_NORMAL ? "normal" : "segmented") << ", disableRingBuffer =" << imagerSettings.disableRingBuffer << "segments ="
              << imagerSettings.segments << "blkSize =" << pgmWord.settings.blkSize;
 	writeSeqPgmMem(pgmWord, 0);
 
@@ -1668,6 +1678,7 @@ Int32 Camera::autoAdcOffsetCorrection(void)
 	_is.exposure = 100000;	//10ns increments
 	_is.period = 500000;		//Frame period in 10ns increments
 	_is.gain = LUX1310_GAIN_1;
+    _is.recRegionSizeFrames = getMaxRecordRegionSizeFrames(_is.hRes, _is.vRes);
     _is.disableRingBuffer = 0;
     _is.mode = RECORD_MODE_NORMAL;
     _is.prerecordFrames = 1;
@@ -1746,6 +1757,7 @@ Int32 Camera::autoColGainCorrection(void)
 	_is.exposure = 400000;	//10ns increments
 	_is.period = 500000;		//Frame period in 10ns increments
 	_is.gain = LUX1310_GAIN_1;
+    _is.recRegionSizeFrames = getMaxRecordRegionSizeFrames(_is.hRes, _is.vRes);
     _is.disableRingBuffer = 0;
     _is.mode = RECORD_MODE_NORMAL;
     _is.prerecordFrames = 1;
@@ -2399,6 +2411,7 @@ Int32 Camera::blackCalAllStdRes(bool factory)
 			settings.hOffset = (sensor->getMaxHRes() - hRes) / 2 & 0xFFFFFFFE;	//Active area offset from left
 			settings.vOffset = (sensor->getMaxVRes() - vRes) / 2 & 0xFFFFFFFE;		//Active area offset from top
 			settings.gain = g;
+            settings.recRegionSizeFrames = getMaxRecordRegionSizeFrames(settings.hRes, settings.vRes);
 			settings.period = sensor->getMinFramePeriod(hRes, vRes);
 			settings.exposure = sensor->getMaxExposure(settings.period);
             settings.disableRingBuffer = 0;
@@ -2430,6 +2443,7 @@ Int32 Camera::blackCalAllStdRes(bool factory)
 	settings.hOffset = 0;	//Active area offset from left
 	settings.vOffset = 0;		//Active area offset from top
 	settings.gain = LUX1310_GAIN_1;
+    settings.recRegionSizeFrames = getMaxRecordRegionSizeFrames(settings.hRes, settings.vRes);
 	settings.period = sensor->getMinFramePeriod(LUX1310_MAX_H_RES, LUX1310_MAX_V_RES);
 	settings.exposure = sensor->getMaxExposure(settings.period);
 
@@ -2482,6 +2496,7 @@ Int32 Camera::takeWhiteReferences(void)
 	_is.vOffset = 0;		//Active area offset from top
 	_is.exposure = 400000;	//10ns increments
 	_is.period = 500000;		//Frame period in 10ns increments
+    _is.recRegionSizeFrames = getMaxRecordRegionSizeFrames(_is.hRes, _is.vRes);
     _is.disableRingBuffer = 0;
     _is.mode = RECORD_MODE_NORMAL;
     _is.prerecordFrames = 1;
