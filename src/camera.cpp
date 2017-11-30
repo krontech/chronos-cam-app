@@ -419,7 +419,9 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 {
 	QSettings appSettings;
-	if(!sensor->isValidResolution(settings.stride, settings.vRes, settings.hOffset, settings.vOffset))
+    if(!sensor->isValidResolution(settings.stride, settings.vRes, settings.hOffset, settings.vOffset) ||
+            settings.recRegionSizeFrames < RECORD_LENGTH_MIN ||
+            settings.segments > settings.recRegionSizeFrames)
 		return CAMERA_INVALID_IMAGER_SETTINGS;
 
 	//sensor->setSlaveExposure(0);	//Disable integration
