@@ -87,7 +87,8 @@ SOURCES += main.cpp\
     utilwindow.cpp \
     statuswindow.cpp \
     eeprom.c \
-    recmodewindow.cpp
+    recmodewindow.cpp \
+    triggerdelaywindow.cpp
 
 HEADERS  += mainwindow.h \
     gpmc.h \
@@ -130,7 +131,8 @@ HEADERS  += mainwindow.h \
     statuswindow.h \
     i2c/i2c-dev.h \
     eeprom.h \
-    recmodewindow.h
+    recmodewindow.h \
+    triggerdelaywindow.h
 
 
 
@@ -146,7 +148,8 @@ FORMS    += mainwindow.ui \
     iosettingswindow.ui \
     utilwindow.ui \
     statuswindow.ui \
-    recmodewindow.ui
+    recmodewindow.ui \
+    triggerdelaywindow.ui
 
 RESOURCES += \
     Images.qrc

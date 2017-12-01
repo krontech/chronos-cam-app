@@ -1,4 +1,3 @@
-#include <QDebug>
 #include "recmodewindow.h"
 #include "ui_recmodewindow.h"
 #include "camera.h"
@@ -40,10 +39,12 @@ recModeWindow::recModeWindow(QWidget *parent, Camera * cameraInst, ImagerSetting
 
     ui->spinRecLengthFrames->setMaximum(camera->getMaxRecordRegionSizeFrames(is->hRes, is->vRes));
     ui->spinRecLengthFrames->setValue(is->recRegionSizeFrames);
+
     ui->spinRecLengthSeconds->setMaximum((double)(camera->getMaxRecordRegionSizeFrames(is->hRes, is->vRes)) * ((double) is->period / 100000000.0));
     ui->spinRecLengthSeconds->setValue((double)is->period / 100000000.0 * is->recRegionSizeFrames);
-    qDebug() << "---- Rec Mode Window ---- seconds spinbox set to " << ((double)is->period / 100000000.0 * is->recRegionSizeFrames);
+
     ui->spinSegmentCount->setValue(is->segments);
+
     ui->spinPrerecordFrames->setValue(is->prerecordFrames);
     ui->spinPrerecordSeconds->setValue(((double)is->period / 100000000.0 * is->prerecordFrames));
 
@@ -59,7 +60,6 @@ recModeWindow::~recModeWindow()
 
 void recModeWindow::on_cmdOK_clicked()
 {
-
     is->disableRingBuffer = ui->chkDisableRing->isChecked();
 
     if(ui->radioNormal->isChecked())
@@ -82,8 +82,6 @@ void recModeWindow::on_cmdOK_clicked()
         is->mode = RECORD_MODE_GATED_BURST;
         is->prerecordFrames = ui->spinPrerecordFrames->value();
     }
-    qDebug() << "---- Record mode window ---- Rec length frames = " << is->recRegionSizeFrames;
-    //camera->setImagerSettings(*is);
 
     close();
 }
@@ -112,8 +110,6 @@ void recModeWindow::on_radioGated_clicked()
     ui->stackedWidget->setCurrentIndex(1);
 }
 
-
-
 void recModeWindow::on_cmdMax_clicked()
 {
     UInt32 recLenFrames = camera->getMaxRecordRegionSizeFrames(is->hRes, is->vRes);
@@ -123,14 +119,10 @@ void recModeWindow::on_cmdMax_clicked()
     updateSegmentSizeText(ui->spinSegmentCount->value());
 }
 
-
-
 void recModeWindow::on_spinRecLengthSeconds_valueChanged(double arg1)
 {
     if(ui->spinRecLengthSeconds->hasFocus())
     {
-
-        qDebug() << "---- Rec Mode Window ---- seconds spinbox valuechanged";
         UInt32 recLenFrames = arg1 / ((double) is->period / 100000000.0);
 
         if(recLenFrames < RECORD_LENGTH_MIN)
@@ -139,8 +131,8 @@ void recModeWindow::on_spinRecLengthSeconds_valueChanged(double arg1)
             ui->spinRecLengthSeconds->setValue(recLenFrames * ((double) is->period / 100000000.0));
 
         }
-        ui->spinRecLengthFrames->setValue(recLenFrames);
 
+        ui->spinRecLengthFrames->setValue(recLenFrames);
         ui->spinSegmentCount->setMaximum(min(SEGMENT_COUNT_MAX, recLenFrames));
 
         if(ui->radioSegmented->isChecked())
@@ -153,9 +145,7 @@ void recModeWindow::on_spinRecLengthFrames_valueChanged(int arg1)
 {
     if(ui->spinRecLengthFrames->hasFocus())
     {
-        qDebug() << "---- Rec Mode Window ---- frames spinbox valuechanged";
         ui->spinRecLengthSeconds->setValue((double)arg1 * ((double) is->period / 100000000.0));
-
         ui->spinSegmentCount->setMaximum(min(SEGMENT_COUNT_MAX, arg1));
 
         if(ui->radioSegmented->isChecked())
@@ -174,7 +164,6 @@ void recModeWindow::updateSegmentSizeText(UInt32 segmentCount)
         QString::number(ui->spinRecLengthFrames->value() / segmentCount * ((double) is->period / 100000000.0)) +
         " s\n(" + QString::number(ui->spinRecLengthFrames->value() / segmentCount) + " frames)");
 }
-
 
 void recModeWindow::on_spinPrerecordSeconds_valueChanged(double arg1)
 {
