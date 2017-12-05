@@ -88,7 +88,8 @@ SOURCES += main.cpp\
     statuswindow.cpp \
     eeprom.c \
     recmodewindow.cpp \
-    triggerdelaywindow.cpp
+    triggerdelaywindow.cpp \
+    triggerslider.cpp
 
 HEADERS  += mainwindow.h \
     gpmc.h \
@@ -132,7 +133,8 @@ HEADERS  += mainwindow.h \
     i2c/i2c-dev.h \
     eeprom.h \
     recmodewindow.h \
-    triggerdelaywindow.h
+    triggerdelaywindow.h \
+    triggerslider.h
 
 
 

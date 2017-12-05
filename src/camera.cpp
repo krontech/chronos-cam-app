@@ -311,20 +311,21 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 	//Set to full resolution
 	ImagerSettings_t settings;
 
-	settings.hRes      = appSettings.value("camera/hRes", MAX_FRAME_SIZE_H).toInt();
-	settings.vRes      = appSettings.value("camera/vRes", MAX_FRAME_SIZE_V).toInt();
-	settings.stride    = appSettings.value("camera/stride", settings.hRes).toInt();
-	settings.hOffset   = appSettings.value("camera/hOffset", 0).toInt();
-	settings.vOffset   = appSettings.value("camera/vOffset", 0).toInt();
-	settings.gain      = appSettings.value("camera/gain", 0).toInt();
-	settings.period    = appSettings.value("camera/period", sensor->getMinFramePeriod(settings.hRes, settings.vRes)).toInt();
-	settings.exposure  = appSettings.value("camera/exposure", sensor->getMaxExposure(settings.period)).toInt();
-    settings.disableRingBuffer = 0;
-    settings.mode = RECORD_MODE_NORMAL;
-    settings.prerecordFrames = 1;
-    settings.segmentLengthFrames = imagerSettings.recRegionSizeFrames;
-    settings.segments = 1;
-    settings.temporary = 0;
+    settings.hRes                   = appSettings.value("camera/hRes", MAX_FRAME_SIZE_H).toInt();
+    settings.vRes                   = appSettings.value("camera/vRes", MAX_FRAME_SIZE_V).toInt();
+    settings.stride                 = appSettings.value("camera/stride", settings.hRes).toInt();
+    settings.hOffset                = appSettings.value("camera/hOffset", 0).toInt();
+    settings.vOffset                = appSettings.value("camera/vOffset", 0).toInt();
+    settings.gain                   = appSettings.value("camera/gain", 0).toInt();
+    settings.period                 = appSettings.value("camera/period", sensor->getMinFramePeriod(settings.hRes, settings.vRes)).toInt();
+    settings.exposure               = appSettings.value("camera/exposure", sensor->getMaxExposure(settings.period)).toInt();
+    settings.recRegionSizeFrames    = appSettings.value("camera/recRegionSizeFrames", getMaxRecordRegionSizeFrames(settings.hRes, settings.vRes)).toInt();
+    settings.disableRingBuffer      = appSettings.value("camera/disableRingBuffer", 0).toInt();
+    settings.mode                   = (CameraRecordModeType)appSettings.value("camera/mode", RECORD_MODE_NORMAL).toInt();
+    settings.prerecordFrames        = appSettings.value("camera/prerecordFrames", 1).toInt();
+    settings.segmentLengthFrames    = appSettings.value("camera/segmentLengthFrames", settings.recRegionSizeFrames).toInt();
+    settings.segments               = appSettings.value("camera/segments", 1).toInt();
+    settings.temporary              = 0;
 	setImagerSettings(settings);
     setDisplaySettings(false, MAX_LIVE_FRAMERATE);
 
@@ -453,6 +454,10 @@ UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
     imagerSettings.segmentLengthFrames = settings.segmentLengthFrames;
     imagerSettings.segments = settings.segments;
 
+    //Zero trigger delay for Gated Burst
+    if(settings.mode == RECORD_MODE_GATED_BURST)
+        io->setTriggerDelayFrames(0);
+
 	imagerSettings.frameSizeWords = ROUND_UP_MULT((settings.stride * (settings.vRes+0) * 12 / 8 + (BYTES_PER_WORD - 1)) / BYTES_PER_WORD, FRAME_ALIGN_WORDS);	//Enough words to fit the frame, but make it even
 
     UInt32 maxRecRegionSize = getMaxRecordRegionSizeFrames(imagerSettings.hRes, imagerSettings.vRes);  //(ramSize - REC_REGION_START) / imagerSettings.frameSizeWords;
@@ -486,14 +491,20 @@ UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 	}
 	else {
 		qDebug() << "--- settings --- saving";
-		appSettings.setValue("camera/hRes",     imagerSettings.hRes);
-		appSettings.setValue("camera/vRes",     imagerSettings.vRes);
-		appSettings.setValue("camera/stride",   imagerSettings.stride);
-		appSettings.setValue("camera/hOffset",  imagerSettings.hOffset);
-		appSettings.setValue("camera/vOffset",  imagerSettings.vOffset);
-		appSettings.setValue("camera/gain",     imagerSettings.gain);
-		appSettings.setValue("camera/period",   imagerSettings.period);
-		appSettings.setValue("camera/exposure", imagerSettings.exposure);
+        appSettings.setValue("camera/hRes",                 imagerSettings.hRes);
+        appSettings.setValue("camera/vRes",                 imagerSettings.vRes);
+        appSettings.setValue("camera/stride",               imagerSettings.stride);
+        appSettings.setValue("camera/hOffset",              imagerSettings.hOffset);
+        appSettings.setValue("camera/vOffset",              imagerSettings.vOffset);
+        appSettings.setValue("camera/gain",                 imagerSettings.gain);
+        appSettings.setValue("camera/period",               imagerSettings.period);
+        appSettings.setValue("camera/exposure",             imagerSettings.exposure);
+        appSettings.setValue("camera/recRegionSizeFrames",  imagerSettings.recRegionSizeFrames);
+        appSettings.setValue("camera/disableRingBuffer",    imagerSettings.disableRingBuffer);
+        appSettings.setValue("camera/mode",                 imagerSettings.mode);
+        appSettings.setValue("camera/prerecordFrames",      imagerSettings.prerecordFrames);
+        appSettings.setValue("camera/segmentLengthFrames",  imagerSettings.segmentLengthFrames);
+        appSettings.setValue("camera/segments",             imagerSettings.segments);
 	}
 	
 	return SUCCESS;

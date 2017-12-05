@@ -17,7 +17,7 @@
    <property name="geometry">
     <rect>
      <x>690</x>
-     <y>416</y>
+     <y>420</y>
      <width>98</width>
      <height>51</height>
     </rect>
@@ -558,7 +558,7 @@ QSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}<
    <property name="geometry">
     <rect>
      <x>620</x>
-     <y>270</y>
+     <y>220</y>
      <width>161</width>
      <height>41</height>
     </rect>
@@ -576,7 +576,7 @@ QSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}<
    <property name="geometry">
     <rect>
      <x>620</x>
-     <y>240</y>
+     <y>190</y>
      <width>121</width>
      <height>21</height>
     </rect>
@@ -624,8 +624,8 @@ QSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}<
   <widget class="QPushButton" name="cmdRecMode">
    <property name="geometry">
     <rect>
-     <x>280</x>
-     <y>300</y>
+     <x>700</x>
+     <y>280</y>
      <width>98</width>
      <height>51</height>
     </rect>
@@ -637,20 +637,39 @@ QSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}<
    </property>
    <property name="text">
     <string>Record
-Mode</string>
+Modes</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="cmdDelaySettings">
+   <property name="geometry">
+    <rect>
+     <x>607</x>
+     <y>280</y>
+     <width>91</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>16</pointsize>
+    </font>
+   </property>
+   <property name="text">
+    <string>Trigger
+Delay</string>
    </property>
   </widget>
  </widget>
  <customwidgets>
   <customwidget>
-   <class>CamLineEdit</class>
-   <extends>QLineEdit</extends>
-   <header>camLineEdit.h</header>
-  </customwidget>
-  <customwidget>
    <class>CamSpinBox</class>
    <extends>QSpinBox</extends>
    <header>camspinbox.h</header>
+  </customwidget>
+  <customwidget>
+   <class>CamLineEdit</class>
+   <extends>QLineEdit</extends>
+   <header>camLineEdit.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

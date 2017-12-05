@@ -120,24 +120,24 @@ typedef union SeqPrmMemWord_t
 } SeqPgmMemWord;
 
 typedef struct {
-	UInt32 hRes;		//pixels
-	UInt32 vRes;		//pixels
-	UInt32 stride;		//Number of pixels per line (allows for dark pixels in the last column)
-	UInt32 hOffset;		//active area offset from left
-	UInt32 vOffset;		//Active area offset from top
-	UInt32 exposure;	//10ns increments
-	UInt32 period;		//Frame period in 10ns increments
+    UInt32 hRes;                //pixels
+    UInt32 vRes;                //pixels
+    UInt32 stride;              //Number of pixels per line (allows for dark pixels in the last column)
+    UInt32 hOffset;             //active area offset from left
+    UInt32 vOffset;             //Active area offset from top
+    UInt32 exposure;            //10ns increments
+    UInt32 period;              //Frame period in 10ns increments
 	UInt32 gain;
-	UInt32 frameSizeWords;
-	UInt32 recRegionSizeFrames;
-    CameraRecordModeType mode;
-    UInt32 segments;
-    UInt32 segmentLengthFrames;
-    UInt32 prerecordFrames; //Used in gated burst mode
+    UInt32 frameSizeWords;      //Number of words a frame takes up
+    UInt32 recRegionSizeFrames; //Number of frames in the entire record region
+    CameraRecordModeType mode;  //Recording mode
+    UInt32 segments;            //Number of segments in segmented mode
+    UInt32 segmentLengthFrames; //Length of segment in segmented mode
+    UInt32 prerecordFrames;     //Number of frames to record before each burst in Gated Burst mode
 
 	struct {
 		unsigned temporary : 1; // set this to disable saving of state
-        unsigned disableRingBuffer : 1;
+        unsigned disableRingBuffer : 1; //Set this to disable the ring buffer (record ends when at the end of memory rather than rolling over to the beginning)
 	};
 } ImagerSettings_t;
 

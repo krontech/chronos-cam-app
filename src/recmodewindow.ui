@@ -68,7 +68,7 @@
     <enum>QFrame::Raised</enum>
    </property>
    <property name="currentIndex">
-    <number>0</number>
+    <number>1</number>
    </property>
    <widget class="QWidget" name="normalPage">
     <widget class="QPushButton" name="cmdMax">
@@ -488,6 +488,9 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
 QSpinBox::up-button { subcontrol-position: right; right: 40px; width: 40px; height: 35px;}
 
 QSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}</string>
+      </property>
+      <property name="minimum">
+       <number>1</number>
       </property>
       <property name="maximum">
        <number>65536</number>

@@ -14,34 +14,27 @@
  *  You should have received a copy of the GNU General Public License       *
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.   *
  ****************************************************************************/
-#include "camspinbox.h"
-#include "camLineEdit.h"
-#include <QDebug>
+#ifndef TRIGGERSLIDER
+#define TRIGGERSLIDER
 
-CamSpinBox::CamSpinBox(QWidget *parent) :
-	QSpinBox(parent)
-{
-	CamLineEdit * le = new CamLineEdit(this);	//Have QSpinBox use our CamLineEdit, which takes care of software input panel
-	QSpinBox::setLineEdit(le);
-//	qDebug() << "CamSpinBox Consturcted";
-}
 
-CamSpinBox::~CamSpinBox()
-{
-    delete QSpinBox::lineEdit();	//TODO: Do we need to delete this here? Docs say QSpinBox takes ownership of the passed QLineEdit
-}
+#include <QSlider>
 
-void CamSpinBox::focusInEvent(QFocusEvent *e)
+class TriggerSlider : public QSlider
 {
-	QSpinBox::focusInEvent(e);
-}
+    Q_OBJECT
+public:
+    TriggerSlider(QWidget * parent = 0);
+    ~TriggerSlider();
+    void setHighlightRegion(int start, int end);
+protected:
+    void paintEvent(QPaintEvent *ev);
 
-void CamSpinBox::focusOutEvent(QFocusEvent *e)
-{
-	QSpinBox::focusOutEvent(e);
-}
+private:
+    int highlightStart = 0;
+    int highlightEnd = 0;
+};
 
-void CamSpinBox::mouseReleaseEvent(QMouseEvent * e)
-{
-	QSpinBox::mouseReleaseEvent(e);
-}
+
+#endif // TRIGGERSLIDER
+

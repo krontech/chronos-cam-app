@@ -45,8 +45,14 @@ recModeWindow::recModeWindow(QWidget *parent, Camera * cameraInst, ImagerSetting
 
     ui->spinSegmentCount->setValue(is->segments);
 
+    ui->spinPrerecordFrames->setMaximum(camera->getMaxRecordRegionSizeFrames(is->hRes, is->vRes) / 2);
+    ui->spinPrerecordSeconds->setMaximum(ui->spinPrerecordFrames->maximum() * (double)is->period / 100000000.0);
+    ui->spinPrerecordSeconds->setMinimum((double)is->period / 100000000.0);
+
     ui->spinPrerecordFrames->setValue(is->prerecordFrames);
     ui->spinPrerecordSeconds->setValue(((double)is->period / 100000000.0 * is->prerecordFrames));
+
+
 
     ui->lblSegmentSize->setText("Segment size:\n" + QString::number(ui->spinRecLengthFrames->value() / ui->spinSegmentCount->value() * ((double) is->period / 100000000.0)) + " s\n(" + QString::number(ui->spinRecLengthFrames->value() / ui->spinSegmentCount->value()) + " frames)");
 
