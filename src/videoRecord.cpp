@@ -22,8 +22,10 @@
 #include <QDebug>
 #include <unistd.h>
 #include <fcntl.h>
+#include <sys/statvfs.h>
 
 #include "videoRecord.h"
+#include "camera.h"
 
 /* DEBUG: Enabling sync is a great way to reproduce IO issues, but it almost certainly will drop frames. */
 static gboolean
@@ -79,6 +81,7 @@ Int32 VideoRecord::start(UInt32 hSize, UInt32 vSize, UInt32 frames, save_mode_ty
 	char path[1000];
 	char fname[1000];
 	char sequencePath[1000];
+    UInt64 estFileSize;
 
 	if(running)
 		return RECORD_ALREADY_RUNNING;
@@ -123,16 +126,19 @@ Int32 VideoRecord::start(UInt32 hSize, UInt32 vSize, UInt32 frames, save_mode_ty
 	switch(save_mode) {
 	case SAVE_MODE_H264:
 		strcat(path, ".mp4");
+        estFileSize = min(bitsPerPixel * imgXSize * imgYSize * framerate, min(60000000, (UInt32)(maxBitrate * 1000000.0)) * framerate / 60) / framerate * numFrames / 8;//bitsPerPixel * imgXSize * imgYSize * numFrames / 8;
 		break;
 	case SAVE_MODE_RAW16:
 	case SAVE_MODE_RAW16RJ:
 	case SAVE_MODE_RAW12:
 		strcat(path, ".raw");
+        estFileSize = 12 * imgXSize * imgYSize * numFrames / 8;
 		break;
 	case SAVE_MODE_RAW16_PNG:
 		strcpy(sequencePath, path);
 		strcat(sequencePath, "-\%05d.png");
 		strcat(path, "-00000.png");
+        estFileSize = 16 * imgXSize * imgYSize * numFrames / 8;
 		break;
 	}
 
@@ -152,6 +158,16 @@ Int32 VideoRecord::start(UInt32 hSize, UInt32 vSize, UInt32 frames, save_mode_ty
 	if (fd < 0) {
 		return RECORD_DIRECTORY_NOT_WRITABLE;
 	}
+
+    struct statvfs statBuf;
+
+    fstatvfs(fd, &statBuf);
+
+    UInt64 freeSpace = statBuf.f_bsize * statBuf.f_bfree;
+    qDebug() << "---- Video Record ---- Estimated file size:" << estFileSize << "bytes, free space:" << freeSpace << "bytes.";
+
+    if(freeSpace < (UInt64)(estFileSize * FREE_SPACE_MARGIN_MULTIPLIER))
+        return RECORD_INSUFFICIENT_SPACE;
 
 	printf("Saving video to %s\r\n", path);
 

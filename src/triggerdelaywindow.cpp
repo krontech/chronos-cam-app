@@ -61,7 +61,6 @@ void triggerDelayWindow::on_cmdHundredPercent_clicked()
 
 void triggerDelayWindow::updateControls(UInt32 postTriggerFrames)
 {
-    qDebug() << "---- Trigger delay window ---- Updated controls";
     UInt32 pretriggerFrames  = max((Int32)recLenFrames - (Int32)postTriggerFrames, 0);
     UInt32 preRecFrames = max((Int32)postTriggerFrames - (Int32)recLenFrames, 0);
 

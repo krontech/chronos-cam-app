@@ -144,6 +144,13 @@ void playbackWindow::on_cmdSave_clicked()
 				msg.exec();
 				return;
 			}
+            else if(RECORD_INSUFFICIENT_SPACE == ret)
+            {
+                msg.setText("Selected device does not have sufficient free space.");
+                msg.exec();
+                return;
+            }
+
 			ui->cmdSave->setText("Abort\nSave");
 			setControlEnable(false);
 			sw->setText("Saving...");

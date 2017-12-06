@@ -64,6 +64,8 @@
 
 #define SETTING_FLAG_TEMPORARY  1
 
+#define FREE_SPACE_MARGIN_MULTIPLIER 1.1    //Drive must have at least this factor more free space than the estimated file size to allow saving
+
 /*
 typedef enum CameraErrortype
 {
@@ -86,7 +88,8 @@ typedef enum CameraRecordModes
 {
     RECORD_MODE_NORMAL = 0,
     RECORD_MODE_SEGMENTED,
-    RECORD_MODE_GATED_BURST
+    RECORD_MODE_GATED_BURST,
+    RECORD_MODE_FPN
 } CameraRecordModeType;
 
 typedef struct {

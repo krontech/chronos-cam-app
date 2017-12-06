@@ -563,6 +563,10 @@ Int32 Camera::startRecording(void)
             setRecSequencerModeGatedBurst(imagerSettings.prerecordFrames);
         break;
 
+        case RECORD_MODE_FPN:
+            //setRecSequencerModeSingleBlock(17);   //Don't set this here, leave blank so the existing sequencer mode setting for FPN still works
+        break;
+
     }
 
 
@@ -1332,9 +1336,12 @@ UInt32 Camera::autoFPNCorrection(UInt32 framesToAverage, bool writeToFile, bool 
 
 	qDebug() << "Starting record with a length of" << framesToAverage << "frames";
 
-	retVal = setRecSequencerModeSingleBlock(framesToAverage+1);
-	if(SUCCESS != retVal)
-		return retVal;
+    CameraRecordModeType oldMode = imagerSettings.mode;
+    imagerSettings.mode = RECORD_MODE_FPN;
+
+    retVal = setRecSequencerModeSingleBlock(framesToAverage+1);
+    if(SUCCESS != retVal)
+        return retVal;
 
 	retVal = startRecording();
 	if(SUCCESS != retVal)
@@ -1358,6 +1365,8 @@ UInt32 Camera::autoFPNCorrection(UInt32 framesToAverage, bool writeToFile, bool 
 	}
 
 	qDebug() << "Record done, doing normal FPN correction";
+
+    imagerSettings.mode = oldMode;
 
 	computeFPNCorrection2(framesToAverage, writeToFile, factory);
 
@@ -1786,7 +1795,9 @@ Int32 Camera::autoColGainCorrection(void)
 	if(SUCCESS != retVal)
 		return retVal;
 
-	computeColGainCorrection(1, true);
+    retVal = computeColGainCorrection(1, true);
+    if(SUCCESS != retVal)
+        return retVal;
 
 	_is.gain = LUX1310_GAIN_4;
 	retVal = setImagerSettings(_is);
@@ -1797,7 +1808,9 @@ Int32 Camera::autoColGainCorrection(void)
 	if(SUCCESS != retVal)
 		return retVal;
 
-	computeColGainCorrection(1, true);
+    retVal = computeColGainCorrection(1, true);
+    if(SUCCESS != retVal)
+        return retVal;
 
 	return SUCCESS;
 }
@@ -1878,6 +1891,9 @@ Int32 Camera::recordFrames(UInt32 numframes)
 
 	qDebug() << "Starting record of one frame";
 
+    CameraRecordModeType oldMode = imagerSettings.mode;
+    imagerSettings.mode = RECORD_MODE_FPN;
+
 	retVal = setRecSequencerModeSingleBlock(numframes + 1);
 	if(SUCCESS != retVal)
 		return retVal;
@@ -1900,6 +1916,8 @@ Int32 Camera::recordFrames(UInt32 numframes)
 	}
 
 	qDebug() << "Record done";
+
+    imagerSettings.mode = oldMode;
 
 	return SUCCESS;
 }
@@ -2240,6 +2258,8 @@ Int32 Camera::startSave(UInt32 startFrame, UInt32 length)
 			return RECORD_DIRECTORY_NOT_WRITABLE;
 		else if(RECORD_FILE_EXISTS == retVal)
 			return RECORD_FILE_EXISTS;
+        else if(RECORD_INSUFFICIENT_SPACE == retVal)
+            return RECORD_INSUFFICIENT_SPACE;
 		else
 			return RECORD_ERROR;
 	}
