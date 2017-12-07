@@ -53,32 +53,31 @@ void Camera::setLiveOutputTiming(UInt32 hRes, UInt32 vRes, UInt32 hOutRes, UInt3
     const UInt32 hPorch = 166;
     const UInt32 vSync = 3;
     const UInt32 vPorch = 38;
-    UInt32 hPeriod = hOutRes + hSync + (2 * hPorch);
+    UInt32 hPeriod = hOutRes + hSync + hPorch + hSync;
     UInt32 vPeriod = pxClock / (hPeriod * maxFps);
 	UInt32 fps;
 
 	/* check to make sure we aren't beyond the video inputs vRes limit */
-	fps = pxClock / (hPeriod * vPeriod);
-	if (vPeriod > (1024 + vSync + (2*hPorch))) {
-		vPeriod = (1024 + vSync + (2*hPorch));
+	if (vPeriod > (1024 + vSync + vSync + vPorch)) {
+		vPeriod = (1024 + vSync + vSync + vPorch);
 	}
 
 	/* make sure fps is within limit */
 	fps = pxClock / (vPeriod * hPeriod);
 	if (fps > maxFps) {
 		/* if not, recalculate for full horizontal width */
-		hPeriod = 1280 + hSync + (2 * hPorch);
+		hPeriod = 1280 + hSync + hPorch + hSync;
 		vPeriod = pxClock / (hPeriod * maxFps);
 	}
 
 	/* make sure vertical size is large enough for frame */
-    if (vPeriod < (vOutRes + vSync + 2*vPorch)) {
-        vPeriod = vOutRes + vSync + 2*vPorch;
+    if (vPeriod < (vOutRes + vSync + vPorch + vSync)) {
+        vPeriod = (vOutRes + vSync + vPorch + vSync);
     }
 
 	fps = pxClock / (vPeriod * hPeriod);
 	qDebug("setLiveOutputTiming: %d*%d@%d (%d*%d max: %d)",
-		   (hPeriod - hSync - 2*hPorch), (vPeriod - vSync - 2*vPorch), fps,
+		   (hPeriod - hSync - hPorch - hSync), (vPeriod - vSync - vPorch - vSync), fps,
 		   hOutRes, vOutRes, maxFps);
 	
 	gpmc->write16(DISPLAY_H_RES_ADDR, hRes);
@@ -86,7 +85,7 @@ void Camera::setLiveOutputTiming(UInt32 hRes, UInt32 vRes, UInt32 hOutRes, UInt3
 	gpmc->write16(DISPLAY_V_RES_ADDR, vRes);
     gpmc->write16(DISPLAY_V_OUT_RES_ADDR, vOutRes);
 
-    gpmc->write16(DISPLAY_H_PERIOD_ADDR, hPeriod-1);
+    gpmc->write16(DISPLAY_H_PERIOD_ADDR, hPeriod - 1);
     gpmc->write16(DISPLAY_H_SYNC_LEN_ADDR, hSync);
     gpmc->write16(DISPLAY_H_BACK_PORCH_ADDR, hPorch);
 
