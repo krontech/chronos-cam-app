@@ -64,7 +64,7 @@ Int32 GPMC::init()
 	GPMC_CONFIG = GPMC_CONFIG | (3 << 8);
 
 	GPMC_TIMEOUT_CONTROL =	0x1FF << 4 |	/*TIMEOUTSTARTVALUE*/
-							0;				/*TIMEOUTENABLE*/
+		0;				/*TIMEOUTENABLE*/      // <<<<<<<<<<<<<<<<<<<<<<<<<<< TIMEOUT ENABLE
 
 	//Disable CS0
 	GPMC_CONFIG7_i(0) = 0;
@@ -92,41 +92,41 @@ Int32 GPMC::init()
 						((GPMC_RANGE_BASE + GPMC_REGISTER_OFFSET) >> 24);			/*BASEADDRESS*/
 
 	//Setup timings
-	GPMC_CONFIG2_i(0) =	11 << 16 |	/*CSWROFFTIME*/
-						12 << 8 |	/*CSRDOFFTIME*/
+	GPMC_CONFIG2_i(0) =	10 << 16 |	/*CSWROFFTIME          11*/
+						10 << 8 |	/*CSRDOFFTIME          12*/
 						0 << 7 |	/*CSEXTRADELAY*/
-						1;			/*CSONTIME*/
+						0;			/*CSONTIME             1*/
 
 	GPMC_CONFIG3_i(0) =	0 << 28 |	/*ADVAADMUXWROFFTIME*/
 						0 << 24 |	/*ADVAADMUXRDOFFTIME*/
-						6 << 16 |	/*ADVWROFFTIME*/
-						6 << 8 |	/*ADVRDOFFTIME*/
+						4 << 16 |	/*ADVWROFFTIME         6*/
+						4 << 8 |	/*ADVRDOFFTIME         4*/
 						0 << 7 |	/*ADVEXTRADELAY*/
 						0 << 4 |	/*ADVAADMUXONTIME*/
 						2;			/*ADVONTIME*/
 
-	GPMC_CONFIG4_i(0) =	10 << 24 |	/*WEOFFTIME*/
+	GPMC_CONFIG4_i(0) =	8 << 24 |	/*WEOFFTIME            10*/
 						0 << 23 |	/*WEEXTRADELAY*/
-						7 << 16 |	/*WEONTIME*/
+						4 << 16 |	/*WEONTIME             7*/
 						0 << 13 |	/*OEAADMUXOFFTIME*/
-						11 << 8 |	/*OEOFFTIME*/
+						10 << 8 |	/*OEOFFTIME            11*/
 						0 << 7 |	/*OEEXTRADELAY*/
 						0 << 4 |	/*OEAADMUXONTIME*/
-						7;			/*OEONTIME*/
+						4;			/*OEONTIME             7*/
 
 	GPMC_CONFIG5_i(0) =	0 << 24 |	/*PAGEBURSTACCESSTIME*/
-						10 << 16 |	/*RDACCESSTIME*/
-						12 << 8 |	/*WRCYCLETIME*/
-						12;			/*RDCYCLETIME*/
+						9 << 16 |	/*RDACCESSTIME         10*/
+						12 << 8 |	/*WRCYCLETIME          12*/
+						12;			/*RDCYCLETIME          12*/
 
 
 
-	GPMC_CONFIG6_i(0) =	6 << 24 |	/*WRACCESSTIME*/
-						7 << 16 |	/*WRDATAONADMUXBUS*/
-						1 << 8 |	/*CYCLE2CYCLEDELAY*/
+	GPMC_CONFIG6_i(0) =	4 << 24 |	/*WRACCESSTIME          6*/
+						4 << 16 |	/*WRDATAONADMUXBUS      7*/
+						4 << 8 |	/*CYCLE2CYCLEDELAY*/
 						1 << 7 |	/*CYCLE2CYCLESAMECSEN*/
 						1 << 6 |	/*CYCLE2CYCLEDIFFCSEN*/
-						1;			/*BUSTURNAROUND*/
+						3;			/*BUSTURNAROUND*/
 
 	//Setup wait pin
 

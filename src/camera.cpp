@@ -1150,7 +1150,9 @@ void Camera::computeFPNCorrection2(UInt32 framesToAverage, bool writeToFile, boo
 	UInt32 * rawBuffer32 = new UInt32[bytesPerFrame / 4];
 	UInt8 * rawBuffer = (UInt8 *)rawBuffer32;
 
-
+	// turn off the sensor
+	sensor->seqOnOff(true);
+	
 	//Zero buffer
 	for(int i = 0; i < pixelsPerFrame; i++)
 	{
@@ -1181,6 +1183,9 @@ void Camera::computeFPNCorrection2(UInt32 framesToAverage, bool writeToFile, boo
 
 	writeAcqMem(rawBuffer32, FPN_ADDRESS, bytesPerFrame);
 
+	// restart the sensor
+	sensor->setIntegrationTime((double)imagerSettings.exposure/100000000.0, imagerSettings.hRes, imagerSettings.vRes);
+	
 	imgGain = 4096.0 / (double)(4096 - getMaxFPNValue(buffer, pixelsPerFrame)) * IMAGE_GAIN_FUDGE_FACTOR;
 	qDebug() << "imgGain set to" << imgGain;
 	setCCMatrix(wbMat);

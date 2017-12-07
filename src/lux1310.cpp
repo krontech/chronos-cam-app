@@ -346,8 +346,8 @@ void LUX1310::SCIWrite(UInt8 address, UInt16 data)
 
 	//qDebug() << "sci write" << data;
 
-	//Clear RW
-	gpmc->write16(SENSOR_SCI_CONTROL_ADDR, gpmc->read16(SENSOR_SCI_CONTROL_ADDR) & ~SENSOR_SCI_CONTROL_RW_MASK);
+	//Clear RW and reset FIFO
+	gpmc->write16(SENSOR_SCI_CONTROL_ADDR, 0x8000 | gpmc->read16(SENSOR_SCI_CONTROL_ADDR) & ~SENSOR_SCI_CONTROL_RW_MASK);
 
 	//Set up address, transfer length and put data into FIFO
 	gpmc->write16(SENSOR_SCI_ADDRESS_ADDR, address);
@@ -377,8 +377,8 @@ void LUX1310::SCIWrite(UInt8 address, UInt16 data)
 
 void LUX1310::SCIWriteBuf(UInt8 address, UInt8 * data, UInt32 dataLen)
 {
-	//Clear RW
-	gpmc->write16(SENSOR_SCI_CONTROL_ADDR, gpmc->read16(SENSOR_SCI_CONTROL_ADDR) & ~SENSOR_SCI_CONTROL_RW_MASK);
+	//Clear RW and reset FIFO
+	gpmc->write16(SENSOR_SCI_CONTROL_ADDR, 0x8000 | gpmc->read16(SENSOR_SCI_CONTROL_ADDR) & ~SENSOR_SCI_CONTROL_RW_MASK);
 
 	//Set up address, transfer length and put data into FIFO
 	gpmc->write16(SENSOR_SCI_ADDRESS_ADDR, address);
@@ -512,7 +512,6 @@ Int32 LUX1310::seqOnOff(bool on)
 {
 	gpmc->write32(IMAGER_INT_TIME_ADDR, 0);	//Disable integration
 	return SUCCESS;
-
 }
 
 void LUX1310::setReset(bool reset)
