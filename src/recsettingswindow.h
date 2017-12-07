@@ -69,12 +69,18 @@ private slots:
 
 	void on_comboRes_activated(const QString &arg1);
 
+    void on_cmdRecMode_clicked();
+
+    void on_cmdDelaySettings_clicked();
+
 private:
 	void updateOffsetLimits();
 	void updateInfoText();
 	void setResFromText(char * str);
 	Ui::RecSettingsWindow *ui;
 	Camera * camera;
+    ImagerSettings_t * is;
+    bool windowInitComplete = false;
 
 signals:
 	void settingsChanged();

@@ -112,7 +112,7 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	connect(menuTimeoutTimer, SIGNAL(timeout()), this, SLOT(on_MainWindowTimeoutTimer()));
 
 	ui->cmdDebugWnd->setVisible(false);
-	ui->cmdClose->setVisible(false);
+//	ui->cmdClose->setVisible(false);
 /*	ui->cmdFocusAid->setVisible(false);
 	ui->cmdFPNCal->setVisible(false);
 	ui->cmdIOSettings->setVisible(false);

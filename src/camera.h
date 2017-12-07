@@ -42,6 +42,8 @@
 #define REC_REGION_START		(MAX_FRAME_LENGTH*4)
 #define REC_REGION_LEN			ramSize
 #define FRAME_ALIGN_WORDS		64			//Align to 256 byte boundaries (8 32-byte words)
+#define RECORD_LENGTH_MIN       1           //Minimum number of frames in the record region
+#define SEGMENT_COUNT_MAX       (32*1024)   //Maximum number of record segments in segmented mode
 
 #define MAX_FRAME_SIZE_H		1280
 #define MAX_FRAME_SIZE_V		1024
@@ -62,6 +64,8 @@
 
 #define SETTING_FLAG_TEMPORARY  1
 
+#define FREE_SPACE_MARGIN_MULTIPLIER 1.1    //Drive must have at least this factor more free space than the estimated file size to allow saving
+
 /*
 typedef enum CameraErrortype
 {
@@ -79,6 +83,15 @@ typedef enum CameraErrortype
 	CAMERA_INVALID_SETTINGS
 } CameraErrortype;
 */
+
+typedef enum CameraRecordModes
+{
+    RECORD_MODE_NORMAL = 0,
+    RECORD_MODE_SEGMENTED,
+    RECORD_MODE_GATED_BURST,
+    RECORD_MODE_FPN
+} CameraRecordModeType;
+
 typedef struct {
 	UInt32 blockStart;
 	UInt32 blockEnd;
@@ -110,18 +123,24 @@ typedef union SeqPrmMemWord_t
 } SeqPgmMemWord;
 
 typedef struct {
-	UInt32 hRes;		//pixels
-	UInt32 vRes;		//pixels
-	UInt32 stride;		//Number of pixels per line (allows for dark pixels in the last column)
-	UInt32 hOffset;		//active area offset from left
-	UInt32 vOffset;		//Active area offset from top
-	UInt32 exposure;	//10ns increments
-	UInt32 period;		//Frame period in 10ns increments
+    UInt32 hRes;                //pixels
+    UInt32 vRes;                //pixels
+    UInt32 stride;              //Number of pixels per line (allows for dark pixels in the last column)
+    UInt32 hOffset;             //active area offset from left
+    UInt32 vOffset;             //Active area offset from top
+    UInt32 exposure;            //10ns increments
+    UInt32 period;              //Frame period in 10ns increments
 	UInt32 gain;
-	UInt32 frameSizeWords;
-	UInt32 recRegionSizeFrames;
+    UInt32 frameSizeWords;      //Number of words a frame takes up
+    UInt32 recRegionSizeFrames; //Number of frames in the entire record region
+    CameraRecordModeType mode;  //Recording mode
+    UInt32 segments;            //Number of segments in segmented mode
+    UInt32 segmentLengthFrames; //Length of segment in segmented mode
+    UInt32 prerecordFrames;     //Number of frames to record before each burst in Gated Burst mode
+
 	struct {
 		unsigned temporary : 1; // set this to disable saving of state
+        unsigned disableRingBuffer : 1; //Set this to disable the ring buffer (record ends when at the end of memory rather than rolling over to the beginning)
 	};
 } ImagerSettings_t;
 
@@ -158,6 +177,7 @@ public:
 	CameraErrortype init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * sensorInst, UserInterface * userInterface, UInt32 ramSizeVal, bool color);
 	Int32 startRecording(void);
 	Int32 setRecSequencerModeNormal();
+    Int32 setRecSequencerModeGatedBurst(UInt32 prerecord = 0);
 	Int32 setRecSequencerModeSingleBlock(UInt32 blockLength);
 	Int32 stopRecording(void);
 	bool getIsRecording(void);
@@ -223,6 +243,7 @@ public:
 	char * getSerialNumber(void) {return serialNumber;}
 	void setSerialNumber(const char * sn) {strcpy(serialNumber, sn);}
 	bool getIsColor() {return isColor;}
+    UInt32 getMaxRecordRegionSizeFrames(UInt32 hSize, UInt32 vSize) {return (ramSize - REC_REGION_START) / (ROUND_UP_MULT((hSize * (vSize) * BITS_PER_PIXEL / 8 + (BYTES_PER_WORD-1)) / BYTES_PER_WORD, FRAME_ALIGN_WORDS));}
 private:
     void setDisplayFrameSource(bool liveDisplaySource);
 private:

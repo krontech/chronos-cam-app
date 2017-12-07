@@ -206,17 +206,110 @@ void UtilWindow::on_cmdSetClock_clicked()
 
 void UtilWindow::on_cmdAdcOffset_clicked()
 {
-	camera->autoAdcOffsetCorrection();
+    StatusWindow sw;
+    Int32 retVal;
+    char text[100];
+
+    sw.setText("Performing ADC Offset calibration. Please wait...");
+    sw.show();
+    QCoreApplication::processEvents();
+
+    //Turn off calibration light
+    camera->io->setOutLevel(0);	//Turn off output drive
+
+    //ADC Offset calibration
+    retVal = camera->autoAdcOffsetCorrection();
+
+    if(SUCCESS != retVal)
+    {
+        sw.hide();
+        QMessageBox msg;
+        sprintf(text, "Error during ADC Offset calibration, error %d", retVal);
+        msg.setText(text);
+        msg.setWindowFlags(Qt::WindowStaysOnTopHint);
+        msg.exec();
+        return;
+    }
+    else
+    {
+        sw.hide();
+        QMessageBox msg;
+        sprintf(text, "ADC Offset calibration was successful");
+        msg.setText(text);
+        msg.setWindowFlags(Qt::WindowStaysOnTopHint);
+        msg.exec();
+    }
 }
 
 void UtilWindow::on_cmdColumnGain_clicked()
 {
-	camera->autoColGainCorrection();
+    StatusWindow sw;
+    Int32 retVal;
+    char text[100];
+
+    sw.setText("Performing column gain calibration. Please wait...");
+    sw.show();
+    QCoreApplication::processEvents();
+
+    //Turn on calibration light
+    camera->io->setOutLevel((1 << 1));	//Turn on output drive
+
+    retVal = camera->autoColGainCorrection();
+
+    if(SUCCESS != retVal)
+    {
+        sw.hide();
+        QMessageBox msg;
+        sprintf(text, "Error during gain calibration, error %d", retVal);
+        msg.setText(text);
+        msg.setWindowFlags(Qt::WindowStaysOnTopHint);
+        msg.exec();
+    }
+    else
+    {
+        sw.hide();
+        QMessageBox msg;
+        sprintf(text, "Column gain calibration was successful");
+        msg.setText(text);
+        msg.setWindowFlags(Qt::WindowStaysOnTopHint);
+        msg.exec();
+    }
 }
 
 void UtilWindow::on_cmdBlackCalAll_clicked()
 {
-	camera->blackCalAllStdRes(true);
+    StatusWindow sw;
+    Int32 retVal;
+    char text[100];
+
+    sw.setText("Performing black cal on all standard resolutions. Please wait...");
+    sw.show();
+    QCoreApplication::processEvents();
+
+    //Turn off calibration light
+    camera->io->setOutLevel(0);	//Turn off output drive
+
+    //Black cal all standard resolutions
+    retVal = camera->blackCalAllStdRes(true);
+
+    if(SUCCESS != retVal)
+    {
+        sw.hide();
+        QMessageBox msg;
+        sprintf(text, "Error during black calibration, error %d", retVal);
+        msg.setText(text);
+        msg.setWindowFlags(Qt::WindowStaysOnTopHint);
+        msg.exec();
+    }
+    else
+    {
+        sw.hide();
+        QMessageBox msg;
+        sprintf(text, "Black cal of all standard resolutions was successful");
+        msg.setText(text);
+        msg.setWindowFlags(Qt::WindowStaysOnTopHint);
+        msg.exec();
+    }
 }
 
 void UtilWindow::on_cmdCloseApp_clicked()
