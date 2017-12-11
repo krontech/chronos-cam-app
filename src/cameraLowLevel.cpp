@@ -53,28 +53,25 @@ void Camera::setLiveOutputTiming(UInt32 hRes, UInt32 vRes, UInt32 hOutRes, UInt3
     const UInt32 hPorch = 166;
     const UInt32 vSync = 3;
     const UInt32 vPorch = 38;
-    UInt32 hPeriod = hOutRes + hSync + hPorch + hSync;
-    UInt32 vPeriod = pxClock / (hPeriod * maxFps);
+	UInt32 minHPeriod;
+	UInt32 hPeriod;
+	UInt32 vPeriod;
 	UInt32 fps;
 
-	/* check to make sure we aren't beyond the video inputs vRes limit */
-	if (vPeriod > (1024 + vSync + vSync + vPorch)) {
-		vPeriod = (1024 + vSync + vSync + vPorch);
-	}
+	hPeriod = hOutRes + hSync + hPorch + hSync;
 
-	/* make sure fps is within limit */
-	fps = pxClock / (vPeriod * hPeriod);
-	if (fps > maxFps) {
-		/* if not, recalculate for full horizontal width */
-		hPeriod = 1280 + hSync + hPorch + hSync;
-		vPeriod = pxClock / (hPeriod * maxFps);
-	}
+	// calculate minimum hPeriod to fit within the 1024 max vertical resolution and make sure hPeriod
+	// is equal to or larger
+	minHPeriod = (pxClock / ((1024+vPorch+vSync+vSync) * maxFps)) + 1; // the +1 is just to round up
+	if (hPeriod < minHPeriod) hPeriod = minHPeriod;
 
-	/* make sure vertical size is large enough for frame */
+	// calculate vPeriod and make sure it's large enough for the frame
+    vPeriod = pxClock / (hPeriod * maxFps);
     if (vPeriod < (vOutRes + vSync + vPorch + vSync)) {
         vPeriod = (vOutRes + vSync + vPorch + vSync);
     }
 
+	// calculate FPS for debug output
 	fps = pxClock / (vPeriod * hPeriod);
 	qDebug("setLiveOutputTiming: %d*%d@%d (%d*%d max: %d)",
 		   (hPeriod - hSync - hPorch - hSync), (vPeriod - vSync - vPorch - vSync), fps,
