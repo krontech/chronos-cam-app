@@ -510,12 +510,21 @@ UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 	return SUCCESS;
 }
 
-UInt32 Camera::setIntegrationTime(double intTime, UInt32 hRes, UInt32 vRes, UInt32 flags)
+UInt32 Camera::setIntegrationTime(double intTime, UInt32 hRes, UInt32 vRes, Int32 flags)
 {
+	QSettings appSettings;
 	UInt32 validTime;
-	validTime = (UInt32) (sensor->setIntegrationTime(intTime, hRes, vRes) * 100000000.0);
-	if (!(flags && SETTING_FLAG_TEMPORARY)) {
-		QSettings appSettings;
+	if (flags & SETTING_FLAG_USESAVED) {
+		validTime = appSettings.value("camera/exposure", sensor->getMaxCurrentIntegrationTime() * 100000000.0).toInt();
+		qDebug("--- Using old settings --- Exposure time: %d (default: %d)", validTime, (int)(sensor->getMaxCurrentIntegrationTime() * 100000000.0));
+		validTime = (UInt32) (sensor->setIntegrationTime((double)validTime / 100000000.0, hRes, vRes) * 100000000.0);
+	}
+	else {
+		validTime = (UInt32) (sensor->setIntegrationTime(intTime, hRes, vRes) * 100000000.0);
+	}
+	
+	if (!(flags & SETTING_FLAG_TEMPORARY)) {
+		qDebug("--- Saving settings --- Exposure time: %d", validTime);
 		appSettings.setValue("camera/exposure", validTime);
 	}
 	return SUCCESS;
@@ -1239,6 +1248,7 @@ void Camera::computeFPNCorrection()
 
 void Camera::computeFPNCorrection2(UInt32 framesToAverage, bool writeToFile, bool factory)
 {
+	QSettings appSettings;
 	char filename[1000];
 	const char *formatStr;
 
@@ -1305,7 +1315,7 @@ void Camera::computeFPNCorrection2(UInt32 framesToAverage, bool writeToFile, boo
 	writeAcqMem(rawBuffer32, FPN_ADDRESS, bytesPerFrame);
 
 	// restart the sensor
-	sensor->setIntegrationTime((double)imagerSettings.exposure/100000000.0, imagerSettings.hRes, imagerSettings.vRes);
+	setIntegrationTime(0.0, imagerSettings.hRes, imagerSettings.vRes, SETTING_FLAG_USESAVED);
 	
 	imgGain = 4096.0 / (double)(4096 - getMaxFPNValue(buffer, pixelsPerFrame)) * IMAGE_GAIN_FUDGE_FACTOR;
 	qDebug() << "imgGain set to" << imgGain;
@@ -1333,7 +1343,7 @@ UInt32 Camera::autoFPNCorrection(UInt32 framesToAverage, bool writeToFile, bool 
 
 	if(noCap)
 	{
-		sensor->setIntegrationTime(0, imagerSettings.hRes, imagerSettings.vRes);
+		setIntegrationTime(0.0, imagerSettings.hRes, imagerSettings.vRes, SETTING_FLAG_TEMPORARY);
 		//nanosleep(&ts, NULL);
 	}
 
@@ -1356,7 +1366,7 @@ UInt32 Camera::autoFPNCorrection(UInt32 framesToAverage, bool writeToFile, bool 
 
 	//Return to set exposure
 	if(noCap)
-		sensor->setIntegrationTime((double)imagerSettings.exposure/100000000.0, imagerSettings.hRes, imagerSettings.vRes);
+		setIntegrationTime(0.0, imagerSettings.hRes, imagerSettings.vRes, SETTING_FLAG_USESAVED);
 
 	if(count == countMax)	//If after the timeout recording hasn't finished
 	{

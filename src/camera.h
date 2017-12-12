@@ -63,6 +63,7 @@
 #define IMAGE_GAIN_FUDGE_FACTOR 1.0		//Multiplier to make sure clipped ADC value actually clips image
 
 #define SETTING_FLAG_TEMPORARY  1
+#define SETTING_FLAG_USESAVED   2
 
 #define FREE_SPACE_MARGIN_MULTIPLIER 1.1    //Drive must have at least this factor more free space than the estimated file size to allow saving
 
@@ -197,7 +198,7 @@ public:
 	RecordSettings_t recordingData;
 	ImagerSettings_t getImagerSettings() { return imagerSettings; }
 	UInt32 setImagerSettings(ImagerSettings_t settings);
-	UInt32 setIntegrationTime(double intTime, UInt32 hRes, UInt32 vRes, UInt32 flags);
+	UInt32 setIntegrationTime(double intTime, UInt32 hRes, UInt32 vRes, Int32 flags);
     UInt32 setDisplaySettings(bool encoderSafe, UInt32 maxFps);
 	UInt32 setPlayMode(bool playMode);
 	UInt32 playFrame;
