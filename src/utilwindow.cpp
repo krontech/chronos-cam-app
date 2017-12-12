@@ -42,6 +42,7 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	QWidget(parent),
 	ui(new Ui::UtilWindow)
 {
+	QSettings appSettings;
 	ui->setupUi(this);
 	this->setWindowFlags(Qt::Dialog | Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
 	this->move(0,0);
@@ -99,10 +100,13 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	ui->cmdWhiteRef->setVisible(false);
 	ui->cmdSetSN->setVisible(false);
 	ui->lineSerialNumber->setVisible(false);
+	ui->chkShowDebugControls->setVisible(false);
 
 	ui->chkAutoSave->setChecked(camera->get_autoSave());
 	ui->chkAutoRecord->setChecked(camera->get_autoRecord());
 
+	ui->chkShowDebugControls->setChecked(!(appSettings.value("debug/hideDebug", true).toBool()));
+	
 	connect(ui->cmdClose, SIGNAL(clicked()), this, SLOT(close()));
 }
 
@@ -645,6 +649,7 @@ void UtilWindow::on_linePassword_textEdited(const QString &arg1)
 		ui->cmdWhiteRef->setVisible(true);
 		ui->cmdSetSN->setVisible(true);
 		ui->lineSerialNumber->setVisible(true);
+		ui->chkShowDebugControls->setVisible(true);
 	}
 }
 
@@ -867,3 +872,10 @@ void UtilWindow::on_cmdRestoreSettings_clicked()
 	system("killall camApp && /etc/init.d/camera restart");
 }
 
+
+
+void UtilWindow::on_chkShowDebugControls_toggled(bool checked)
+{
+	QSettings appSettings;
+	appSettings.setValue("debug/hideDebug", !checked);
+}

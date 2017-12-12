@@ -86,6 +86,8 @@ private slots:
 
     void on_cmdBackupSettings_clicked();
 
+    void on_chkShowDebugControls_toggled(bool checked);
+
 private:
 	Ui::UtilWindow *ui;
 	Camera * camera;

@@ -19,6 +19,7 @@
 #include <stdio.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <QSettings>
 
 #include "cameraRegisters.h"
 #include "userInterface.h"
@@ -52,6 +53,7 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
     ui(new Ui::CamMainWindow)
 {
 	QMessageBox msg;
+	QSettings appSettings;
 	CameraErrortype retVal;
 	ui->setupUi(this);
 
@@ -111,8 +113,10 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	menuTimeoutTimer = new QTimer(this);
 	connect(menuTimeoutTimer, SIGNAL(timeout()), this, SLOT(on_MainWindowTimeoutTimer()));
 
-	ui->cmdDebugWnd->setVisible(false);
-//	ui->cmdClose->setVisible(false);
+	if (appSettings.value("debug/hideDebug", true).toBool()) {
+		ui->cmdDebugWnd->setVisible(false);
+		ui->cmdClose->setVisible(false);
+	}
 /*	ui->cmdFocusAid->setVisible(false);
 	ui->cmdFPNCal->setVisible(false);
 	ui->cmdIOSettings->setVisible(false);
@@ -354,6 +358,7 @@ void CamMainWindow::on_MainWindowTimer()
 	bool shutterButton = camera->ui->getShutterButton();
 	char buf[300];
 	Int32 len;
+	QSettings appSettings;
 
 	if(shutterButton && !lastShutterButton)
 	{
@@ -417,6 +422,14 @@ void CamMainWindow::on_MainWindowTimer()
 		updateCurrentSettingsLabel();
 	}
 
+	if (appSettings.value("debug/hideDebug", true).toBool()) {
+		ui->cmdDebugWnd->setVisible(false);
+		ui->cmdClose->setVisible(false);
+	}
+	else {
+		ui->cmdDebugWnd->setVisible(true);
+		ui->cmdClose->setVisible(true);
+	}
 }
 
 
