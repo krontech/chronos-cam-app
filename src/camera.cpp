@@ -2754,7 +2754,7 @@ void frameCallback(void * arg)
          * Wait for flow control issues to clear before the next frame.
          */
         while (!cInst->recorder->flowReady()) {
-			delayms_events(10);
+			delayms(10);
         }
 
         cInst->processPlay();
