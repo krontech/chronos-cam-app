@@ -15,6 +15,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.   *
  ****************************************************************************/
 #include <time.h>
+#include <sys/statvfs.h>
 
 #include "videoRecord.h"
 #include "util.h"
@@ -26,6 +27,7 @@
 
 #include <QTimer>
 #include <QMessageBox>
+#include <QSettings>
 
 
 playbackWindow::playbackWindow(QWidget *parent, Camera * cameraInst, bool autosave) :
@@ -110,7 +112,10 @@ void playbackWindow::on_cmdSave_clicked()
 	UInt32 ret;
 	QMessageBox msg;
 	char parentPath[1000];
-
+	struct statvfs statvfsBuf;
+	uint64_t estimatedSize;
+	QSettings appSettings;
+	
 	//Build the parent path of the save directory, to determine if it's a mount point
 	strcpy(parentPath, camera->recorder->fileDirectory);
 	strcat(parentPath, "/..");
@@ -125,6 +130,52 @@ void playbackWindow::on_cmdSave_clicked()
 			return;
 		}
 
+		if (!statvfs(camera->recorder->fileDirectory, &statvfsBuf)) {
+			qDebug("===================================");
+			// calculated estimated size
+			estimatedSize = (markOutFrame - markInFrame + 1);
+			qDebug("Number of frames: %llu", estimatedSize);
+			estimatedSize *= appSettings.value("camera/hRes", MAX_FRAME_SIZE_H).toInt();
+			estimatedSize *= appSettings.value("camera/vRes", MAX_FRAME_SIZE_V).toInt();
+			qDebug("Resolution: %d x %d", appSettings.value("camera/hRes", MAX_FRAME_SIZE_H).toInt(), appSettings.value("camera/vRes", MAX_FRAME_SIZE_V).toInt());
+			// multiply by bits per pixel
+			switch(appSettings.value("recorder/saveFormat", 0).toUInt()) {
+			case SAVE_MODE_H264:
+				// the *1.2 part is fudge factor
+				estimatedSize = (uint64_t) ((double)estimatedSize * appSettings.value("recorder/bitsPerPixel", camera->recorder->bitsPerPixel).toDouble() * 1.2);
+				qDebug("Bits/pixel: %0.3f", appSettings.value("recorder/bitsPerPixel", camera->recorder->bitsPerPixel).toDouble());
+				break;
+			case SAVE_MODE_RAW16:
+			case SAVE_MODE_RAW16RJ:
+ 				qDebug("Bits/pixel: %d", 16);
+				estimatedSize *= 16;
+				estimatedSize += (4096<<8);
+				break;
+			case SAVE_MODE_RAW12:
+ 				qDebug("Bits/pixel: %d", 12);
+				estimatedSize *= 12;
+				estimatedSize += estimatedSize + (4096<<8);
+				break;
+			default:
+				// unknown format
+ 				qDebug("Bits/pixel: unknown - default: %d", 16);
+				estimatedSize *= 16;
+			}
+			// convert to bytes
+			estimatedSize /= 8;
+
+			qDebug("Free space: %llu  (%lu * %lu)", statvfsBuf.f_bsize * (uint64_t)statvfsBuf.f_bfree, statvfsBuf.f_bsize, statvfsBuf.f_bfree);
+			qDebug("Estimated file size: %llu", estimatedSize);
+			qDebug("===================================");
+
+			if (estimatedSize > (statvfsBuf.f_bsize * (uint64_t)statvfsBuf.f_bfree) || estimatedSize > 4294967296) {
+				QMessageBox::StandardButton reply;
+				reply = QMessageBox::question(this, "Estimated file size too large", "Estimated file size is larger than room on media/4GB. Attempt to save?", QMessageBox::Yes|QMessageBox::No);
+				if(QMessageBox::Yes != reply)
+					return;
+			}
+		}
+		
 		//Check that the path exists
 		struct stat sb;
 		struct stat sbP;
@@ -161,7 +212,6 @@ void playbackWindow::on_cmdSave_clicked()
 		}
 		else
 		{
-
 			msg.setText(QString("Save location ") + QString(camera->recorder->fileDirectory) + " not found, set save location in Settings");
 			msg.exec();
 			return;
