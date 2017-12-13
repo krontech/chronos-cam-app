@@ -14,6 +14,7 @@ recModeWindow::recModeWindow(QWidget *parent, Camera * cameraInst, ImagerSetting
     is = settings;
 
     ui->chkDisableRing->setChecked(is->disableRingBuffer);
+	ui->chkDisableRing->setVisible(false);
 
     switch(is->mode)
     {
@@ -66,7 +67,7 @@ recModeWindow::~recModeWindow()
 
 void recModeWindow::on_cmdOK_clicked()
 {
-    is->disableRingBuffer = ui->chkDisableRing->isChecked();
+    //is->disableRingBuffer = ui->chkDisableRing->isChecked();
 
     if(ui->radioNormal->isChecked())
     {
