@@ -37,7 +37,7 @@ public:
 	UInt32 framerate;
 	char filename[1000];
 	Camera * camera;
-	
+
 private slots:
 	void on_cmdClose_clicked();
 
@@ -53,8 +53,11 @@ private slots:
 
 	void on_spinMaxBitrate_valueChanged(int arg1);
 
+    void on_comboSaveFormat_currentIndexChanged(int index);
+
 private:
 	void refreshDriveList();
+	void updateBitrate();
 
 	Ui::saveSettingsWindow *ui;
 	QTimer * timer;

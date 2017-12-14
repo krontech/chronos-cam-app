@@ -299,20 +299,43 @@ void saveSettingsWindow::on_cmdRefresh_clicked()
 	refreshDriveList();
 }
 
+void saveSettingsWindow::updateBitrate()
+{
+	int saveFormat = ui->comboSaveFormat->currentIndex();
+	UInt32 frameRate = ui->spinFramerate->value();
+	double bitsPerPixel;
+	char str[100];
+	
+	if (saveFormat == 0) {
+		UInt32 bitrate = min(ui->spinBitrate->value() * camera->recordingData.is.hRes * camera->recordingData.is.vRes * frameRate, min(60000000, (UInt32)(ui->spinMaxBitrate->value() * 1000000.0)) * frameRate / 60);	//Max of 60Mbps
+		
+		sprintf(str, "%4.2fMbps @\n%dx%d %dfps", (double)bitrate / 1000000.0, camera->recordingData.is.hRes, camera->recordingData.is.vRes, frameRate);
+		ui->lblBitrate->setText(str);
+	}
+	else {
+		switch(saveFormat) {
+			// these must line up with the enum in videoRecord.h
+			case 1: // SAVE_MODE_RAW16
+			case 2: // SAVE_MODE_RAW16RJ
+				bitsPerPixel = 16.0;
+				break;
+			case 3: // SAVE_MODE_RAW12
+				bitsPerPixel = 12.0;
+				break;
+		}
+		sprintf(str, "%4.2fMbps @\n%dx%d %dfps", ((double)camera->recordingData.is.hRes * (double)camera->recordingData.is.vRes * (double)frameRate * bitsPerPixel) / 1000000.0, camera->recordingData.is.hRes, camera->recordingData.is.vRes, frameRate);
+		ui->lblBitrate->setText(str);
+	}
+}
+
 void saveSettingsWindow::on_spinBitrate_valueChanged(double arg1)
 {
-	UInt32 frameRate = ui->spinFramerate->value();
-	UInt32 bitrate = min(ui->spinBitrate->value() * camera->recordingData.is.hRes * camera->recordingData.is.vRes * frameRate, min(60000000, (UInt32)(ui->spinMaxBitrate->value() * 1000000.0)) * frameRate / 60);	//Max of 60Mbps
-
-	char str[100];
-
-	sprintf(str, "%4.2fMbps @\n%dx%d %dfps", (double)bitrate / 1000000.0, camera->recordingData.is.hRes, camera->recordingData.is.vRes, frameRate);
-	ui->lblBitrate->setText(str);
+	updateBitrate();
 }
 
 void saveSettingsWindow::on_spinFramerate_valueChanged(int arg1)
 {
-	on_spinBitrate_valueChanged(arg1);
+	updateBitrate();
 }
 
 //When the number of drives connected changes, refresh the drive list
@@ -353,5 +376,21 @@ void saveSettingsWindow::updateDrives(void)
 
 void saveSettingsWindow::on_spinMaxBitrate_valueChanged(int arg1)
 {
-	on_spinBitrate_valueChanged(arg1);
+	updateBitrate();
+}
+
+void saveSettingsWindow::on_comboSaveFormat_currentIndexChanged(int index)
+{
+	
+	if(index == 0) {
+		ui->spinBitrate->setEnabled(true);
+		ui->spinFramerate->setEnabled(true);
+		ui->spinMaxBitrate->setEnabled(true);
+	}
+	else {
+		ui->spinBitrate->setEnabled(false);
+		ui->spinFramerate->setEnabled(false);
+		ui->spinMaxBitrate->setEnabled(false);
+	}
+	updateBitrate();
 }
