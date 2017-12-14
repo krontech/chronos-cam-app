@@ -171,8 +171,6 @@ void RecSettingsWindow::on_cmdOK_clicked()
 {
 	ImagerSettings_t settings;
 
-
-
     is->hRes = ui->spinHRes->value();		//pixels
     is->vRes = ui->spinVRes->value();		//pixels
     is->stride = ui->spinHRes->value();		//Number of pixels per line (allows for dark pixels in the last column), always multiple of 16
@@ -700,18 +698,18 @@ void RecSettingsWindow::updateInfoText()
 void RecSettingsWindow::setResFromText(char * str)
 {
 	int hRes, vRes;
+	int hOffset, vOffset;
 
 	sscanf(str, "%dx%d", &hRes, &vRes);
+	hOffset = round((camera->sensor->getMaxHRes() - hRes) / 2, camera->sensor->getHResIncrement());
+	vOffset = round((camera->sensor->getMaxVRes() - vRes) / 2, camera->sensor->getVResIncrement());
 
-	if(camera->sensor->isValidResolution(hRes, vRes, (camera->sensor->getMaxHRes() - hRes) / 2 & 0xFFFFFFFE, (camera->sensor->getMaxVRes() - vRes) / 2 & 0xFFFFFFFE))
-	{
+	if(camera->sensor->isValidResolution(hRes, vRes, hOffset, vOffset)) {
 		ui->spinHRes->setValue(hRes);
 		ui->spinVRes->setValue(vRes);
 		on_cmdMax_clicked();
 		on_cmdExpMax_clicked();
 	}
-
-
 }
 
 void RecSettingsWindow::closeEvent(QCloseEvent *event)
