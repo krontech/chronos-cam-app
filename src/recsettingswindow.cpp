@@ -701,7 +701,7 @@ void RecSettingsWindow::setResFromText(char * str)
 	int hOffset, vOffset;
 
 	sscanf(str, "%dx%d", &hRes, &vRes);
-	hOffset = round((camera->sensor->getMaxHRes() - hres) / 2, camera->sensor->getHResIncrement());
+	hOffset = round((camera->sensor->getMaxHRes() - hRes) / 2, camera->sensor->getHResIncrement());
 	vOffset = round((camera->sensor->getMaxVRes() - vRes) / 2, camera->sensor->getVResIncrement());
 
 	if(camera->sensor->isValidResolution(hRes, vRes, hOffset, vOffset)) {
