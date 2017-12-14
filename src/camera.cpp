@@ -290,6 +290,11 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 		return retVal;
 	}
 
+	io = new IO(gpmc);
+	retVal = io->init();
+	if(retVal != SUCCESS)
+		return retVal;
+
 	imagerSettings.hRes = MAX_FRAME_SIZE_H;
 	imagerSettings.vRes = MAX_FRAME_SIZE_V;
 	imagerSettings.stride = imagerSettings.hRes;
@@ -401,10 +406,6 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 
 	printf("Video init done\n");
 
-	io = new IO(gpmc);
-	retVal = io->init();
-	if(retVal != SUCCESS)
-		return retVal;
 
 	//Set trigger for normally open switch on IO1
     //io->setTriggerInvert(1);
@@ -456,7 +457,7 @@ UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 
     //Zero trigger delay for Gated Burst
     if(settings.mode == RECORD_MODE_GATED_BURST)
-        io->setTriggerDelayFrames(0);
+        io->setTriggerDelayFrames(0, FLAG_TEMPORARY);
 
 	imagerSettings.frameSizeWords = ROUND_UP_MULT((settings.stride * (settings.vRes+0) * 12 / 8 + (BYTES_PER_WORD - 1)) / BYTES_PER_WORD, FRAME_ALIGN_WORDS);	//Enough words to fit the frame, but make it even
 

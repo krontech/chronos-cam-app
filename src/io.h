@@ -27,23 +27,23 @@ class IO {
 public:
 	IO(GPMC * gpmcInst);
 	CameraErrortype init();
-	void resetToDefaults();
+	void resetToDefaults(Int32 flags=0);
 	bool readIO(UInt32 io);
 	void writeIO(UInt32 io, UInt32 val);
 
-	void setThreshold(UInt32 io, double thresholdVolts);
+	void setThreshold(UInt32 io, double thresholdVolts, Int32 flags=0);
 	double getThreshold(UInt32 io);
-	void setTriggerEnable(UInt32 source);
-	void setTriggerInvert(UInt32 invert);
-	void setTriggerDebounceEn(UInt32 dbEn);
-	void setTriggerDelayFrames(UInt32 delayFrames);
+	void setTriggerEnable(UInt32 source, Int32 flags=0);
+	void setTriggerInvert(UInt32 invert, Int32 flags=0);
+	void setTriggerDebounceEn(UInt32 dbEn, Int32 flags=0);
+	void setTriggerDelayFrames(UInt32 delayFrames, Int32 flags=0);
 	UInt32 getTriggerEnable();
 	UInt32 getTriggerInvert();
 	UInt32 getTriggerDebounceEn();
 	UInt32 getTriggerDelayFrames();
-	void setOutLevel(UInt32 level);
-	void setOutSource(UInt32 source);
-	void setOutInvert(UInt32 invert);
+	void setOutLevel(UInt32 level, Int32 flags=0);
+	void setOutSource(UInt32 source, Int32 flags=0);
+	void setOutInvert(UInt32 invert, Int32 flags=0);
 	UInt32 getOutLevel();
 	UInt32 getOutSource();
 	UInt32 getOutInvert();
@@ -52,9 +52,9 @@ public:
 	bool getTriggeredExpEnable();
 	UInt32 getExtShutterSrcEn();
 	bool getShutterGatingEnable();
-	void setTriggeredExpEnable(bool en);
-	void setExtShutterSrcEn(UInt32 extShutterSrcEn);
-	void setShutterGatingEnable(bool en);
+	void setTriggeredExpEnable(bool en, Int32 flags=0);
+	void setExtShutterSrcEn(UInt32 extShutterSrcEn, Int32 flags=0);
+	void setShutterGatingEnable(bool en, Int32 flags=0);
 
 private:
 	dm8148PWM io1DAC, io2DAC;
