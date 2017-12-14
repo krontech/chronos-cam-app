@@ -554,16 +554,22 @@ void LUX1310::setResolution(UInt32 hStart, UInt32 hWidth, UInt32 vStart, UInt32 
 
 bool LUX1310::isValidResolution(UInt32 hRes, UInt32 vRes, UInt32 hOffset, UInt32 vOffset)
 {
-	if(	hRes % LUX1310_HRES_INCREMENT |
-		hOffset % LUX1310_HRES_INCREMENT |
-		(hRes + hOffset > LUX1310_MAX_STRIDE) |
-		vRes % 2 |
-		vOffset % 2 |
-		(vRes + vOffset > LUX1310_MAX_V_RES))
+	/* Enforce resolution limits. */
+	if ((hRes < LUX1310_MIN_HRES) || (hRes + hOffset > LUX1310_MAX_H_RES)) {
 		return false;
-	else
-		return true;
-
+	}
+	if ((vRes < LUX1310_MIN_VRES) || (vRes + vOffset > LUX1310_MAX_V_RES)) {
+		return false;
+	}
+	/* Enforce minimum pixel increments. */
+	if ((hRes % LUX1310_HRES_INCREMENT) || (hOffset % LUX1310_HRES_INCREMENT)) {
+		return false;
+	}
+	if ((vRes % LUX1310_VRES_INCREMENT) || (vOffset % LUX1310_VRES_INCREMENT)) {
+		return false;
+	}
+	/* Otherwise, the resultion and offset are valid. */
+	return true;
 }
 
 //Used by init functions only
