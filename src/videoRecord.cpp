@@ -27,11 +27,26 @@
 #include "videoRecord.h"
 #include "camera.h"
 
-/* DEBUG: Enabling sync is a great way to reproduce IO issues, but it almost certainly will drop frames. */
-static gboolean
-filesink_buffer_probe(GstPad *pad, GstBuffer *buffer, gpointer data)
+gboolean
+buffer_probe(GstPad *pad, GstBuffer *buffer, gpointer data)
 {
-	//fsync((int)data);
+	const unsigned int weight = 16;
+	VideoRecord *recorder = (VideoRecord *)data;
+	struct timespec ts;
+	unsigned long long nsec;
+
+	/* Update average FPS statistics. */
+	clock_gettime(CLOCK_MONOTONIC, &ts);
+	nsec = (ts.tv_sec - recorder->lastFrame.tv_sec) * 1000000000UL;
+	nsec += ts.tv_nsec;
+	nsec -= recorder->lastFrame.tv_nsec;
+	memcpy(&recorder->lastFrame, &ts, sizeof(ts));
+
+	/* EWMA Averaging */
+	recorder->frameInterval = ((recorder->frameInterval * (weight - 1)) + nsec) / weight;
+
+	/* DEBUG: Syncing on every frame is a great way to reproduce IO issues, but it degrades throughput. */
+	//fsync(recorder->fd);
 	return TRUE;
 }
 
@@ -114,6 +129,9 @@ Int32 VideoRecord::start(UInt32 hSize, UInt32 vSize, UInt32 frames, save_mode_ty
 	imgXSize = hSize;
 	imgYSize = vSize;
 	numFrames = frames;
+
+	clock_gettime(CLOCK_MONOTONIC, &lastFrame);
+	frameInterval = 1000000000 / framerate;
 
 	/*-------------------------------------------------
 	 * Setup the Output File
@@ -411,7 +429,7 @@ Int32 VideoRecord::start(UInt32 hSize, UInt32 vSize, UInt32 frames, save_mode_ty
 
 	/* Add bus and pad callbacks */
 	pad = gst_element_get_static_pad(sink, "sink");
-	gst_pad_add_buffer_probe(pad, G_CALLBACK(filesink_buffer_probe), (gpointer)fd);
+	gst_pad_add_buffer_probe(pad, G_CALLBACK(buffer_probe), this);
 	gst_object_unref(pad);
 
 	bus = gst_pipeline_get_bus (GST_PIPELINE (pipeline));
@@ -556,6 +574,11 @@ UInt32 VideoRecord::getSafeHRes(UInt32 hRes)
 UInt32 VideoRecord::getSafeVRes(UInt32 vRes)
 {
 	return max(vRes, ENCODER_MIN_V_RES);
+}
+
+double VideoRecord::getFramerate()
+{
+	return 1000000000.0 / double(frameInterval);
 }
 
 bool VideoRecord::endOfStream()

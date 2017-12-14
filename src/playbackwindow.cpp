@@ -282,10 +282,16 @@ void playbackWindow::checkForSaveDone()
 		sw->close();
 		ui->cmdSave->setText("Save");
 		setControlEnable(true);
+		updatePlayRateLabel(playbackRate);
 
 		if(autoSaveFlag) {
 			close();
 		}
+	}
+	else {
+		char tmp[64];
+		sprintf(tmp, "%.1ffps", camera->recorder->getFramerate());
+		ui->lblFrameRate->setText(tmp);
 	}
 }
 

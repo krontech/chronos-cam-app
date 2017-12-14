@@ -164,6 +164,7 @@ public:
     void debug();
 	UInt32 getSafeHRes(UInt32 hRes);
 	UInt32 getSafeVRes(UInt32 vRes);
+	double getFramerate();
 	bool endOfStream();
 	bool getRunning(void) {return running;}
 
@@ -189,6 +190,8 @@ private:
 	bool running;
     int frameCount;
     int fd;
+	struct timespec lastFrame;
+	unsigned long long frameInterval;
 
 	UInt32 imgXSize;	//Input resolution coming from imager
 	UInt32 imgYSize;
@@ -200,11 +203,8 @@ private:
 	bool eosFlag;
 	bool error;
 	pthread_t recordThreadID;
-	friend gboolean
-	bus_call (GstBus     *bus,
-			GstMessage *msg,
-			gpointer    data);
-	void frameCB(void);
+	friend gboolean bus_call (GstBus *bus, GstMessage *msg, gpointer data);
+	friend gboolean buffer_probe(GstPad *pad, GstBuffer *buffer, gpointer data);
 };
 
 
