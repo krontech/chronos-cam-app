@@ -88,6 +88,8 @@ private slots:
 
     void on_chkShowDebugControls_toggled(bool checked);
 
+    void on_cmdRevertCalData_pressed();
+
 private:
 	Ui::UtilWindow *ui;
 	Camera * camera;

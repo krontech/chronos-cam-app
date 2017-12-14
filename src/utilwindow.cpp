@@ -89,7 +89,7 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 
 	ui->lblAbout->setText(	QString::fromAscii("Camera model: Chronos 1.4, ") + (camera->getIsColor() ? "Color, " : "Monochrome, ") + QString::number(ramSizeSlot1 + ramSizeSlot2) + "GB"
 							"\r\nSerial number: " + QString::fromAscii(serialNumber) +
-							"\r\nCamera application revision: " + QString::fromAscii(CAMERA_APP_VERSION) +
+							"\r\nCamera application revision: " + QString::fromAscii(CAMERA_APP_VERSION) + " beta" +
 							"\r\nFPGA Revision: " + QString::number(camera->getFPGAVersion()) + "." + QString::number(camera->getFPGASubVersion()));
 
 	ui->cmdAdcOffset->setVisible(false);
@@ -878,4 +878,33 @@ void UtilWindow::on_chkShowDebugControls_toggled(bool checked)
 {
 	QSettings appSettings;
 	appSettings.setValue("debug/hideDebug", !checked);
+}
+
+void UtilWindow::on_cmdRevertCalData_pressed()
+{
+    Int32 retVal;
+	char str[500];
+	
+	QMessageBox::StandardButton reply;
+	reply = QMessageBox::question(this, "Revert to factory cal?", "Are you sure you want to delete all user calibration data?", QMessageBox::Yes|QMessageBox::No);
+	if(QMessageBox::Yes != reply)
+		return;
+
+	// delete all files under /opt/camera/userFPN/
+	sprintf(str, "rm /opt/camera/userFPN/*");
+	retVal = system(str);
+
+	if(0 != retVal)
+	{
+		QMessageBox msg;
+		msg.setText("Error: removing userFPN failed");
+		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
+		msg.exec();
+		return;
+	}
+
+	QMessageBox msg;
+	msg.setText("User calibration data deleted");
+	msg.setWindowFlags(Qt::WindowStaysOnTopHint);
+	msg.exec();
 }
