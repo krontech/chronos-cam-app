@@ -396,11 +396,17 @@ Int32 Camera::writeSerialNumber(char * src)
 	int retVal;
 	int file;
 	int len = strlen(src);
+	char serialNumber[SERIAL_NUMBER_MAX_LEN];
 
-	if(len > SERIAL_NUMBER_MAX_LEN) {
-		len = SERIAL_NUMBER_MAX_LEN;
+	memset(serialNumber, 0x00, SERIAL_NUMBER_MAX_LEN);
+
+	if (strlen(src) > SERIAL_NUMBER_MAX_LEN) {
+		// forcefully null terminate string
+		src[SERIAL_NUMBER_MAX_LEN] == 0;
 	}
-
+	
+	strcpy(serialNumber, src);
+	
 	const char *filename = RAM_SPD_I2C_BUS_FILE;
 
 	/* if we are writing to eeprom, *READ* from file */
@@ -410,8 +416,8 @@ Int32 Camera::writeSerialNumber(char * src)
 		return CAMERA_FILE_ERROR;
 	}
 
-	retVal = eeprom_write_large(file, CAMERA_EEPROM_I2C_ADDR, SERIAL_NUMBER_OFFSET, (unsigned char *)src, len);
-	qDebug() <<"eeprom_write_large returned" << retVal;
+	retVal = eeprom_write_large(file, CAMERA_EEPROM_I2C_ADDR, SERIAL_NUMBER_OFFSET, (unsigned char *) serialNumber, SERIAL_NUMBER_MAX_LEN);
+	qDebug("eeprom_write_large returned: %d", retVal);
 	::close(file);
 
 	delayms(250);
