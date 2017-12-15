@@ -2263,7 +2263,7 @@ Int32 Camera::startSave(UInt32 startFrame, UInt32 length)
 
 	if (record_mode == SAVE_MODE_RAW12)   { gpmc->write16(DISPLAY_PIPELINE_ADDR, DISPLAY_PIPELINE_RAW_12BPP); }
 	if (record_mode == SAVE_MODE_RAW16)   { gpmc->write16(DISPLAY_PIPELINE_ADDR, DISPLAY_PIPELINE_RAW_16BPP); }
-	if (record_mode == SAVE_MODE_RAW16RJ) { gpmc->write16(DISPLAY_PIPELINE_ADDR, DISPLAY_PIPELINE_RAW_12BPP | DISPLAY_PIPELINE_RAW_RIGHT_JUSTIFY); }
+	if (record_mode == SAVE_MODE_RAW16RJ) { gpmc->write16(DISPLAY_PIPELINE_ADDR, DISPLAY_PIPELINE_RAW_16BPP | DISPLAY_PIPELINE_RAW_RIGHT_JUSTIFY); }
 	
 	retVal = recorder->start((recordingData.is.hRes + 15) & 0xFFFFFFF0, recordingData.is.vRes, length+2, record_mode);
 	
