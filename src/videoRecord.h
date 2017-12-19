@@ -177,6 +177,8 @@ public:
 	UInt32 encodingPreset;
 	void (*eosCallback)(void *);
 	void * eosCallbackArg;
+	void (*errorCallback)(void *, char *);
+	void * errorCallbackArg;
 
 
 	volatile bool recordRunning;

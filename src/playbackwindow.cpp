@@ -171,7 +171,7 @@ void playbackWindow::on_cmdSave_clicked()
 			if (estimatedSize > (statvfsBuf.f_bsize * (uint64_t)statvfsBuf.f_bfree) || estimatedSize > 4294967296) {
 				QMessageBox::StandardButton reply;
 				reply = QMessageBox::question(this, "Estimated file size too large", "Estimated file size is larger than room on media/4GB. Attempt to save?", QMessageBox::Yes|QMessageBox::No);
-				if(QMessageBox::Yes != reply)
+				if(QMessageBox::Yes != reply) 
 					return;
 			}
 		}
@@ -185,18 +185,24 @@ void playbackWindow::on_cmdSave_clicked()
 			ret = camera->startSave(markInFrame - 1, markOutFrame - markInFrame + 1);
 			if(RECORD_FILE_EXISTS == ret)
 			{
+				if(camera->recorder->errorCallback)
+					(*camera->recorder->errorCallback)(camera->recorder->errorCallbackArg, "file already exists");
 				msg.setText("File already exists. Rename then try saving again.");
 				msg.exec();
 				return;
 			}
 			else if(RECORD_DIRECTORY_NOT_WRITABLE == ret)
 			{
+				if(camera->recorder->errorCallback)
+					(*camera->recorder->errorCallback)(camera->recorder->errorCallbackArg, "save directory is not writable");
 				msg.setText("Save directory is not writable.");
 				msg.exec();
 				return;
 			}
             else if(RECORD_INSUFFICIENT_SPACE == ret)
             {
+				if(camera->recorder->errorCallback)
+					(*camera->recorder->errorCallback)(camera->recorder->errorCallbackArg, "insufficient free space");
                 msg.setText("Selected device does not have sufficient free space.");
                 msg.exec();
                 return;
@@ -212,6 +218,8 @@ void playbackWindow::on_cmdSave_clicked()
 		}
 		else
 		{
+			if(camera->recorder->errorCallback)
+				(*camera->recorder->errorCallback)(camera->recorder->errorCallbackArg, "location not found");
 			msg.setText(QString("Save location ") + QString(camera->recorder->fileDirectory) + " not found, set save location in Settings");
 			msg.exec();
 			return;

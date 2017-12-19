@@ -87,6 +87,8 @@ VideoRecord::VideoRecord()
 
 	eosCallback = NULL;
 	eosCallbackArg = NULL;
+	errorCallback = NULL;
+	errorCallbackArg = NULL;
 
 	running = false;
 
@@ -546,18 +548,18 @@ bus_call (GstBus     *bus,
 			break;
 
 		case GST_MESSAGE_ERROR:
-            {
-				gchar  *debug;
-				GError *error;
-
-				gst_message_parse_error (msg, &error, &debug);
-
-				g_printerr ("Error: %s\n", error->message);
-				gstDia->error = true;
-				g_error_free (error);
-
-				break;
-			}
+			gchar  *debug;
+			GError *error;
+			
+			gst_message_parse_error (msg, &error, &debug);
+			
+			g_printerr ("Error: %s\n", error->message);
+			gstDia->error = true;
+			if(gstDia->errorCallback)
+				(*gstDia->errorCallback)(gstDia->errorCallbackArg, error->message);
+			g_error_free (error);
+			
+			break;
 		case GST_MESSAGE_ASYNC_DONE:
 			gstDia->recordRunning = true;
 		break;

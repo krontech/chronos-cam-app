@@ -36,6 +36,8 @@
 void* recDataThread(void *arg);
 void frameCallback(void * arg);
 void recordEosCallback(void * arg);
+void recordErrorCallback(void * arg, char * message);
+
 
 Camera::Camera()
 {
@@ -340,6 +342,9 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 
     recorder->eosCallback = recordEosCallback;
 	recorder->eosCallbackArg = (void *)this;
+
+	recorder->errorCallback = recordErrorCallback;
+	recorder->errorCallbackArg = (void *)this;
 
 	loadColGainFromFile("cal/dcgL.bin");
 	
@@ -2776,6 +2781,17 @@ void recordEosCallback(void * arg)
     camera->setDisplaySettings(false, MAX_LIVE_FRAMERATE);
 	camera->gpmc->write16(DISPLAY_PIPELINE_ADDR, 0x0000); // turn off raw/bipass modes, if they're set
 	camera->vinst->setRunning(true);
+	fflush(stdout);
+}
+
+void recordErrorCallback(void * arg, char * message)
+{
+	Camera * camera = (Camera *)arg;
+	(void)message; // get rid of the warning
+	//camera->setPlaybackRate(0, true);
+    camera->setDisplaySettings(false, MAX_LIVE_FRAMERATE);
+	camera->gpmc->write16(DISPLAY_PIPELINE_ADDR, 0x0000); // turn off raw/bipass modes, if they're set
+	//camera->vinst->setRunning(true);
 	fflush(stdout);
 }
 
