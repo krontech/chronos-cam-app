@@ -19,17 +19,17 @@ QT       += core gui
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets multimedia
 
-TARGET = camApp
-CONFIG += qt console link_pkgconfig
-target.path = /home/root/qt
-
 #--------------------------------------------
-# this forces rebuild of the version file
+# this forces rebuild of the version file -... well it should... but it isn't... which... ... this sucks
 versionTarget.depends = FORCE
 versionTarget.commands = ./createVersion.sh
 PRE_TARGETDEPS += version.cpp
 QMAKE_EXTRA_TARGETS += versionTarget
 #--------------------------------------------
+
+TARGET = camApp
+CONFIG += qt console link_pkgconfig
+target.path = /home/root/qt
 
 QMAKE_CFLAGS += -Dxdc_target_types__=ti/targets/std.h -D__TMS470__ -DPlatform_dm814x -DG_THREADS_MANDATORY -DG_DISABLE_CAST_CHECKS -DG_DISABLE_ASSERT -pthread -march=armv7-a -mtune=cortex-a8 -mfpu=neon -mfloat-abi=softfp
 QMAKE_CXXFLAGS += -Dxdc_target_types__=ti/targets/std.h -D__TMS470__ -DPlatform_dm814x -DG_THREADS_MANDATORY -DG_DISABLE_CAST_CHECKS -DG_DISABLE_ASSERT -pthread -march=armv7-a -mtune=cortex-a8 -mfpu=neon -mfloat-abi=softfp
