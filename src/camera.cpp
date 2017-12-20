@@ -2791,7 +2791,7 @@ void recordErrorCallback(void * arg, char * message)
 	//camera->setPlaybackRate(0, true);
     camera->setDisplaySettings(false, MAX_LIVE_FRAMERATE);
 	camera->gpmc->write16(DISPLAY_PIPELINE_ADDR, 0x0000); // turn off raw/bipass modes, if they're set
-	//camera->vinst->setRunning(true);
+	// camera->vinst->setRunning(true);
 	fflush(stdout);
 }
 

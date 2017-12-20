@@ -28,7 +28,7 @@ target.path = /home/root/qt
 GIT_VERSION = $$system(git --git-dir $$PWD/../.git --work-tree $$PWD/../ describe --always --tags)
 versionTarget.target = version.cpp
 versionTarget.depends = FORCE
-versionTarget.commands = sleep 0.2s ; touch version.cpp
+versionTarget.commands = $$system("echo \"const char* git_version_str = \\\"$$GIT_VERSION\\\";\" > version.cpp")
 PRE_TARGETDEPS += version.cpp
 QMAKE_EXTRA_TARGETS += versionTarget
 #--------------------------------------------
