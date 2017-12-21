@@ -53,21 +53,22 @@ CameraErrortype IO::init()
 	io1DAC.setDuty(io1Thresh / IO_DAC_FS);
 	io2DAC.setDuty(io2Thresh / IO_DAC_FS);
 
-	setTriggerEnable(       appSettings.value("io/triggerEnable",       1).toUInt());
-	setTriggerInvert(       appSettings.value("io/triggerInvert",       1).toUInt());
-	setTriggerDebounceEn(   appSettings.value("io/triggerDebounce",     0).toUInt());
-	setTriggerDelayFrames(  appSettings.value("io/triggerDelayFrames",  0).toUInt());
+	setTriggerEnable(0, FLAG_USESAVED);
+	setTriggerInvert(0, FLAG_USESAVED);
+	setTriggerDebounceEn(0, FLAG_USESAVED);
+	setTriggerDelayFrames(0, FLAG_USESAVED);
 	
-	setOutInvert(           appSettings.value("io/outInvert",           0).toUInt());
-	setOutSource(           appSettings.value("io/outSource",           0).toUInt());
-	setOutLevel(            appSettings.value("io/outLevel",            2).toUInt());
+	setOutInvert(0, FLAG_USESAVED);
+	setOutSource(0, FLAG_USESAVED);
+	setOutLevel(0, FLAG_USESAVED);
 	
-	setExtShutterSrcEn(     appSettings.value("io/extShutterSrcEn",     0).toUInt());
-	setTriggeredExpEnable(  appSettings.value("io/triggeredExpEnable",  false).toBool());
-	setShutterGatingEnable( appSettings.value("io/shutterGatingEnable", false).toBool());
+	setExtShutterSrcEn(0, FLAG_USESAVED);
+	setTriggeredExpEnable(0, FLAG_USESAVED);
+	setShutterGatingEnable(0, FLAG_USESAVED);
 
 	return SUCCESS;
 }
+
 
 void IO::resetToDefaults(Int32 flags) {
 	setThreshold(1, 2.5, flags);
@@ -119,15 +120,19 @@ void IO::setThreshold(UInt32 io, double thresholdVolts, Int32 flags)
 	switch(io)
 	{
 	case 1:
+		if (flags & FLAG_USESAVED)
+			thresholdVolts = appSettings.value("io/thresh1", 2.5).toDouble();
 		io1Thresh = within(thresholdVolts, 0, IO_DAC_FS);
-		if ((flags & FLAG_TEMPORARY) != FLAG_TEMPORARY)
+		if (!(flags & FLAG_TEMPORARY) && !(flags & FLAG_USESAVED))
 			appSettings.setValue("io/thresh1", io1Thresh);
 		io1DAC.setDuty(io1Thresh / IO_DAC_FS);
 		break;
 
 	case 2:
+		if (flags & FLAG_USESAVED)
+			thresholdVolts = appSettings.value("io/thresh2", 2.5).toDouble();
 		io2Thresh = within(thresholdVolts, 0, IO_DAC_FS);
-		if ((flags & FLAG_TEMPORARY) != FLAG_TEMPORARY)
+		if (!(flags & FLAG_TEMPORARY) && !(flags & FLAG_USESAVED))
 			appSettings.setValue("io/thresh2", io2Thresh);
 		io2DAC.setDuty(io2Thresh / IO_DAC_FS);
 		break;
@@ -153,32 +158,40 @@ double IO::getThreshold(UInt32 io)
 void IO::setTriggerEnable(UInt32 source, Int32 flags)
 {
 	QSettings appSettings;
+	if (flags & FLAG_USESAVED)
+		source = appSettings.value("io/triggerEnable", 1).toUInt();
 	gpmc->write16(TRIG_ENABLE_ADDR, source);
-	if ((flags & FLAG_TEMPORARY) != FLAG_TEMPORARY)
+	if (!(flags & FLAG_TEMPORARY) && !(flags & FLAG_USESAVED))
 		appSettings.setValue("io/triggerEnable", source);
 }
 
 void IO::setTriggerInvert(UInt32 invert, Int32 flags)
 {
 	QSettings appSettings;
+	if (flags & FLAG_USESAVED)
+		invert = appSettings.value("io/triggerInvert", 1).toUInt();
 	gpmc->write16(TRIG_INVERT_ADDR, invert);
-	if ((flags & FLAG_TEMPORARY) != FLAG_TEMPORARY)
+	if (!(flags & FLAG_TEMPORARY) && !(flags & FLAG_USESAVED))
 		appSettings.setValue("io/triggerInvert", invert);
 }
 
 void IO::setTriggerDebounceEn(UInt32 dbEn, Int32 flags)
 {
 	QSettings appSettings;
+	if (flags & FLAG_USESAVED)
+		dbEn = appSettings.value("io/triggerDebounce", 0).toUInt();
 	gpmc->write16(TRIG_DEBOUNCE_ADDR, dbEn);
-	if ((flags & FLAG_TEMPORARY) != FLAG_TEMPORARY)
+	if (!(flags & FLAG_TEMPORARY) && !(flags & FLAG_USESAVED))
 		appSettings.setValue("io/triggerDebounce", dbEn);
 }
 
 void IO::setTriggerDelayFrames(UInt32 delayFrames, Int32 flags)
 {
 	QSettings appSettings;
+	if (flags & FLAG_USESAVED)
+		delayFrames = appSettings.value("io/triggerDelayFrames", 0).toUInt();
 	gpmc->write32(SEQ_TRIG_DELAY_ADDR, delayFrames);
-	if ((flags & FLAG_TEMPORARY) != FLAG_TEMPORARY)
+	if (!(flags & FLAG_TEMPORARY) && !(flags & FLAG_USESAVED))
 		appSettings.setValue("io/triggerDelayFrames", delayFrames);
 }
 
@@ -205,24 +218,30 @@ UInt32 IO::getTriggerDelayFrames()
 void IO::setOutLevel(UInt32 level, Int32 flags)
 {
 	QSettings appSettings;
+	if (flags & FLAG_USESAVED)
+		level = appSettings.value("io/outLevel", 2).toUInt();
 	gpmc->write16(IO_OUT_LEVEL_ADDR, level);
-	if ((flags & FLAG_TEMPORARY) != FLAG_TEMPORARY)
+	if (!(flags & FLAG_TEMPORARY) && !(flags & FLAG_USESAVED))
 		appSettings.setValue("io/outLevel", level);
 }
 
 void IO::setOutSource(UInt32 source, Int32 flags)
 {
 	QSettings appSettings;
+	if (flags & FLAG_USESAVED)
+		source = appSettings.value("io/outSource", 0).toUInt();
 	gpmc->write16(IO_OUT_SOURCE_ADDR, source);
-	if ((flags & FLAG_TEMPORARY) != FLAG_TEMPORARY)
+	if (!(flags & FLAG_TEMPORARY) && !(flags & FLAG_USESAVED))
 		appSettings.setValue("io/outSource", source);
 }
 
 void IO::setOutInvert(UInt32 invert, Int32 flags)
 {
 	QSettings appSettings;
+	if (flags & FLAG_USESAVED)
+		invert = appSettings.value("io/outInvert", 0).toUInt();
 	gpmc->write16(IO_OUT_INVERT_ADDR, invert);
-	if ((flags & FLAG_TEMPORARY) != FLAG_TEMPORARY)
+	if (!(flags & FLAG_TEMPORARY) && !(flags & FLAG_USESAVED))
 		appSettings.setValue("io/outInvert", invert);
 }
 
@@ -264,23 +283,29 @@ bool IO::getShutterGatingEnable()
 void IO::setTriggeredExpEnable(bool en, Int32 flags)
 {
 	QSettings appSettings;
+	if (flags & FLAG_USESAVED)
+		en = appSettings.value("io/triggeredExpEnable", false).toBool();
 	gpmc->write16(EXT_SHUTTER_CTL_ADDR, (gpmc->read16(EXT_SHUTTER_CTL_ADDR) & ~EXT_SH_TRIGD_EXP_EN_MASK) | ((en ? 1 : 0) << EXT_SH_TRIGD_EXP_EN_OFFSET));
-	if ((flags & FLAG_TEMPORARY) != FLAG_TEMPORARY)
+	if (!(flags & FLAG_TEMPORARY) && !(flags & FLAG_USESAVED))
 		appSettings.setValue("io/triggeredExpEnable", en);
 }
 
 void IO::setExtShutterSrcEn(UInt32 extShutterSrcEn, Int32 flags)
 {
 	QSettings appSettings;
+	if (flags & FLAG_USESAVED)
+		extShutterSrcEn = appSettings.value("io/extShutterSrcEn", 0).toUInt();
 	gpmc->write16(EXT_SHUTTER_CTL_ADDR, (gpmc->read16(EXT_SHUTTER_CTL_ADDR) & ~EXT_SH_SRC_EN_MASK) | ((extShutterSrcEn ? 1 : 0) << EXT_SH_SRC_EN_OFFSET));
-	if ((flags & FLAG_TEMPORARY) != FLAG_TEMPORARY)
+	if (!(flags & FLAG_TEMPORARY) && !(flags & FLAG_USESAVED))
 		appSettings.setValue("io/extShutterSrcEn", extShutterSrcEn);
 }
 
 void IO::setShutterGatingEnable(bool en, Int32 flags)
 {
 	QSettings appSettings;
+	if (flags & FLAG_USESAVED) 
+		en = appSettings.value("io/shutterGatingEnable", false).toBool();
 	gpmc->write16(EXT_SHUTTER_CTL_ADDR, (gpmc->read16(EXT_SHUTTER_CTL_ADDR) & ~EXT_SH_GATING_EN_MASK) | ((en ? 1 : 0) << EXT_SH_GATING_EN_OFFSET));
-	if ((flags & FLAG_TEMPORARY) != FLAG_TEMPORARY)
+	if (!(flags & FLAG_TEMPORARY) && !(flags & FLAG_USESAVED))
 		appSettings.setValue("io/shutterGatingEnable", en);
 }

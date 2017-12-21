@@ -1349,6 +1349,7 @@ UInt32 Camera::autoFPNCorrection(UInt32 framesToAverage, bool writeToFile, bool 
 
 	if(noCap)
 	{
+		io->setShutterGatingEnable(false, FLAG_TEMPORARY);
 		setIntegrationTime(0.0, imagerSettings.hRes, imagerSettings.vRes, SETTING_FLAG_TEMPORARY);
 		//nanosleep(&ts, NULL);
 	}
@@ -1372,7 +1373,10 @@ UInt32 Camera::autoFPNCorrection(UInt32 framesToAverage, bool writeToFile, bool 
 
 	//Return to set exposure
 	if(noCap)
+	{
+		io->setShutterGatingEnable(false, FLAG_USESAVED);
 		setIntegrationTime(0.0, imagerSettings.hRes, imagerSettings.vRes, SETTING_FLAG_USESAVED);
+	}
 
 	if(count == countMax)	//If after the timeout recording hasn't finished
 	{

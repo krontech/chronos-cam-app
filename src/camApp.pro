@@ -25,6 +25,10 @@ versionTarget.depends = FORCE
 versionTarget.commands = ./createVersion.sh
 PRE_TARGETDEPS += version.cpp
 QMAKE_EXTRA_TARGETS += versionTarget
+#----
+GITVERSION = $$system(git --git-dir $PWD/../.git --work-tree $PWD/../.git describe --always --long)
+VERSION = $$system(git --git-dir $PWD/../.git --work-tree $PWD/../.git describe --always --long)
+DEFINES += GIT_VERSION=\\"$$GIT_VERSION\\"
 #--------------------------------------------
 
 TARGET = camApp
