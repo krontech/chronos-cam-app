@@ -19,18 +19,6 @@ QT       += core gui
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets multimedia
 
-#--------------------------------------------
-# this forces rebuild of the version file -... well it should... but it isn't... which... ... this sucks
-versionTarget.depends = FORCE
-versionTarget.commands = ./createVersion.sh
-PRE_TARGETDEPS += version.cpp
-QMAKE_EXTRA_TARGETS += versionTarget
-#----
-GITVERSION = $$system(git --git-dir $PWD/../.git --work-tree $PWD/../.git describe --always --long)
-VERSION = $$system(git --git-dir $PWD/../.git --work-tree $PWD/../.git describe --always --long)
-DEFINES += GIT_VERSION=\\"$$GIT_VERSION\\"
-#--------------------------------------------
-
 TARGET = camApp
 CONFIG += qt console link_pkgconfig
 target.path = /home/root/qt
@@ -101,8 +89,16 @@ SOURCES += main.cpp\
     eeprom.c \
     recmodewindow.cpp \
     triggerdelaywindow.cpp \
-    triggerslider.cpp \
-    version.cpp
+    triggerslider.cpp
+
+## Generate version.cpp on every build
+versionTarget.target = version.cpp
+versionTarget.depends = FORCE
+versionTarget.commands = $${_PRO_FILE_PWD_}/version.sh > $$versionTarget.target
+QMAKE_EXTRA_TARGETS += versionTarget
+QMAKE_CLEAN += $$versionTarget.target
+PRE_TARGETDEPS += $$versionTarget.target
+GENERATED_SOURCES += $$versionTarget.target
 
 HEADERS  += mainwindow.h \
     gpmc.h \
