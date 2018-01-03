@@ -211,8 +211,9 @@ Int32 VideoRecord::start(UInt32 hSize, UInt32 vSize, UInt32 frames, save_mode_ty
     UInt64 freeSpace = statBuf.f_bsize * statBuf.f_bfree;
     qDebug() << "---- Video Record ---- Estimated file size:" << estFileSize << "bytes, free space:" << freeSpace << "bytes.";
 
-    if(freeSpace < (UInt64)(estFileSize * FREE_SPACE_MARGIN_MULTIPLIER))
-        return RECORD_INSUFFICIENT_SPACE;
+	// need to go through and check more
+    //if(freeSpace < (UInt64)(estFileSize * FREE_SPACE_MARGIN_MULTIPLIER))
+    //    return RECORD_INSUFFICIENT_SPACE;
 
 	printf("Saving video to %s\r\n", path);
 
