@@ -550,8 +550,6 @@ UInt32 Camera::setDisplaySettings(bool encoderSafe, UInt32 maxFps)
                         imagerSettings.hRes, imagerSettings.vRes,
                         maxFps);
 
-	vinst->setImagerResolution(imagerSettings.hRes, imagerSettings.vRes);
-
 	//Restart live video if it was running
 	if(running)
 		vinst->setRunning(true);

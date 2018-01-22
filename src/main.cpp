@@ -53,10 +53,6 @@ extern "C" {
 
 #include "defines.h"
 
-extern "C" {
-#include "vpss/ilmain.h"
-}
-
 #include "myinputpanelcontext.h"
 
 volatile sig_atomic_t done = 0;

@@ -37,9 +37,6 @@
 #include "cameraRegisters.h"
 #include "camera.h"
 
-extern "C" {
-#include "vpss/ilmain.h"
-}
 #include "video.h"
 #include "videoRecord.h"
 #include "types.h"
