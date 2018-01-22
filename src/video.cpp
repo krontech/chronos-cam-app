@@ -1,4 +1,9 @@
 
+#include <QObject>
+#include <QTimer>
+
+#include "util.h"
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -91,8 +96,12 @@ Video::Video()
 	running = false;
 	frameCallback = NULL;
 
-	/* Default video geometry */
+	/* Use the full width with QWS because widgets can autohide. */
+#ifdef Q_WS_QWS
+	displayWindowXSize = 800;
+#else
 	displayWindowXSize = 600;
+#endif
 	displayWindowYSize = 480;
 	displayWindowXOff = 0;
 	displayWindowYOff = 0;
