@@ -179,7 +179,7 @@ public:
 	Int32 startRecording(void);
 	Int32 setRecSequencerModeNormal();
     Int32 setRecSequencerModeGatedBurst(UInt32 prerecord = 0);
-	Int32 setRecSequencerModeSingleBlock(UInt32 blockLength);
+    Int32 setRecSequencerModeSingleBlock(UInt32 blockLength, UInt32 frameOffset = 0);
 	Int32 stopRecording(void);
 	bool getIsRecording(void);
 	void (*endOfRecCallback)(void *);

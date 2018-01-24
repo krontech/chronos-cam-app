@@ -685,7 +685,7 @@ Int32 Camera::setRecSequencerModeGatedBurst(UInt32 prerecord)
     return SUCCESS;
 }
 
-Int32 Camera::setRecSequencerModeSingleBlock(UInt32 blockLength)
+Int32 Camera::setRecSequencerModeSingleBlock(UInt32 blockLength, UInt32 frameOffset)
 {
 	SeqPgmMemWord pgmWord;
 
@@ -694,11 +694,11 @@ Int32 Camera::setRecSequencerModeSingleBlock(UInt32 blockLength)
 	if(playbackMode)
 		return CAMERA_IN_PLAYBACK_MODE;
 
-	if(blockLength > imagerSettings.recRegionSizeFrames)
-		blockLength = imagerSettings.recRegionSizeFrames;
+	if((blockLength + frameOffset) > imagerSettings.recRegionSizeFrames)
+		blockLength = imagerSettings.recRegionSizeFrames - frameOffset;
 
 	//Set to one plus the last valid address in the record region
-	setRecRegionEndWords(REC_REGION_START + imagerSettings.recRegionSizeFrames * imagerSettings.frameSizeWords);
+	setRecRegionEndWords(REC_REGION_START + (imagerSettings.recRegionSizeFrames+frameOffset) * imagerSettings.frameSizeWords);
 
 	pgmWord.settings.termRecTrig = 0;
 	pgmWord.settings.termRecMem = 0;
@@ -1946,7 +1946,7 @@ Int32 Camera::recordFrames(UInt32 numframes)
 
 	return SUCCESS;
 }
-
+	
 UInt32 Camera::getMiddlePixelValue(bool includeFPNCorrection)
 {
 	//gpmc->write32(GPMC_PAGE_OFFSET_ADDR, REC_REGION_START);	//Read from the beginning of the record region

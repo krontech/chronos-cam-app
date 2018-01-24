@@ -153,14 +153,41 @@ void Camera::setRecRegionEndWords(UInt32 end)
  **/
 void Camera::readAcqMem(UInt32 * buf, UInt32 offsetWords, UInt32 length)
 {
-	gpmc->write32(GPMC_PAGE_OFFSET_ADDR, offsetWords);
+	int i;
+	if (gpmc->read16(RAM_IDENTIFIER_REG) == RAM_IDENTIFIER) {
+		UInt32 bytesLeft = length;
+		UInt32 pageOffset = 0;
+		
+		while (bytesLeft) {
+			//---- read a page
+			// set address (in words or 256-bit blocks)
+			gpmc->write32(RAM_ADDRESS, offsetWords + (pageOffset >> 3));
+			// trigger a read
+			gpmc->write16(RAM_CONTROL, RAM_CONTROL_TRIGGER_READ);
+			// wait for read to complete
+			for(i = 0; i < 1000 && gpmc->read16(RAM_CONTROL); i++);
 
-	for(int i = 0; i < length/4; i++)
-	{
-		buf[i] = gpmc->readRam32(4*i);
+			// loop through reading out the data up to the full page
+			// size or until there's no data left
+			for (i = 0; i < 512 && bytesLeft > 0; ) {
+				buf[i+pageOffset] = gpmc->read32(RAM_BUFFER_START + (i<<2));
+				i++;
+				bytesLeft -= 4;
+			}
+
+			pageOffset += 512;
+		}
 	}
-
-	gpmc->write32(GPMC_PAGE_OFFSET_ADDR, 0);
+	else {
+		gpmc->write32(GPMC_PAGE_OFFSET_ADDR, offsetWords);
+		
+		for(i = 0; i < length/4; i++)
+		{
+			buf[i] = gpmc->readRam32(4*i);
+		}
+		
+		gpmc->write32(GPMC_PAGE_OFFSET_ADDR, 0);
+	}
 }
 
 /* Camera::writeAcqMem
@@ -175,15 +202,41 @@ void Camera::readAcqMem(UInt32 * buf, UInt32 offsetWords, UInt32 length)
  **/
 void Camera::writeAcqMem(UInt32 * buf, UInt32 offsetWords, UInt32 length)
 {
+	int i;
+	if (gpmc->read16(RAM_IDENTIFIER_REG) == RAM_IDENTIFIER) {
+		UInt32 bytesLeft = length;
+		UInt32 pageOffset = 0;
+		
+		while (bytesLeft) {
+			//---- read a page
+			// set address (in words or 256-bit blocks)
+			gpmc->write32(RAM_ADDRESS, offsetWords + (pageOffset >> 3));
+			// trigger a read
+			gpmc->write16(RAM_CONTROL, RAM_CONTROL_TRIGGER_READ);
+			// wait for read to complete
+			for(i = 0; i < 1000 && gpmc->read16(RAM_CONTROL); i++);
 
-	gpmc->write32(GPMC_PAGE_OFFSET_ADDR, offsetWords);
+			// loop through reading out the data up to the full page
+			// size or until there's no data left
+			for (i = 0; i < 512 && bytesLeft > 0; ) {
+				gpmc->write32(RAM_BUFFER_START + (i<<2), buf[i+pageOffset]);
+				i++;
+				bytesLeft -= 4;
+			}
 
-	for(int i = 0; i < length/4; i++)
-	{
-		gpmc->writeRam32(4*i, buf[i]);
+			pageOffset += 512;
+		}
 	}
-
-	gpmc->write32(GPMC_PAGE_OFFSET_ADDR, 0);
+	else {
+		gpmc->write32(GPMC_PAGE_OFFSET_ADDR, offsetWords);
+		
+		for(i = 0; i < length/4; i++)
+		{
+			gpmc->writeRam32(4*i, buf[i]);
+		}
+		
+		gpmc->write32(GPMC_PAGE_OFFSET_ADDR, 0);
+	}
 }
 
 /* Camera::writeDGCMem

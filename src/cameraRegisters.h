@@ -98,6 +98,9 @@
 #define FPGA_SUBVERSION             0x304
 #define	DCG_MEM_START				0x800
 
+
+
+                                      
 //Image sensor control register
 #define	IMAGE_SENSOR_CONTROL_ADDR		0
 
@@ -251,6 +254,43 @@
 
 #define	DCG_MEM_START_ADDR				(DCG_MEM_START * 2)
 
+
+
+//========================================================================================================
+//                                   New format registers
+
+//---------------------------------- Wishbone RAM Access -----------------------------------------
+
+
+#define RAM_REG_BASE                (0x2000)
+#define RAM_REG_BLOCK               (RAM_REG_BASE)
+
+// identifier
+#define RAM_IDENTIFIER_REG          (RAM_REG_BLOCK + 0x00)
+#define RAM_VERSION_REG             (RAM_REG_BLOCK + 0x04)
+#define RAM_SUBVERSION_REG          (RAM_REG_BLOCK + 0x08)
+
+// reset and control
+#define RAM_CONTROL                 (RAM_REG_BLOCK + 0x0C)
+#define RAM_STATUS                  (RAM_REG_BLOCK + 0x10)
+
+#define RAM_ADDRESS                 (RAM_REG_BLOCK + 0x20) /* 32 bit */
+#define RAM_BURST_LENGTH            (RAM_REG_BLOCK + 0x24)
+
+// Read/write buffers
+#define RAM_BUFFER_START            (RAM_REG_BLOCK + 0x200) /* 1024*16bit (64-ram page) */
+#define RAM_BUFFER_END              (RAM_REG_BLOCK + 0xA00)
+
+
+
+#define RAM_IDENTIFIER (0x0040)
+
+#define RAM_CONTROL_TRIGGER_READ  0x0001
+#define RAM_CONTROL_TRIGGER_WRITE 0x0002
+
+#define RAM_BURST_LENGTH_MAX 32
+
+//------------------------------------------------------------------------------------------------
 
 
 #endif // CAMERAREGISTERS_H
