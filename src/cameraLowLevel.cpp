@@ -208,13 +208,7 @@ void Camera::writeAcqMem(UInt32 * buf, UInt32 offsetWords, UInt32 length)
 		UInt32 pageOffset = 0;
 		
 		while (bytesLeft) {
-			//---- read a page
-			// set address (in words or 256-bit blocks)
-			gpmc->write32(RAM_ADDRESS, offsetWords + (pageOffset >> 3));
-			// trigger a read
-			gpmc->write16(RAM_CONTROL, RAM_CONTROL_TRIGGER_READ);
-			// wait for read to complete
-			for(i = 0; i < 1000 && gpmc->read16(RAM_CONTROL); i++);
+			//---- write a page
 
 			// loop through reading out the data up to the full page
 			// size or until there's no data left
@@ -223,7 +217,15 @@ void Camera::writeAcqMem(UInt32 * buf, UInt32 offsetWords, UInt32 length)
 				i++;
 				bytesLeft -= 4;
 			}
+			
+			// set address (in words or 256-bit blocks)
+			gpmc->write32(RAM_ADDRESS, offsetWords + (pageOffset >> 3));
 
+			// trigger a read
+			gpmc->write16(RAM_CONTROL, RAM_CONTROL_TRIGGER_WRITE);
+			// wait for read to complete
+			for(i = 0; i < 1000 && gpmc->read16(RAM_CONTROL); i++);
+			
 			pageOffset += 512;
 		}
 	}
@@ -448,14 +450,13 @@ Int32 Camera::writeSerialNumber(char * src)
 {
 	int retVal;
 	int file;
-	int len = strlen(src);
 	char serialNumber[SERIAL_NUMBER_MAX_LEN];
 
 	memset(serialNumber, 0x00, SERIAL_NUMBER_MAX_LEN);
 
 	if (strlen(src) > SERIAL_NUMBER_MAX_LEN) {
 		// forcefully null terminate string
-		src[SERIAL_NUMBER_MAX_LEN] == 0;
+		src[SERIAL_NUMBER_MAX_LEN] = 0;
 	}
 	
 	strcpy(serialNumber, src);
