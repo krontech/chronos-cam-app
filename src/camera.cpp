@@ -1249,7 +1249,7 @@ void Camera::computeFPNCorrection()
 
 	gpmc->write32(GPMC_PAGE_OFFSET_ADDR, 0);
 	delete buffer;
-	delete rawBuffer;
+	delete rawBuffer32;
 }
 
 void Camera::computeFPNCorrection2(UInt32 framesToAverage, bool writeToFile, bool factory)
@@ -1335,7 +1335,7 @@ void Camera::computeFPNCorrection2(UInt32 framesToAverage, bool writeToFile, boo
 	}
 
 	delete buffer;
-	delete rawBuffer;
+	delete rawBuffer32;
 }
 
 
@@ -1510,7 +1510,7 @@ Int32 Camera::computeColGainCorrection(UInt32 framesToAverage, bool writeToFile)
 	}
 
 	//Sum pixel values across frames
-	for(int frame = 0; frame < framesToAverage; frame++)
+	for(int frame = 0; frame < 16; frame++)
 	{
 		//Get one frame into the raw buffer
 		readAcqMem(rawBuffer32,
@@ -1584,9 +1584,275 @@ Int32 Camera::computeColGainCorrection(UInt32 framesToAverage, bool writeToFile)
 		gpmc->write16(DCG_MEM_START_ADDR+2*i, gainCorrection[i % 16]*4096.0);
 
 	delete buffer;
-	delete rawBuffer;
+	delete rawBuffer32;
 	return SUCCESS;
 }
+
+/*===============================================================
+ * checkForDeadPixels
+ * 
+ * This records a set of frames at full resolution over a few
+ * exposure levels then averages them to find the per-pixel
+ * deviation.
+ *
+ * Pass/Fail is returned
+ */
+#define BAD_PIXEL_RING_SIZE          6
+#define DEAD_PIXEL_THRESHHOLD        512
+#define MAX_DEAD_PIXELS              0
+Int32 Camera::checkForDeadPixels(int* resultCount, int* resultMax) {
+	Int32 retVal;
+
+	int exposureSet;
+	UInt32 nomExp;
+
+	int i;
+	int x, y;
+
+	int averageQuad[4];
+	int quad[4];
+	int dividerValue;
+
+	int totalFailedPixels = 0;
+
+	ImagerSettings_t _is;
+
+	int frame;
+	int stride;
+	int lx, ly;
+	int endX, endY;
+	int yOffset;
+
+	int maxOffset = 0;
+	int averageOffset = 0;
+	int pixelsInFrame = 0;
+
+	double exposures[] = {0.001,
+						  0.125,
+						  0.25,
+						  0.5,
+						  1};
+
+	qDebug("===========================================================================");
+	qDebug("Starting dead pixel detection");
+
+	_is.hRes = 1280;		//pixels
+	_is.vRes = 1024;		//pixels
+	_is.stride = _is.hRes;		//Number of pixels per line (allows for dark pixels in the last column)
+	_is.hOffset = 0;		//active area offset from left
+	_is.vOffset = 0;		//Active area offset from top
+	_is.exposure = 400000;	//10ns increments
+	_is.period = 500000;		//Frame period in 10ns increments
+	_is.gain = LUX1310_GAIN_1;
+    _is.recRegionSizeFrames = getMaxRecordRegionSizeFrames(_is.hRes, _is.vRes);
+    _is.disableRingBuffer = 0;
+    _is.mode = RECORD_MODE_NORMAL;
+    _is.prerecordFrames = 1;
+    _is.segmentLengthFrames = imagerSettings.recRegionSizeFrames;
+    _is.segments = 1;
+    _is.temporary = 1;
+
+	retVal = setImagerSettings(_is);
+	if(SUCCESS != retVal) {
+		qDebug("error during setImagerSettings");
+		return retVal; // this happens before buffers are made
+	}
+
+	UInt32 pixelsPerFrame = imagerSettings.hRes * imagerSettings.vRes;
+	UInt32 bytesPerFrame = imagerSettings.frameSizeWords * BYTES_PER_WORD;
+
+	UInt16* buffer = new UInt16[pixelsPerFrame];
+	UInt16* fpnBuffer = new UInt16[pixelsPerFrame];
+	UInt32* rawBuffer32 = new UInt32[(bytesPerFrame+3) >> 2];
+	UInt8* rawBuffer = (UInt8*)rawBuffer32;
+
+	
+	memset(fpnBuffer, 0, sizeof(fpnBuffer));
+	//Read the FPN frame into a buffer
+	readAcqMem(rawBuffer32,
+			   FPN_ADDRESS,
+			   bytesPerFrame);
+
+	//Retrieve pixels from the raw buffer and sum them
+	for(int i = 0; i < pixelsPerFrame; i++) {
+		fpnBuffer[i] = readPixelBuf12(rawBuffer, i);
+	}
+
+	retVal = adjustExposureToValue(CAMERA_MAX_EXPOSURE_TARGET, 100, false);
+	if(SUCCESS != retVal) {
+		qDebug("error during adjustExposureToValue");
+		goto checkForDeadPixelsCleanup;
+	}
+
+	nomExp = imagerSettings.exposure;
+	
+	//For each exposure value
+	for(exposureSet = 0; exposureSet < (sizeof(exposures)/sizeof(exposures[0])); exposureSet++) {
+		//Set exposure
+		_is.exposure = (UInt32)((double)nomExp * exposures[exposureSet]);
+		averageOffset = 0;
+		
+		retVal = setImagerSettings(_is);
+		if(SUCCESS != retVal) {
+			qDebug("error during setImagerSettings");
+			goto checkForDeadPixelsCleanup;
+		}
+		
+		qDebug("Recording frames for exposure 1/%ds", 100000000 / _is.exposure);
+		//Record frames
+		retVal = recordFrames(16);
+		if(SUCCESS != retVal) {
+			qDebug("error during recordFrames");
+			goto checkForDeadPixelsCleanup;
+		}
+		
+		//Zero buffer
+		memset(buffer, 0, sizeof(buffer));
+
+		
+		
+		// Average pixels across frame
+		for(frame = 0; frame < 16; frame++) {
+			//Get one frame into the raw buffer
+			readAcqMem(rawBuffer32,
+					   REC_REGION_START + frame * recordingData.is.frameSizeWords,
+					   bytesPerFrame);
+			
+			//Retrieve pixels from the raw buffer and sum them
+			for(i = 0; i < pixelsPerFrame; i++) {
+				buffer[i] += readPixelBuf12(rawBuffer, i) - fpnBuffer[i];
+			}
+		}
+		for(i = 0; i < pixelsPerFrame; i++) {
+			buffer[i] >>= 4;
+		}
+
+		// take average quad
+		averageQuad[0] = averageQuad[1] = averageQuad[2] = averageQuad[3] = 0;
+		for (y = 0; y < recordingData.is.vRes-2; y += 2) {
+			stride = _is.stride;
+			yOffset = y * stride;
+			for (x = 0; x < recordingData.is.hRes-2; x += 2) {
+				averageQuad[0] += buffer[x   + yOffset       ];
+				averageQuad[1] += buffer[x+1 + yOffset       ];
+				averageQuad[2] += buffer[x   + yOffset+stride];
+				averageQuad[3] += buffer[x+1 + yOffset+stride];
+			}
+		}
+		averageQuad[0] /= (pixelsPerFrame>>2);
+		averageQuad[1] /= (pixelsPerFrame>>2);
+		averageQuad[2] /= (pixelsPerFrame>>2);
+		averageQuad[3] /= (pixelsPerFrame>>2);
+
+		qDebug("bad pixel detection - average for frame: 0x%04X, 0x%04X, 0x%04X, 0x%04X", averageQuad[0], averageQuad[1], averageQuad[2], averageQuad[3]);
+		// note that the average isn't actually used after this point - the variables are reused later
+
+		//dividerValue = (1<<16) / (((BAD_PIXEL_RING_SIZE*2) * (BAD_PIXEL_RING_SIZE*2))/2);
+		
+		// Check if pixel is valid
+		for (y = 0; y < recordingData.is.vRes-2; y += 2) {
+			for (x = 0; x < recordingData.is.hRes-2; x += 2) {
+				quad[0] = quad[1] = quad[2] = quad[3] = 0;
+				averageQuad[0] = averageQuad[1] = averageQuad[2] = averageQuad[3] = 0;
+
+				dividerValue = 0;
+				for (ly = -BAD_PIXEL_RING_SIZE; ly <= BAD_PIXEL_RING_SIZE+1; ly+=2) {
+					stride = _is.stride;
+					endY = y + ly;
+					if (endY >= 0 && endY < recordingData.is.vRes-2)
+						yOffset = endY * _is.stride;
+					else
+						yOffset = y * _is.stride;
+					
+					for (lx = -BAD_PIXEL_RING_SIZE; lx <= BAD_PIXEL_RING_SIZE+1; lx+=2) {
+						endX = x + lx;
+						if (endX >= 0 && endX < recordingData.is.hRes-2) {
+							averageQuad[0] += buffer[endX   + yOffset       ];
+							averageQuad[1] += buffer[endX+1 + yOffset       ];
+							averageQuad[2] += buffer[endX   + yOffset+stride];
+							averageQuad[3] += buffer[endX+1 + yOffset+stride];
+							dividerValue++;
+						}
+					}
+				}
+				dividerValue = (1<<16) / dividerValue;
+				// now divide the outcome by the number of pixels
+				//   
+				averageQuad[0] = (averageQuad[0] * dividerValue);
+				averageQuad[0] >>= 16;
+				
+				averageQuad[1] = (averageQuad[1] * dividerValue);
+				averageQuad[1] >>= 16;
+				
+				averageQuad[2] = (averageQuad[2] * dividerValue);
+				averageQuad[2] >>= 16;
+				
+				averageQuad[3] = (averageQuad[3] * dividerValue);
+				averageQuad[3] >>= 16;
+
+				yOffset = y * _is.stride;
+
+				quad[0] = averageQuad[0] - buffer[x      + yOffset       ];
+				quad[1] = averageQuad[1] - buffer[x   +1 + yOffset       ];
+				quad[2] = averageQuad[2] - buffer[x      + yOffset+stride];
+				quad[3] = averageQuad[3] - buffer[x   +1 + yOffset+stride];
+
+				if (quad[0] > maxOffset) maxOffset = quad[0];
+				if (quad[1] > maxOffset) maxOffset = quad[1];
+				if (quad[2] > maxOffset) maxOffset = quad[2];
+				if (quad[3] > maxOffset) maxOffset = quad[3];
+				if (quad[0] < -maxOffset) maxOffset = -quad[0];
+				if (quad[1] < -maxOffset) maxOffset = -quad[1];
+				if (quad[2] < -maxOffset) maxOffset = -quad[2];
+				if (quad[3] < -maxOffset) maxOffset = -quad[3];
+
+				pixelsInFrame++;
+				averageOffset += quad[0] + quad[1] + quad[2] + quad[3];
+			
+				if (quad[0] > DEAD_PIXEL_THRESHHOLD || quad[0] < -DEAD_PIXEL_THRESHHOLD) {
+					//qDebug("Bad pixel found: %dx%d (0x%04X vs 0x%04X in the local area)", x  , y  , buffer[x      + yOffset       ], averageQuad[0]);
+					totalFailedPixels++;
+				}					
+				if (quad[1] > DEAD_PIXEL_THRESHHOLD || quad[1] < -DEAD_PIXEL_THRESHHOLD) {
+					//qDebug("Bad pixel found: %dx%d (0x%04X vs 0x%04X in the local area)", x+1, y  , buffer[x   +1 + yOffset       ], averageQuad[1]);
+					totalFailedPixels++;
+				}					
+				if (quad[2] > DEAD_PIXEL_THRESHHOLD || quad[2] < -DEAD_PIXEL_THRESHHOLD) {
+					//qDebug("Bad pixel found: %dx%d (0x%04X vs 0x%04X in the local area)", x  , y+1, buffer[x      + yOffset+stride], averageQuad[2]);
+					totalFailedPixels++;
+				}					
+				if (quad[3] > DEAD_PIXEL_THRESHHOLD || quad[3] < -DEAD_PIXEL_THRESHHOLD) {
+					//qDebug("Bad pixel found: %dx%d (0x%04X vs 0x%04X in the local area)", x+1, y+1, buffer[x   +1 + yOffset+stride], averageQuad[3]);
+					totalFailedPixels++;
+				}
+			}
+		}
+		
+		averageOffset /= pixelsInFrame;
+		qDebug("===========================================================================");
+		qDebug("Average offset for exposure 1/%ds: %d", 100000000 / _is.exposure, averageOffset);
+		qDebug("===========================================================================");
+		pixelsInFrame = 0;
+		averageOffset = 0;
+	}
+	qDebug("Total dead pixels found: %d", totalFailedPixels);
+	if (totalFailedPixels > MAX_DEAD_PIXELS) {
+		retVal = CAMERA_DEAD_PIXEL_FAILED;
+		goto checkForDeadPixelsCleanup;
+	}
+	retVal = SUCCESS;
+	
+checkForDeadPixelsCleanup:
+	delete buffer;
+	delete fpnBuffer;
+	delete rawBuffer32;
+	qDebug("===========================================================================");
+	if (resultMax != NULL) *resultMax = maxOffset;
+	if (resultCount != NULL) *resultCount = totalFailedPixels;
+	return retVal;
+}
+
+
 
 Int32 Camera::loadColGainFromFile(const char * filename)
 {
@@ -1816,7 +2082,7 @@ Int32 Camera::autoColGainCorrection(void)
 	if(SUCCESS != retVal)
 		return retVal;
 
-	retVal = adjustExposureToValue(3584, 100, false);
+	retVal = adjustExposureToValue(CAMERA_MAX_EXPOSURE_TARGET, 100, false);
 	if(SUCCESS != retVal)
 		return retVal;
 
@@ -1829,7 +2095,7 @@ Int32 Camera::autoColGainCorrection(void)
 	if(SUCCESS != retVal)
 		return retVal;
 
-	retVal = adjustExposureToValue(3584, 100, false);
+	retVal = adjustExposureToValue(CAMERA_MAX_EXPOSURE_TARGET, 100, false);
 	if(SUCCESS != retVal)
 		return retVal;
 
@@ -2442,7 +2708,7 @@ Int32 Camera::blackCalAllStdRes(bool factory)
 	char line[30];
 
 	vinst->setRunning(false);
-
+	
 	fp = fopen("resolutions", "r");
 	if (fp == NULL)
 		return CAMERA_FILE_ERROR;

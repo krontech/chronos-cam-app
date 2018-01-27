@@ -50,6 +50,8 @@ typedef enum CameraErrortype
 	CAMERA_GAIN_CORRECTION_ERROR              =  17,
 	CAMERA_MEM_ERROR                          =  18,
 	CAMERA_WRONG_FPGA_VERSION                 =  19,
+	CAMERA_DEAD_PIXEL_RECORD_ERROR            =  20,
+	CAMERA_DEAD_PIXEL_FAILED                  =  21,
 	
 	
 	ECP5_ALREAY_OPEN                          = 101,
@@ -105,7 +107,7 @@ typedef enum CameraErrortype
 	
 	
 	SETTINGS_LOAD_ERROR                       = 901,
-	SETTINGS_SAVE_ERROR                       = 902
+	SETTINGS_SAVE_ERROR                       = 902	
 } CameraErrortype;
 
 #endif // ERRORCODES_H

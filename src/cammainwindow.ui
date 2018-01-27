@@ -368,6 +368,19 @@ border-color: black;</string>
     <string/>
    </property>
   </widget>
+  <widget class="QPushButton" name="cmdDPCButton">
+   <property name="geometry">
+    <rect>
+     <x>60</x>
+     <y>190</y>
+     <width>41</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>DPC</string>
+   </property>
+  </widget>
   <zorder>cmdBkGndButton</zorder>
   <zorder>cmdRec</zorder>
   <zorder>cmdPlay</zorder>
@@ -382,6 +395,7 @@ border-color: black;</string>
   <zorder>lblExp</zorder>
   <zorder>cmdUtil</zorder>
   <zorder>cmdDebugWnd</zorder>
+  <zorder>cmdDPCButton</zorder>
  </widget>
  <resources/>
  <connections/>

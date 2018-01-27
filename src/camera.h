@@ -67,6 +67,8 @@
 
 #define FREE_SPACE_MARGIN_MULTIPLIER 1.1    //Drive must have at least this factor more free space than the estimated file size to allow saving
 
+#define CAMERA_MAX_EXPOSURE_TARGET 3584
+
 /*
 typedef enum CameraErrortype
 {
@@ -237,6 +239,9 @@ public:
 	void setFocusAid(bool enable);
 	bool getFocusAid();
 	int blackCalAllStdRes(bool factory = false);
+
+	Int32 checkForDeadPixels(int* resultCount = NULL, int* resultMax = NULL);
+
 	bool getFocusPeakEnable(void);
 	void setFocusPeakEnable(bool en);
 	bool getZebraEnable(void);

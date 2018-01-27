@@ -116,6 +116,7 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	if (appSettings.value("debug/hideDebug", true).toBool()) {
 		ui->cmdDebugWnd->setVisible(false);
 		ui->cmdClose->setVisible(false);
+		ui->cmdDPCButton->setVisible(false);
 	}
 /*	ui->cmdFocusAid->setVisible(false);
 	ui->cmdFPNCal->setVisible(false);
@@ -425,10 +426,12 @@ void CamMainWindow::on_MainWindowTimer()
 	if (appSettings.value("debug/hideDebug", true).toBool()) {
 		ui->cmdDebugWnd->setVisible(false);
 		ui->cmdClose->setVisible(false);
+		ui->cmdDPCButton->setVisible(false);
 	}
 	else {
 		ui->cmdDebugWnd->setVisible(true);
 		ui->cmdClose->setVisible(true);
+		ui->cmdDPCButton->setVisible(true);
 	}
 }
 
@@ -543,3 +546,30 @@ void CamMainWindow::on_cmdBkGndButton_clicked()
 	menuTimeoutTimer->start(8000);
 }
 
+
+void CamMainWindow::on_cmdDPCButton_clicked()
+{
+	char text[100];
+	Int32 retVal;
+	int resultCount, resultMax;
+	camera->io->setOutLevel((1 << 1));	//Turn on output drive
+
+	retVal = camera->checkForDeadPixels(&resultCount, &resultMax);
+	if (retVal != SUCCESS) {
+		QMessageBox msg;
+		if (retVal == CAMERA_DEAD_PIXEL_RECORD_ERROR)
+			sprintf(text, "Failed dead pixel detection, error %d", retVal);
+		else if (retVal == CAMERA_DEAD_PIXEL_FAILED)
+			sprintf(text, "Failed dead pixel detection\n%d dead pixels found on sensor\nMax value: %d", resultCount, resultMax);
+		msg.setText(text);
+		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
+		msg.exec();
+	}
+	else {
+		QMessageBox msg;
+		sprintf(text, "Dead pixel detection passed!\nMax deviation: %d", resultMax);
+		msg.setText(text);
+		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
+		msg.exec();
+	}
+}
