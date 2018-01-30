@@ -1510,7 +1510,7 @@ Int32 Camera::computeColGainCorrection(UInt32 framesToAverage, bool writeToFile)
 	}
 
 	//Sum pixel values across frames
-	for(int frame = 0; frame < 16; frame++)
+	for(int frame = 0; frame < framesToAverage; frame++)
 	{
 		//Get one frame into the raw buffer
 		readAcqMem(rawBuffer32,
