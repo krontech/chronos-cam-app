@@ -2699,6 +2699,14 @@ bool Camera::getFocusAid()
 	return false;
 }
 
+/* Nearest multiple rounding */
+static inline UInt32
+round(UInt32  x, UInt32 mult)
+{
+	UInt32 offset = (x) % (mult);
+	return (offset >= mult/2) ? x - offset + mult : x - offset;
+}
+
 Int32 Camera::blackCalAllStdRes(bool factory)
 {
 	ImagerSettings_t settings;
@@ -2728,12 +2736,11 @@ Int32 Camera::blackCalAllStdRes(bool factory)
 			int hRes, vRes;
 
 			sscanf(line, "%dx%d", &hRes, &vRes);
-
 			settings.hRes = hRes;		//pixels
 			settings.vRes = vRes;		//pixels
 			settings.stride = hRes;		//Number of pixels per line (allows for dark pixels in the last column), always multiple of 16
-			settings.hOffset = (sensor->getMaxHRes() - hRes) / 2 & 0xFFFFFFFE;	//Active area offset from left
-			settings.vOffset = (sensor->getMaxVRes() - vRes) / 2 & 0xFFFFFFFE;		//Active area offset from top
+			settings.hOffset = round((sensor->getMaxHRes() - hRes) / 2, sensor->getHResIncrement());
+			settings.vOffset = round((sensor->getMaxVRes() - vRes) / 2, sensor->getVResIncrement());
 			settings.gain = g;
             settings.recRegionSizeFrames = getMaxRecordRegionSizeFrames(settings.hRes, settings.vRes);
 			settings.period = sensor->getMinFramePeriod(hRes, vRes);
