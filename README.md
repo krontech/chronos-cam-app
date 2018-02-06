@@ -1,21 +1,28 @@
+# Chronos Cam App
+This repository contains the code for the built-in user interface of the Chronos Camera from [Kron Technologies](http://www.krontech.ca/). The following instructions detail how to build the Chronos Camera UI.
+
+
+
 # Prerequisites
 The recommended development environment for the Chronos camera application is
 supported on Ubuntu 16.04 LTS. On a base Ubuntu installations, we will also need
 to add the following packages:
 
 ```
-    sudo apt-get install qtcreator gcc-arm-linux-gnueabi g++-arm-linux-gnueabi gdb-multiarch
+    sudo apt install qtcreator gcc-arm-linux-gnueabi g++-arm-linux-gnueabi gdb-multiarch git
 ```
 
-Newer version of Ubuntu can also be used to build the camera application, but the instructions
+(Newer version of Ubuntu can also be used to build the camera application, but the instructions
 may need to be modified to use GCC version 5 or older. This is usually done by substituting
-`gcc-5` in place of `gcc`
+`gcc-5` in place of `gcc`.)
+
+You will also need a MicroSD card reader, to copy some files off the MicroSD card located in the bottom of the camera.
 
 # Building and Installing QT
 The Chronos camera application is built using QT version 4.8, and must
-be cross compiled for a Cortex-A8 target. The generic ARM linux targets
-need to be modified, so extract the QT4.8 sources, and then create a
-new linux-omap2-g++ target as follows
+be cross compiled for a Cortex-A8 target. To do this, the generic ARM linux targets
+need to be modified. First, grab the [QT4.8 source](https://download.qt.io/official_releases/qt/4.8/4.8.7/qt-everywhere-opensource-src-4.8.7.tar.gz) and extract it. I put the resulting folder in `~/Work/`, but you can put it anywhere you like. (Just remember to use your path when I reference my `~/Work` folder.) Next, in `~/Work/`, we'll create a
+new linux-omap2-g++ target by running the following script:
 
 ```bash
 tar -xzf qt-everywhere-opensource-src-4.8.7.tar.gz
@@ -51,13 +58,12 @@ QMAKE_LIBS		+= -lts
 load(qt_config)
 EOF
 ```
+You should now have a folder called `~/Work/qt-everywhere-opensource-src-4.8.7`, or whatever you called it.
+
+Next, we need to copy in our `targetfs` folder. We'll take the MicroSD card from the bottom of our Chronos camera and copy everything on it, in ROOTFS, to `~/Work/chronos-sdk/targetfs/`. Some copy errors will pop up, but those files are not needed and you can safely ignore them. 🙂`targetfs` should now contain something that looks like a Linux root filesystem.
 
 The following shell script demonstrates the configuration provided to QT
-when used with the Chronos SDK. This assumes you have extracted the QT 
-Everywhere package to ~/Work/, and have placed your targetfs in
-~/Work/chronos-sdk/targetfs
-Put the below content into a shell script, for example conf.sh.
-Place this file in the QT install directory, for example ~/Work/qt4-install/
+when used with the Chronos SDK. Assuming you put everything where I did. Copy the below content into a shell script, `~/Work/qt4-install/conf.sh`. (`qt4-install` will become our install directory. Again, you may use a different directory, but you'll have to update my paths.)
 
 ```bash
 #!/bin/bash
@@ -75,19 +81,20 @@ ${QTPATH}configure -prefix $(pwd)/install -embedded arm \
         -qtlibinfix E -fast
 ```
 
-Run the shell script ./conf.sh, from the QT install directory. After configuration is complete, make and install QT by running the commands
+Run the shell script from `~/Work/qt4-install`. Select "open source" when prompted.
 
-```
-make
-make install
-```
+To solve a "tslib functionality test failed" error, you'll need to modify the include and library search paths by editing `QMAKE_INCDIR` and `QMAKE_LIBDIR` in `~/Work/qt-everywhere-opensource-src-4.8.7/mkspecs/qws/linux-omap2-g++`.
+
+After configuration is complete, make and install QT by running `make && make install`. This will take 1 to 4ish hours, depending on how fast your computer is.
 
 # ![qt-icon](/doc/qt_icon.png) Setting up QT Creator
-The first step to setting up QT creator to build for the Chronos, is to
-add the ARM cross compiler to QT. Navigate to `Tools -> Options`, and select
-`Build & Run` on the left column, then add a new compiler under the
-`Compilers` tab. The path of your G++ and GCC compiler can be found from
-running the command `which arm-linux-gnueabi-gcc` from a console.
+To actually *build* the Chronos Cam App, we'll use QT Creator. (Which we installed at the beginning of this document.)
+
+To set up QT creator, the first step is to
+add the ARM cross compiler to QT. Run the program, and navigate to `Tools -> Options`, select
+`Build & Run` on the left column, and add a new compiler under the
+`Compilers` tab. The path of your G++ and GCC compiler can be found by
+running the commands `which arm-linux-gnueabi-g++` and `which arm-linux-gnueabi-gcc` respectively. 
 
 ![QT Creator compiler configuration](/doc/qtcreator_compilers.png)
 
@@ -118,10 +125,12 @@ for the connection details, which should be set as follows:
 
 ![Chronos SSH login and kill](/doc/qtcreator_device_wizard.png)
 
+(If you want, you may plug your camera into your laptop with a Mini-USB cable now. This is not required, QT Creator will just let you know it can't connect if you don't.)
+
 Click on `Next` and `Finish` to add the new debugging target to QT creator.
 
 Finally, a kit must be selected for the Chronos camera, which uses the
-compiler and QT version that we set up earlier. Select the `Kits` tab
+compiler and QT version that we set up earlier. Still in the Options dialog, select the `Kits` tab
 to add a new kit for the camera. The following settings are required:
 * Device type: Generic Linux Device
 * Sysroot: Path to the `targetfs` directory in the Chronos SDK
@@ -132,19 +141,27 @@ For debugging, you will also want to configure:
 * Device: The Chronos Camera debugging target we set up earlier.
 * Debugger: The Multiarch GDB debugger we set up earlier.
 
+We can now close the Options dialog.
+
+
+
 ![QT Creator QT kit](/doc/qtcreator_kits.png)
 
 # ![build-icon](/doc/build_icon.png) Building the Camera Application
+
+Clone this repository (`git clone https://github.com/krontech/chronos-cam-app.git`) in `~/Work`.
+
 Open the Chronos camera application from by navigating to
 `File -> Open File or Project` and selecting the QT creator project
-file `src/camApp.pro`. If this is your first time opening the
+file `~/Work/chronos-cam-app/src/camApp.pro`. If this is your first time opening the
 project, you will need to set up the kits by deselecting the default
 `Desktop` kit, and selecting the `Camera` kit that we set up earlier.
 
 ![QT Creator project configuration](/doc/qtcreator_project.png)
 
-Click on the  `Configure Project` button to select the kits, and then
-build the application by navigating to `Build -> Build Project "camApp"`
+Click on the  `Configure Project` button to select the kits. Click the "Run" toggle, in the "Camera" Build/Run box near the top. Delete the step 'check for available disk space', so only 'Upload files via SFTP' is left. Scrolling down a little, you'll find the Run box where you can specify 'Arguments' and 'Working directory'. Set 'Arguments' to `-qws`, and 'Working directory' to `/opt/camera`.
+
+Finally, we build the application by navigating to `Build -> Build Project "camApp"`
 or clicking on the hammer icon in the bottom left corner. When complete
 the application will be output as `build-camApp-Camera-Debug/camApp`
 
