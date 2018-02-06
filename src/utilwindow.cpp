@@ -30,6 +30,8 @@
 #include <time.h>
 #include <sys/mount.h>
 #include "sys/sendfile.h"
+#include <QDBusInterface>
+#include "chronosControlInterface.h"
 
 #define FOCUS_PEAK_THRESH_LOW	35
 #define FOCUS_PEAK_THRESH_MED	25
@@ -39,15 +41,60 @@ extern const char* git_version_str;
 
 bool copyFile(const char * fromfile, const char * tofile);
 
+
+//void UtilWindow::rxDBus_get_camera_data(QList<QVariant> &response) {
+//	(void) response;
+//	qDebug("===========================================");
+//	qDebug("  Response from get_camera_data");
+//	qDebug("===========================================");
+//}
+//void UtilWindow::errDBus_get_camera_data(const QDBusError &error) {
+//	(void) error;
+//	qDebug("===========================================");
+//	qDebug("  Error from get_camera_data");
+//	qDebug("===========================================");
+//}
+
+
+
 UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	QWidget(parent),
 	ui(new Ui::UtilWindow)
 {
 	QSettings appSettings;
+	
+	ComKrontechChronosControlInterface chronosControl("com.krontech.chronos.control", "/com/krontech/chronos/control", QDBusConnection::systemBus());
+ 
 	ui->setupUi(this);
 	this->setWindowFlags(Qt::Dialog | Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
 	this->move(0,0);
 
+
+	if (chronosControl.isValid()) {
+		qDebug("===========================================");
+		qDebug("chronosControl is valid");
+		qDebug("===========================================");
+	}
+	
+
+	QVariantMap camData = chronosControl.get_camera_data();
+	QDBusError lastError = chronosControl.lastError();
+	
+	qDebug("===========================================");
+	qDebug("  get_camera_data finished");
+	if (lastError.isValid()) {
+		qDebug(" lastError: %s - %s", lastError.name().data(), lastError.message().toAscii().data());
+	}
+	else {
+		qDebug(" fpgaVersion: %f", camData["fpgaVersion"].toFloat());
+		qDebug(" apiVersion:  %f", camData["apiVersion"].toFloat());
+		qDebug(" serial:      %s", camData["serial"].toString().toAscii().data());
+		qDebug(" memoryGB:    %d", camData["memoryGB"].toInt());
+		qDebug(" model:       %s", camData["model"].toString().toAscii().data());
+	}
+	qDebug("===========================================");
+	
+	
 	camera = cameraInst;
 
 	settingClock = false;
@@ -80,7 +127,7 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 		ui->radioFPSensLow->setChecked(true);
 
 
-	ui->lineSerialNumber->setText(camera->getSerialNumber());
+	ui->lineSerialNumber->setText(camData["serial"].toString());
 
 	//Fill about label with camera info
 	UInt32 ramSizeSlot1, ramSizeSlot2;
@@ -88,11 +135,11 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	camera->getRamSizeGB(&ramSizeSlot1, &ramSizeSlot2);
 	camera->readSerialNumber(serialNumber);
 
-	ui->lblAbout->setText(	QString::fromAscii("Camera model: Chronos 1.4, ") + (camera->getIsColor() ? "Color, " : "Monochrome, ") + QString::number(ramSizeSlot1 + ramSizeSlot2) + "GB"
-							"\r\nSerial number: " + QString::fromAscii(serialNumber) +
-							"\r\nCamera application revision: " + QString::fromAscii(CAMERA_APP_VERSION) + " beta" +
-							"\r\nBuild: " + git_version_str +
-							"\r\nFPGA Revision: " + QString::number(camera->getFPGAVersion()) + "." + QString::number(camera->getFPGASubVersion()));
+	ui->lblAbout->setText(QString::fromAscii("Camera model: ") + camData["model"].toString() + (camera->getIsColor() ? " Color, " : " Monochrome, ") + camData["memoryGB"].toString() + "GB"
+						  + "\r\nSerial number: " + camData["serial"].toString()
+						  + "\r\nCamera application revision: " + QString::fromAscii(CAMERA_APP_VERSION) + " beta"
+						  + "\r\nBuild: " + git_version_str
+						  + "\r\nFPGA Revision: " + camData["fpgaVersion"].toString());
 
 	ui->cmdAdcOffset->setVisible(false);
 	ui->cmdAutoCal->setVisible(false);

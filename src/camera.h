@@ -216,9 +216,9 @@ public:
 	void computeFPNCorrection();
 	void computeFPNCorrection2(UInt32 framesToAverage, bool writeToFile = false, bool factory = false);
 	UInt32 autoFPNCorrection(UInt32 framesToAverage, bool writeToFile = false, bool noCap = false, bool factory = false);
-	Int32 loadFPNFromFile(const char * filename);
+	Int32 loadFPNFromFile(void);
 	Int32 computeColGainCorrection(UInt32 framesToAverage, bool writeToFile = false);
-	Int32 loadColGainFromFile(const char * filename);
+	Int32 loadColGainFromFile(void);
 	UInt32 adcOffsetCorrection(UInt32 iterations, const char * filename = "");
 	void offsetCorrectionIteration(UInt32 wordAddress = LIVE_FRAME_0_ADDRESS);
 	int autoAdcOffsetCorrection(void);

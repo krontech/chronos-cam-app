@@ -16,6 +16,7 @@
 #------------------------------------------------------------------------------
 
 QT       += core gui
+QT       += dbus
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets multimedia
 
@@ -89,7 +90,8 @@ SOURCES += main.cpp\
     eeprom.c \
     recmodewindow.cpp \
     triggerdelaywindow.cpp \
-    triggerslider.cpp
+    triggerslider.cpp \
+    chronosControlInterface.cpp
 
 ## Generate version.cpp on every build
 versionTarget.target = version.cpp
@@ -143,7 +145,8 @@ HEADERS  += mainwindow.h \
     eeprom.h \
     recmodewindow.h \
     triggerdelaywindow.h \
-    triggerslider.h
+    triggerslider.h \
+    chronosControlInterface.h
 
 
 

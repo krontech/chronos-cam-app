@@ -20,6 +20,9 @@
 #include <QDebug>
 #include <semaphore.h>
 #include <QSettings>
+#include <QResource>
+#include <QDir>
+#include <QIODevice>
 
 #include "font.h"
 #include "camera.h"
@@ -346,9 +349,9 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 	recorder->errorCallback = recordErrorCallback;
 	recorder->errorCallbackArg = (void *)this;
 
-	loadColGainFromFile("cal/dcgL.bin");
+	loadColGainFromFile();
 	
-	if(CAMERA_FILE_NOT_FOUND == loadFPNFromFile(FPN_FILENAME))
+	if(CAMERA_FILE_NOT_FOUND == loadFPNFromFile())
 		autoFPNCorrection(2, false, true);
 	/*
 	//If the FPN file exists, read it in
@@ -477,10 +480,7 @@ UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 
 	qDebug() << "About to sensor->loadADCOffsetsFromFile"; sensor->loadADCOffsetsFromFile("a");
 
-	if(imagerSettings.gain >= LUX1310_GAIN_4)
-		loadColGainFromFile("cal/dcgH.bin");
-	else
-		loadColGainFromFile("cal/dcgL.bin");
+	loadColGainFromFile();
 
 	qDebug()	<< "\nSet imager settings:\nhRes" << imagerSettings.hRes
 				<< "vRes" << imagerSettings.vRes
@@ -1255,25 +1255,36 @@ void Camera::computeFPNCorrection()
 void Camera::computeFPNCorrection2(UInt32 framesToAverage, bool writeToFile, bool factory)
 {
 	QSettings appSettings;
-	char filename[1000];
+	//char filename[1000];
 	const char *formatStr;
+	QString filename;
+	QFile fp;
 
-	//Generate the filename for this particular resolution and offset
-	if(factory)
-		formatStr = "cal/factoryFPN/fpn_%dx%doff%dx%d";
-	else
-		formatStr = "userFPN/fpn_%dx%doff%dx%d";
-
-	sprintf(filename, formatStr, getImagerSettings().hRes, getImagerSettings().vRes, getImagerSettings().hOffset, getImagerSettings().vOffset);
-
-	std::string fn = sensor->getFilename(filename, ".raw");
-
-	FILE * fp;
+	// If writing to file - generate the filename and open for writing
 	if(writeToFile)
 	{
-		qDebug() << "Writing FPN to file" << fn.c_str();
-		fp = fopen(fn.c_str(), "wb");
-		if(fp == NULL)
+		//Generate the filename for this particular resolution and offset
+		if(factory) {
+			if (!QDir("./cal").exists())
+				formatStr = "/opt/camera/cal/factoryFPN/fpn_%dx%doff%dx%d.raw";
+			else
+				formatStr = "./cal/factoryFPN/fpn_%dx%doff%dx%d.raw";
+		}			
+		else {
+			if (!QDir("./userFPN").exists())
+				formatStr = "/opt/camera/userFPN/fpn_%dx%doff%dx%d.raw";
+			else
+				formatStr = "./userFPN/fpn_%dx%doff%dx%d.raw";
+		}
+		
+		filename.sprintf(formatStr, getImagerSettings().hRes, getImagerSettings().vRes, getImagerSettings().hOffset, getImagerSettings().vOffset);
+		//sprintf(filename, formatStr, getImagerSettings().hRes, getImagerSettings().vRes, getImagerSettings().hOffset, getImagerSettings().vOffset);
+		
+		qDebug("Writing FPN to file %s", filename.toUtf8().data());
+
+		fp.setFileName(filename);
+		fp.open(QIODevice::WriteOnly);
+		if(!fp.isOpen())
 		{
 			qDebug() << "Error: File couldn't be opened";
 			return;
@@ -1330,8 +1341,13 @@ void Camera::computeFPNCorrection2(UInt32 framesToAverage, bool writeToFile, boo
 	qDebug() << "About to write file...";
 	if(writeToFile)
 	{
-		fwrite(buffer, sizeof(buffer[0]), pixelsPerFrame, fp);
-		fclose(fp);
+		quint64 retVal;
+		retVal = fp.write((const char*)buffer, sizeof(buffer[0])*pixelsPerFrame);
+		if (retVal != (sizeof(buffer[0])*pixelsPerFrame)) {
+			qDebug("Error writing FPN data to file: %s", fp.errorString().toUtf8().data());
+		}
+		fp.flush();
+		fp.close();
 	}
 
 	delete buffer;
@@ -1402,38 +1418,33 @@ UInt32 Camera::autoFPNCorrection(UInt32 framesToAverage, bool writeToFile, bool 
 
 }
 
-Int32 Camera::loadFPNFromFile(const char * filename)
+Int32 Camera::loadFPNFromFile(void)
 {
-	char flname[1000];
-	std::string fn;
+	QString filename;
+	QFile fp;
+	UInt32 retVal = SUCCESS;
+	
 	//Generate the filename for this particular resolution and offset
-	sprintf(flname, "userFPN/fpn_%dx%doff%dx%d", getImagerSettings().hRes, getImagerSettings().vRes, getImagerSettings().hOffset, getImagerSettings().vOffset);
-
-	fn = sensor->getFilename(flname, ".raw");
-
-	qDebug() << "Trying to load user FPN from file" << fn.c_str();
-
-	//Check that the file exists, if not, try reading in from the factory cal folder
-	if( access( fn.c_str(), R_OK ) == -1 )
-	{
-		//Generate the filename for this particular resolution and offset
-		sprintf(flname, "cal/factoryFPN/fpn_%dx%doff%dx%d", getImagerSettings().hRes, getImagerSettings().vRes, getImagerSettings().hOffset, getImagerSettings().vOffset);
-
-		fn = sensor->getFilename(flname, ".raw");
-
-		qDebug() << "Trying to load factory FPN from file" << fn.c_str();
-
-		//If the FPN file exists, read it in
-		if( access( fn.c_str(), R_OK ) == -1 )
-			return CAMERA_FILE_NOT_FOUND;
-	}
+	filename.sprintf("fpn:fpn_%dx%doff%dx%d", getImagerSettings().hRes, getImagerSettings().vRes, getImagerSettings().hOffset, getImagerSettings().vOffset);
+	
+	std::string fn;
+	fn = sensor->getFilename("", ".raw");
+	filename.append(fn.c_str());
+	QFileInfo fpnResFile(filename);
+	if (fpnResFile.exists() && fpnResFile.isFile()) 
+		fn = fpnResFile.absoluteFilePath().toLocal8Bit().constData();
+	else 
+		return CAMERA_FILE_NOT_FOUND;
 
 	qDebug() << "Found FPN file" << fn.c_str();
 
-	FILE * fp;
-	fp = fopen(fn.c_str(), "rb");
-	if(!fp)
+	fp.setFileName(filename);
+	fp.open(QIODevice::ReadOnly);
+	if(!fp.isOpen())
+	{
+		qDebug() << "Error: File couldn't be opened";
 		return CAMERA_FILE_ERROR;
+	}
 
 	UInt32 pixelsPerFrame = imagerSettings.stride * imagerSettings.vRes;
 	UInt32 bytesPerFrame = imagerSettings.frameSizeWords * BYTES_PER_WORD;
@@ -1441,14 +1452,19 @@ Int32 Camera::loadFPNFromFile(const char * filename)
 	UInt16 * buffer = new UInt16[pixelsPerFrame];
 	UInt32 * packedBuf32 = new UInt32[bytesPerFrame / 4];
 	UInt8 * packedBuf = (UInt8 *)packedBuf32;
+	
+	UInt32 mx;
 
 	//Read in the active region of the FPN data file.
-	fread(buffer, sizeof(buffer[0]), imagerSettings.stride*imagerSettings.vRes, fp);
-
-	fclose(fp);
-	UInt32 mx = getMaxFPNValue(buffer, pixelsPerFrame);
+	if (fp.read((char*) buffer, imagerSettings.stride*imagerSettings.vRes*sizeof(buffer[0])) < (imagerSettings.stride*imagerSettings.vRes*sizeof(buffer[0]))) {
+		retVal = CAMERA_FILE_ERROR;
+		goto loadFPNFromFileCleanup;
+	}
+	fp.close();
+	
+	mx = getMaxFPNValue(buffer, pixelsPerFrame);
 	imgGain = 4096.0 / (double)(4096 - mx) * IMAGE_GAIN_FUDGE_FACTOR;
-	qDebug() << "imgGain set to" << imgGain << "Max FPN value found" << mx;
+	qDebug("imgGain set to %f Max FPN value found %d", imgGain, mx);
 	setCCMatrix(wbMat);
 
 	//zero the buffer
@@ -1463,15 +1479,16 @@ Int32 Camera::loadFPNFromFile(const char * filename)
 	//Write packed buffer to RAM
 	writeAcqMem(packedBuf32, FPN_ADDRESS, bytesPerFrame);
 
+loadFPNFromFileCleanup:
 	delete buffer;
 	delete packedBuf32;
 
-	return SUCCESS;
+	return retVal;
 }
 
 Int32 Camera::computeColGainCorrection(UInt32 framesToAverage, bool writeToFile)
 {
-
+	UInt32 retVal = SUCCESS;
 	UInt32 pixelsPerFrame = recordingData.is.stride * recordingData.is.vRes;
 	UInt32 bytesPerFrame = recordingData.is.frameSizeWords * BYTES_PER_WORD;
 
@@ -1479,24 +1496,46 @@ Int32 Camera::computeColGainCorrection(UInt32 framesToAverage, bool writeToFile)
 	UInt16 * fpnBuffer = new UInt16[pixelsPerFrame];
 	UInt32 * rawBuffer32 = new UInt32[bytesPerFrame / 4];
 	UInt8 * rawBuffer = (UInt8 *)rawBuffer32;
-	const char * filename;
+
+	QSettings appSettings;
+	QString filename;
+	QFile fp;
+
+	int i;
+	double minVal = 0;
+	double valueSum[16] = {0.0};
+	double gainCorrection[16];
+	
+	// If writing to file - generate the filename and open for writing
+	if(writeToFile)
+	{
+		//Generate the filename for this particular resolution and offset
+		if (!QDir("./cal").exists())
+			filename.append("/opt/camera/cal/");
+		else
+			filename.append("./cal/");
+		
+		if(recordingData.is.gain >= LUX1310_GAIN_4)
+			filename.append("dcgH.bin");
+		else
+			filename.append("dcgL.bin");
+		
+		qDebug("Writing colGain to file %s", filename.toUtf8().data());
+
+		fp.setFileName(filename);
+		fp.open(QIODevice::WriteOnly);
+		if(!fp.isOpen())
+		{
+			qDebug("Error: File couldn't be opened");
+			retVal = CAMERA_FILE_ERROR;
+			goto computeColGainCorrectionCleanup;
+		}
+	}
 
 	recordFrames(1);
 
-	if(recordingData.is.gain >= LUX1310_GAIN_4)
-		filename = "cal/dcgH.bin";
-	else
-		filename = "cal/dcgL.bin";
-
-	FILE * fp;
-	if(writeToFile)
-		fp = fopen(filename, "wb");
-
 	//Zero buffer
-	for(int i = 0; i < pixelsPerFrame; i++)
-	{
-		buffer[i] = 0;
-	}
+	memset(buffer, 0, sizeof(buffer)*sizeof(buffer[0]));
 
 	//Read the FPN frame into a buffer
 	readAcqMem(rawBuffer32,
@@ -1504,7 +1543,7 @@ Int32 Camera::computeColGainCorrection(UInt32 framesToAverage, bool writeToFile)
 			   bytesPerFrame);
 
 	//Retrieve pixels from the raw buffer and sum them
-	for(int i = 0; i < pixelsPerFrame; i++)
+	for(i = 0; i < pixelsPerFrame; i++)
 	{
 		fpnBuffer[i] = readPixelBuf12(rawBuffer, i);
 	}
@@ -1518,19 +1557,16 @@ Int32 Camera::computeColGainCorrection(UInt32 framesToAverage, bool writeToFile)
 				   bytesPerFrame);
 
 		//Retrieve pixels from the raw buffer and sum them
-		for(int i = 0; i < pixelsPerFrame; i++)
+		for(i = 0; i < pixelsPerFrame; i++)
 		{
 			buffer[i] += readPixelBuf12(rawBuffer, i) - fpnBuffer[i];
 		}
 	}
 
-	double valueSum[16] = {0.0};
-	double gainCorrection[16];
-
 	if(isColor)
 	{
 		//Divide by number summed to get average and write to FPN area
-		for(int i = 0; i < recordingData.is.stride; i++)
+		for(i = 0; i < recordingData.is.stride; i++)
 		{
 			bool isGreen = sensor->getFilterColor(i, recordingData.is.vRes/2) == FILTER_COLOR_GREEN;
 			UInt32 y = recordingData.is.vRes/2 + (isGreen ? 0 : 1);	//Zig sag to we only look at green pixels
@@ -1540,14 +1576,13 @@ Int32 Camera::computeColGainCorrection(UInt32 framesToAverage, bool writeToFile)
 	else
 	{
 		//Divide by number summed to get average and write to FPN area
-		for(int i = 0; i < recordingData.is.stride; i++)
+		for(i = 0; i < recordingData.is.stride; i++)
 		{
 			valueSum[i % 16] += (double)buffer[i+recordingData.is.stride*recordingData.is.vRes/2] / (double)framesToAverage;
 		}
 	}
 
-	double minVal = 0;
-	for(int i = 0; i < 16; i++)
+	for(i = 0; i < 16; i++)
 	{
 		//divide by number of values summed to get pixel value
 		valueSum[i] /= ((double)recordingData.is.stride/16.0);
@@ -1558,7 +1593,7 @@ Int32 Camera::computeColGainCorrection(UInt32 framesToAverage, bool writeToFile)
 	}
 
 	qDebug() << "Gain correction values:";
-	for(int i = 0; i < 16; i++)
+	for(i = 0; i < 16; i++)
 	{
 		gainCorrection[i] =  minVal / valueSum[i];
 
@@ -1568,23 +1603,93 @@ Int32 Camera::computeColGainCorrection(UInt32 framesToAverage, bool writeToFile)
 	}
 
 	//Check that values are within a sane range
-	for(int i = 0; i < 16; i++)
+	for(i = 0; i < 16; i++)
 	{
-		if(gainCorrection[i] < LUX1310_GAIN_CORRECTION_MIN || gainCorrection[i] > LUX1310_GAIN_CORRECTION_MAX)
-			return CAMERA_GAIN_CORRECTION_ERROR;
+		if(gainCorrection[i] < LUX1310_GAIN_CORRECTION_MIN || gainCorrection[i] > LUX1310_GAIN_CORRECTION_MAX) {
+			retVal = CAMERA_GAIN_CORRECTION_ERROR;
+			goto computeColGainCorrectionCleanup;
+		}
 	}
 
 	if(writeToFile)
 	{
-		fwrite(gainCorrection, sizeof(gainCorrection[0]), LUX1310_HRES_INCREMENT, fp);
-		fclose(fp);
+		quint64 retVal64;
+		retVal64 = fp.write((const char*)gainCorrection, sizeof(gainCorrection[0])*LUX1310_HRES_INCREMENT);
+		if (retVal64 != (sizeof(gainCorrection[0])*LUX1310_HRES_INCREMENT)) {
+			qDebug("Error writing colGain data to file: %s (%d vs %d)", fp.errorString().toUtf8().data(), (UInt32) retVal64, sizeof(gainCorrection[0])*LUX1310_HRES_INCREMENT);
+		}
+		fp.flush();
+		fp.close();
 	}
 
-	for(int i = 0; i < recordingData.is.stride; i++)
+	for(i = 0; i < recordingData.is.stride; i++)
 		gpmc->write16(DCG_MEM_START_ADDR+2*i, gainCorrection[i % 16]*4096.0);
 
-	delete buffer;
-	delete rawBuffer32;
+computeColGainCorrectionCleanup:
+	delete[] buffer;
+	delete[] fpnBuffer;
+	delete[] rawBuffer32;
+	return retVal;
+}
+
+
+Int32 Camera::loadColGainFromFile(void)
+{
+	double gainCorrection[16];
+	size_t count = 0;
+
+	QString filename;
+	QFile fp;
+	bool colGainError = false;
+	
+	//Generate the filename for this particular resolution and offset
+	if(imagerSettings.gain >= LUX1310_GAIN_4)
+		filename.sprintf("cal:dcgH.bin");
+	else
+		filename.sprintf("cal:dcgL.bin");
+	
+	QFileInfo colGainFile(filename);
+	if (colGainFile.exists() && colGainFile.isFile()) {
+		qDebug("Found colGain file %s", colGainFile.absoluteFilePath().toLocal8Bit().constData());
+	
+		fp.setFileName(filename);
+		fp.open(QIODevice::ReadOnly);
+		if(!fp.isOpen()) {
+			qDebug("Error: File couldn't be opened");
+		}
+	
+		//If the column gain file exists, read it in
+		count = fp.read((char*) gainCorrection, sizeof(gainCorrection[0]) * LUX1310_HRES_INCREMENT);
+		if (count > 0) count /= sizeof(gainCorrection[0]);
+		fp.close();
+	}
+
+	//If the file wasn't fully read in, set all gain corrections to 1.0
+	if (count < LUX1310_HRES_INCREMENT) {
+		colGainError = true;
+		qDebug("Error: col gain read error");
+	}
+
+	//If all read in gain corrections are not within a sane range, set them all to 1.0
+	for(int i = 0; i < 16; i++) {
+		if(gainCorrection[i] < 0.5 || gainCorrection[i] > 2.0) {
+			colGainError = true;
+			qDebug("Error: col gain outside range 0.5 to 2.0");
+			break;
+		}
+	}
+	
+	if(colGainError) {
+		qDebug("Error while loading cal gain - resetting to 1.0");
+		for(int i = 0; i < 16; i++) {
+			gainCorrection[i] = 1.0;
+		}
+	}
+
+	//Write the values into the display column gain memory
+	for(int i = 0; i < LUX1310_MAX_H_RES; i++)
+		writeDGCMem(gainCorrection[i % 16], i);
+
 	return SUCCESS;
 }
 
@@ -1854,55 +1959,6 @@ checkForDeadPixelsCleanup:
 
 
 
-Int32 Camera::loadColGainFromFile(const char * filename)
-{
-	double gainCorrection[16];
-	size_t count = 0;
-	//If the column gain file exists, read it in
-	if( access( filename, R_OK ) != -1 )
-	{
-		FILE * fp;
-		fp = fopen(filename, "rb");
-		if(fp)
-		{
-			count = fread(gainCorrection, sizeof(gainCorrection[0]), LUX1310_HRES_INCREMENT, fp);
-			fclose(fp);
-		}
-	}
-
-	//If the file wasn't fully read in, set all gain corrections to 1.0
-	if(LUX1310_HRES_INCREMENT != count)
-	{
-		for(int i = 0; i < 16; i++)
-		{
-			gainCorrection[i] = 1.0;
-		}
-	}
-	else
-	{
-		bool gcOutOfSaneRange = false;
-		//If all read in gain corrections are not within a sane range, set them all to 1.0
-		for(int i = 0; i < 16; i++)
-		{
-			if(gainCorrection[i] < 0.5 || gainCorrection[i] > 2.0)
-				gcOutOfSaneRange = true;
-		}
-
-		if(gcOutOfSaneRange)
-		{
-			for(int i = 0; i < 16; i++)
-			{
-				gainCorrection[i] = 1.0;
-			}
-		}
-	}
-
-	//Write the values into the display column gain memory
-	for(int i = 0; i < LUX1310_MAX_H_RES; i++)
-		writeDGCMem(gainCorrection[i % 16], i);
-
-	return SUCCESS;
-}
 
 UInt32 Camera::adcOffsetCorrection(UInt32 iterations, const char * filename)
 {
@@ -2415,23 +2471,35 @@ Int32 Camera::getRawCorrectedFramesAveraged(UInt32 frame, UInt32 framesToAverage
 
 Int32 Camera::readDCG(double * gainCorrection)
 {
-	const char * filename;
-
-	//Read in column gain values
-	if(recordingData.is.gain >= LUX1310_GAIN_4)
-		filename = "cal/dcgH.bin";
+	size_t count = 0;
+	QString filename;
+	QFile fp;
+	
+	//Generate the filename for this particular resolution and offset
+	if(imagerSettings.gain >= LUX1310_GAIN_4)
+		filename.sprintf("cal:dcgH.bin");
 	else
-		filename = "cal/dcgL.bin";
-
-	size_t count;
-
-	FILE * fp;
-	fp = fopen(filename, "rb");
-	if(!fp)
+		filename.sprintf("cal:dcgL.bin");
+	
+	QFileInfo colGainFile(filename);
+	if (colGainFile.exists() && colGainFile.isFile()) {
+		qDebug("Found colGain file, %s", colGainFile.absoluteFilePath().toLocal8Bit().constData());
+	
+		fp.setFileName(filename);
+		fp.open(QIODevice::ReadOnly);
+		if(!fp.isOpen()) {
+			qDebug("Error: File couldn't be opened");
+		}
+	
+		//If the column gain file exists, read it in
+		count = fp.read((char*) gainCorrection, sizeof(gainCorrection[0]) * LUX1310_HRES_INCREMENT);
+		fp.close();
+		if (count < sizeof(gainCorrection[0]) * LUX1310_HRES_INCREMENT) 
+			return CAMERA_FILE_ERROR;
+	}
+	else {
 		return CAMERA_FILE_ERROR;
-
-	count = fread(gainCorrection, sizeof(gainCorrection[0]), LUX1310_HRES_INCREMENT, fp);
-	fclose(fp);
+	}
 
 	//If the file wasn't fully read in, fail
 	if(LUX1310_HRES_INCREMENT != count)
@@ -2702,38 +2770,54 @@ bool Camera::getFocusAid()
 Int32 Camera::blackCalAllStdRes(bool factory)
 {
 	ImagerSettings_t settings;
-	Int32 retVal;
 	//Populate the common resolution combo box from the list of resolutions
-	FILE * fp;
-	char line[30];
+	QFile fp;
+	UInt32 retVal = SUCCESS;
+	QString filename;
+	QByteArray line;
 
 	vinst->setRunning(false);
-	
-	fp = fopen("resolutions", "r");
-	if (fp == NULL)
-		return CAMERA_FILE_ERROR;
 
+	filename.append("camApp:resolutions");
+	QFileInfo resolutionsFile(filename);
+	if (resolutionsFile.exists() && resolutionsFile.isFile()) {
+		fp.setFileName(filename);
+		fp.open(QIODevice::ReadOnly);
+		if(!fp.isOpen()) {
+			qDebug("Error: resolutions file couldn't be opened");
+			return CAMERA_FILE_ERROR;
+		}
+	}
+	else {
+		qDebug("Error: resolutions file isn't present");
+		return CAMERA_FILE_ERROR;
+	}
+
+	
 	int g;
 
 	//For each gain
 	for(g = LUX1310_GAIN_1; g <= LUX1310_GAIN_16; g++)
 	{
-		retVal = fseek(fp, 0, SEEK_SET);
-		if (retVal != 0) {
+		if (!fp.reset()) {
 			return CAMERA_FILE_ERROR;
 		}
-		while(fgets(line, 30, fp) != NULL)
-		{	//For each resolution in the resolution list
+		while(true) {
+			line = fp.readLine(30);
+			if (line.isEmpty() || line.isNull())
+				break;
+			
+			//For each resolution in the resolution list
 			//Get the resolution and compute the maximum frame rate to be appended after the resolution
 			int hRes, vRes;
 
-			sscanf(line, "%dx%d", &hRes, &vRes);
+			sscanf(line.constData(), "%dx%d", &hRes, &vRes);
 
 			settings.hRes = hRes;		//pixels
 			settings.vRes = vRes;		//pixels
 			settings.stride = hRes;		//Number of pixels per line (allows for dark pixels in the last column), always multiple of 16
-			settings.hOffset = (sensor->getMaxHRes() - hRes) / 2 & 0xFFFFFFFE;	//Active area offset from left
-			settings.vOffset = (sensor->getMaxVRes() - vRes) / 2 & 0xFFFFFFFE;		//Active area offset from top
+			settings.hOffset = ((sensor->getMaxHRes() - hRes) / 2) & 0xFFFFFFF0;	//Active area offset from left
+			settings.vOffset = ((sensor->getMaxVRes() - vRes) / 2) & 0xFFFFFFF0;		//Active area offset from top
 			settings.gain = g;
             settings.recRegionSizeFrames = getMaxRecordRegionSizeFrames(settings.hRes, settings.vRes);
 			settings.period = sensor->getMinFramePeriod(hRes, vRes);
@@ -2759,7 +2843,7 @@ Int32 Camera::blackCalAllStdRes(bool factory)
 	}
 
 
-	fclose(fp);
+	fp.close();
 
 	settings.hRes = LUX1310_MAX_H_RES;		//pixels
 	settings.vRes = LUX1310_MAX_V_RES;		//pixels
@@ -2779,7 +2863,7 @@ Int32 Camera::blackCalAllStdRes(bool factory)
 	if(SUCCESS != retVal)
 		return retVal;
 
-	retVal = loadFPNFromFile(FPN_FILENAME);
+	retVal = loadFPNFromFile();
 	if(SUCCESS != retVal)
 		return retVal;
 
