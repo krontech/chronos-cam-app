@@ -89,29 +89,6 @@ QSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}<
     <string>OK</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="cmdMax">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>360</y>
-     <width>81</width>
-     <height>91</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>14</pointsize>
-     <weight>75</weight>
-     <bold>true</bold>
-    </font>
-   </property>
-   <property name="text">
-    <string>More
-◀
-Pre-rec
-Time</string>
-   </property>
-  </widget>
   <widget class="TriggerSlider" name="horizontalSlider">
    <property name="geometry">
     <rect>
@@ -632,47 +609,24 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
     <string>Time  ▶</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="cmdResetPreRec">
-   <property name="geometry">
-    <rect>
-     <x>120</x>
-     <y>360</y>
-     <width>81</width>
-     <height>91</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>14</pointsize>
-     <weight>75</weight>
-     <bold>true</bold>
-    </font>
-   </property>
-   <property name="text">
-    <string>Reset
-Pre-rec
-Time</string>
-   </property>
-  </widget>
   <widget class="QPushButton" name="cmdResetToDefaults">
    <property name="geometry">
     <rect>
-     <x>230</x>
+     <x>100</x>
      <y>360</y>
-     <width>81</width>
+     <width>200</width>
      <height>91</height>
     </rect>
    </property>
    <property name="font">
     <font>
-     <pointsize>14</pointsize>
+     <pointsize>19</pointsize>
      <weight>75</weight>
      <bold>true</bold>
     </font>
    </property>
    <property name="text">
-    <string>Reset
-To
+    <string>Reset To
 Defaults</string>
    </property>
   </widget>
