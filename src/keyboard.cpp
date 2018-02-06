@@ -123,11 +123,38 @@ void keyboard::show()
 	QWidget::show();
 	//Moving after showing because window height isn't set until show()
 	this->move(0,QApplication::desktop()->screenGeometry().height() - height());
-
-
+    QTimer::singleShot(1, this, SLOT(selectAllInFocusedWidget()));
 }
 
+void keyboard::selectAllInFocusedWidget(){
+    emit codeGenerated(KC_RIGHT); //to deselect any text that might already be selected
+    emit characterGenerated(QChar('a')); //insert arbitrary char to have selectAll() have any effect
 
+    QString senderClass = lastFocusedWidget->metaObject()->className();
+    qDebug() << senderClass;
+
+    if (senderClass == "CamTextEdit") {
+        QTextEdit *textEdit = qobject_cast<QTextEdit*>(lastFocusedWidget);
+        emit codeGenerated(KC_BACKSPACE);
+        //backspace is to remove the arbitrary char
+        textEdit->selectAll();
+
+    } else if (senderClass == "CamLineEdit") {
+        QLineEdit *lineEdit = qobject_cast<QLineEdit*>(lastFocusedWidget);
+        emit codeGenerated(KC_BACKSPACE);
+        lineEdit->selectAll();
+
+    } else if (senderClass == "CamSpinBox") {
+        QSpinBox *spinBox = qobject_cast<QSpinBox*>(lastFocusedWidget);
+        //Spinboxes will not accept alphabetic chars, so a backspace is not needed in that case
+        spinBox->selectAll();
+
+    }else if (senderClass == "CamDoubleSpinBox") {
+        QDoubleSpinBox *doubleSpinBox = qobject_cast<QDoubleSpinBox*>(lastFocusedWidget);
+        doubleSpinBox->selectAll();
+    }
+
+}
 
 bool keyboard::event(QEvent *e)
 {

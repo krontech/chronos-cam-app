@@ -50,6 +50,7 @@ public:
 
 public slots:
 	void            show();
+    void selectAllInFocusedWidget();
 
 signals:
 	void characterGenerated(QChar character);
@@ -83,13 +84,12 @@ private slots:
 	void on_close_clicked();
 
 
-
 private:
 	bool capslock;
 	bool shift;
 	Ui::keyboard *ui;
 	QWidget *lastFocusedWidget;
-	QSignalMapper signalMapper;
+    QSignalMapper signalMapper;
 };
 
 #endif // KEYBOARD_H
