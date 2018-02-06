@@ -654,6 +654,28 @@ Pre-rec
 Time</string>
    </property>
   </widget>
+  <widget class="QPushButton" name="cmdResetToDefaults">
+   <property name="geometry">
+    <rect>
+     <x>230</x>
+     <y>360</y>
+     <width>81</width>
+     <height>91</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>14</pointsize>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="text">
+    <string>Reset
+To
+Defaults</string>
+   </property>
+  </widget>
  </widget>
  <customwidgets>
   <customwidget>
