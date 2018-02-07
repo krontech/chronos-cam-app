@@ -54,6 +54,7 @@ Camera::Camera()
 	endOfRecCallback = NULL;
 	imgGain = 1.0;
 	recordingData.hasBeenSaved = true;		//Nothing in RAM at power up so there's nothing to lose
+	recordingData.showUnsavedWarning = true;
 	autoSave = appSettings.value("camera/autoSave", 0).toBool();
 	autoRecord = appSettings.value("camera/autoRecord", 0).toBool();
 	strcpy(serialNumber, "Not_Set");

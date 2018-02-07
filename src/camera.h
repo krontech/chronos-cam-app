@@ -155,6 +155,7 @@ typedef struct {
 	UInt32 totalFrames;
 	bool valid;
 	bool hasBeenSaved;
+	bool showUnsavedWarning;
 
 } RecordSettings_t;
 
