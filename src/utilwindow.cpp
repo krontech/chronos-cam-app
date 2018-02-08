@@ -111,7 +111,7 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	
 	connect(ui->cmdClose, SIGNAL(clicked()), this, SLOT(close()));
 
-	ui->chkUnsavedVidWarning->setChecked(camera->recordingData.showUnsavedWarning);
+	ui->chkUnsavedVidWarning->setChecked(camera->getUnsavedWarnEnable());
 }
 
 UtilWindow::~UtilWindow()
@@ -915,6 +915,6 @@ void UtilWindow::on_cmdRevertCalData_pressed()
 
 void UtilWindow::on_chkUnsavedVidWarning_clicked(bool checked)
 {
-	camera->recordingData.showUnsavedWarning = checked;
-	qDebug() << "showUnsavedWarning set to " << checked;
+	camera->setUnsavedWarnEnable(checked);
+	qDebug() << "setUnsavedWarnEnable()" << checked;
 }

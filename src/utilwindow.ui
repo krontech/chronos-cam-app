@@ -424,7 +424,7 @@ USB</string>
     <widget class="QCheckBox" name="chkUnsavedVidWarning">
      <property name="geometry">
       <rect>
-       <x>450</x>
+       <x>400</x>
        <y>40</y>
        <width>256</width>
        <height>49</height>
