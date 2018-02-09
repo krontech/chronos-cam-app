@@ -36,9 +36,10 @@ playbackWindow::playbackWindow(QWidget *parent, Camera * cameraInst, bool autosa
 {
 	ui->setupUi(this);
 	this->setWindowFlags(Qt::Dialog /*| Qt::WindowStaysOnTopHint*/ | Qt::FramelessWindowHint);
-	this->move(600,0);
+
 	camera = cameraInst;
 	autoSaveFlag = autosave;
+	this->move(camera->ButtonsOnLeft? 0:600, 0);
 
 	sw = new StatusWindow;
 

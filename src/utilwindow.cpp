@@ -106,6 +106,7 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 
 	ui->chkAutoSave->setChecked(camera->get_autoSave());
 	ui->chkAutoRecord->setChecked(camera->get_autoRecord());
+	ui->chkUiOnLeft->setChecked(camera->getButtonsOnLeft());
 
 	ui->chkShowDebugControls->setChecked(!(appSettings.value("debug/hideDebug", true).toBool()));
 	
@@ -909,4 +910,10 @@ void UtilWindow::on_cmdRevertCalData_pressed()
 	msg.setText("User calibration data deleted");
 	msg.setWindowFlags(Qt::WindowStaysOnTopHint);
 	msg.exec();
+}
+
+void UtilWindow::on_chkUiOnLeft_clicked(bool checked)
+{
+	camera->setButtonsOnLeft(checked);
+	emit moveCamMainWindow();
 }

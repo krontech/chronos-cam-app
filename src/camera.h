@@ -284,6 +284,7 @@ public:
 	Int32 writeSerialNumber(char * src);
 	UInt16 getFPGAVersion(void);
 	UInt16 getFPGASubVersion(void);
+	bool ButtonsOnLeft;
 private:
 	void endOfRec(void);
 	UInt32 getNumFrames(UInt32 start, UInt32 end);
@@ -319,6 +320,8 @@ public:
 	bool autoRecord;
 	void set_autoRecord(bool state);
 	bool get_autoRecord();
+	bool getButtonsOnLeft();
+	void setButtonsOnLeft(bool en);
 
 private:
 	bool lastRecording;

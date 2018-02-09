@@ -210,6 +210,7 @@ void CamMainWindow::on_cmdPlay_clicked()
 	//w->camera = camera;
 	w->setAttribute(Qt::WA_DeleteOnClose);
 	w->show();
+	//w->setGeometry(0, 0,w->width(), w->height());
 }
 
 void CamMainWindow::playFinishedSaving()
@@ -527,6 +528,13 @@ void CamMainWindow::on_cmdUtil_clicked()
 	//w->camera = camera;
 	w->setAttribute(Qt::WA_DeleteOnClose);
 	w->show();
+	connect(w, SIGNAL(moveCamMainWindow()), this, SLOT(updateWindowPosition()));
+}
+
+void CamMainWindow::updateWindowPosition(){
+	qDebug()<<"windowpos old " << this->x();
+	move(camera->ButtonsOnLeft? 0:600, 0);
+	qDebug()<<"windowpos new " << this->x();
 }
 
 void CamMainWindow::on_cmdBkGndButton_clicked()

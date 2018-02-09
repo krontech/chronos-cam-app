@@ -56,6 +56,7 @@ Camera::Camera()
 	recordingData.hasBeenSaved = true;		//Nothing in RAM at power up so there's nothing to lose
 	autoSave = appSettings.value("camera/autoSave", 0).toBool();
 	autoRecord = appSettings.value("camera/autoRecord", 0).toBool();
+	ButtonsOnLeft = getButtonsOnLeft();
 	strcpy(serialNumber, "Not_Set");
 
 /*
@@ -2926,6 +2927,19 @@ Int32 Camera::takeWhiteReferences(void)
 
 	delete frameBuffer;
 	return SUCCESS;
+}
+
+bool Camera::getButtonsOnLeft(void){
+	QSettings appSettings;
+		qDebug()<< "setButtonsOnLeft, buttons value is " << (appSettings.value("camera/ButtonsOnLeft", ButtonsOnLeft).toBool());
+	return (appSettings.value("camera/ButtonsOnLeft", ButtonsOnLeft).toBool());
+}
+
+void Camera::setButtonsOnLeft(bool en){
+	QSettings appSettings;
+	ButtonsOnLeft = en;
+	appSettings.setValue("camera/ButtonsOnLeft", en);
+	qDebug()<< "setButtonsOnLeft, buttons value is " << getButtonsOnLeft();
 }
 
 bool Camera::getFocusPeakEnable(void)
