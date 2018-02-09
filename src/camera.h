@@ -219,7 +219,7 @@ public:
 	Int32 loadFPNFromFile(void);
 	Int32 computeColGainCorrection(UInt32 framesToAverage, bool writeToFile = false);
 	Int32 loadColGainFromFile(void);
-	UInt32 adcOffsetCorrection(UInt32 iterations, const char * filename = "");
+	UInt32 adcOffsetCorrection(UInt32 iterations, bool writeToFile = true);
 	void offsetCorrectionIteration(UInt32 wordAddress = LIVE_FRAME_0_ADDRESS);
 	int autoAdcOffsetCorrection(void);
 	Int32 autoColGainCorrection(void);

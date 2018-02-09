@@ -19,6 +19,8 @@
 #include "recmodewindow.h"
 #include "triggerdelaywindow.h"
 #include <QMessageBox>
+#include <QResource>
+#include <QDir>
 
 #include <QDebug>
 #include <cstdio>
@@ -41,6 +43,8 @@ RecSettingsWindow::RecSettingsWindow(QWidget *parent, Camera * cameraInst) :
 	ui(new Ui::RecSettingsWindow)
 {
 	char str[100];
+	// as non-static data member initializers can't happen in the .h, making sure it's set correct here.
+    windowInitComplete = false;
 
 	ui->setupUi(this);
 	this->setWindowFlags(Qt::Dialog /*| Qt::WindowStaysOnTopHint*/ | Qt::FramelessWindowHint);
@@ -83,40 +87,44 @@ RecSettingsWindow::RecSettingsWindow(QWidget *parent, Camera * cameraInst) :
     ui->comboGain->setCurrentIndex(is->gain);
 
 	//Populate the common resolution combo box from the list of resolutions
-	FILE * fp;
-	char line[30];
+	QFile fp;
+	QString filename;
+	QByteArray line;
+	QString lineText;
 
-	fp = fopen("resolutions", "r");
-	if (fp != NULL)
-	{
-		while (fgets(line, 30, fp) != NULL) {
-			//Remove any newline or carrage return and replace with null
-			char *pos;
-			if ((pos=strchr(line, '\r')) != NULL)
-				*pos = '\0';
-			if ((pos=strchr(line, '\n')) != NULL)
-				*pos = '\0';
-
-			//Get the resolution and compute the maximum frame rate to be appended after the resolution
-			int hRes, vRes;
-
-			sscanf(line, "%dx%d", &hRes, &vRes);
-
-			int fr =  100000000.0 / (double)camera->sensor->getMinFramePeriod(hRes, vRes);
-			qDebug() << "hres" << hRes << "vRes" << vRes << "mperiod" << camera->sensor->getMinFramePeriod(hRes, vRes) << "fr" << fr;
-			char tmp[20];
-			sprintf(tmp, " %d fps", fr);
-			strcat(line, tmp);
-
-			ui->comboRes->addItem(line);
+	filename.append("camApp:resolutions");
+	QFileInfo resolutionsFile(filename);
+	if (resolutionsFile.exists() && resolutionsFile.isFile()) {
+		fp.setFileName(filename);
+		fp.open(QIODevice::ReadOnly);
+		if(!fp.isOpen()) {
+			qDebug("Error: resolutions file couldn't be opened");
 		}
-
-		fclose(fp);
+	}
+	else {
+		qDebug("Error: resolutions file isn't present");
 	}
 
+	while(true) {
+		line = fp.readLine(30);
+		if (line.isEmpty() || line.isNull())
+			break;
+		
+		//Get the resolution and compute the maximum frame rate to be appended after the resolution
+		int hRes, vRes;
+		
+		sscanf(line.constData(), "%dx%d", &hRes, &vRes);
+		
+		int fr =  100000000.0 / (double)camera->sensor->getMinFramePeriod(hRes, vRes);
+		qDebug() << "hres" << hRes << "vRes" << vRes << "mperiod" << camera->sensor->getMinFramePeriod(hRes, vRes) << "fr" << fr;
 
-
-
+		lineText.sprintf("%dx%d %d fps", hRes, vRes, fr);
+		
+		ui->comboRes->addItem(line);
+	}
+	
+	fp.close();
+	
 
 	//If the current image position is in the center, check the centered checkbox
     if(	is->hOffset == round((camera->sensor->getMaxHRes() - is->stride) / 2, camera->sensor->getHResIncrement()) &&
@@ -169,8 +177,6 @@ RecSettingsWindow::~RecSettingsWindow()
 
 void RecSettingsWindow::on_cmdOK_clicked()
 {
-	ImagerSettings_t settings;
-
     is->hRes = ui->spinHRes->value();		//pixels
     is->vRes = ui->spinVRes->value();		//pixels
     is->stride = ui->spinHRes->value();		//Number of pixels per line (allows for dark pixels in the last column), always multiple of 16
@@ -730,11 +736,6 @@ void RecSettingsWindow::on_comboRes_activated(const QString &arg1)
 
 void RecSettingsWindow::on_cmdRecMode_clicked()
 {
-
-    ImagerSettings_t settings;
-
-
-
     is->hRes = ui->spinHRes->value();		//pixels
     is->vRes = ui->spinVRes->value();		//pixels
     is->stride = ui->spinHRes->value();		//Number of pixels per line (allows for dark pixels in the last column), always multiple of 16

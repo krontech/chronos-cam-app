@@ -156,16 +156,13 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 	//Configure FPGA
 	Ecp5Config * config;
 	const char * configFileName;
-/*
-	//Get the file name based on the RAM installed
-    if(8 == ramSizeGBSlot0)
-		configFileName = "FPGA_8GB.bit";
-	else if(16 == ramSizeGBSlot0)
-		configFileName = "FPGA_16GB.bit";
-	else
-		return CAMERA_MEM_ERROR;
-*/
-	configFileName = "FPGA.bit";
+	QFileInfo fpgaConfigFile("fpga:FPGA.bit");
+	if (fpgaConfigFile.exists() && fpgaConfigFile.isFile()) 
+		configFileName = fpgaConfigFile.absoluteFilePath().toLocal8Bit().constData();
+	else {
+		qDebug("Error: FPGA bitfile not found");
+		return CAMERA_FILE_NOT_FOUND;
+	}
 
 	config = new Ecp5Config();
 	config->init(IMAGE_SENSOR_SPI, FPGA_PROGRAMN_PATH, FPGA_INITN_PATH, FPGA_DONE_PATH, FPGA_SN_PATH, FPGA_HOLDN_PATH, 33000000);
@@ -478,7 +475,7 @@ UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 
     setFrameSizeWords(imagerSettings.frameSizeWords);
 
-	qDebug() << "About to sensor->loadADCOffsetsFromFile"; sensor->loadADCOffsetsFromFile("a");
+	qDebug() << "About to sensor->loadADCOffsetsFromFile"; sensor->loadADCOffsetsFromFile();
 
 	loadColGainFromFile();
 
@@ -1258,6 +1255,7 @@ void Camera::computeFPNCorrection2(UInt32 framesToAverage, bool writeToFile, boo
 	//char filename[1000];
 	const char *formatStr;
 	QString filename;
+	std::string fn;
 	QFile fp;
 
 	// If writing to file - generate the filename and open for writing
@@ -1266,19 +1264,22 @@ void Camera::computeFPNCorrection2(UInt32 framesToAverage, bool writeToFile, boo
 		//Generate the filename for this particular resolution and offset
 		if(factory) {
 			if (!QDir("./cal").exists())
-				formatStr = "/opt/camera/cal/factoryFPN/fpn_%dx%doff%dx%d.raw";
+				formatStr = "/opt/camera/cal/factoryFPN/fpn_%dx%doff%dx%d";
 			else
-				formatStr = "./cal/factoryFPN/fpn_%dx%doff%dx%d.raw";
+				formatStr = "./cal/factoryFPN/fpn_%dx%doff%dx%d";
 		}			
 		else {
 			if (!QDir("./userFPN").exists())
-				formatStr = "/opt/camera/userFPN/fpn_%dx%doff%dx%d.raw";
+				formatStr = "/opt/camera/userFPN/fpn_%dx%doff%dx%d";
 			else
-				formatStr = "./userFPN/fpn_%dx%doff%dx%d.raw";
+				formatStr = "./userFPN/fpn_%dx%doff%dx%d";
 		}
 		
 		filename.sprintf(formatStr, getImagerSettings().hRes, getImagerSettings().vRes, getImagerSettings().hOffset, getImagerSettings().vOffset);
 		//sprintf(filename, formatStr, getImagerSettings().hRes, getImagerSettings().vRes, getImagerSettings().hOffset, getImagerSettings().vOffset);
+
+		fn = sensor->getFilename("", ".raw");
+		filename.append(fn.c_str());
 		
 		qDebug("Writing FPN to file %s", filename.toUtf8().data());
 
@@ -1433,8 +1434,10 @@ Int32 Camera::loadFPNFromFile(void)
 	QFileInfo fpnResFile(filename);
 	if (fpnResFile.exists() && fpnResFile.isFile()) 
 		fn = fpnResFile.absoluteFilePath().toLocal8Bit().constData();
-	else 
+	else {
+		qDebug("loadFPNFromFile: File not found %s", filename.toLocal8Bit().constData());
 		return CAMERA_FILE_NOT_FOUND;
+	}
 
 	qDebug() << "Found FPN file" << fn.c_str();
 
@@ -1641,6 +1644,7 @@ Int32 Camera::loadColGainFromFile(void)
 	QString filename;
 	QFile fp;
 	bool colGainError = false;
+	int i;
 	
 	//Generate the filename for this particular resolution and offset
 	if(imagerSettings.gain >= LUX1310_GAIN_4)
@@ -1662,32 +1666,36 @@ Int32 Camera::loadColGainFromFile(void)
 		count = fp.read((char*) gainCorrection, sizeof(gainCorrection[0]) * LUX1310_HRES_INCREMENT);
 		if (count > 0) count /= sizeof(gainCorrection[0]);
 		fp.close();
-	}
 
-	//If the file wasn't fully read in, set all gain corrections to 1.0
-	if (count < LUX1310_HRES_INCREMENT) {
-		colGainError = true;
-		qDebug("Error: col gain read error");
-	}
-
-	//If all read in gain corrections are not within a sane range, set them all to 1.0
-	for(int i = 0; i < 16; i++) {
-		if(gainCorrection[i] < 0.5 || gainCorrection[i] > 2.0) {
+		if (count < LUX1310_HRES_INCREMENT) {
 			colGainError = true;
-			qDebug("Error: col gain outside range 0.5 to 2.0");
-			break;
+			qDebug("Error: col gain read error");
+		}
+		else {
+			//If all read in gain corrections are not within a sane range, set them all to 1.0
+			for(i = 0; i < 16; i++) {
+				if(gainCorrection[i] < 0.5 || gainCorrection[i] > 2.0) {
+					colGainError = true;
+					qDebug("Error: col gain outside range 0.5 to 2.0");
+					break;
+				}
+			}
 		}
 	}
-	
+	else {
+		qDebug("Error: colGain file %s not found", colGainFile.absoluteFilePath().toLocal8Bit().constData());
+		colGainError = true;
+	}
+
 	if(colGainError) {
 		qDebug("Error while loading cal gain - resetting to 1.0");
-		for(int i = 0; i < 16; i++) {
+		for(i = 0; i < 16; i++) {
 			gainCorrection[i] = 1.0;
 		}
 	}
-
+	
 	//Write the values into the display column gain memory
-	for(int i = 0; i < LUX1310_MAX_H_RES; i++)
+	for(i = 0; i < LUX1310_MAX_H_RES; i++)
 		writeDGCMem(gainCorrection[i % 16], i);
 
 	return SUCCESS;
@@ -1960,10 +1968,8 @@ checkForDeadPixelsCleanup:
 
 
 
-UInt32 Camera::adcOffsetCorrection(UInt32 iterations, const char * filename)
+UInt32 Camera::adcOffsetCorrection(UInt32 iterations, bool writeToFile)
 {
-	filename = "a";
-
 	//Zero the offsets
 	for(int i = 0; i < LUX1310_HRES_INCREMENT; i++)
 		sensor->setADCOffset(i, 0);
@@ -1983,10 +1989,9 @@ UInt32 Camera::adcOffsetCorrection(UInt32 iterations, const char * filename)
 	}
 	qDebug() << "Offset correction done";
 
-	if(strlen(filename))
-	{
-		qDebug() << "Saving to file" << filename;
-		sensor->saveADCOffsetsToFile(filename);
+	if (writeToFile) {
+		qDebug() << "Saving to file";
+		sensor->saveADCOffsetsToFile();
 	}
 
 	return SUCCESS;
@@ -2135,29 +2140,41 @@ Int32 Camera::autoColGainCorrection(void)
     _is.temporary = 1;
 
 	retVal = setImagerSettings(_is);
-	if(SUCCESS != retVal)
+	if(SUCCESS != retVal) {
+		qDebug("autoColGainCorrection: Error during setImagerSettings %d", retVal);
 		return retVal;
+	}
 
 	retVal = adjustExposureToValue(CAMERA_MAX_EXPOSURE_TARGET, 100, false);
-	if(SUCCESS != retVal)
+	if(SUCCESS != retVal) {
+		qDebug("autoColGainCorrection: Error during adjustExposureToValue %d", retVal);
 		return retVal;
+	}
 
     retVal = computeColGainCorrection(1, true);
-    if(SUCCESS != retVal)
+    if(SUCCESS != retVal) {
+		qDebug("autoColGainCorrection: Error during computeColGainCorrection %d", retVal);
         return retVal;
+	}
 
 	_is.gain = LUX1310_GAIN_4;
 	retVal = setImagerSettings(_is);
-	if(SUCCESS != retVal)
+	if(SUCCESS != retVal) {
+		qDebug("autoColGainCorrection: Error during setImagerSettings(2) %d", retVal);
 		return retVal;
+	}
 
 	retVal = adjustExposureToValue(CAMERA_MAX_EXPOSURE_TARGET, 100, false);
-	if(SUCCESS != retVal)
+	if(SUCCESS != retVal) {
+		qDebug("autoColGainCorrection: Error during adjustExposureToValue(2) %d", retVal);
 		return retVal;
+	}
 
     retVal = computeColGainCorrection(1, true);
-    if(SUCCESS != retVal)
+    if(SUCCESS != retVal) {
+		qDebug("autoColGainCorrection: Error during computeColGainCorrection(2) %d", retVal);
         return retVal;
+	}
 
 	return SUCCESS;
 }
@@ -2856,16 +2873,22 @@ Int32 Camera::blackCalAllStdRes(bool factory)
 	settings.exposure = sensor->getMaxExposure(settings.period);
 
 	retVal = setImagerSettings(settings);
-	if(SUCCESS != retVal)
+	if(SUCCESS != retVal) {
+		qDebug("blackCalAllStdRes: Error during setImagerSettings %d", retVal);
 		return retVal;
+	}
 
     retVal = setDisplaySettings(false, MAX_LIVE_FRAMERATE);
-	if(SUCCESS != retVal)
+	if(SUCCESS != retVal) {
+		qDebug("blackCalAllStdRes: Error during setDisplaySettings %d", retVal);
 		return retVal;
+	}
 
 	retVal = loadFPNFromFile();
-	if(SUCCESS != retVal)
+	if(SUCCESS != retVal) {
+		qDebug("blackCalAllStdRes: Error during loadFPNFromFile %d", retVal);
 		return retVal;
+	}
 
 	vinst->setRunning(true);
 
@@ -2877,11 +2900,11 @@ Int32 Camera::blackCalAllStdRes(bool factory)
 
 Int32 Camera::takeWhiteReferences(void)
 {
-	Int32 retVal;
+	Int32 retVal = SUCCESS;
 	ImagerSettings_t _is;
 	UInt32 g;
-	FILE * fp;
-	char filename[1000];
+	QFile fp;
+	QString filename;
 	const char * gName;
 	double exposures[] = {0.000244141,
 						  0.000488281,
@@ -2930,17 +2953,11 @@ Int32 Camera::takeWhiteReferences(void)
 
 		retVal = setImagerSettings(_is);
 		if(SUCCESS != retVal)
-		{
-			delete frameBuffer;
-			return retVal;
-		}
+			goto cleanupTakeWhiteReferences;
 
 		retVal = adjustExposureToValue(4096*3/4);
 		if(SUCCESS != retVal)
-		{
-			delete frameBuffer;
-			return retVal;
-		}
+			goto cleanupTakeWhiteReferences;
 
 		nomExp = imagerSettings.exposure;
 
@@ -2972,37 +2989,45 @@ Int32 Camera::takeWhiteReferences(void)
 			//Record frames
 			retVal = recordFrames(16);
 			if(SUCCESS != retVal)
-			{
-				delete frameBuffer;
-				return retVal;
-			}
+				goto cleanupTakeWhiteReferences;
 
 			//Get the frames averaged and save to file
 			qDebug() << "Doing getRawCorrectedFramesAveraged()";
 			retVal = getRawCorrectedFramesAveraged(0, 16, frameBuffer);
 			if(SUCCESS != retVal)
-			{
-				delete frameBuffer;
-				return retVal;
-			}
+				goto cleanupTakeWhiteReferences;
 
 
 			//Generate the filename for this particular resolution and offset
-			sprintf(filename, "userFPN/wref_%s_LV%d.raw", gName, i+1);
+			filename.sprintf("userFPN/wref_%s_LV%d.raw", gName, i+1);
 
-			fp = fopen(filename, "wb");
-			if(NULL == fp)
-			{
-				delete frameBuffer;
-				return CAMERA_FILE_ERROR;
+			if (!QDir("./userFPN").exists())
+				filename.sprintf("/opt/camera/userFPN/wref_%s_LV%d.raw", gName, i+1);
+			else
+				filename.sprintf("./userFPN/wref_%s_LV%d.raw", gName, i+1);
+
+			qDebug("Writing WhiteReference to file %s", filename.toUtf8().data());
+
+			fp.setFileName(filename);
+			fp.open(QIODevice::WriteOnly);
+			if(!fp.isOpen()) {
+				qDebug() << "Error: File couldn't be opened";
+				retVal = CAMERA_FILE_ERROR;
+				goto cleanupTakeWhiteReferences;
 			}
-			fwrite(frameBuffer, sizeof(frameBuffer[0]), pixelsPerFrame, fp);
-			fclose(fp);
+
+			retVal = fp.write((const char*)frameBuffer, sizeof(frameBuffer[0])*pixelsPerFrame);
+			if (retVal != (sizeof(frameBuffer[0])*pixelsPerFrame)) {
+				qDebug("Error writing WhiteReference data to file: %s", fp.errorString().toUtf8().data());
+			}
+			fp.flush();
+			fp.close();
 		}
 	}
 
+cleanupTakeWhiteReferences:
 	delete frameBuffer;
-	return SUCCESS;
+	return retVal;
 }
 
 bool Camera::getFocusPeakEnable(void)

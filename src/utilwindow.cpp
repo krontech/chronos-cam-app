@@ -423,9 +423,11 @@ void UtilWindow::on_cmdAutoCal_clicked()
 	QCoreApplication::processEvents();
 
 	//Turn off calibration light
+	qDebug("cmdAutoCal: turn off cal light");
 	camera->io->setOutLevel(0);	//Turn off output drive
 
 	//ADC Offset calibration
+	qDebug("cmdAutoCal: autoAdcOffsetCorrection");
 	retVal = camera->autoAdcOffsetCorrection();
 
 	if(SUCCESS != retVal)
@@ -440,6 +442,7 @@ void UtilWindow::on_cmdAutoCal_clicked()
 	}
 
 	//Black cal all standard resolutions
+	qDebug("cmdAutoCal: blackCalAllStdRes");
 	retVal = camera->blackCalAllStdRes(true);
 
 	if(SUCCESS != retVal)
@@ -454,8 +457,10 @@ void UtilWindow::on_cmdAutoCal_clicked()
 	}
 
 	//Turn on calibration light
+	qDebug("cmdAutoCal: turn on cal light");
 	camera->io->setOutLevel((1 << 1));	//Turn on output drive
 
+	qDebug("cmdAutoCal: autoColGainCorrection");
 	retVal = camera->autoColGainCorrection();
 
 	if(SUCCESS != retVal)
