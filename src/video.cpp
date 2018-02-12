@@ -2756,18 +2756,18 @@ CameraErrortype Video::setImagerResolution(UInt32 x, UInt32 y)
 	imgCropX = x;
 	imgCropY = y;
 
-    QSettings appSettings;
-    UInt32 displayWindowStartXOffset = 200 * (appSettings.value("camera/ButtonsOnLeft", 0).toBool());
+	QSettings appSettings;
+	UInt32 displayWindowStartXOffset = 200 * (appSettings.value("camera/ButtonsOnLeft", 0).toBool());
 
 	//Depending on aspect ratio, set the display window appropriately
 	if((y * MAX_FRAME_SIZE_H) > (x * MAX_FRAME_SIZE_V))	//If it's taller than the display aspect
 	{
-        displayWindowYSize = 480;
+		displayWindowYSize = 480;
 		displayWindowXSize = displayWindowYSize * x / y;
 		if(displayWindowXSize & 1)	//If it's odd, round it up to be even
 			displayWindowXSize++;
 		displayWindowStartY = 0;
-        displayWindowStartX = (((600 - displayWindowXSize) / 2) + displayWindowStartXOffset) & 0xFFFFFFFE;	//Must be even.  Add the offset if the UI is set to be on the left
+		displayWindowStartX = (((600 - displayWindowXSize) / 2) + displayWindowStartXOffset) & 0xFFFFFFFE;	//Must be even.  Add the offset if the UI is set to be on the left
 
 	}
 	else
@@ -2776,8 +2776,8 @@ CameraErrortype Video::setImagerResolution(UInt32 x, UInt32 y)
 		displayWindowYSize = displayWindowXSize * y / x;
 		if(displayWindowYSize & 1)	//If it's odd, round it up to be even
 			displayWindowYSize++;
-        displayWindowStartX = displayWindowStartXOffset;
-        displayWindowStartY = (480 - displayWindowYSize) / 2;
+		displayWindowStartX = displayWindowStartXOffset;
+		displayWindowStartY = (480 - displayWindowYSize) / 2;
 
 	}
 	return SUCCESS;
@@ -2794,7 +2794,7 @@ void Video::frameCB(void)
 Video::Video()
 {
 
-    QSettings appSettings;
+	QSettings appSettings;
 
 	running = false;
 
@@ -2810,8 +2810,8 @@ Video::Video()
 	imgCropY = 1024;
 
 	//Scaler output
-    displayWindowStartX = 0;
-    displayWindowStartY = 0;
+	displayWindowStartX = 0;
+	displayWindowStartY = 0;
 	displayWindowXSize = 600;		//Resolution image is scaled to
 	displayWindowYSize = 480;
 
@@ -2826,22 +2826,22 @@ Video::Video()
 }
 
 void Video::setDisplayWindowStartX(bool videoOnRight){
-    qDebug()<<"windowstartx() called";
+	qDebug()<<"windowstartx() called";
 
-    QSettings appSettings;
-    UInt32 displayWindowStartXOffset = 200 * (appSettings.value("camera/ButtonsOnLeft", 0).toBool());
+	QSettings appSettings;
+	UInt32 displayWindowStartXOffset = 200 * (appSettings.value("camera/ButtonsOnLeft", 0).toBool());
 
-    if(displayWindowXSize < 600)	//If it's taller than the display aspect
-        displayWindowStartX = (((600 - displayWindowXSize) / 2) + displayWindowStartXOffset) & 0xFFFFFFFE;	//Must be even.  Add the offset if the UI is set to be on the left
-    else
-        displayWindowStartX = displayWindowStartXOffset;
+	if(displayWindowXSize < 600)	//If it's taller than the display aspect
+		displayWindowStartX = (((600 - displayWindowXSize) / 2) + displayWindowStartXOffset) & 0xFFFFFFFE;	//Must be even.  Add the offset if the UI is set to be on the left
+	else
+		displayWindowStartX = displayWindowStartXOffset;
 
 	stopVideo();
 	qDebug()<<"stopvideo() finished";
 
-    startVideo();
+	startVideo();
 	qDebug()<<"startvideo() and setDisplayWindowStartX() finished";
-    }
+}
 
 Video::~Video()
 {
