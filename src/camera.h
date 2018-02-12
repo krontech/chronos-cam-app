@@ -322,6 +322,7 @@ public:
 	bool get_autoRecord();
 	bool getButtonsOnLeft();
 	void setButtonsOnLeft(bool en);
+	void updateVideoPosition();
 
 private:
 	bool lastRecording;

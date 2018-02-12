@@ -560,6 +560,11 @@ UInt32 Camera::setDisplaySettings(bool encoderSafe, UInt32 maxFps)
 	return SUCCESS;
 }
 
+void Camera::updateVideoPosition(){
+	vinst->setDisplayWindowStartX(ButtonsOnLeft);
+	qDebug()<< "updateVideoPosition() called. ButtonsOnLeft value:  " << ButtonsOnLeft;
+}
+
 
 Int32 Camera::startRecording(void)
 {

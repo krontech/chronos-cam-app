@@ -66,12 +66,14 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <QDebug>
 #include <memory.h>
 #include <getopt.h>
 #include <string.h>
 #include <pthread.h>
 #include <sched.h>
 #include <unistd.h>
+#include <QSettings>
 
 /*-------------------------program files -------------------------------------*/
 
@@ -99,6 +101,7 @@ extern "C" {
 
 #include "video.h"
 #include "camera.h"
+
 
 /*--------------------------- defines ----------------------------------------*/
 /* Align address "a" at "b" boundary */
@@ -2814,6 +2817,15 @@ Video::Video()
 	frameCallback = NULL;
 
 
+}
+
+void Video::setDisplayWindowStartX(bool videoOnRight){
+	displayWindowStartX = 200 * videoOnRight;
+	qDebug()<<"windowstartx() called";
+	stopVideo();
+	qDebug()<<"stopvideo() finished";
+	startVideo();
+	qDebug()<<"startvideo() and setDisplayWindowStartX() finished";
 }
 
 Video::~Video()

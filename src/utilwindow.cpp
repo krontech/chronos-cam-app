@@ -326,12 +326,12 @@ void UtilWindow::on_cmdCloseApp_clicked()
 
 void UtilWindow::on_chkFPEnable_stateChanged(int arg1)
 {
-	camera->setFocusPeakEnable(ui->chkFPEnable->checkState());
+    camera->setFocusPeakEnable(ui->chkFPEnable->checkState());
 }
 
 void UtilWindow::on_chkZebraEnable_stateChanged(int arg1)
 {
-	camera->setZebraEnable(ui->chkZebraEnable->checkState());
+    camera->setZebraEnable(ui->chkZebraEnable->checkState());
 }
 
 void UtilWindow::on_comboFPColor_currentIndexChanged(int index)
@@ -450,7 +450,12 @@ void UtilWindow::on_cmdAutoCal_clicked()
 
 void UtilWindow::on_cmdClose_clicked()
 {
-
+    qDebug()<<"ButtonsOnLeft, getbuttons, isChecked:" <<camera->ButtonsOnLeft << camera->getButtonsOnLeft() << ui->chkUiOnLeft->isChecked();
+    if(camera->ButtonsOnLeft != ui->chkUiOnLeft->isChecked()){
+        camera->setButtonsOnLeft(ui->chkUiOnLeft->isChecked());
+        emit moveCamMainWindow();
+		camera->updateVideoPosition();
+	}
 }
 
 void UtilWindow::on_cmdWhiteRef_clicked()
@@ -910,10 +915,4 @@ void UtilWindow::on_cmdRevertCalData_pressed()
 	msg.setText("User calibration data deleted");
 	msg.setWindowFlags(Qt::WindowStaysOnTopHint);
 	msg.exec();
-}
-
-void UtilWindow::on_chkUiOnLeft_clicked(bool checked)
-{
-	camera->setButtonsOnLeft(checked);
-	emit moveCamMainWindow();
 }
