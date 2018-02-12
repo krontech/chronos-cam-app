@@ -66,7 +66,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
-#include <QDebug>
+//#include <QDebug>
 #include <memory.h>
 #include <getopt.h>
 #include <string.h>
@@ -2826,7 +2826,7 @@ Video::Video()
 }
 
 void Video::setDisplayWindowStartX(bool videoOnRight){
-	qDebug()<<"windowstartx() called";
+	//qDebug()<<"windowstartx() called";
 
 	QSettings appSettings;
 	UInt32 displayWindowStartXOffset = 200 * (appSettings.value("camera/ButtonsOnLeft", 0).toBool());
@@ -2837,10 +2837,10 @@ void Video::setDisplayWindowStartX(bool videoOnRight){
 		displayWindowStartX = displayWindowStartXOffset;
 
 	stopVideo();
-	qDebug()<<"stopvideo() finished";
+	//qDebug()<<"stopvideo() finished";
 
 	startVideo();
-	qDebug()<<"startvideo() and setDisplayWindowStartX() finished";
+	//qDebug()<<"startvideo() and setDisplayWindowStartX() finished";
 }
 
 Video::~Video()

@@ -532,9 +532,9 @@ void CamMainWindow::on_cmdUtil_clicked()
 }
 
 void CamMainWindow::updateWindowPosition(){
-	qDebug()<<"windowpos old " << this->x();
+	//qDebug()<<"windowpos old " << this->x();
 	move(camera->ButtonsOnLeft? 0:600, 0);
-	qDebug()<<"windowpos new " << this->x();
+	//qDebug()<<"windowpos new " << this->x();
 	vinst->setDisplayWindowStartX(camera->ButtonsOnLeft? 200:0);
 }
 
