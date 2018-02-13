@@ -204,7 +204,6 @@ public:
     UInt32 setDisplaySettings(bool encoderSafe, UInt32 maxFps);
 	UInt32 setPlayMode(bool playMode);
 	UInt32 playFrame;
-	void setPlaybackRate(Int32 speed, bool forward);
 	void writeFrameNumbers();
 	UInt16 readPixel(UInt32 pixel, UInt32 offset);
 	void writePixel(UInt32 pixel, UInt32 offset, UInt16 value);
@@ -290,9 +289,7 @@ private:
 	UInt32 getBlockFrameAddress(UInt32 block, UInt32 frame);
 	UInt16 getMaxFPNValue(UInt16 * buf, UInt32 count);
 
-
 	friend void* recDataThread(void *arg);
-	friend void frameCallback(void * arg);
 
 	volatile bool recording;
 	bool playbackMode;

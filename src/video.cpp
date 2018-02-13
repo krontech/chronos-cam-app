@@ -24,27 +24,7 @@ void catch_sigchild(int sig) { /* nop */ }
 
 Int32 Video::init(void)
 {
-	int err;
-
-	printf("Opening frame GPIO\n");
-	gpioFD = open("/sys/class/gpio/gpio51/value", O_RDONLY|O_NONBLOCK);
-
-	if (-1 == gpioFD)
-		return VIDEO_FILE_ERROR;
-
-	gpioPoll.fd = gpioFD;
-	gpioPoll.events = POLLPRI | POLLERR;
-
-	printf("Starting frame thread\n");
-	terminateGPIOThread = false;
-
-	err = pthread_create(&frameThreadID, NULL, &frameThread, this);
-	if(err)
-		return VIDEO_THREAD_ERROR;
-
 	signal(SIGCHLD, catch_sigchild);
-
-	printf("Video init done\n");
 	return SUCCESS;
 }
 
@@ -84,17 +64,83 @@ CameraErrortype Video::setScaling(UInt32 startX, UInt32 startY, UInt32 cropX, UI
 	return SUCCESS;
 }
 
-void Video::frameCB(void)
+UInt32 Video::getPosition(void)
 {
+	ComKrontechChronosVideoInterface vif("com.krontech.chronos.video", "/com/krontech/chronos/video", QDBusConnection::systemBus());
+	QVariantMap reply;
+	QDBusError err;
 
+	pthread_mutex_lock(&mutex);
+	reply = vif.status();
+	err = vif.lastError();
+	pthread_mutex_unlock(&mutex);
 
+	if (err.isValid()) {
+		return 0;
+	}
+	return reply["position"].toUInt();
 }
 
-Video::Video()
+void Video::setPosition(unsigned int position, int rate)
+{
+	QVariantMap args;
+	QVariantMap reply;
+	QDBusError err;
+	args.insert("framerate", QVariant(rate));
+	args.insert("position", QVariant(position));
+
+	pthread_mutex_lock(&mutex);
+	reply = iface.playback(args);
+	err = iface.lastError();
+	pthread_mutex_unlock(&mutex);
+
+	if (err.isValid()) {
+		printf("Failed to set playback position: %s - %s", err.name().data(), err.message().toAscii().data());
+	}
+}
+
+void Video::setPlayback(int rate)
+{
+	QVariantMap args;
+	QVariantMap reply;
+	QDBusError err;
+	args.insert("framerate", QVariant(rate));
+
+	pthread_mutex_lock(&mutex);
+	reply = iface.playback(args);
+	err = iface.lastError();
+	pthread_mutex_unlock(&mutex);
+
+	if (err.isValid()) {
+		printf("Failed to set playback rate: %s - %s", err.name().data(), err.message().toAscii().data());
+	}
+}
+
+void Video::addRegion(UInt32 base, UInt32 size, UInt32 offset)
+{
+	QVariantMap region;
+	QVariantMap reply;
+	QDBusError err;
+
+	region.insert("base", QVariant(base));
+	region.insert("size", QVariant(size));
+	region.insert("offset", QVariant(offset));
+
+	pthread_mutex_lock(&mutex);
+	reply = iface.addregion(region);
+	err = iface.lastError();
+	pthread_mutex_unlock(&mutex);
+
+	if (err.isValid()) {
+		printf("Failed to set video region: %s - %s", err.name().data(), err.message().toAscii().data());
+	}
+}
+
+
+Video::Video() : iface("com.krontech.chronos.video", "/com/krontech/chronos/video", QDBusConnection::systemBus())
 {
 	pid = -1;
 	running = false;
-	frameCallback = NULL;
 
 	/* Use the full width with QWS because widgets can autohide. */
 #ifdef Q_WS_QWS
@@ -105,82 +151,12 @@ Video::Video()
 	displayWindowYSize = 480;
 	displayWindowXOff = 0;
 	displayWindowYOff = 0;
+
+	pthread_mutex_init(&mutex, NULL);
 }
 
 Video::~Video()
 {
-	terminateGPIOThread = true;
-	pthread_join(frameThreadID, NULL);
 	setRunning(false);
-
-	if(-1 != gpioFD)
-		close(gpioFD);
-}
-
-
-void* frameThread(void *arg)
-{
-	Video * vInst = (Video *)arg;
-	char buf[2];
-	int ret;
-
-	pthread_t this_thread = pthread_self();
-
-	// struct sched_param is used to store the scheduling priority
-	struct sched_param params;
-	// We'll set the priority to the maximum.
-	params.sched_priority = sched_get_priority_max(SCHED_FIFO);
-
-	printf("Trying to set frameThread realtime prio = %d", params.sched_priority);
-
-	// Attempt to set thread real-time priority to the SCHED_FIFO policy
-	ret = pthread_setschedparam(this_thread, SCHED_FIFO, &params);
-	if (ret != 0) {
-		// Print the error
-		printf("Unsuccessful in setting thread realtime prio");
-		return (void *)0;
-	}
-
-	// Now verify the change in thread priority
-	int policy = 0;
-	ret = pthread_getschedparam(this_thread, &policy, &params);
-	if (ret != 0) {
-		printf("Couldn't retrieve real-time scheduling paramers");
-		return (void *)0;
-	}
-
-	// Check the correct policy was applied
-	if(policy != SCHED_FIFO) {
-		printf("Scheduling is NOT SCHED_FIFO!");
-	} else {
-		printf("SCHED_FIFO OK");
-	}
-
-	// Print thread scheduling priority
-	printf("Thread priority is %d", params.sched_priority);
-
-
-
-	//Dummy read so poll blocks properly
-	read(vInst->gpioPoll.fd, buf, sizeof(buf));
-
-	while(!vInst->terminateGPIOThread)
-	{
-		if((ret = poll(&vInst->gpioPoll, 1, 200)) > 0)	//If we returned due to a GPIO event rather than a timeout
-		{
-			if (vInst->gpioPoll.revents & POLLPRI)
-			{
-				/* IRQ happened */
-				lseek(vInst->gpioPoll.fd, 0, SEEK_SET);
-				read(vInst->gpioPoll.fd, buf, sizeof(buf));
-			}
-			vInst->frameCB();	//The GPIO is high starting at the line before the first active video line in the frame.
-								//This line goes high just after the frame address is registered by the video display hardware, so you have almost the full frame period to update it.
-			if(vInst->frameCallback)
-				(*vInst->frameCallback)(vInst->frameCallbackArg);	//Call user callback
-
-		}
-	}
-
-	pthread_exit(NULL);
+	pthread_mutex_destroy(&mutex);
 }

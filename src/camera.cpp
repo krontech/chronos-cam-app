@@ -37,7 +37,6 @@
 #include "defines.h"
 
 void* recDataThread(void *arg);
-void frameCallback(void * arg);
 void recordEosCallback(void * arg);
 void recordErrorCallback(void * arg, char * message);
 
@@ -311,8 +310,6 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
     imagerSettings.segmentLengthFrames = imagerSettings.recRegionSizeFrames;
     imagerSettings.segments = 1;
 
-    vinst->frameCallbackArg = (void *)this;
-	vinst->frameCallback = frameCallback;
 	vinst->init();
 
 	//Set to full resolution
@@ -920,23 +917,6 @@ UInt32 Camera::setPlayMode(bool playMode)
 	return SUCCESS;
 }
 
-/* setPlaybackRate
- *
- * Sets the plaback rate for recorded video playback.
- *
- * speed:	positive numbers - Playback rate is 2**(speed - 1) (ie speed = 1 results in normal speed)
- *			negative numbers - Playback rate is one frame every |speed| + 1 frames (ie speed = -1 results in half speed)
- *			0				- Playback is stopped
- * forward:	true plays forward, false plays backwards
- *
- * returns: nothing
- **/
-void Camera::setPlaybackRate(Int32 speed, bool forward)
-{
-	playbackSpeed = speed;
-	playbackForward = forward;
-}
-
 /* processPlay
  *
  * processes playback, adjusting playframe according to the playback rate set in setPlaybackRate
@@ -945,56 +925,23 @@ void Camera::setPlaybackRate(Int32 speed, bool forward)
  **/
 void Camera::processPlay(void)
 {
-	UInt32 divisor, multiple;
+	//take care of encoder
+	Int32 encMovementLowRes;
+	Int32 encMovement = ui->getEncoderValue(&encMovementLowRes);
+	if(ui->getEncoderSwitch())
+		encMovement *= 10;
+	else
+		encMovement = encMovementLowRes;
 
-	if(playbackSpeed != 0)
-	{
-		if(playbackSpeed < 0)
-			divisor = -playbackSpeed + 1;
-		else
-			divisor = 1;
-
-		if(playbackSpeed > 0)
-			multiple = 1 << (playbackSpeed-1);
-		else
-			multiple = 1;
-
-		if(0 == playDivisorCount)
-		{
-			if(playbackForward)
-				playFrame = (playFrame + multiple) % recordingData.totalFrames; //Roll over past the end
-			else
-			{
-				if(multiple > playFrame)
-					playFrame = playFrame - multiple + recordingData.totalFrames; //If going backwards past the end, take care of rolling over
-				else
-					playFrame -= multiple; //Not rolling over
-			}
-			playDivisorCount = divisor - 1;
-		}
-		else
-			playDivisorCount--;
-	}
+	if(encMovement >= 0)
+		playFrame = (playFrame + encMovement) % recordingData.totalFrames; //Roll over past the end
 	else
 	{
-		//take care of encoder
-		Int32 encMovementLowRes;
-		Int32 encMovement = ui->getEncoderValue(&encMovementLowRes);
-		if(ui->getEncoderSwitch())
-			encMovement *= 10;
+		encMovement = -encMovement;
+		if(encMovement > playFrame)
+			playFrame = playFrame - encMovement + recordingData.totalFrames; //If going backwards past the end, take care of rolling over
 		else
-			encMovement = encMovementLowRes;
-
-		if(encMovement >= 0)
-			playFrame = (playFrame + encMovement) % recordingData.totalFrames; //Roll over past the end
-		else
-		{
-			encMovement = -encMovement;
-			if(encMovement > playFrame)
-				playFrame = playFrame - encMovement + recordingData.totalFrames; //If going backwards past the end, take care of rolling over
-			else
-				playFrame -= encMovement; //Not rolling over
-		}
+			playFrame -= encMovement; //Not rolling over
 	}
 }
 
@@ -2642,8 +2589,7 @@ Int32 Camera::startSave(UInt32 startFrame, UInt32 length)
 
     /* Start recording by playing the first frame. */
 	sem_wait(&playMutex);
-    setDisplayFrameAddress(playFrame);
-	setPlaybackRate(1, true);
+	setDisplayFrameAddress(playFrame);
 	sem_post(&playMutex);
 
 	fflush(stdout);
@@ -3090,9 +3036,16 @@ void* recDataThread(void *arg)
 	{
 		if(!cInst->getRecDataFifoIsEmpty())
 		{
-			cInst->recData[cInst->recDataPos].blockStart = cInst->readRecDataFifo();
-			cInst->recData[cInst->recDataPos].blockEnd = cInst->readRecDataFifo();
-			cInst->recData[cInst->recDataPos].blockLast = cInst->readRecDataFifo();
+			UInt32 start = cInst->readRecDataFifo();
+			UInt32 end = cInst->readRecDataFifo();
+			UInt32 last = cInst->readRecDataFifo();
+			UInt32 offset = ((start + last) >= end) ? 0 : last;
+			cInst->recData[cInst->recDataPos].blockStart = start;
+			cInst->recData[cInst->recDataPos].blockEnd = end;
+			cInst->recData[cInst->recDataPos].blockLast = last;
+
+			cInst->vinst->addRegion(start, (end - start), offset);
+
 			qDebug() << "Read something from recDataFifo";
 
 			//Keep track of number of records
@@ -3126,34 +3079,10 @@ void* recDataThread(void *arg)
 	pthread_exit(NULL);
 }
 
-void frameCallback(void * arg)
-{
-	Camera * cInst = (Camera *)arg;
-	if(cInst->playbackMode)
-    {
-        sem_wait(&cInst->playMutex);
-
-        /*
-         * Wait for flow control issues to clear before the next frame.
-         */
-        while (!cInst->recorder->flowReady()) {
-			delayms(10);
-        }
-
-        cInst->processPlay();
-
-        cInst->setDisplayFrameAddress(cInst->getPlayFrameAddr(cInst->playFrame));
-
-        cInst->recorder->debug();
-
-		sem_post(&cInst->playMutex);
-	}
-}
-
 void recordEosCallback(void * arg)
 {
 	Camera * camera = (Camera *)arg;
-	camera->setPlaybackRate(0, true);
+	//camera->setPlaybackRate(0, true);
 	camera->recorder->stop();
     camera->setDisplaySettings(false, MAX_LIVE_FRAMERATE);
 	camera->gpmc->write16(DISPLAY_PIPELINE_ADDR, 0x0000); // turn off raw/bipass modes, if they're set

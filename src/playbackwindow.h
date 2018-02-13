@@ -67,6 +67,8 @@ private slots:
 
 	void on_cmdRateDn_clicked();
 
+	void keyPressEvent(QKeyEvent *ev);
+
 private:
 	Ui::playbackWindow *ui;
 	Camera * camera;
@@ -74,11 +76,12 @@ private:
 	void updateStatusText();
 	void updatePlayRateLabel(Int32 playbackRate);
 	void setControlEnable(bool en);
+
 	UInt32 markInFrame, markOutFrame;
-	UInt32 lastPlayframe;
 	QTimer * timer;
 	QTimer * saveDoneTimer;
-	Int32 playbackRate;
+	Int32 playbackExponent;
+	UInt32 playFrame;
 	bool autoSaveFlag;
 
 signals:

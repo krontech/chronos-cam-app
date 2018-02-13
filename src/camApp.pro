@@ -87,7 +87,8 @@ SOURCES += main.cpp\
     recmodewindow.cpp \
     triggerdelaywindow.cpp \
     triggerslider.cpp \
-    chronosControlInterface.cpp
+    chronosControlInterface.cpp \
+    chronosVideoInterface.cpp
 
 ## Generate version.cpp on every build
 versionTarget.target = version.cpp
@@ -139,7 +140,8 @@ HEADERS  += mainwindow.h \
     recmodewindow.h \
     triggerdelaywindow.h \
     triggerslider.h \
-    chronosControlInterface.h
+    chronosControlInterface.h \
+    chronosVideoInterface.h
 
 
 
