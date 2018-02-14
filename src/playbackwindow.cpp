@@ -243,6 +243,7 @@ void playbackWindow::on_cmdSaveSettings_clicked()
 	saveSettingsWindow *w = new saveSettingsWindow(NULL, camera);
 	w->setAttribute(Qt::WA_DeleteOnClose);
 	w->show();
+	if(camera->ButtonsOnLeft) w->move(230, 0);
 }
 
 void playbackWindow::on_cmdMarkIn_clicked()
