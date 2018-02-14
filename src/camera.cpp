@@ -32,6 +32,7 @@
 #include "lux1310.h"
 #include "ecp5Config.h"
 #include "defines.h"
+#include <QWSDisplay>
 
 void* recDataThread(void *arg);
 void frameCallback(void * arg);
@@ -57,6 +58,7 @@ Camera::Camera()
 	autoSave = appSettings.value("camera/autoSave", 0).toBool();
 	autoRecord = appSettings.value("camera/autoRecord", 0).toBool();
 	ButtonsOnLeft = getButtonsOnLeft();
+	UpsideDownDisplay = getUpsideDownDisplay();
 	strcpy(serialNumber, "Not_Set");
 
 /*
@@ -561,7 +563,7 @@ UInt32 Camera::setDisplaySettings(bool encoderSafe, UInt32 maxFps)
 }
 
 void Camera::updateVideoPosition(){
-	vinst->setDisplayWindowStartX(ButtonsOnLeft);
+	vinst->setDisplayWindowStartX(ButtonsOnLeft ^ UpsideDownDisplay); //if both of these are true, the video position should actually be 0
 	//qDebug()<< "updateVideoPosition() called. ButtonsOnLeft value:  " << ButtonsOnLeft;
 }
 
@@ -2945,6 +2947,18 @@ void Camera::setButtonsOnLeft(bool en){
 	ButtonsOnLeft = en;
 	appSettings.setValue("camera/ButtonsOnLeft", en);
 	//qDebug()<< "setButtonsOnLeft, buttons value is " << getButtonsOnLeft();
+}
+
+bool Camera::getUpsideDownDisplay(){
+	QSettings appSettings;
+	return (appSettings.value("camera/UpsideDownDisplay", 0).toBool());
+}
+
+void Camera::setUpsideDownDisplay(bool en){
+	QSettings appSettings;
+	UpsideDownDisplay = en;
+	appSettings.setValue("camera/UpsideDownDisplay", en);
+	QWSDisplay::setTransformation(en ? 2 : 0);//2 for upside down, 0 for normal
 }
 
 bool Camera::getFocusPeakEnable(void)

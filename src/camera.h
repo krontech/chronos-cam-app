@@ -285,6 +285,7 @@ public:
 	UInt16 getFPGAVersion(void);
 	UInt16 getFPGASubVersion(void);
 	bool ButtonsOnLeft;
+	bool UpsideDownDisplay;
 private:
 	void endOfRec(void);
 	UInt32 getNumFrames(UInt32 start, UInt32 end);
@@ -322,6 +323,8 @@ public:
 	bool get_autoRecord();
 	bool getButtonsOnLeft();
 	void setButtonsOnLeft(bool en);
+	bool getUpsideDownDisplay();
+	void setUpsideDownDisplay(bool en);
 	void updateVideoPosition();
 
 private:

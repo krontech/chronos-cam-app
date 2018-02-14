@@ -448,6 +448,34 @@ USB</string>
       <bool>false</bool>
      </property>
     </widget>
+    <widget class="QCheckBox" name="chkUpsideDownDisplay">
+     <property name="geometry">
+      <rect>
+       <x>560</x>
+       <y>30</y>
+       <width>171</width>
+       <height>51</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>16</pointsize>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QCheckBox::indicator {
+     width: 40px;
+     height: 40px;
+}</string>
+     </property>
+     <property name="text">
+      <string>Upside-down
+Display</string>
+     </property>
+     <property name="tristate">
+      <bool>false</bool>
+     </property>
+    </widget>
    </widget>
    <widget class="QWidget" name="tabSettings">
     <attribute name="title">

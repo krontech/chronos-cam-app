@@ -39,7 +39,7 @@ public:
 	~CamMainWindow();
 
 public slots:
-	void updateWindowPosition();
+	void updateCamMainWindowPosition();
 private slots:
 	void on_cmdClose_clicked();
 
