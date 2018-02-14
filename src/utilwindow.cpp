@@ -30,6 +30,7 @@
 #include <time.h>
 #include <sys/mount.h>
 #include "sys/sendfile.h"
+#include <QWSDisplay>
 
 #define FOCUS_PEAK_THRESH_LOW	35
 #define FOCUS_PEAK_THRESH_MED	25
@@ -451,15 +452,28 @@ void UtilWindow::on_cmdAutoCal_clicked()
 
 void UtilWindow::on_cmdClose_clicked()
 {
+	bool ButtonsOnLeftChanged = (camera->ButtonsOnLeft !=	 ui->chkUiOnLeft->isChecked());
+	bool UpsideDownDisplayChanged = (camera->UpsideDownDisplay != ui->chkUpsideDownDisplay->isChecked());
 
+	if(ButtonsOnLeftChanged) {
+		camera->setButtonsOnLeft(ui->chkUiOnLeft->isChecked());
+		emit moveCamMainWindow();
+	}
+
+	if(UpsideDownDisplayChanged){
+		camera->setUpsideDownDisplay(ui->chkUpsideDownDisplay->isChecked());
+		QWSDisplay::setTransformation(camera->UpsideDownDisplay ? 2 : 0);//2 for upside down, 0 for normal
+	}
+
+	if(UpsideDownDisplayChanged ^ ButtonsOnLeftChanged) camera->updateVideoPosition();
+
+
+/*
 	if((camera->ButtonsOnLeft !=	 ui->chkUiOnLeft->isChecked()) ||
 		camera->UpsideDownDisplay != ui->chkUpsideDownDisplay->isChecked())
 			{
-				camera->setUpsideDownDisplay(ui->chkUpsideDownDisplay->isChecked());
-				camera->setButtonsOnLeft(ui->chkUiOnLeft->isChecked());
-				emit moveCamMainWindow();
 				camera->updateVideoPosition();
-	}
+	*/
 }
 
 void UtilWindow::on_cmdWhiteRef_clicked()
