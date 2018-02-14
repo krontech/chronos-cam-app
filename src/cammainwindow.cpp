@@ -20,7 +20,6 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <QSettings>
-#include <QWSDisplay>
 
 #include "cameraRegisters.h"
 #include "userInterface.h"
@@ -141,7 +140,7 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	else                        autoSaveActive = false;
 
 
-	if(camera->UpsideDownDisplay) 	QWSDisplay::setTransformation(2);//2 for upside down, 0 for normal
+	if(camera->UpsideDownDisplay) 	camera->upsideDownTransform(2);//2 for upside down, 0 for normal
 
 	if( (camera->ButtonsOnLeft) ^ (camera->UpsideDownDisplay) ){
 		camera->updateVideoPosition();

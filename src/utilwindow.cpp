@@ -30,7 +30,6 @@
 #include <time.h>
 #include <sys/mount.h>
 #include "sys/sendfile.h"
-#include <QWSDisplay>
 
 #define FOCUS_PEAK_THRESH_LOW	35
 #define FOCUS_PEAK_THRESH_MED	25
@@ -462,7 +461,7 @@ void UtilWindow::on_cmdClose_clicked()
 
 	if(UpsideDownDisplayChanged){
 		camera->setUpsideDownDisplay(ui->chkUpsideDownDisplay->isChecked());
-		QWSDisplay::setTransformation(camera->UpsideDownDisplay ? 2 : 0);//2 for upside down, 0 for normal
+		camera->upsideDownTransform(camera->UpsideDownDisplay ? 2 : 0);//2 for upside down, 0 for normal
 	}
 
 	if(UpsideDownDisplayChanged ^ ButtonsOnLeftChanged) camera->updateVideoPosition();

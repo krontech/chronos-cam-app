@@ -325,8 +325,8 @@ public:
 	void setButtonsOnLeft(bool en);
 	bool getUpsideDownDisplay();
 	void setUpsideDownDisplay(bool en);
+	void upsideDownTransform(int rotation);
 	void updateVideoPosition();
-
 private:
 	bool lastRecording;
 	bool terminateRecDataThread;

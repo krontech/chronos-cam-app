@@ -2961,6 +2961,10 @@ void Camera::setUpsideDownDisplay(bool en){
 	//QWSDisplay::setTransformation(en ? 2 : 0);//2 for upside down, 0 for normal
 }
 
+void Camera::upsideDownTransform(int rotation){
+	QWSDisplay::setTransformation(rotation);
+}
+
 bool Camera::getFocusPeakEnable(void)
 {
 	QSettings appSettings;
