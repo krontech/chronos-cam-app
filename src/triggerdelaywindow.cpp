@@ -122,3 +122,9 @@ void triggerDelayWindow::on_spinPreRecFrames_valueChanged(int arg1)
     if(ui->spinPreRecFrames->hasFocus())
         updateControls(recLenFrames + arg1);
 }
+
+void triggerDelayWindow::on_cmdResetToDefaults_clicked()
+{
+    updateControls(0);
+    ui->horizontalSlider->setMaximum(max(ui->spinPostFrames->value(), recLenFrames));
+}
