@@ -286,6 +286,8 @@ public:
 	Int32 writeSerialNumber(char * src);
 	UInt16 getFPGAVersion(void);
 	UInt16 getFPGASubVersion(void);
+	bool ButtonsOnLeft;
+	bool UpsideDownDisplay;
 private:
 	void endOfRec(void);
 	UInt32 getNumFrames(UInt32 start, UInt32 end);
@@ -322,7 +324,12 @@ public:
 	bool autoRecord;
 	void set_autoRecord(bool state);
 	bool get_autoRecord();
-
+	bool getButtonsOnLeft();
+	void setButtonsOnLeft(bool en);
+	bool getUpsideDownDisplay();
+	void setUpsideDownDisplay(bool en);
+	void upsideDownTransform(int rotation);
+	void updateVideoPosition();
 private:
 	bool lastRecording;
 	bool terminateRecDataThread;

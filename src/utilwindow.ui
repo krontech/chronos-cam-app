@@ -421,6 +421,8 @@ USB</string>
       <bool>false</bool>
      </property>
     </widget>
+
+
     <widget class="QCheckBox" name="chkUnsavedVidWarning">
      <property name="geometry">
       <rect>
@@ -447,6 +449,62 @@ unsaved video in RAM</string>
      </property>
      <property name="checked">
       <bool>true</bool>
+     </property>
+    </widget>
+
+
+    <widget class="QCheckBox" name="chkUiOnLeft">
+     <property name="geometry">
+      <rect>
+       <x>510</x>
+       <y>320</y>
+       <width>201</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>16</pointsize>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QCheckBox::indicator {
+     width: 40px;
+     height: 40px;
+}</string>
+     </property>
+     <property name="text">
+      <string>UI on Left Side</string>
+     </property>
+     <property name="tristate">
+      <bool>false</bool>
+     </property>
+    </widget>
+
+
+    <widget class="QCheckBox" name="chkUpsideDownDisplay">
+     <property name="geometry">
+      <rect>
+       <x>560</x>
+       <y>30</y>
+       <width>171</width>
+       <height>51</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>16</pointsize>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QCheckBox::indicator {
+     width: 40px;
+     height: 40px;
+}</string>
+     </property>
+     <property name="text">
+      <string>Upside-down
+Display</string>
      </property>
      <property name="tristate">
       <bool>false</bool>

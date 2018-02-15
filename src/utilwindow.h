@@ -31,6 +31,9 @@ class UtilWindow : public QWidget
 public:
 	explicit UtilWindow(QWidget *parent, Camera * cameraInst);
 	~UtilWindow();
+
+signals:
+	void moveCamMainWindow();
 	
 private slots:
 	void on_cmdSWUpdate_clicked();

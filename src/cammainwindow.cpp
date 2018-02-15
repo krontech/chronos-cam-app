@@ -138,6 +138,14 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	}
 	if (camera->get_autoSave()) autoSaveActive = true;
 	else                        autoSaveActive = false;
+
+
+	if(camera->UpsideDownDisplay) 	camera->upsideDownTransform(2);//2 for upside down, 0 for normal
+
+	if( (camera->ButtonsOnLeft) ^ (camera->UpsideDownDisplay) ){
+		camera->updateVideoPosition();
+	}
+
 }
 
 CamMainWindow::~CamMainWindow()
@@ -210,6 +218,7 @@ void CamMainWindow::on_cmdPlay_clicked()
 	//w->camera = camera;
 	w->setAttribute(Qt::WA_DeleteOnClose);
 	w->show();
+	//w->setGeometry(0, 0,w->width(), w->height());
 }
 
 void CamMainWindow::playFinishedSaving()
@@ -527,6 +536,13 @@ void CamMainWindow::on_cmdUtil_clicked()
 	//w->camera = camera;
 	w->setAttribute(Qt::WA_DeleteOnClose);
 	w->show();
+	connect(w, SIGNAL(moveCamMainWindow()), this, SLOT(updateCamMainWindowPosition()));
+}
+
+void CamMainWindow::updateCamMainWindowPosition(){
+	//qDebug()<<"windowpos old " << this->x();
+	move(camera->ButtonsOnLeft? 0:600, 0);
+	//qDebug()<<"windowpos new " << this->x();
 }
 
 void CamMainWindow::on_cmdBkGndButton_clicked()
