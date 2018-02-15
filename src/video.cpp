@@ -66,7 +66,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
-//#include <QDebug>
+#include <QDebug>
 #include <memory.h>
 #include <getopt.h>
 #include <string.h>
@@ -2757,7 +2757,8 @@ CameraErrortype Video::setImagerResolution(UInt32 x, UInt32 y)
 	imgCropY = y;
 
 	QSettings appSettings;
-	UInt32 displayWindowStartXOffset = 200 * (appSettings.value("camera/ButtonsOnLeft", 0).toBool());
+	bool moveVideoBool = (appSettings.value("camera/ButtonsOnLeft", 0).toBool()) ^ (appSettings.value("camera/UpsideDownDisplay", 0).toBool());
+	UInt32 displayWindowStartXOffset = 200 * moveVideoBool;
 
 	//Depending on aspect ratio, set the display window appropriately
 	if((y * MAX_FRAME_SIZE_H) > (x * MAX_FRAME_SIZE_V))	//If it's taller than the display aspect
@@ -2794,8 +2795,6 @@ void Video::frameCB(void)
 Video::Video()
 {
 
-	QSettings appSettings;
-
 	running = false;
 
 	imgXSize = 1280;	//Input resolution coming from imager
@@ -2826,21 +2825,15 @@ Video::Video()
 }
 
 void Video::setDisplayWindowStartX(bool videoOnRight){
-	//qDebug()<<"windowstartx() called";
-
-	QSettings appSettings;
-	UInt32 displayWindowStartXOffset = 200 * (appSettings.value("camera/ButtonsOnLeft", 0).toBool());
+	UInt32 displayWindowStartXOffset = 200 * videoOnRight;
 
 	if(displayWindowXSize < 600)	//If it's taller than the display aspect
 		displayWindowStartX = (((600 - displayWindowXSize) / 2) + displayWindowStartXOffset) & 0xFFFFFFFE;	//Must be even.  Add the offset if the UI is set to be on the left
 	else
 		displayWindowStartX = displayWindowStartXOffset;
 
-	stopVideo();
-	//qDebug()<<"stopvideo() finished";
-
+	stopVideo();//Video must be stopped and started to be able to change its position
 	startVideo();
-	//qDebug()<<"startvideo() and setDisplayWindowStartX() finished";
 }
 
 Video::~Video()
