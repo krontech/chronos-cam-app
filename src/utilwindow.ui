@@ -421,12 +421,10 @@ USB</string>
       <bool>false</bool>
      </property>
     </widget>
-
-
     <widget class="QCheckBox" name="chkUnsavedVidWarning">
      <property name="geometry">
       <rect>
-       <x>400</x>
+       <x>310</x>
        <y>40</y>
        <width>256</width>
        <height>49</height>
@@ -451,12 +449,10 @@ unsaved video in RAM</string>
       <bool>true</bool>
      </property>
     </widget>
-
-
     <widget class="QCheckBox" name="chkUiOnLeft">
      <property name="geometry">
       <rect>
-       <x>510</x>
+       <x>460</x>
        <y>320</y>
        <width>201</width>
        <height>41</height>
@@ -480,13 +476,11 @@ unsaved video in RAM</string>
       <bool>false</bool>
      </property>
     </widget>
-
-
     <widget class="QCheckBox" name="chkUpsideDownDisplay">
      <property name="geometry">
       <rect>
-       <x>560</x>
-       <y>30</y>
+       <x>460</x>
+       <y>370</y>
        <width>171</width>
        <height>51</height>
       </rect>
