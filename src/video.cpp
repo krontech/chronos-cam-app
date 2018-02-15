@@ -2514,7 +2514,6 @@ OMX_ERRORTYPE Video::VIL_ClientSetNfParams (IL_Client *pAppData)
 
 OMX_ERRORTYPE Video::VIL_ClientSetDisplayParams (IL_Client *pAppData)
 {
-	qDebug() <<"VIL_ClientSetDisplayParams()";
   OMX_ERRORTYPE eError = OMX_ErrorNone;
   OMX_PARAM_BUFFER_MEMORYTYPE memTypeCfg;
   OMX_PARAM_PORTDEFINITIONTYPE paramPort;
@@ -2796,8 +2795,6 @@ void Video::frameCB(void)
 Video::Video()
 {
 
-	QSettings appSettings;
-
 	running = false;
 
 	imgXSize = 1280;	//Input resolution coming from imager
@@ -2828,10 +2825,6 @@ Video::Video()
 }
 
 void Video::setDisplayWindowStartX(bool videoOnRight){
-	//qDebug()<<"windowstartx() called";
-
-	//QSettings appSettings;
-	//UInt32 displayWindowStartXOffset = 200 * (appSettings.value("camera/ButtonsOnLeft", 0).toBool());
 	UInt32 displayWindowStartXOffset = 200 * videoOnRight;
 
 	if(displayWindowXSize < 600)	//If it's taller than the display aspect
@@ -2839,11 +2832,8 @@ void Video::setDisplayWindowStartX(bool videoOnRight){
 	else
 		displayWindowStartX = displayWindowStartXOffset;
 
-	stopVideo();
-	//qDebug()<<"stopvideo() finished";
-
+	stopVideo();//Video must be stopped and started to be able to change its position
 	startVideo();
-	//qDebug()<<"startvideo() and setDisplayWindowStartX() finished";
 }
 
 Video::~Video()

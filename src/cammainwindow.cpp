@@ -144,8 +144,8 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 
 	if( (camera->ButtonsOnLeft) ^ (camera->UpsideDownDisplay) ){
 		camera->updateVideoPosition();
-		qDebug()<<"xor";
-}
+	}
+
 }
 
 CamMainWindow::~CamMainWindow()

@@ -2938,7 +2938,6 @@ Int32 Camera::takeWhiteReferences(void)
 
 bool Camera::getButtonsOnLeft(void){
 	QSettings appSettings;
-	//qDebug()<< "setButtonsOnLeft, buttons value is " << (appSettings.value("camera/ButtonsOnLeft", ButtonsOnLeft).toBool());
 	return (appSettings.value("camera/ButtonsOnLeft", ButtonsOnLeft).toBool());
 }
 
@@ -2946,7 +2945,6 @@ void Camera::setButtonsOnLeft(bool en){
 	QSettings appSettings;
 	ButtonsOnLeft = en;
 	appSettings.setValue("camera/ButtonsOnLeft", en);
-	//qDebug()<< "setButtonsOnLeft, buttons value is " << getButtonsOnLeft();
 }
 
 bool Camera::getUpsideDownDisplay(){
@@ -2958,7 +2956,6 @@ void Camera::setUpsideDownDisplay(bool en){
 	QSettings appSettings;
 	UpsideDownDisplay = en;
 	appSettings.setValue("camera/UpsideDownDisplay", en);
-	//QWSDisplay::setTransformation(en ? 2 : 0);//2 for upside down, 0 for normal
 }
 
 void Camera::upsideDownTransform(int rotation){
