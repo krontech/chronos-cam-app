@@ -50,6 +50,7 @@ playbackWindow::playbackWindow(QWidget *parent, Camera * cameraInst, bool autosa
 	ui->verticalSlider->setValue(camera->playFrame);
 	markInFrame = 1;
 	markOutFrame = camera->recordingData.totalFrames;
+	ui->verticalSlider->setHighlightRegion(markInFrame, markOutFrame);
 
 	camera->setPlayMode(true);
 
@@ -251,6 +252,7 @@ void playbackWindow::on_cmdMarkIn_clicked()
 	markInFrame = camera->playFrame + 1;
 	if(markOutFrame < markInFrame)
 		markOutFrame = markInFrame;
+	ui->verticalSlider->setHighlightRegion(markInFrame, markOutFrame);
 	updateStatusText();
 }
 
@@ -259,6 +261,7 @@ void playbackWindow::on_cmdMarkOut_clicked()
 	markOutFrame = camera->playFrame + 1;
 	if(markInFrame > markOutFrame)
 		markInFrame = markOutFrame;
+	ui->verticalSlider->setHighlightRegion(markInFrame, markOutFrame);
 	updateStatusText();
 }
 

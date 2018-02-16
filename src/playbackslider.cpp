@@ -52,18 +52,19 @@ void PlaybackSlider::paintEvent(QPaintEvent *ev) {
 	QRect groove_rect = style()->subControlRect(QStyle::CC_Slider, &opt, QStyle::SC_SliderGroove, this);
 
 	//Reverse the bar if the slider is set to reverse direction
-	if(QSlider::invertedAppearance())
+	if(!QSlider::invertedAppearance())//slider is not inverted, and position 0 is at top of screen
 	{
-		start = groove_rect.width() * (double)(QSlider::maximum() - highlightEnd) / QSlider::maximum();
-		end = groove_rect.width() * (double)(QSlider::maximum() - highlightStart) / QSlider::maximum();
+		start = groove_rect.height() * (double)(QSlider::maximum() - highlightEnd) / QSlider::maximum();
+		end = groove_rect.height() * (double)(QSlider::maximum() - highlightStart) / QSlider::maximum();
 	}
 	else
 	{
-		start = groove_rect.width() * (double)highlightStart / QSlider::maximum();
-		end = groove_rect.width() * (double)highlightEnd / QSlider::maximum();
+		start = groove_rect.height() * (double)highlightStart / QSlider::maximum();
+		end = groove_rect.height() * (double)highlightEnd / QSlider::maximum();
 	}
 
-	QRect rect(groove_rect.left() + start, groove_rect.top(), end, groove_rect.height());
+	//specify (left, top, width, height) of the rectangle to highlight
+	QRect rect(groove_rect.left(), end, 50, start - end);
 	QPainter painter(this);
 	painter.fillRect(rect, QBrush(Qt::red));
 

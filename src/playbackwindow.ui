@@ -13,12 +13,12 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <widget class="QSlider" name="verticalSlider">
+  <widget class="PlaybackSlider" name="verticalSlider">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>51</width>
+     <width>55</width>
      <height>481</height>
     </rect>
    </property>
@@ -263,6 +263,13 @@ Out</string>
    </widget>
   </widget>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>PlaybackSlider</class>
+   <extends>QSlider</extends>
+   <header>playbackslider.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>
