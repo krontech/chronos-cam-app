@@ -16,9 +16,9 @@
   <widget class="PlaybackSlider" name="verticalSlider">
    <property name="geometry">
     <rect>
-     <x>0</x>
+     <x>-1</x>
      <y>0</y>
-     <width>55</width>
+     <width>53</width>
      <height>481</height>
     </rect>
    </property>

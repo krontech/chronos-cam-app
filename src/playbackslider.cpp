@@ -59,7 +59,7 @@ void PlaybackSlider::paintEvent(QPaintEvent *ev) {
 		start	= (groove_rect.height() - HANDLE_HEIGHT)	* (double)(QSlider::maximum() - highlightEnd)		/ QSlider::maximum();
 		end		= (groove_rect.height() - HANDLE_HEIGHT)	* (double)(QSlider::maximum() - highlightStart)		/ QSlider::maximum();
 		//Subtract the handle height because the start or end region should line up with the middle of the handle,
-		//and hte middle if the handle cannot be moved to the very top or bottom of the screen
+		//and the middle if the handle cannot be moved to the very top or bottom of the screen
 	}
 	else
 	{
@@ -68,7 +68,7 @@ void PlaybackSlider::paintEvent(QPaintEvent *ev) {
 	}
 
 	//specify (left, top, width, height) of the rectangle to highlight
-	QRect rect(groove_rect.left(), HANDLE_HEIGHT/2 + end, groove_rect.width() + 5, start - end);
+	QRect rect(groove_rect.left(), HANDLE_HEIGHT/2 + end, groove_rect.width() + 2, start - end);
 	QPainter painter(this);
 	painter.fillRect(rect, QBrush(Qt::red));
 
