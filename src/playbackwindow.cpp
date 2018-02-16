@@ -218,6 +218,8 @@ void playbackWindow::on_cmdSave_clicked()
 			connect(saveDoneTimer, SIGNAL(timeout()), this, SLOT(checkForSaveDone()));
 			saveDoneTimer->start(100);
 			ui->verticalSlider->appendRectToList();
+			ui->verticalSlider->setHighlightRegion(markOutFrame, markOutFrame);
+			//both arguments should be markout because a new rectangle will be drawn, and it should not overlap the one that was just appended
 		}
 		else
 		{

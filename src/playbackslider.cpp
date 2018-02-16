@@ -102,7 +102,7 @@ void PlaybackSlider::paintEvent(QPaintEvent *ev) {
 	qDebug() <<"foreach loop finished. rectList.length() = " << QString::number(rectList.length());
 
 	qDebug() <<"will now paint current rect, color " <<QString::number(rectList.length());
-	painter.fillRect(rect, QBrush(colorArray[rectList.length() + 1]));
+	painter.fillRect(rect, QBrush(colorArray[rectList.length()]));
 	qDebug() <<"all rects painted";
 
 	QSlider::paintEvent(ev);
