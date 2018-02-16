@@ -20,6 +20,8 @@
 #include <QApplication>
 #include <QDebug>
 
+#define HANDLE_HEIGHT 30
+
 PlaybackSlider::PlaybackSlider(QWidget *parent) :
 	QSlider(parent)
 {
@@ -54,17 +56,19 @@ void PlaybackSlider::paintEvent(QPaintEvent *ev) {
 	//Reverse the bar if the slider is set to reverse direction
 	if(!QSlider::invertedAppearance())//slider is not inverted, and position 0 is at top of screen
 	{
-		start = groove_rect.height() * (double)(QSlider::maximum() - highlightEnd) / QSlider::maximum();
-		end = groove_rect.height() * (double)(QSlider::maximum() - highlightStart) / QSlider::maximum();
+		start	= (groove_rect.height() - HANDLE_HEIGHT)	* (double)(QSlider::maximum() - highlightEnd)		/ QSlider::maximum();
+		end		= (groove_rect.height() - HANDLE_HEIGHT)	* (double)(QSlider::maximum() - highlightStart)		/ QSlider::maximum();
+		//Subtract the handle height because the start or end region should line up with the middle of the handle,
+		//and hte middle if the handle cannot be moved to the very top or bottom of the screen
 	}
 	else
 	{
-		start = groove_rect.height() * (double)highlightStart / QSlider::maximum();
-		end = groove_rect.height() * (double)highlightEnd / QSlider::maximum();
+		start = groove_rect.height()* (double)highlightStart / QSlider::maximum();
+		end = groove_rect.height()	* (double)highlightEnd / QSlider::maximum();
 	}
 
 	//specify (left, top, width, height) of the rectangle to highlight
-	QRect rect(groove_rect.left(), end, 50, start - end);
+	QRect rect(groove_rect.left(), HANDLE_HEIGHT/2 + end, groove_rect.width() + 5, start - end);
 	QPainter painter(this);
 	painter.fillRect(rect, QBrush(Qt::red));
 
