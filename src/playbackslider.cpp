@@ -30,7 +30,7 @@ PlaybackSlider::PlaybackSlider(QWidget *parent) :
 
 PlaybackSlider::~PlaybackSlider()
 {
-
+ qDebug() << "PlaybackSlider deconstructed";
 }
 
 void PlaybackSlider::setHighlightRegion(int start, int end)
@@ -68,9 +68,16 @@ void PlaybackSlider::paintEvent(QPaintEvent *ev) {
 	}
 
 	//specify (left, top, width, height) of the rectangle to highlight
-	QRect rect(groove_rect.left(), HANDLE_HEIGHT/2 + end, groove_rect.width() + 2, start - end);
+	rect.setRect(groove_rect.left(), HANDLE_HEIGHT/2 + end, groove_rect.width() + 2, start - end);
 	QPainter painter(this);
+	foreach (QRect rectInList, rectList) {
+		painter.fillRect(rectInList, QBrush(Qt::red));
+	}
 	painter.fillRect(rect, QBrush(Qt::red));
 
 	QSlider::paintEvent(ev);
+}
+
+void PlaybackSlider::appendRectToList(){
+	rectList.append(rect);
 }

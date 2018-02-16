@@ -217,6 +217,7 @@ void playbackWindow::on_cmdSave_clicked()
 			saveDoneTimer = new QTimer(this);
 			connect(saveDoneTimer, SIGNAL(timeout()), this, SLOT(checkForSaveDone()));
 			saveDoneTimer->start(100);
+			ui->verticalSlider->appendRectToList();
 		}
 		else
 		{
