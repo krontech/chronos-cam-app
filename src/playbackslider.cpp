@@ -67,13 +67,43 @@ void PlaybackSlider::paintEvent(QPaintEvent *ev) {
 		end = groove_rect.height()	* (double)highlightEnd / QSlider::maximum();
 	}
 
+	qDebug() <<"about to create colorArray";
+
+	QColor colorArray[16] = {
+		QColor("red"),
+		QColor("black"),
+		QColor("darkGray"),
+		QColor("gray"),
+		QColor("lightGray"),
+		QColor("green"),
+		QColor("blue"),
+		QColor("cyan"),
+		QColor("magenta"),
+		QColor("yellow"),
+		QColor("darkRed"),
+		QColor("darkGreen"),
+		QColor("darkBlue"),
+		QColor("darkCyan"),
+		QColor("darkMagenta"),
+		QColor("transparent")
+	};
+	qDebug() <<"colorArray created";
+
 	//specify (left, top, width, height) of the rectangle to highlight
 	rect.setRect(groove_rect.left(), HANDLE_HEIGHT/2 + end, groove_rect.width() + 2, start - end);
 	QPainter painter(this);
+	int foreach_count = 0;
 	foreach (QRect rectInList, rectList) {
-		painter.fillRect(rectInList, QBrush(Qt::red));
+		qDebug() <<"foreach loop number " << foreach_count;
+		painter.fillRect(rectInList, QBrush(colorArray[foreach_count]));
+		foreach_count++;
 	}
-	painter.fillRect(rect, QBrush(Qt::red));
+	qDebug() <<"foreach loop finished. foreach_count = " << QString::number(foreach_count);
+	qDebug() <<"foreach loop finished. rectList.length() = " << QString::number(rectList.length());
+
+	qDebug() <<"will now paint current rect, color " <<QString::number(rectList.length());
+	painter.fillRect(rect, QBrush(colorArray[rectList.length() + 1]));
+	qDebug() <<"all rects painted";
 
 	QSlider::paintEvent(ev);
 }

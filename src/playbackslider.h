@@ -36,6 +36,7 @@ private:
 	int highlightEnd = 0;
 	QList<QRect> rectList;
 	QRect rect;
+	int colorIndex;
 };
 
 
