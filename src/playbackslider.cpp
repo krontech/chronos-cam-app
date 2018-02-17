@@ -69,23 +69,16 @@ void PlaybackSlider::paintEvent(QPaintEvent *ev) {
 
 	qDebug() <<"about to create colorArray";
 
-	QColor colorArray[16] = {
+	QColor colorArray[9] = {
 		QColor("red"),
-		QColor("black"),
-		QColor("darkGray"),
-		QColor("gray"),
-		QColor("lightGray"),
 		QColor("green"),
 		QColor("blue"),
-		QColor("cyan"),
+		QColor("black"),
 		QColor("magenta"),
-		QColor("yellow"),
 		QColor("darkRed"),
-		QColor("darkGreen"),
-		QColor("darkBlue"),
 		QColor("darkCyan"),
 		QColor("darkMagenta"),
-		QColor("transparent")
+		QColor("darkGray")
 	};
 	qDebug() <<"colorArray created";
 
