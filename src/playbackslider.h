@@ -36,7 +36,7 @@ private:
 	int highlightRegionEndFrame = 0;
 	QList<QRect> previouslySavedRegions;
 	QRect newSaveRegion;
-	int currentColorIndex;
+	unsigned int currentColorIndex;
 };
 
 

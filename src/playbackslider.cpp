@@ -89,11 +89,11 @@ void PlaybackSlider::paintEvent(QPaintEvent *ev) {
 
 	currentColorIndex = 0;
 	foreach (QRect regionInList, previouslySavedRegions) {
-		painter.fillRect(regionInList, QBrush(colorArray[currentColorIndex]));
+		painter.fillRect(regionInList, QBrush(colorArray[currentColorIndex % 9]));
 		currentColorIndex++;
 	}
 
-	painter.fillRect(newSaveRegion, QBrush(colorArray[previouslySavedRegions.length()]));
+	painter.fillRect(newSaveRegion, QBrush(colorArray[currentColorIndex % 9]));
 
 	QSlider::paintEvent(ev);
 }
