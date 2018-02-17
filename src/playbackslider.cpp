@@ -56,15 +56,15 @@ void PlaybackSlider::paintEvent(QPaintEvent *ev) {
 	//Reverse the bar if the slider is set to reverse direction
 	if(!QSlider::invertedAppearance())//slider is not inverted, and position 0 is at top of screen
 	{
-		start	= (groove_rect.height() - HANDLE_HEIGHT) * (double)(QSlider::maximum() - highlightRegionEndFrame)	/ QSlider::maximum();
-		end		= (groove_rect.height() - HANDLE_HEIGHT) * (double)(QSlider::maximum() - highlightRegionStartFrame)	/ QSlider::maximum();
+		start = (groove_rect.height() - HANDLE_HEIGHT) * (double)(QSlider::maximum() - highlightRegionEndFrame) / QSlider::maximum();
+		end = (groove_rect.height() - HANDLE_HEIGHT) * (double)(QSlider::maximum() - highlightRegionStartFrame) / QSlider::maximum();
 		//Subtract the handle height because the start or end region should line up with the middle of the handle,
 		//and the middle if the handle cannot be moved to the very top or bottom of the screen
 	}
 	else
 	{
-		start = groove_rect.height()* (double)highlightRegionStartFrame / QSlider::maximum();
-		end = groove_rect.height()	* (double)highlightRegionEndFrame / QSlider::maximum();
+		start = (groove_rect.height() - HANDLE_HEIGHT) * (double)highlightRegionStartFrame / QSlider::maximum();
+		end = (groove_rect.height() - HANDLE_HEIGHT) * (double)highlightRegionEndFrame / QSlider::maximum();
 	}
 
 
