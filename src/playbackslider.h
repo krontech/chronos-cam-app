@@ -27,16 +27,16 @@ public:
 	PlaybackSlider(QWidget * parent = 0);
 	~PlaybackSlider();
 	void setHighlightRegion(int start, int end);
-	void appendRectToList();
+	void appendRegionToList();
 protected:
 	void paintEvent(QPaintEvent *ev);
 
 private:
-	int highlightStart = 0;
-	int highlightEnd = 0;
-	QList<QRect> rectList;
-	QRect rect;
-	int colorIndex;
+	int highlightRegionStartFrame = 0;
+	int highlightRegionEndFrame = 0;
+	QList<QRect> previouslySavedRegions;
+	QRect newSaveRegion;
+	int currentColorIndex;
 };
 
 

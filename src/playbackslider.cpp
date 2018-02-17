@@ -35,8 +35,8 @@ PlaybackSlider::~PlaybackSlider()
 
 void PlaybackSlider::setHighlightRegion(int start, int end)
 {
-	highlightStart = start;
-	highlightEnd = end;
+	highlightRegionStartFrame = start;
+	highlightRegionEndFrame = end;
 	repaint();
 }
 
@@ -56,18 +56,17 @@ void PlaybackSlider::paintEvent(QPaintEvent *ev) {
 	//Reverse the bar if the slider is set to reverse direction
 	if(!QSlider::invertedAppearance())//slider is not inverted, and position 0 is at top of screen
 	{
-		start	= (groove_rect.height() - HANDLE_HEIGHT)	* (double)(QSlider::maximum() - highlightEnd)		/ QSlider::maximum();
-		end		= (groove_rect.height() - HANDLE_HEIGHT)	* (double)(QSlider::maximum() - highlightStart)		/ QSlider::maximum();
+		start	= (groove_rect.height() - HANDLE_HEIGHT) * (double)(QSlider::maximum() - highlightRegionEndFrame)	/ QSlider::maximum();
+		end		= (groove_rect.height() - HANDLE_HEIGHT) * (double)(QSlider::maximum() - highlightRegionStartFrame)	/ QSlider::maximum();
 		//Subtract the handle height because the start or end region should line up with the middle of the handle,
 		//and the middle if the handle cannot be moved to the very top or bottom of the screen
 	}
 	else
 	{
-		start = groove_rect.height()* (double)highlightStart / QSlider::maximum();
-		end = groove_rect.height()	* (double)highlightEnd / QSlider::maximum();
+		start = groove_rect.height()* (double)highlightRegionStartFrame / QSlider::maximum();
+		end = groove_rect.height()	* (double)highlightRegionEndFrame / QSlider::maximum();
 	}
 
-	qDebug() <<"about to create colorArray";
 
 	QColor colorArray[9] = {
 		QColor("red"),
@@ -80,27 +79,25 @@ void PlaybackSlider::paintEvent(QPaintEvent *ev) {
 		QColor("darkMagenta"),
 		QColor("darkGray")
 	};
-	qDebug() <<"colorArray created";
 
 	//specify (left, top, width, height) of the rectangle to highlight
-	rect.setRect(groove_rect.left(), HANDLE_HEIGHT/2 + end, groove_rect.width() + 2, start - end);
+	newSaveRegion.setRect(groove_rect.left(),
+						  HANDLE_HEIGHT/2 + end,
+						  groove_rect.width() + 2, //+ 2 pixels so the highlight will actually be visible instead of just covered up by the slider bar
+						  start - end);
 	QPainter painter(this);
-	int foreach_count = 0;
-	foreach (QRect rectInList, rectList) {
-		qDebug() <<"foreach loop number " << foreach_count;
-		painter.fillRect(rectInList, QBrush(colorArray[foreach_count]));
-		foreach_count++;
-	}
-	qDebug() <<"foreach loop finished. foreach_count = " << QString::number(foreach_count);
-	qDebug() <<"foreach loop finished. rectList.length() = " << QString::number(rectList.length());
 
-	qDebug() <<"will now paint current rect, color " <<QString::number(rectList.length());
-	painter.fillRect(rect, QBrush(colorArray[rectList.length()]));
-	qDebug() <<"all rects painted";
+	currentColorIndex = 0;
+	foreach (QRect regionInList, previouslySavedRegions) {
+		painter.fillRect(regionInList, QBrush(colorArray[currentColorIndex]));
+		currentColorIndex++;
+	}
+
+	painter.fillRect(newSaveRegion, QBrush(colorArray[previouslySavedRegions.length()]));
 
 	QSlider::paintEvent(ev);
 }
 
-void PlaybackSlider::appendRectToList(){
-	rectList.append(rect);
+void PlaybackSlider::appendRegionToList(){
+	previouslySavedRegions.append(newSaveRegion);
 }
