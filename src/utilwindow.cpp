@@ -111,8 +111,6 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	ui->chkShowDebugControls->setChecked(!(appSettings.value("debug/hideDebug", true).toBool()));
 	
 	connect(ui->cmdClose, SIGNAL(clicked()), this, SLOT(close()));
-
-	ui->chkUnsavedVidWarning->setChecked(camera->getUnsavedWarnEnable());
 }
 
 UtilWindow::~UtilWindow()
@@ -912,11 +910,6 @@ void UtilWindow::on_cmdRevertCalData_pressed()
 	msg.setText("User calibration data deleted");
 	msg.setWindowFlags(Qt::WindowStaysOnTopHint);
 	msg.exec();
-}
-
-void UtilWindow::on_chkUnsavedVidWarning_clicked(bool checked)
-{
-	qDebug() << "setUnsavedWarnEnable()" << checked;
 }
 
 void UtilWindow::on_comboDisableUnsavedWarning_currentIndexChanged(int index)

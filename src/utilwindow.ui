@@ -421,43 +421,12 @@ USB</string>
       <bool>false</bool>
      </property>
     </widget>
-    <widget class="QCheckBox" name="chkUnsavedVidWarning">
-     <property name="geometry">
-      <rect>
-       <x>400</x>
-       <y>40</y>
-       <width>256</width>
-       <height>49</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <pointsize>16</pointsize>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QCheckBox::indicator {
-     width: 40px;
-     height: 40px;
-}</string>
-     </property>
-     <property name="text">
-      <string>Ask before discarding
-unsaved video in RAM</string>
-     </property>
-     <property name="checked">
-      <bool>true</bool>
-     </property>
-     <property name="tristate">
-      <bool>false</bool>
-     </property>
-    </widget>
     <widget class="QComboBox" name="comboDisableUnsavedWarning">
      <property name="geometry">
       <rect>
-       <x>300</x>
-       <y>10</y>
-       <width>261</width>
+       <x>490</x>
+       <y>50</y>
+       <width>201</width>
        <height>41</height>
       </rect>
      </property>
@@ -481,6 +450,25 @@ unsaved video in RAM</string>
        <string>Never</string>
       </property>
      </item>
+    </widget>
+    <widget class="QLabel" name="lblUnsavedVideoLabel">
+     <property name="geometry">
+      <rect>
+       <x>300</x>
+       <y>30</y>
+       <width>211</width>
+       <height>71</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>15</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>Ask before discarding
+unsaved video in RAM:</string>
+     </property>
     </widget>
    </widget>
    <widget class="QWidget" name="tabSettings">
