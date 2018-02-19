@@ -181,7 +181,7 @@ void CamMainWindow::on_cmdRec_clicked()
 		//If there is unsaved video in RAM, prompt to start record.  unsavedWarnEnabled values: 2=always, 1=if not reviewed, 0=never
 		qDebug() << "camera->unsavedWarnEnabled   = " << camera->unsavedWarnEnabled;
 		qDebug() << "camera->videoHasBeenReviewed = " << camera->videoHasBeenReviewed;
-		if(false == camera->recordingData.hasBeenSaved && (2 != camera->unsavedWarnEnabled && (0 == camera->unsavedWarnEnabled || !camera->videoHasBeenReviewed)))
+		if(false == camera->recordingData.hasBeenSaved && (0 != camera->unsavedWarnEnabled && (2 == camera->unsavedWarnEnabled || !camera->videoHasBeenReviewed)))
 		{
 			QMessageBox::StandardButton reply;
 			reply = QMessageBox::question(this, "Unsaved video in RAM", "Start recording anyway and discard the unsaved video in RAM?", QMessageBox::Yes|QMessageBox::No);
@@ -377,7 +377,7 @@ void CamMainWindow::on_MainWindowTimer()
 			if(qwl.count() <= 3)
 			{
 				//If there is unsaved video in RAM, prompt to start record.  unsavedWarnEnabled values: 2=always, 1=if not reviewed, 0=never
-				if(false == camera->recordingData.hasBeenSaved && (2 != camera->unsavedWarnEnabled && (0 == camera->unsavedWarnEnabled || !camera->videoHasBeenReviewed)) && false == camera->get_autoSave())	//If there is unsaved video in RAM, prompt to start record
+				if(false == camera->recordingData.hasBeenSaved && (0 != camera->unsavedWarnEnabled && (2 == camera->unsavedWarnEnabled || !camera->videoHasBeenReviewed)) && false == camera->get_autoSave())	//If there is unsaved video in RAM, prompt to start record
 				{
 					QMessageBox::StandardButton reply;
 					reply = QMessageBox::question(this, "Unsaved video in RAM", "Start recording anyway and discard the unsaved video in RAM?", QMessageBox::Yes|QMessageBox::No);

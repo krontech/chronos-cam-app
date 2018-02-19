@@ -437,7 +437,7 @@ USB</string>
      </property>
      <item>
       <property name="text">
-       <string>Always</string>
+       <string>Never</string>
       </property>
      </item>
      <item>
@@ -447,7 +447,7 @@ USB</string>
      </item>
      <item>
       <property name="text">
-       <string>Never</string>
+       <string>Always</string>
       </property>
      </item>
     </widget>
