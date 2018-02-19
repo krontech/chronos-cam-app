@@ -452,6 +452,31 @@ unsaved video in RAM</string>
       <bool>false</bool>
      </property>
     </widget>
+    <widget class="QComboBox" name="comboDisableUnsavedWarning">
+     <property name="geometry">
+      <rect>
+       <x>300</x>
+       <y>30</y>
+       <width>86</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <item>
+      <property name="text">
+       <string>Always</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>If not reviewed</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Never</string>
+      </property>
+     </item>
+    </widget>
    </widget>
    <widget class="QWidget" name="tabSettings">
     <attribute name="title">

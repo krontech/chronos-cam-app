@@ -106,6 +106,7 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 
 	ui->chkAutoSave->setChecked(camera->get_autoSave());
 	ui->chkAutoRecord->setChecked(camera->get_autoRecord());
+	ui->comboDisableUnsavedWarning->setCurrentIndex(camera->getUnsavedWarnEnable());
 
 	ui->chkShowDebugControls->setChecked(!(appSettings.value("debug/hideDebug", true).toBool()));
 	
@@ -915,6 +916,11 @@ void UtilWindow::on_cmdRevertCalData_pressed()
 
 void UtilWindow::on_chkUnsavedVidWarning_clicked(bool checked)
 {
-	camera->setUnsavedWarnEnable(checked);
 	qDebug() << "setUnsavedWarnEnable()" << checked;
+}
+
+void UtilWindow::on_comboDisableUnsavedWarning_currentIndexChanged(int index)
+{
+	camera->setUnsavedWarnEnable(index);
+	qDebug()<<"new index: " << index;
 }

@@ -246,8 +246,8 @@ public:
 	void setFocusPeakEnable(bool en);
 	bool getZebraEnable(void);
 	void setZebraEnable(bool en);
-	bool getUnsavedWarnEnable(void);
-	void setUnsavedWarnEnable(bool en);
+	int getUnsavedWarnEnable(void);
+	void setUnsavedWarnEnable(int newSetting);
 	char * getSerialNumber(void) {return serialNumber;}
 	void setSerialNumber(const char * sn) {strcpy(serialNumber, sn);}
 	bool getIsColor() {return isColor;}
@@ -314,7 +314,8 @@ private:
 	char serialNumber[SERIAL_NUMBER_MAX_LEN+1];
 
 public:
-	bool unsavedWarnEnabled;
+	int unsavedWarnEnabled;
+	bool videoHasBeenReviewed;
 	bool autoSave;
 	void set_autoSave(bool state);
 	bool get_autoSave();

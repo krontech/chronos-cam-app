@@ -595,6 +595,8 @@ Int32 Camera::startRecording(void)
 	ui->setRecLEDFront(true);
 	ui->setRecLEDBack(true);
 	recording = true;
+	videoHasBeenReviewed = false;
+
 
 	return SUCCESS;
 }
@@ -2941,6 +2943,8 @@ void Camera::setFocusPeakEnable(bool en)
 	focusPeakEnabled = en;
 	appSettings.setValue("camera/focusPeak", en);
 }
+
+
 bool Camera::getZebraEnable(void)
 {
 	QSettings appSettings;
@@ -2954,18 +2958,21 @@ void Camera::setZebraEnable(bool en)
 	appSettings.setValue("camera/zebra", en);
 }
 
-bool Camera::getUnsavedWarnEnable(void){
+
+int Camera::getUnsavedWarnEnable(void){
 	qDebug()<< "get warning";
 	QSettings appSettings;
 	return appSettings.value("camera/unsavedWarn", unsavedWarnEnabled).toBool();
+	//If there is unsaved video in RAM, prompt to start record.  0=always, 1=if not reviewed, 2=never
 }
 
-void Camera::setUnsavedWarnEnable(bool en){
-	qDebug()<< "set warning";
+void Camera::setUnsavedWarnEnable(int newSetting){
+	qDebug()<< "set warning to" << newSetting;
 	QSettings appSettings;
-	unsavedWarnEnabled = en;
-	appSettings.setValue("camera/unsavedWarn", en);
+	unsavedWarnEnabled = newSetting;
+	appSettings.setValue("camera/unsavedWarn", newSetting);
 }
+
 
 void Camera::set_autoSave(bool state) {
 	QSettings appSettings;
@@ -2977,6 +2984,7 @@ bool Camera::get_autoSave() {
 	QSettings appSettings;
 	return appSettings.value("camera/autoSave", autoSave).toBool();
 }
+
 
 void Camera::set_autoRecord(bool state) {
 	QSettings appSettings;

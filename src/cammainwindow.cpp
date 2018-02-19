@@ -178,7 +178,10 @@ void CamMainWindow::on_cmdRec_clicked()
 	}
 	else
 	{
-		if(false == camera->recordingData.hasBeenSaved && true == camera->unsavedWarnEnabled)	//If there is unsaved video in RAM, prompt to start record
+		//If there is unsaved video in RAM, prompt to start record.  unsavedWarnEnabled values: 2=always, 1=if not reviewed, 0=never
+		qDebug() << "camera->unsavedWarnEnabled   = " << camera->unsavedWarnEnabled;
+		qDebug() << "camera->videoHasBeenReviewed = " << camera->videoHasBeenReviewed;
+		if(false == camera->recordingData.hasBeenSaved && (2 != camera->unsavedWarnEnabled && (0 == camera->unsavedWarnEnabled || !camera->videoHasBeenReviewed)))
 		{
 			QMessageBox::StandardButton reply;
 			reply = QMessageBox::question(this, "Unsaved video in RAM", "Start recording anyway and discard the unsaved video in RAM?", QMessageBox::Yes|QMessageBox::No);
@@ -363,6 +366,7 @@ void CamMainWindow::on_MainWindowTimer()
 
 	if(shutterButton && !lastShutterButton)
 	{
+		qDebug()<<"on_MainWindowTimer()";
 		if(camera->getIsRecording())
 		{
 			camera->stopRecording();
@@ -372,7 +376,8 @@ void CamMainWindow::on_MainWindowTimer()
 			QWidgetList qwl = QApplication::topLevelWidgets();	//Hack to stop you from starting record when another window is open. Need to get modal dialogs working for proper fix
 			if(qwl.count() <= 3)
 			{
-				if(false == camera->recordingData.hasBeenSaved && camera->unsavedWarnEnabled && false == camera->get_autoSave())	//If there is unsaved video in RAM, prompt to start record
+				//If there is unsaved video in RAM, prompt to start record.  unsavedWarnEnabled values: 2=always, 1=if not reviewed, 0=never
+				if(false == camera->recordingData.hasBeenSaved && (2 != camera->unsavedWarnEnabled && (0 == camera->unsavedWarnEnabled || !camera->videoHasBeenReviewed)) && false == camera->get_autoSave())	//If there is unsaved video in RAM, prompt to start record
 				{
 					QMessageBox::StandardButton reply;
 					reply = QMessageBox::question(this, "Unsaved video in RAM", "Start recording anyway and discard the unsaved video in RAM?", QMessageBox::Yes|QMessageBox::No);
