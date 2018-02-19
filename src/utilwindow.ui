@@ -456,10 +456,15 @@ unsaved video in RAM</string>
      <property name="geometry">
       <rect>
        <x>300</x>
-       <y>30</y>
-       <width>86</width>
-       <height>25</height>
+       <y>10</y>
+       <width>261</width>
+       <height>41</height>
       </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>16</pointsize>
+      </font>
      </property>
      <item>
       <property name="text">
