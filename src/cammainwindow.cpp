@@ -178,9 +178,7 @@ void CamMainWindow::on_cmdRec_clicked()
 	}
 	else
 	{
-		//If there is unsaved video in RAM, prompt to start record.  unsavedWarnEnabled values: 2=always, 1=if not reviewed, 0=never
-		qDebug() << "camera->unsavedWarnEnabled   = " << camera->unsavedWarnEnabled;
-		qDebug() << "camera->videoHasBeenReviewed = " << camera->videoHasBeenReviewed;
+		//If there is unsaved video in RAM, prompt to start record.  unsavedWarnEnabled values: 0=always, 1=if not reviewed, 2=never
 		if(false == camera->recordingData.hasBeenSaved && (0 != camera->unsavedWarnEnabled && (2 == camera->unsavedWarnEnabled || !camera->videoHasBeenReviewed)))
 		{
 			QMessageBox::StandardButton reply;
@@ -366,7 +364,6 @@ void CamMainWindow::on_MainWindowTimer()
 
 	if(shutterButton && !lastShutterButton)
 	{
-		qDebug()<<"on_MainWindowTimer()";
 		if(camera->getIsRecording())
 		{
 			camera->stopRecording();
@@ -376,7 +373,7 @@ void CamMainWindow::on_MainWindowTimer()
 			QWidgetList qwl = QApplication::topLevelWidgets();	//Hack to stop you from starting record when another window is open. Need to get modal dialogs working for proper fix
 			if(qwl.count() <= 3)
 			{
-				//If there is unsaved video in RAM, prompt to start record.  unsavedWarnEnabled values: 2=always, 1=if not reviewed, 0=never
+				//If there is unsaved video in RAM, prompt to start record.  unsavedWarnEnabled values: 0=always, 1=if not reviewed, 2=never
 				if(false == camera->recordingData.hasBeenSaved && (0 != camera->unsavedWarnEnabled && (2 == camera->unsavedWarnEnabled || !camera->videoHasBeenReviewed)) && false == camera->get_autoSave())	//If there is unsaved video in RAM, prompt to start record
 				{
 					QMessageBox::StandardButton reply;

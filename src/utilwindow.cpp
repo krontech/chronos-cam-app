@@ -915,5 +915,4 @@ void UtilWindow::on_cmdRevertCalData_pressed()
 void UtilWindow::on_comboDisableUnsavedWarning_currentIndexChanged(int index)
 {
 	camera->setUnsavedWarnEnable(index);
-	qDebug()<<"new index: " << index;
 }
