@@ -50,7 +50,7 @@ QTimer * menuTimeoutTimer;
 
 CamMainWindow::CamMainWindow(QWidget *parent) :
 	QDialog(parent),
-    ui(new Ui::CamMainWindow)
+	ui(new Ui::CamMainWindow)
 {
 	QMessageBox msg;
 	QSettings appSettings;
@@ -240,16 +240,16 @@ void CamMainWindow::on_cmdRecSettings_clicked()
 	//w->camera = camera;
 	w->setAttribute(Qt::WA_DeleteOnClose);
 	w->show();
-	
+
 	/*while(w->isHidden() == false)
 	  delayms(100);
-	  
+
 	  qDebug() << "deleting window";
 	  delete w;*/
 }
 
 
-void CamMainWindow::on_cmdFPNCal_clicked()
+void CamMainWindow::on_cmdFPNCal_clicked()//Black cal
 {
 	if(camera->getIsRecording()) {
 		QMessageBox::StandardButton reply;
@@ -260,13 +260,13 @@ void CamMainWindow::on_cmdFPNCal_clicked()
 		camera->stopRecording();
 	}
 	else {
-		if(false == camera->recordingData.hasBeenSaved)	//If there is unsaved video in RAM, prompt to start record
-		{
+			//If there is unsaved video in RAM, prompt to start record
 			QMessageBox::StandardButton reply;
-			reply = QMessageBox::question(this, "Unsaved video in RAM", "Performing black calibration will erase the unsaved video in RAM. Continue?", QMessageBox::Yes|QMessageBox::No);
+			if(false == camera->recordingData.hasBeenSaved)	reply = QMessageBox::question(this, "Unsaved video in RAM", "Performing black calibration will erase the unsaved video in RAM. Continue?", QMessageBox::Yes|QMessageBox::No);
+			else											reply = QMessageBox::question(this, "Start black calibration?", "Will start black calibration. Continue?", QMessageBox::Yes|QMessageBox::No);
+
 			if(QMessageBox::Yes != reply)
 				return;
-		}
 	}
 	sw->setText("Performing black calibration. Please wait.\r\nBeta Software: This will be much faster in a future software update");
 	sw->show();
@@ -277,14 +277,16 @@ void CamMainWindow::on_cmdFPNCal_clicked()
 
 void CamMainWindow::on_cmdWB_clicked()
 {
-	if(camera->getIsRecording()) {
+
 		QMessageBox::StandardButton reply;
-		reply = QMessageBox::question(this, "Stop recording?", "This action will stop recording and erase the video; is this okay?", QMessageBox::Yes|QMessageBox::No);
+		if(camera->getIsRecording()) reply = QMessageBox::question(this, "Stop recording?", "This action will stop recording and erase the video; is this okay?", QMessageBox::Yes|QMessageBox::No);
+		else						 reply = QMessageBox::question(this, "Set white balance?", "Will set white balance. Continue?", QMessageBox::Yes|QMessageBox::No);
+
 		if(QMessageBox::Yes != reply)
 			return;
 		autoSaveActive = false;
 		camera->stopRecording();
-	}
+
 	Int32 ret = camera->setWhiteBalance(camera->getImagerSettings().hRes / 2 & 0xFFFFFFFE,
 							camera->getImagerSettings().vRes / 2 & 0xFFFFFFFE);	//Sample from middle but make sure position is a multiple of 2
 	if(ret == CAMERA_CLIPPED_ERROR)
@@ -375,6 +377,7 @@ void CamMainWindow::on_MainWindowTimer()
 			{
 				//If there is unsaved video in RAM, prompt to start record.  unsavedWarnEnabled values: 0=always, 1=if not reviewed, 2=never
 				if(false == camera->recordingData.hasBeenSaved && (0 != camera->unsavedWarnEnabled && (2 == camera->unsavedWarnEnabled || !camera->videoHasBeenReviewed)) && false == camera->get_autoSave())	//If there is unsaved video in RAM, prompt to start record
+
 				{
 					QMessageBox::StandardButton reply;
 					reply = QMessageBox::question(this, "Unsaved video in RAM", "Start recording anyway and discard the unsaved video in RAM?", QMessageBox::Yes|QMessageBox::No);
@@ -471,7 +474,7 @@ void CamMainWindow::on_cmdFocusAid_clicked()
 
 void CamMainWindow::on_expSlider_sliderMoved(int position)
 {
-    camera->setIntegrationTime((double)position / 100000000.0, 0, 0, 0);
+	camera->setIntegrationTime((double)position / 100000000.0, 0, 0, 0);
 	updateCurrentSettingsLabel();
 }
 
