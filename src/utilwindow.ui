@@ -421,10 +421,42 @@ USB</string>
       <bool>false</bool>
      </property>
     </widget>
+
+
+    <widget class="QCheckBox" name="chkUnsavedVidWarning">
+     <property name="geometry">
+      <rect>
+       <x>310</x>
+       <y>40</y>
+       <width>256</width>
+       <height>49</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>16</pointsize>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QCheckBox::indicator {
+     width: 40px;
+     height: 40px;
+}</string>
+     </property>
+     <property name="text">
+      <string>Ask before discarding
+unsaved video in RAM</string>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
+     </property>
+    </widget>
+
+
     <widget class="QCheckBox" name="chkUiOnLeft">
      <property name="geometry">
       <rect>
-       <x>510</x>
+       <x>460</x>
        <y>320</y>
        <width>201</width>
        <height>41</height>
@@ -448,11 +480,13 @@ USB</string>
       <bool>false</bool>
      </property>
     </widget>
+
+
     <widget class="QCheckBox" name="chkUpsideDownDisplay">
      <property name="geometry">
       <rect>
-       <x>560</x>
-       <y>30</y>
+       <x>460</x>
+       <y>370</y>
        <width>171</width>
        <height>51</height>
       </rect>
@@ -477,6 +511,8 @@ Display</string>
      </property>
     </widget>
    </widget>
+
+
    <widget class="QWidget" name="tabSettings">
     <attribute name="title">
      <string>Settings</string>

@@ -55,6 +55,7 @@ Camera::Camera()
 	endOfRecCallback = NULL;
 	imgGain = 1.0;
 	recordingData.hasBeenSaved = true;		//Nothing in RAM at power up so there's nothing to lose
+	unsavedWarnEnabled = getUnsavedWarnEnable();
 	autoSave = appSettings.value("camera/autoSave", 0).toBool();
 	autoRecord = appSettings.value("camera/autoRecord", 0).toBool();
 	ButtonsOnLeft = getButtonsOnLeft();
@@ -2985,6 +2986,19 @@ void Camera::setZebraEnable(bool en)
 	setZebraEnableLL(en);
 	zebraEnabled = en;
 	appSettings.setValue("camera/zebra", en);
+}
+
+bool Camera::getUnsavedWarnEnable(void){
+	qDebug()<< "get warning";
+	QSettings appSettings;
+	return appSettings.value("camera/unsavedWarn", unsavedWarnEnabled).toBool();
+}
+
+void Camera::setUnsavedWarnEnable(bool en){
+	qDebug()<< "set warning";
+	QSettings appSettings;
+	unsavedWarnEnabled = en;
+	appSettings.setValue("camera/unsavedWarn", en);
 }
 
 void Camera::set_autoSave(bool state) {

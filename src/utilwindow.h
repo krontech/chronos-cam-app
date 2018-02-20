@@ -93,6 +93,8 @@ private slots:
 
     void on_cmdRevertCalData_pressed();
 
+	void on_chkUnsavedVidWarning_clicked(bool checked);
+
 private:
 	Ui::UtilWindow *ui;
 	Camera * camera;
