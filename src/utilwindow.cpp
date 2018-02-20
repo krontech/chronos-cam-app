@@ -111,8 +111,6 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	ui->chkShowDebugControls->setChecked(!(appSettings.value("debug/hideDebug", true).toBool()));
 	
 	connect(ui->cmdClose, SIGNAL(clicked()), this, SLOT(close()));
-
-	ui->chkUnsavedVidWarning->setChecked(camera->getUnsavedWarnEnable());
 }
 
 UtilWindow::~UtilWindow()
