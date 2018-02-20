@@ -101,3 +101,8 @@ void PlaybackSlider::paintEvent(QPaintEvent *ev) {
 void PlaybackSlider::appendRegionToList(){
 	previouslySavedRegions.append(newSaveRegion);
 }
+
+void PlaybackSlider::removeLastRegionFromList()
+{
+	previouslySavedRegions.removeLast();
+}

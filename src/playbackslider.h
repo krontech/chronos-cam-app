@@ -28,6 +28,7 @@ public:
 	~PlaybackSlider();
 	void setHighlightRegion(int start, int end);
 	void appendRegionToList();
+	void removeLastRegionFromList();
 protected:
 	void paintEvent(QPaintEvent *ev);
 
