@@ -356,3 +356,8 @@ void playbackWindow::setControlEnable(bool en)
 	ui->verticalSlider->setEnabled(en);
 
 }
+
+void playbackWindow::on_cmdClose_clicked()
+{
+    camera->videoHasBeenReviewed = true;
+}

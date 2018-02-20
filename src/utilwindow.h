@@ -93,7 +93,7 @@ private slots:
 
     void on_cmdRevertCalData_pressed();
 
-	void on_chkUnsavedVidWarning_clicked(bool checked);
+	void on_comboDisableUnsavedWarning_currentIndexChanged(int index);
 
 private:
 	Ui::UtilWindow *ui;

@@ -108,12 +108,11 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	ui->chkAutoRecord->setChecked(camera->get_autoRecord());
 	ui->chkUiOnLeft->setChecked(camera->getButtonsOnLeft());
 	ui->chkUpsideDownDisplay->setChecked(camera->getUpsideDownDisplay());
+	ui->comboDisableUnsavedWarning->setCurrentIndex(camera->getUnsavedWarnEnable());
 
 	ui->chkShowDebugControls->setChecked(!(appSettings.value("debug/hideDebug", true).toBool()));
 
 	connect(ui->cmdClose, SIGNAL(clicked()), this, SLOT(close()));
-
-	ui->chkUnsavedVidWarning->setChecked(camera->getUnsavedWarnEnable());
 }
 
 UtilWindow::~UtilWindow()
@@ -936,8 +935,7 @@ void UtilWindow::on_cmdRevertCalData_pressed()
 	msg.exec();
 }
 
-void UtilWindow::on_chkUnsavedVidWarning_clicked(bool checked)
+void UtilWindow::on_comboDisableUnsavedWarning_currentIndexChanged(int index)
 {
-	camera->setUnsavedWarnEnable(checked);
-	qDebug() << "setUnsavedWarnEnable()" << checked;
+	camera->setUnsavedWarnEnable(index);
 }
