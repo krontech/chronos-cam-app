@@ -25,7 +25,15 @@
 PlaybackSlider::PlaybackSlider(QWidget *parent) :
 	QSlider(parent)
 {
-
+	colorArray[0] = QColor("red");
+	colorArray[1] = QColor("green");
+	colorArray[2] = QColor("blue");
+	colorArray[3] = QColor("black");
+	colorArray[4] = QColor("magenta");
+	colorArray[5] = QColor("darkRed");
+	colorArray[6] = QColor("darkCyan");
+	colorArray[7] = QColor("darkMagenta");
+	colorArray[8] = QColor("darkGray");
 }
 
 PlaybackSlider::~PlaybackSlider()
@@ -68,17 +76,6 @@ void PlaybackSlider::paintEvent(QPaintEvent *ev) {
 	}
 
 
-	QColor colorArray[9] = {
-		QColor("red"),
-		QColor("green"),
-		QColor("blue"),
-		QColor("black"),
-		QColor("magenta"),
-		QColor("darkRed"),
-		QColor("darkCyan"),
-		QColor("darkMagenta"),
-		QColor("darkGray")
-	};
 
 	//specify (left, top, width, height) of the rectangle to highlight
 	newSaveRegion.setRect(groove_rect.left(),
@@ -89,11 +86,11 @@ void PlaybackSlider::paintEvent(QPaintEvent *ev) {
 
 	currentColorIndex = 0;
 	foreach (QRect regionInList, previouslySavedRegions) {
-		painter.fillRect(regionInList, QBrush(colorArray[currentColorIndex % 9]));
+		painter.fillRect(regionInList, QBrush(*(colorArray + (currentColorIndex % 9))));
 		currentColorIndex++;
 	}
 
-	painter.fillRect(newSaveRegion, QBrush(colorArray[currentColorIndex % 9]));
+	painter.fillRect(newSaveRegion, QBrush(*(colorArray + (currentColorIndex % 9))));
 
 	QSlider::paintEvent(ev);
 }

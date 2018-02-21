@@ -38,6 +38,7 @@ private:
 	QList<QRect> previouslySavedRegions;
 	QRect newSaveRegion;
 	unsigned int currentColorIndex;
+	QColor colorArray[9];
 };
 
 
