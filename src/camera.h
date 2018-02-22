@@ -329,6 +329,7 @@ public:
 	void setButtonsOnLeft(bool en);
 	bool getUpsideDownDisplay();
 	void setUpsideDownDisplay(bool en);
+	bool RotationArgumentIsSet();
 	void upsideDownTransform(int rotation);
 	void updateVideoPosition();
 private:

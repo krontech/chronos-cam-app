@@ -117,9 +117,9 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	}
 	qDebug() << "appArguments: " << appArguments;
 
-	if(appArguments.contains("display") && appArguments.contains("transformed:rot0"))
+	if(camera->RotationArgumentIsSet())
 		ui->chkUpsideDownDisplay->setChecked(camera->getUpsideDownDisplay());
-	else//If the argument was not added, set the control to invisible because it would be useless anyway
+	else //If the argument was not added, set the control to invisible because it would be useless anyway
 		ui->chkUpsideDownDisplay->setVisible(false);
 
 	ui->chkShowDebugControls->setChecked(!(appSettings.value("debug/hideDebug", true).toBool()));

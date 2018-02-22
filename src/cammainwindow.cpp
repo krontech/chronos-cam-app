@@ -140,18 +140,9 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	else                        autoSaveActive = false;
 
 
-	if(camera->UpsideDownDisplay){
-		QString appArguments;
-
-		for(int argumentIndex = 0; argumentIndex < 5 ; argumentIndex++){
-			appArguments.append(QApplication::argv()[argumentIndex]);
-			qDebug() << "argument # " << argumentIndex << " is " << QApplication::argv()[argumentIndex];
-		}
-		qDebug() << "appArguments: " << appArguments;
-
-		if(appArguments.contains("display") && appArguments.contains("transformed:rot0"))
-			camera->upsideDownTransform(2);//2 for upside down, 0 for normal
-	}
+	if(camera->UpsideDownDisplay && camera->RotationArgumentIsSet()){
+		camera->upsideDownTransform(2);//2 for upside down, 0 for normal
+	} else  camera->UpsideDownDisplay = false;//if the rotation argument has not been added, this should be set to false
 
 	if( (camera->ButtonsOnLeft) ^ (camera->UpsideDownDisplay) ){
 		camera->updateVideoPosition();
@@ -605,3 +596,4 @@ void CamMainWindow::on_cmdDPCButton_clicked()
 		msg.exec();
 	}
 }
+

@@ -20,6 +20,7 @@
 #include <QDebug>
 #include <semaphore.h>
 #include <QSettings>
+#include <QApplication>
 
 #include "font.h"
 #include "camera.h"
@@ -2960,6 +2961,22 @@ void Camera::setUpsideDownDisplay(bool en){
 	UpsideDownDisplay = en;
 	appSettings.setValue("camera/UpsideDownDisplay", en);
 }
+
+bool Camera::RotationArgumentIsSet(){
+	QString appArguments;
+
+	for(int argumentIndex = 0; argumentIndex < 5 ; argumentIndex++){
+		appArguments.append(QApplication::argv()[argumentIndex]);
+		qDebug() << "argument # " << argumentIndex << " is " << QApplication::argv()[argumentIndex];
+	}
+	qDebug() << "appArguments: " << appArguments;
+
+	if(appArguments.contains("display") && appArguments.contains("transformed:rot0"))
+		return true;
+	else
+		return false;
+}
+
 
 void Camera::upsideDownTransform(int rotation){
 	QWSDisplay::setTransformation(rotation);
