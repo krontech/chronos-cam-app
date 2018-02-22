@@ -50,7 +50,7 @@ QTimer * menuTimeoutTimer;
 
 CamMainWindow::CamMainWindow(QWidget *parent) :
 	QDialog(parent),
-    ui(new Ui::CamMainWindow)
+	ui(new Ui::CamMainWindow)
 {
 	QMessageBox msg;
 	QSettings appSettings;
@@ -138,6 +138,16 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	}
 	if (camera->get_autoSave()) autoSaveActive = true;
 	else                        autoSaveActive = false;
+
+
+	if(camera->UpsideDownDisplay && camera->RotationArgumentIsSet()){
+		camera->upsideDownTransform(2);//2 for upside down, 0 for normal
+	} else  camera->UpsideDownDisplay = false;//if the rotation argument has not been added, this should be set to false
+
+	if( (camera->ButtonsOnLeft) ^ (camera->UpsideDownDisplay) ){
+		camera->updateVideoPosition();
+	}
+
 }
 
 CamMainWindow::~CamMainWindow()
@@ -178,7 +188,8 @@ void CamMainWindow::on_cmdRec_clicked()
 	}
 	else
 	{
-		if(false == camera->recordingData.hasBeenSaved)	//If there is unsaved video in RAM, prompt to start record
+		//If there is unsaved video in RAM, prompt to start record.  unsavedWarnEnabled values: 0=always, 1=if not reviewed, 2=never
+		if(false == camera->recordingData.hasBeenSaved && (0 != camera->unsavedWarnEnabled && (2 == camera->unsavedWarnEnabled || !camera->videoHasBeenReviewed)))
 		{
 			QMessageBox::StandardButton reply;
 			reply = QMessageBox::question(this, "Unsaved video in RAM", "Start recording anyway and discard the unsaved video in RAM?", QMessageBox::Yes|QMessageBox::No);
@@ -210,6 +221,7 @@ void CamMainWindow::on_cmdPlay_clicked()
 	//w->camera = camera;
 	w->setAttribute(Qt::WA_DeleteOnClose);
 	w->show();
+	//w->setGeometry(0, 0,w->width(), w->height());
 }
 
 void CamMainWindow::playFinishedSaving()
@@ -239,16 +251,16 @@ void CamMainWindow::on_cmdRecSettings_clicked()
 	//w->camera = camera;
 	w->setAttribute(Qt::WA_DeleteOnClose);
 	w->show();
-	
+
 	/*while(w->isHidden() == false)
 	  delayms(100);
-	  
+
 	  qDebug() << "deleting window";
 	  delete w;*/
 }
 
 
-void CamMainWindow::on_cmdFPNCal_clicked()
+void CamMainWindow::on_cmdFPNCal_clicked()//Black cal
 {
 	if(camera->getIsRecording()) {
 		QMessageBox::StandardButton reply;
@@ -259,13 +271,13 @@ void CamMainWindow::on_cmdFPNCal_clicked()
 		camera->stopRecording();
 	}
 	else {
-		if(false == camera->recordingData.hasBeenSaved)	//If there is unsaved video in RAM, prompt to start record
-		{
+			//If there is unsaved video in RAM, prompt to start record
 			QMessageBox::StandardButton reply;
-			reply = QMessageBox::question(this, "Unsaved video in RAM", "Performing black calibration will erase the unsaved video in RAM. Continue?", QMessageBox::Yes|QMessageBox::No);
+			if(false == camera->recordingData.hasBeenSaved)	reply = QMessageBox::question(this, "Unsaved video in RAM", "Performing black calibration will erase the unsaved video in RAM. Continue?", QMessageBox::Yes|QMessageBox::No);
+			else											reply = QMessageBox::question(this, "Start black calibration?", "Will start black calibration. Continue?", QMessageBox::Yes|QMessageBox::No);
+
 			if(QMessageBox::Yes != reply)
 				return;
-		}
 	}
 	sw->setText("Performing black calibration. Please wait.\r\nBeta Software: This will be much faster in a future software update");
 	sw->show();
@@ -276,14 +288,16 @@ void CamMainWindow::on_cmdFPNCal_clicked()
 
 void CamMainWindow::on_cmdWB_clicked()
 {
-	if(camera->getIsRecording()) {
+
 		QMessageBox::StandardButton reply;
-		reply = QMessageBox::question(this, "Stop recording?", "This action will stop recording and erase the video; is this okay?", QMessageBox::Yes|QMessageBox::No);
+		if(camera->getIsRecording()) reply = QMessageBox::question(this, "Stop recording?", "This action will stop recording and erase the video; is this okay?", QMessageBox::Yes|QMessageBox::No);
+		else						 reply = QMessageBox::question(this, "Set white balance?", "Will set white balance. Continue?", QMessageBox::Yes|QMessageBox::No);
+
 		if(QMessageBox::Yes != reply)
 			return;
 		autoSaveActive = false;
 		camera->stopRecording();
-	}
+
 	Int32 ret = camera->setWhiteBalance(camera->getImagerSettings().hRes / 2 & 0xFFFFFFFE,
 							camera->getImagerSettings().vRes / 2 & 0xFFFFFFFE);	//Sample from middle but make sure position is a multiple of 2
 	if(ret == CAMERA_CLIPPED_ERROR)
@@ -372,7 +386,9 @@ void CamMainWindow::on_MainWindowTimer()
 			QWidgetList qwl = QApplication::topLevelWidgets();	//Hack to stop you from starting record when another window is open. Need to get modal dialogs working for proper fix
 			if(qwl.count() <= 3)
 			{
-				if(false == camera->recordingData.hasBeenSaved && false == camera->get_autoSave())	//If there is unsaved video in RAM, prompt to start record
+				//If there is unsaved video in RAM, prompt to start record.  unsavedWarnEnabled values: 0=always, 1=if not reviewed, 2=never
+				if(false == camera->recordingData.hasBeenSaved && (0 != camera->unsavedWarnEnabled && (2 == camera->unsavedWarnEnabled || !camera->videoHasBeenReviewed)) && false == camera->get_autoSave())	//If there is unsaved video in RAM, prompt to start record
+
 				{
 					QMessageBox::StandardButton reply;
 					reply = QMessageBox::question(this, "Unsaved video in RAM", "Start recording anyway and discard the unsaved video in RAM?", QMessageBox::Yes|QMessageBox::No);
@@ -469,7 +485,7 @@ void CamMainWindow::on_cmdFocusAid_clicked()
 
 void CamMainWindow::on_expSlider_sliderMoved(int position)
 {
-    camera->setIntegrationTime((double)position / 100000000.0, 0, 0, 0);
+	camera->setIntegrationTime((double)position / 100000000.0, 0, 0, 0);
 	updateCurrentSettingsLabel();
 }
 
@@ -527,6 +543,13 @@ void CamMainWindow::on_cmdUtil_clicked()
 	//w->camera = camera;
 	w->setAttribute(Qt::WA_DeleteOnClose);
 	w->show();
+	connect(w, SIGNAL(moveCamMainWindow()), this, SLOT(updateCamMainWindowPosition()));
+}
+
+void CamMainWindow::updateCamMainWindowPosition(){
+	//qDebug()<<"windowpos old " << this->x();
+	move(camera->ButtonsOnLeft? 0:600, 0);
+	//qDebug()<<"windowpos new " << this->x();
 }
 
 void CamMainWindow::on_cmdBkGndButton_clicked()
@@ -573,3 +596,4 @@ void CamMainWindow::on_cmdDPCButton_clicked()
 		msg.exec();
 	}
 }
+

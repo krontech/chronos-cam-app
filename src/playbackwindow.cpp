@@ -36,9 +36,10 @@ playbackWindow::playbackWindow(QWidget *parent, Camera * cameraInst, bool autosa
 {
 	ui->setupUi(this);
 	this->setWindowFlags(Qt::Dialog /*| Qt::WindowStaysOnTopHint*/ | Qt::FramelessWindowHint);
-	this->move(600,0);
+
 	camera = cameraInst;
 	autoSaveFlag = autosave;
+	this->move(camera->ButtonsOnLeft? 0:600, 0);
 
 	sw = new StatusWindow;
 
@@ -49,6 +50,7 @@ playbackWindow::playbackWindow(QWidget *parent, Camera * cameraInst, bool autosa
 	ui->verticalSlider->setValue(camera->playFrame);
 	markInFrame = 1;
 	markOutFrame = camera->recordingData.totalFrames;
+	ui->verticalSlider->setHighlightRegion(markInFrame, markOutFrame);
 
 	camera->setPlayMode(true);
 
@@ -115,7 +117,7 @@ void playbackWindow::on_cmdSave_clicked()
 	struct statvfs statvfsBuf;
 	uint64_t estimatedSize;
 	QSettings appSettings;
-	
+
 	//Build the parent path of the save directory, to determine if it's a mount point
 	strcpy(parentPath, camera->recorder->fileDirectory);
 	strcat(parentPath, "/..");
@@ -147,18 +149,18 @@ void playbackWindow::on_cmdSave_clicked()
 				break;
 			case SAVE_MODE_RAW16:
 			case SAVE_MODE_RAW16RJ:
- 				qDebug("Bits/pixel: %d", 16);
+				qDebug("Bits/pixel: %d", 16);
 				estimatedSize *= 16;
 				estimatedSize += (4096<<8);
 				break;
 			case SAVE_MODE_RAW12:
- 				qDebug("Bits/pixel: %d", 12);
+				qDebug("Bits/pixel: %d", 12);
 				estimatedSize *= 12;
 				estimatedSize += estimatedSize + (4096<<8);
 				break;
 			default:
 				// unknown format
- 				qDebug("Bits/pixel: unknown - default: %d", 16);
+				qDebug("Bits/pixel: unknown - default: %d", 16);
 				estimatedSize *= 16;
 			}
 			// convert to bytes
@@ -171,11 +173,11 @@ void playbackWindow::on_cmdSave_clicked()
 			if (estimatedSize > (statvfsBuf.f_bsize * (uint64_t)statvfsBuf.f_bfree) || estimatedSize > 4294967296) {
 				QMessageBox::StandardButton reply;
 				reply = QMessageBox::question(this, "Estimated file size too large", "Estimated file size is larger than room on media/4GB. Attempt to save?", QMessageBox::Yes|QMessageBox::No);
-				if(QMessageBox::Yes != reply) 
+				if(QMessageBox::Yes != reply)
 					return;
 			}
 		}
-		
+
 		//Check that the path exists
 		struct stat sb;
 		struct stat sbP;
@@ -199,14 +201,14 @@ void playbackWindow::on_cmdSave_clicked()
 				msg.exec();
 				return;
 			}
-            else if(RECORD_INSUFFICIENT_SPACE == ret)
-            {
+	    else if(RECORD_INSUFFICIENT_SPACE == ret)
+	    {
 				if(camera->recorder->errorCallback)
 					(*camera->recorder->errorCallback)(camera->recorder->errorCallbackArg, "insufficient free space");
-                msg.setText("Selected device does not have sufficient free space.");
-                msg.exec();
-                return;
-            }
+		msg.setText("Selected device does not have sufficient free space.");
+		msg.exec();
+		return;
+	    }
 
 			ui->cmdSave->setText("Abort\nSave");
 			setControlEnable(false);
@@ -215,6 +217,9 @@ void playbackWindow::on_cmdSave_clicked()
 			saveDoneTimer = new QTimer(this);
 			connect(saveDoneTimer, SIGNAL(timeout()), this, SLOT(checkForSaveDone()));
 			saveDoneTimer->start(100);
+			ui->verticalSlider->appendRegionToList();
+			ui->verticalSlider->setHighlightRegion(markOutFrame, markOutFrame);
+			//both arguments should be markout because a new rectangle will be drawn, and it should not overlap the one that was just appended
 		}
 		else
 		{
@@ -228,6 +233,7 @@ void playbackWindow::on_cmdSave_clicked()
 	else
 	{
 		camera->recorder->stop2();
+		ui->verticalSlider->removeLastRegionFromList();
 	}
 
 }
@@ -242,6 +248,7 @@ void playbackWindow::on_cmdSaveSettings_clicked()
 	saveSettingsWindow *w = new saveSettingsWindow(NULL, camera);
 	w->setAttribute(Qt::WA_DeleteOnClose);
 	w->show();
+	if(camera->ButtonsOnLeft) w->move(230, 0);
 }
 
 void playbackWindow::on_cmdMarkIn_clicked()
@@ -249,6 +256,7 @@ void playbackWindow::on_cmdMarkIn_clicked()
 	markInFrame = camera->playFrame + 1;
 	if(markOutFrame < markInFrame)
 		markOutFrame = markInFrame;
+	ui->verticalSlider->setHighlightRegion(markInFrame, markOutFrame);
 	updateStatusText();
 }
 
@@ -257,6 +265,7 @@ void playbackWindow::on_cmdMarkOut_clicked()
 	markOutFrame = camera->playFrame + 1;
 	if(markInFrame > markOutFrame)
 		markInFrame = markOutFrame;
+	ui->verticalSlider->setHighlightRegion(markInFrame, markOutFrame);
 	updateStatusText();
 }
 
@@ -346,4 +355,9 @@ void playbackWindow::setControlEnable(bool en)
 	ui->cmdSaveSettings->setEnabled(en);
 	ui->verticalSlider->setEnabled(en);
 
+}
+
+void playbackWindow::on_cmdClose_clicked()
+{
+    camera->videoHasBeenReviewed = true;
 }
