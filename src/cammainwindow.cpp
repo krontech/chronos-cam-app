@@ -138,6 +138,16 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	}
 	if (camera->get_autoSave()) autoSaveActive = true;
 	else                        autoSaveActive = false;
+
+
+	if(camera->UpsideDownDisplay && camera->RotationArgumentIsSet()){
+		camera->upsideDownTransform(2);//2 for upside down, 0 for normal
+	} else  camera->UpsideDownDisplay = false;//if the rotation argument has not been added, this should be set to false
+
+	if( (camera->ButtonsOnLeft) ^ (camera->UpsideDownDisplay) ){
+		camera->updateVideoPosition();
+	}
+
 }
 
 CamMainWindow::~CamMainWindow()
@@ -178,7 +188,8 @@ void CamMainWindow::on_cmdRec_clicked()
 	}
 	else
 	{
-		if(false == camera->recordingData.hasBeenSaved && true == camera->unsavedWarnEnabled)	//If there is unsaved video in RAM, prompt to start record
+		//If there is unsaved video in RAM, prompt to start record.  unsavedWarnEnabled values: 0=always, 1=if not reviewed, 2=never
+		if(false == camera->recordingData.hasBeenSaved && (0 != camera->unsavedWarnEnabled && (2 == camera->unsavedWarnEnabled || !camera->videoHasBeenReviewed)))
 		{
 			QMessageBox::StandardButton reply;
 			reply = QMessageBox::question(this, "Unsaved video in RAM", "Start recording anyway and discard the unsaved video in RAM?", QMessageBox::Yes|QMessageBox::No);
@@ -210,6 +221,7 @@ void CamMainWindow::on_cmdPlay_clicked()
 	//w->camera = camera;
 	w->setAttribute(Qt::WA_DeleteOnClose);
 	w->show();
+	//w->setGeometry(0, 0,w->width(), w->height());
 }
 
 void CamMainWindow::playFinishedSaving()
@@ -374,7 +386,9 @@ void CamMainWindow::on_MainWindowTimer()
 			QWidgetList qwl = QApplication::topLevelWidgets();	//Hack to stop you from starting record when another window is open. Need to get modal dialogs working for proper fix
 			if(qwl.count() <= 3)
 			{
-				if(false == camera->recordingData.hasBeenSaved && camera->unsavedWarnEnabled && false == camera->get_autoSave())	//If there is unsaved video in RAM, prompt to start record
+				//If there is unsaved video in RAM, prompt to start record.  unsavedWarnEnabled values: 0=always, 1=if not reviewed, 2=never
+				if(false == camera->recordingData.hasBeenSaved && (0 != camera->unsavedWarnEnabled && (2 == camera->unsavedWarnEnabled || !camera->videoHasBeenReviewed)) && false == camera->get_autoSave())	//If there is unsaved video in RAM, prompt to start record
+
 				{
 					QMessageBox::StandardButton reply;
 					reply = QMessageBox::question(this, "Unsaved video in RAM", "Start recording anyway and discard the unsaved video in RAM?", QMessageBox::Yes|QMessageBox::No);
@@ -529,6 +543,13 @@ void CamMainWindow::on_cmdUtil_clicked()
 	//w->camera = camera;
 	w->setAttribute(Qt::WA_DeleteOnClose);
 	w->show();
+	connect(w, SIGNAL(moveCamMainWindow()), this, SLOT(updateCamMainWindowPosition()));
+}
+
+void CamMainWindow::updateCamMainWindowPosition(){
+	//qDebug()<<"windowpos old " << this->x();
+	move(camera->ButtonsOnLeft? 0:600, 0);
+	//qDebug()<<"windowpos new " << this->x();
 }
 
 void CamMainWindow::on_cmdBkGndButton_clicked()
@@ -575,3 +596,4 @@ void CamMainWindow::on_cmdDPCButton_clicked()
 		msg.exec();
 	}
 }
+

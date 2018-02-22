@@ -161,7 +161,7 @@ project, you will need to set up the kits by deselecting the default
 
 Click on the  `Configure Project` button to select the kits. Click the "Run" toggle, in the "Camera" Build/Run box near the top. Delete the step 'check for available disk space', so only 'Upload files via SFTP' is left. Now, add a new step, 'run custom remote command'. Set it to `killall camApp; sleep 0.25 #Gracefully close the app, so we don't mess up the graphics driver state. Give it time to shut down.` Move it above 'Upload files via SFTP'.
 
-Scrolling down a little, you'll find the Run box where you can specify 'Arguments' and 'Working directory'. Set 'Arguments' to `-qws`, and 'Working directory' to `/opt/camera`.
+Scrolling down a little, you'll find the Run box where you can specify 'Arguments' and 'Working directory'. Set 'Arguments' to `-qws -display transformed:rot0`, and 'Working directory' to `/opt/camera`.
 
 Finally, we build the application by navigating to `Build -> Build Project "camApp"`
 or clicking on the hammer icon in the bottom left corner. When complete

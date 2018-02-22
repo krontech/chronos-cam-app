@@ -421,13 +421,35 @@ USB</string>
       <bool>false</bool>
      </property>
     </widget>
-    <widget class="QCheckBox" name="chkUnsavedVidWarning">
+    <widget class="QLabel" name="lblUnsavedVideoLabel">
      <property name="geometry">
       <rect>
-       <x>400</x>
-       <y>40</y>
-       <width>256</width>
-       <height>49</height>
+       <x>270</x>
+       <y>30</y>
+       <width>211</width>
+       <height>71</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>15</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>Ask before discarding
+unsaved video in RAM</string>
+     </property>
+     <property name="checked" stdset="0">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QCheckBox" name="chkUiOnLeft">
+     <property name="geometry">
+      <rect>
+       <x>460</x>
+       <y>320</y>
+       <width>201</width>
+       <height>41</height>
       </rect>
      </property>
      <property name="font">
@@ -442,17 +464,71 @@ USB</string>
 }</string>
      </property>
      <property name="text">
-      <string>Ask before discarding
-unsaved video in RAM</string>
-     </property>
-     <property name="checked">
-      <bool>true</bool>
+      <string>UI on Left Side</string>
      </property>
      <property name="tristate">
       <bool>false</bool>
      </property>
     </widget>
-   </widget>
+    <widget class="QCheckBox" name="chkUpsideDownDisplay">
+     <property name="geometry">
+      <rect>
+       <x>460</x>
+       <y>370</y>
+       <width>171</width>
+       <height>51</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>16</pointsize>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QCheckBox::indicator {
+     width: 40px;
+     height: 40px;
+}</string>
+     </property>
+     <property name="text">
+      <string>Upside-down
+Display</string>
+     </property>
+     <property name="tristate">
+      <bool>false</bool>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="comboDisableUnsavedWarning">
+     <property name="geometry">
+      <rect>
+       <x>490</x>
+       <y>50</y>
+       <width>201</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>16</pointsize>
+      </font>
+     </property>
+     <item>
+      <property name="text">
+       <string>Never</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>If not reviewed</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Always</string>
+      </property>
+     </item>
+		</widget>
+</widget>
    <widget class="QWidget" name="tabSettings">
     <attribute name="title">
      <string>Settings</string>

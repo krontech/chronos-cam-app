@@ -106,12 +106,17 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 
 	ui->chkAutoSave->setChecked(camera->get_autoSave());
 	ui->chkAutoRecord->setChecked(camera->get_autoRecord());
+	ui->chkUiOnLeft->setChecked(camera->getButtonsOnLeft());
+	ui->comboDisableUnsavedWarning->setCurrentIndex(camera->getUnsavedWarnEnable());
+
+	if(camera->RotationArgumentIsSet())
+		ui->chkUpsideDownDisplay->setChecked(camera->getUpsideDownDisplay());
+	else //If the argument was not added, set the control to invisible because it would be useless anyway
+		ui->chkUpsideDownDisplay->setVisible(false);
 
 	ui->chkShowDebugControls->setChecked(!(appSettings.value("debug/hideDebug", true).toBool()));
-	
-	connect(ui->cmdClose, SIGNAL(clicked()), this, SLOT(close()));
 
-	ui->chkUnsavedVidWarning->setChecked(camera->getUnsavedWarnEnable());
+	connect(ui->cmdClose, SIGNAL(clicked()), this, SLOT(close()));
 }
 
 UtilWindow::~UtilWindow()
@@ -214,110 +219,110 @@ void UtilWindow::on_cmdSetClock_clicked()
 
 void UtilWindow::on_cmdAdcOffset_clicked()
 {
-    StatusWindow sw;
-    Int32 retVal;
-    char text[100];
+	StatusWindow sw;
+	Int32 retVal;
+	char text[100];
 
-    sw.setText("Performing ADC Offset calibration. Please wait...");
-    sw.show();
-    QCoreApplication::processEvents();
+	sw.setText("Performing ADC Offset calibration. Please wait...");
+	sw.show();
+	QCoreApplication::processEvents();
 
-    //Turn off calibration light
-    camera->io->setOutLevel(0);	//Turn off output drive
+	//Turn off calibration light
+	camera->io->setOutLevel(0);	//Turn off output drive
 
-    //ADC Offset calibration
-    retVal = camera->autoAdcOffsetCorrection();
+	//ADC Offset calibration
+	retVal = camera->autoAdcOffsetCorrection();
 
-    if(SUCCESS != retVal)
-    {
-        sw.hide();
-        QMessageBox msg;
-        sprintf(text, "Error during ADC Offset calibration, error %d", retVal);
-        msg.setText(text);
-        msg.setWindowFlags(Qt::WindowStaysOnTopHint);
-        msg.exec();
-        return;
-    }
-    else
-    {
-        sw.hide();
-        QMessageBox msg;
-        sprintf(text, "ADC Offset calibration was successful");
-        msg.setText(text);
-        msg.setWindowFlags(Qt::WindowStaysOnTopHint);
-        msg.exec();
-    }
+	if(SUCCESS != retVal)
+	{
+		sw.hide();
+		QMessageBox msg;
+		sprintf(text, "Error during ADC Offset calibration, error %d", retVal);
+		msg.setText(text);
+		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
+		msg.exec();
+		return;
+	}
+	else
+	{
+		sw.hide();
+		QMessageBox msg;
+		sprintf(text, "ADC Offset calibration was successful");
+		msg.setText(text);
+		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
+		msg.exec();
+	}
 }
 
 void UtilWindow::on_cmdColumnGain_clicked()
 {
-    StatusWindow sw;
-    Int32 retVal;
-    char text[100];
+	StatusWindow sw;
+	Int32 retVal;
+	char text[100];
 
-    sw.setText("Performing column gain calibration. Please wait...");
-    sw.show();
-    QCoreApplication::processEvents();
+	sw.setText("Performing column gain calibration. Please wait...");
+	sw.show();
+	QCoreApplication::processEvents();
 
-    //Turn on calibration light
-    camera->io->setOutLevel((1 << 1));	//Turn on output drive
+	//Turn on calibration light
+	camera->io->setOutLevel((1 << 1));	//Turn on output drive
 
-    retVal = camera->autoColGainCorrection();
+	retVal = camera->autoColGainCorrection();
 
-    if(SUCCESS != retVal)
-    {
-        sw.hide();
-        QMessageBox msg;
-        sprintf(text, "Error during gain calibration, error %d", retVal);
-        msg.setText(text);
-        msg.setWindowFlags(Qt::WindowStaysOnTopHint);
-        msg.exec();
-    }
-    else
-    {
-        sw.hide();
-        QMessageBox msg;
-        sprintf(text, "Column gain calibration was successful");
-        msg.setText(text);
-        msg.setWindowFlags(Qt::WindowStaysOnTopHint);
-        msg.exec();
-    }
+	if(SUCCESS != retVal)
+	{
+		sw.hide();
+		QMessageBox msg;
+		sprintf(text, "Error during gain calibration, error %d", retVal);
+		msg.setText(text);
+		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
+		msg.exec();
+	}
+	else
+	{
+		sw.hide();
+		QMessageBox msg;
+		sprintf(text, "Column gain calibration was successful");
+		msg.setText(text);
+		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
+		msg.exec();
+	}
 }
 
 void UtilWindow::on_cmdBlackCalAll_clicked()
 {
-    StatusWindow sw;
-    Int32 retVal;
-    char text[100];
+	StatusWindow sw;
+	Int32 retVal;
+	char text[100];
 
-    sw.setText("Performing black cal on all standard resolutions. Please wait...");
-    sw.show();
-    QCoreApplication::processEvents();
+	sw.setText("Performing black cal on all standard resolutions. Please wait...");
+	sw.show();
+	QCoreApplication::processEvents();
 
-    //Turn off calibration light
-    camera->io->setOutLevel(0);	//Turn off output drive
+	//Turn off calibration light
+	camera->io->setOutLevel(0);	//Turn off output drive
 
-    //Black cal all standard resolutions
-    retVal = camera->blackCalAllStdRes(true);
+	//Black cal all standard resolutions
+	retVal = camera->blackCalAllStdRes(true);
 
-    if(SUCCESS != retVal)
-    {
-        sw.hide();
-        QMessageBox msg;
-        sprintf(text, "Error during black calibration, error %d", retVal);
-        msg.setText(text);
-        msg.setWindowFlags(Qt::WindowStaysOnTopHint);
-        msg.exec();
-    }
-    else
-    {
-        sw.hide();
-        QMessageBox msg;
-        sprintf(text, "Black cal of all standard resolutions was successful");
-        msg.setText(text);
-        msg.setWindowFlags(Qt::WindowStaysOnTopHint);
-        msg.exec();
-    }
+	if(SUCCESS != retVal)
+	{
+		sw.hide();
+		QMessageBox msg;
+		sprintf(text, "Error during black calibration, error %d", retVal);
+		msg.setText(text);
+		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
+		msg.exec();
+	}
+	else
+	{
+		sw.hide();
+		QMessageBox msg;
+		sprintf(text, "Black cal of all standard resolutions was successful");
+		msg.setText(text);
+		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
+		msg.exec();
+	}
 }
 
 void UtilWindow::on_cmdCloseApp_clicked()
@@ -451,7 +456,28 @@ void UtilWindow::on_cmdAutoCal_clicked()
 
 void UtilWindow::on_cmdClose_clicked()
 {
+	bool ButtonsOnLeftChanged = (camera->ButtonsOnLeft !=	 ui->chkUiOnLeft->isChecked());
+	bool UpsideDownDisplayChanged = (camera->UpsideDownDisplay != ui->chkUpsideDownDisplay->isChecked());
 
+	if(ButtonsOnLeftChanged) {
+		camera->setButtonsOnLeft(ui->chkUiOnLeft->isChecked());
+		emit moveCamMainWindow();
+	}
+
+	if(UpsideDownDisplayChanged){
+		camera->setUpsideDownDisplay(ui->chkUpsideDownDisplay->isChecked());
+		camera->upsideDownTransform(camera->UpsideDownDisplay ? 2 : 0);//2 for upside down, 0 for normal
+	}
+
+	if(UpsideDownDisplayChanged ^ ButtonsOnLeftChanged) camera->updateVideoPosition();
+
+
+/*
+	if((camera->ButtonsOnLeft !=	 ui->chkUiOnLeft->isChecked()) ||
+		camera->UpsideDownDisplay != ui->chkUpsideDownDisplay->isChecked())
+			{
+				camera->updateVideoPosition();
+	*/
 }
 
 void UtilWindow::on_cmdWhiteRef_clicked()
@@ -722,7 +748,7 @@ void UtilWindow::on_cmdDefaults_clicked()
 	reply2 = QMessageBox::question(this, "Restart app?", "Current settings are cleared. Is it okay to restart the app so defaults can be selected?", QMessageBox::Yes|QMessageBox::No);
 	if(QMessageBox::Yes != reply2)
 		return;
-	
+
 	system("killall camApp && /etc/init.d/camera restart");
 }
 
@@ -872,7 +898,7 @@ void UtilWindow::on_cmdRestoreSettings_clicked()
 	reply = QMessageBox::question(this, "Restart app?", "To apply the restored settings the app must restart. Is it okay to restart?", QMessageBox::Yes|QMessageBox::No);
 	if(QMessageBox::Yes != reply)
 		return;
-	
+
 	system("killall camApp && /etc/init.d/camera restart");
 }
 
@@ -886,9 +912,9 @@ void UtilWindow::on_chkShowDebugControls_toggled(bool checked)
 
 void UtilWindow::on_cmdRevertCalData_pressed()
 {
-    Int32 retVal;
+	Int32 retVal;
 	char str[500];
-	
+
 	QMessageBox::StandardButton reply;
 	reply = QMessageBox::question(this, "Revert to factory cal?", "Are you sure you want to delete all user calibration data?", QMessageBox::Yes|QMessageBox::No);
 	if(QMessageBox::Yes != reply)
@@ -913,8 +939,7 @@ void UtilWindow::on_cmdRevertCalData_pressed()
 	msg.exec();
 }
 
-void UtilWindow::on_chkUnsavedVidWarning_clicked(bool checked)
+void UtilWindow::on_comboDisableUnsavedWarning_currentIndexChanged(int index)
 {
-	camera->setUnsavedWarnEnable(checked);
-	qDebug() << "setUnsavedWarnEnable()" << checked;
+	camera->setUnsavedWarnEnable(index);
 }
