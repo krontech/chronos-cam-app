@@ -107,8 +107,20 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	ui->chkAutoSave->setChecked(camera->get_autoSave());
 	ui->chkAutoRecord->setChecked(camera->get_autoRecord());
 	ui->chkUiOnLeft->setChecked(camera->getButtonsOnLeft());
-	ui->chkUpsideDownDisplay->setChecked(camera->getUpsideDownDisplay());
 	ui->comboDisableUnsavedWarning->setCurrentIndex(camera->getUnsavedWarnEnable());
+
+	QString appArguments;
+
+	for(int argumentIndex = 0; argumentIndex < 5 ; argumentIndex++){
+		appArguments.append(QApplication::argv()[argumentIndex]);
+		qDebug() << "argument # " << argumentIndex << " is " << QApplication::argv()[argumentIndex];
+	}
+	qDebug() << "appArguments: " << appArguments;
+
+	if(appArguments.contains("display") && appArguments.contains("transformed:rot0"))
+		ui->chkUpsideDownDisplay->setChecked(camera->getUpsideDownDisplay());
+	else//If the argument was not added, set the control to invisible because it would be useless anyway
+		ui->chkUpsideDownDisplay->setVisible(false);
 
 	ui->chkShowDebugControls->setChecked(!(appSettings.value("debug/hideDebug", true).toBool()));
 
