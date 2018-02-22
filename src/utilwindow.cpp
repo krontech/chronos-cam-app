@@ -109,14 +109,6 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	ui->chkUiOnLeft->setChecked(camera->getButtonsOnLeft());
 	ui->comboDisableUnsavedWarning->setCurrentIndex(camera->getUnsavedWarnEnable());
 
-	QString appArguments;
-
-	for(int argumentIndex = 0; argumentIndex < 5 ; argumentIndex++){
-		appArguments.append(QApplication::argv()[argumentIndex]);
-		qDebug() << "argument # " << argumentIndex << " is " << QApplication::argv()[argumentIndex];
-	}
-	qDebug() << "appArguments: " << appArguments;
-
 	if(camera->RotationArgumentIsSet())
 		ui->chkUpsideDownDisplay->setChecked(camera->getUpsideDownDisplay());
 	else //If the argument was not added, set the control to invisible because it would be useless anyway
