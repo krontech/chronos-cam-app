@@ -296,7 +296,7 @@
    <property name="geometry">
     <rect>
      <x>570</x>
-     <y>10</y>
+     <y>0</y>
      <width>100</width>
      <height>100</height>
     </rect>
@@ -317,7 +317,7 @@
    <property name="geometry">
     <rect>
      <x>570</x>
-     <y>110</y>
+     <y>100</y>
      <width>100</width>
      <height>100</height>
     </rect>
@@ -338,7 +338,7 @@
    <property name="geometry">
     <rect>
      <x>470</x>
-     <y>60</y>
+     <y>50</y>
      <width>100</width>
      <height>100</height>
     </rect>
@@ -359,7 +359,7 @@
    <property name="geometry">
     <rect>
      <x>670</x>
-     <y>60</y>
+     <y>50</y>
      <width>100</width>
      <height>100</height>
     </rect>
@@ -374,6 +374,27 @@
    </property>
    <property name="text">
     <string>▶</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="enter">
+   <property name="geometry">
+    <rect>
+     <x>400</x>
+     <y>160</y>
+     <width>120</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>14</pointsize>
+     <weight>75</weight>
+     <italic>false</italic>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="text">
+    <string>Enter</string>
    </property>
   </widget>
  </widget>
