@@ -183,6 +183,9 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 		camera->updateVideoPosition();
 	}
 
+	//record the number of widgets that are open before any other windows can be opened
+	QWidgetList qwl = QApplication::topLevelWidgets();
+	windowsAlwaysOpen = qwl.count();
 }
 
 CamMainWindow::~CamMainWindow()
@@ -419,7 +422,7 @@ void CamMainWindow::on_MainWindowTimer()
 		else
 		{
 			QWidgetList qwl = QApplication::topLevelWidgets();	//Hack to stop you from starting record when another window is open. Need to get modal dialogs working for proper fix
-			if(qwl.count() <= 4)
+			if(qwl.count() <= windowsAlwaysOpen)				//Now that the numeric keypad has been added, there are four windows: cammainwindow, debug buttons window, and both keyboards
 			{
 				//If there is unsaved video in RAM, prompt to start record.  unsavedWarnEnabled values: 0=always, 1=if not reviewed, 2=never
 				if(false == camera->recordingData.hasBeenSaved && (0 != camera->unsavedWarnEnabled && (2 == camera->unsavedWarnEnabled || !camera->videoHasBeenReviewed)) && false == camera->get_autoSave())	//If there is unsaved video in RAM, prompt to start record
