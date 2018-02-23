@@ -45,10 +45,15 @@
 
 MyInputPanelContext::MyInputPanelContext()
 {
-	inputPanel = new keyboard();
+	inputPanelAlphabetic = new keyboard();
+	inputPanelNumeric = new keyboardNumeric();
+	inputPanel = inputPanelAlphabetic;//default
 
-    connect(inputPanel, SIGNAL(characterGenerated(QChar)), SLOT(sendCharacter(QChar)));
-	connect(inputPanel, SIGNAL(codeGenerated(int)), SLOT(sendCode(int)));
+    connect(inputPanelAlphabetic, SIGNAL(characterGenerated(QChar)), SLOT(sendCharacter(QChar)));
+	connect(inputPanelAlphabetic, SIGNAL(codeGenerated(int)), SLOT(sendCode(int)));
+
+	connect(inputPanelNumeric, SIGNAL(characterGenerated(QChar)), SLOT(sendCharacter(QChar)));
+	connect(inputPanelNumeric, SIGNAL(codeGenerated(int)), SLOT(sendCode(int)));
 
 	keyboardActive = false;
 }
@@ -80,6 +85,12 @@ bool MyInputPanelContext::filterEvent(const QEvent* event)
 		{
 			originalPos = window->pos();
 		}
+
+		QString className = widget->metaObject()->className();
+		if(className.contains("spinbox", Qt::CaseInsensitive))
+			inputPanel = inputPanelNumeric;
+		else
+			inputPanel = inputPanelAlphabetic;
 
 		qDebug() << "inputPanel Show";
 		inputPanel->show();
