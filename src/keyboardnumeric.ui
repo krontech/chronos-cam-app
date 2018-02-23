@@ -240,14 +240,14 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>30</pointsize>
+     <pointsize>20</pointsize>
      <weight>75</weight>
      <italic>false</italic>
      <bold>true</bold>
     </font>
    </property>
    <property name="text">
-    <string>&lt;-</string>
+    <string>Backspace</string>
    </property>
   </widget>
   <widget class="QPushButton" name="num9">
