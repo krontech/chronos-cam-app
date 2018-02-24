@@ -38,6 +38,7 @@ public:
 
 
 
+
 private slots:
 
 	void on_caps_clicked();
@@ -47,6 +48,7 @@ private slots:
 	void on_shift_clicked();
 
 	void buttonClicked(QWidget *w);
+
 
 
 private:

@@ -45,8 +45,6 @@ private slots:
 
     void on_spinPreRecFrames_valueChanged(int arg1);
 
-    void on_cmdResetToDefaults_clicked();
-
 private:
     void updateControls(UInt32 postTriggerFrames);
     Ui::triggerDelayWindow *ui;

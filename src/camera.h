@@ -246,8 +246,6 @@ public:
 	void setFocusPeakEnable(bool en);
 	bool getZebraEnable(void);
 	void setZebraEnable(bool en);
-	int getUnsavedWarnEnable(void);
-	void setUnsavedWarnEnable(int newSetting);
 	char * getSerialNumber(void) {return serialNumber;}
 	void setSerialNumber(const char * sn) {strcpy(serialNumber, sn);}
 	bool getIsColor() {return isColor;}
@@ -286,8 +284,6 @@ public:
 	Int32 writeSerialNumber(char * src);
 	UInt16 getFPGAVersion(void);
 	UInt16 getFPGASubVersion(void);
-	bool ButtonsOnLeft;
-	bool UpsideDownDisplay;
 private:
 	void endOfRec(void);
 	UInt32 getNumFrames(UInt32 start, UInt32 end);
@@ -316,8 +312,6 @@ private:
 	char serialNumber[SERIAL_NUMBER_MAX_LEN+1];
 
 public:
-	int unsavedWarnEnabled;
-	bool videoHasBeenReviewed;
 	bool autoSave;
 	void set_autoSave(bool state);
 	bool get_autoSave();
@@ -325,13 +319,7 @@ public:
 	bool autoRecord;
 	void set_autoRecord(bool state);
 	bool get_autoRecord();
-	bool getButtonsOnLeft();
-	void setButtonsOnLeft(bool en);
-	bool getUpsideDownDisplay();
-	void setUpsideDownDisplay(bool en);
-	bool RotationArgumentIsSet();
-	void upsideDownTransform(int rotation);
-	void updateVideoPosition();
+
 private:
 	bool lastRecording;
 	bool terminateRecDataThread;
