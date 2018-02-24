@@ -67,8 +67,6 @@ private slots:
 
 	void on_cmdRateDn_clicked();
 
-	void on_cmdClose_clicked();
-
 private:
 	Ui::playbackWindow *ui;
 	Camera * camera;

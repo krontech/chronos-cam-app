@@ -49,10 +49,12 @@ private slots:
 	void buttonClicked(QWidget *w);
 
 
+
 private:
 	Ui::keyboard *ui;
 	bool capslock;
 	bool shift;
+	Ui::keyboard *ui;
 };
 
 #endif // KEYBOARD_H

@@ -2,3 +2,8 @@
 src/camApp.pro.user
 build-camApp-Camera-Debug/
 build-camApp-Camera-Release/
+
+## Ignore common temporary files.
+.DS_Store
+*\~
+.directory

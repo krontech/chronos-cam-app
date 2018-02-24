@@ -38,9 +38,7 @@ public:
 	explicit CamMainWindow(QWidget *parent = 0);
 	short getWindowsAlwaysOpen();
 	~CamMainWindow();
-
-public slots:
-	void updateCamMainWindowPosition();
+	
 private slots:
 	void on_cmdClose_clicked();
 

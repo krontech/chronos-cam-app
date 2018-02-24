@@ -135,11 +135,7 @@ int main(int argc, char *argv[])
 //	fflush(stdout);
 	CamMainWindow w;
 	w.setWindowFlags(Qt::FramelessWindowHint);
-
-	QSettings appSettings;
-	int displayPosition = (appSettings.value("camera/ButtonsOnLeft")).toBool() ? 0 : 600;
-	w.move(displayPosition,0);
-
+	w.move(600,0);
 //	MainWindow w;
 	w.show();
 	
