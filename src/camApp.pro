@@ -94,7 +94,6 @@ SOURCES += main.cpp\
     keyboardbase.cpp \
     keyboardnumeric.cpp
 
-
 ## Generate version.cpp on every build
 versionTarget.target = version.cpp
 versionTarget.depends = FORCE

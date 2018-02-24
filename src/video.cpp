@@ -66,12 +66,14 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <QDebug>
 #include <memory.h>
 #include <getopt.h>
 #include <string.h>
 #include <pthread.h>
 #include <sched.h>
 #include <unistd.h>
+#include <QSettings>
 
 /*-------------------------program files -------------------------------------*/
 
@@ -99,6 +101,7 @@ extern "C" {
 
 #include "video.h"
 #include "camera.h"
+
 
 /*--------------------------- defines ----------------------------------------*/
 /* Align address "a" at "b" boundary */
@@ -2753,6 +2756,10 @@ CameraErrortype Video::setImagerResolution(UInt32 x, UInt32 y)
 	imgCropX = x;
 	imgCropY = y;
 
+	QSettings appSettings;
+	bool moveVideoBool = (appSettings.value("camera/ButtonsOnLeft", 0).toBool()) ^ (appSettings.value("camera/UpsideDownDisplay", 0).toBool());
+	UInt32 displayWindowStartXOffset = 200 * moveVideoBool;
+
 	//Depending on aspect ratio, set the display window appropriately
 	if((y * MAX_FRAME_SIZE_H) > (x * MAX_FRAME_SIZE_V))	//If it's taller than the display aspect
 	{
@@ -2761,7 +2768,7 @@ CameraErrortype Video::setImagerResolution(UInt32 x, UInt32 y)
 		if(displayWindowXSize & 1)	//If it's odd, round it up to be even
 			displayWindowXSize++;
 		displayWindowStartY = 0;
-		displayWindowStartX = ((600 - displayWindowXSize) / 2) & 0xFFFFFFFE;	//Must be even
+		displayWindowStartX = (((600 - displayWindowXSize) / 2) + displayWindowStartXOffset) & 0xFFFFFFFE;	//Must be even.  Add the offset if the UI is set to be on the left
 
 	}
 	else
@@ -2770,7 +2777,7 @@ CameraErrortype Video::setImagerResolution(UInt32 x, UInt32 y)
 		displayWindowYSize = displayWindowXSize * y / x;
 		if(displayWindowYSize & 1)	//If it's odd, round it up to be even
 			displayWindowYSize++;
-		displayWindowStartX = 0;
+		displayWindowStartX = displayWindowStartXOffset;
 		displayWindowStartY = (480 - displayWindowYSize) / 2;
 
 	}
@@ -2787,6 +2794,7 @@ void Video::frameCB(void)
 
 Video::Video()
 {
+
 	running = false;
 
 	imgXSize = 1280;	//Input resolution coming from imager
@@ -2801,7 +2809,7 @@ Video::Video()
 	imgCropY = 1024;
 
 	//Scaler output
-	displayWindowStartX = 0;		//Top left pixel location to place image within display resolution
+	displayWindowStartX = 0;
 	displayWindowStartY = 0;
 	displayWindowXSize = 600;		//Resolution image is scaled to
 	displayWindowYSize = 480;
@@ -2814,6 +2822,18 @@ Video::Video()
 	frameCallback = NULL;
 
 
+}
+
+void Video::setDisplayWindowStartX(bool videoOnRight){
+	UInt32 displayWindowStartXOffset = 200 * videoOnRight;
+
+	if(displayWindowXSize < 600)	//If it's taller than the display aspect
+		displayWindowStartX = (((600 - displayWindowXSize) / 2) + displayWindowStartXOffset) & 0xFFFFFFFE;	//Must be even.  Add the offset if the UI is set to be on the left
+	else
+		displayWindowStartX = displayWindowStartXOffset;
+
+	stopVideo();//Video must be stopped and started to be able to change its position
+	startVideo();
 }
 
 Video::~Video()

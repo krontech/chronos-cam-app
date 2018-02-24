@@ -115,6 +115,7 @@ keyboard::~keyboard()
 }
 
 
+
 void keyboard::buttonClicked(QWidget *w)
 {
 	QPushButton * pb = (QPushButton *)w;

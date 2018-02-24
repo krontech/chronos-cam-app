@@ -14,45 +14,33 @@
  *  You should have received a copy of the GNU General Public License       *
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.   *
  ****************************************************************************/
-#ifndef KEYBOARD_H
-#define KEYBOARD_H
-
-#include <QtGui>
-#include <QtCore>
-#include <QWidget>
-#include <QDialog>
-#include "keyboardbase.h"
+#ifndef PLAYBACKSLIDER
+#define PLAYBACKSLIDER
 
 
-namespace Ui {
-class keyboard;
-}
+#include <QSlider>
 
-class keyboard : public keyboardBase
+class PlaybackSlider : public QSlider
 {
 	Q_OBJECT
-	
 public:
-	explicit keyboard(QWidget *parent = 0);
-	~keyboard();
-
-
-
-private slots:
-
-	void on_caps_clicked();
-
-	void on_space_clicked();
-
-	void on_shift_clicked();
-
-	void buttonClicked(QWidget *w);
-
+	PlaybackSlider(QWidget * parent = 0);
+	~PlaybackSlider();
+	void setHighlightRegion(int start, int end);
+	void appendRegionToList();
+	void removeLastRegionFromList();
+protected:
+	void paintEvent(QPaintEvent *ev);
 
 private:
-	Ui::keyboard *ui;
-	bool capslock;
-	bool shift;
+	int highlightRegionStartFrame = 0;
+	int highlightRegionEndFrame = 0;
+	QList<QRect> previouslySavedRegions;
+	QRect newSaveRegion;
+	unsigned int currentColorIndex;
+	QColor colorArray[9];
 };
 
-#endif // KEYBOARD_H
+
+#endif // PlaybackSlider
+

@@ -270,6 +270,7 @@ public:
 	CameraErrortype setImagerResolution(UInt32 x, UInt32 y);
 	void (*frameCallback)(void *);
 	void * frameCallbackArg;
+	void setDisplayWindowStartX(bool videoOnRight);
 private:
 	bool running;
 
