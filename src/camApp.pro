@@ -89,7 +89,11 @@ SOURCES += main.cpp\
     eeprom.c \
     recmodewindow.cpp \
     triggerdelaywindow.cpp \
-    triggerslider.cpp
+    triggerslider.cpp \
+    playbackslider.cpp \
+    keyboardbase.cpp \
+    keyboardnumeric.cpp
+
 
 ## Generate version.cpp on every build
 versionTarget.target = version.cpp
@@ -143,7 +147,10 @@ HEADERS  += mainwindow.h \
     eeprom.h \
     recmodewindow.h \
     triggerdelaywindow.h \
-    triggerslider.h
+    triggerslider.h \
+    playbackslider.h \
+    keyboardbase.h \
+    keyboardnumeric.h
 
 
 
@@ -160,7 +167,8 @@ FORMS    += mainwindow.ui \
     utilwindow.ui \
     statuswindow.ui \
     recmodewindow.ui \
-    triggerdelaywindow.ui
+    triggerdelaywindow.ui \
+    keyboardnumeric.ui
 
 RESOURCES += \
     Images.qrc

@@ -138,6 +138,20 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	}
 	if (camera->get_autoSave()) autoSaveActive = true;
 	else                        autoSaveActive = false;
+
+
+	if(camera->UpsideDownDisplay && camera->RotationArgumentIsSet()){
+		camera->upsideDownTransform(2);//2 for upside down, 0 for normal
+	} else  camera->UpsideDownDisplay = false;//if the rotation argument has not been added, this should be set to false
+
+	if( (camera->ButtonsOnLeft) ^ (camera->UpsideDownDisplay) ){
+		camera->updateVideoPosition();
+	}
+
+	//record the number of widgets that are open before any other windows can be opened
+	QWidgetList qwl = QApplication::topLevelWidgets();
+	windowsAlwaysOpen = qwl.count();
+
 }
 
 CamMainWindow::~CamMainWindow()
@@ -370,7 +384,7 @@ void CamMainWindow::on_MainWindowTimer()
 		else
 		{
 			QWidgetList qwl = QApplication::topLevelWidgets();	//Hack to stop you from starting record when another window is open. Need to get modal dialogs working for proper fix
-			if(qwl.count() <= 3)
+			if(qwl.count() <= windowsAlwaysOpen)				//Now that the numeric keypad has been added, there are four windows: cammainwindow, debug buttons window, and both keyboards
 			{
 				if(false == camera->recordingData.hasBeenSaved && false == camera->get_autoSave())	//If there is unsaved video in RAM, prompt to start record
 				{
