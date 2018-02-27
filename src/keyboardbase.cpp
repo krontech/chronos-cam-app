@@ -23,14 +23,16 @@ void keyboardBase::show()
 }
 
 void keyboardBase::selectAllInFocusedWidget(){
-	emit codeGenerated(KC_RIGHT); //to deselect any text that might already be selected
-	emit characterGenerated(QChar('a')); //insert arbitrary char to have selectAll() have any effect
 
 	QString senderClass = lastFocusedWidget->metaObject()->className();
 	qDebug() << senderClass;
 
 	if(senderClass == "CamTextEdit")
 	{
+		if(lastFocusedWidget->objectName() != "KickstarterBackersTextEdit"){
+			emit codeGenerated(KC_RIGHT); //to deselect any text that might already be selected
+			emit characterGenerated(QChar('a')); //insert arbitrary char to have selectAll() have any effect
+		}
 		QTextEdit *textEdit = qobject_cast<QTextEdit*>(lastFocusedWidget);
 		emit codeGenerated(KC_BACKSPACE);
 		//backspace is to remove the arbitrary char
@@ -39,6 +41,10 @@ void keyboardBase::selectAllInFocusedWidget(){
 
 	if(senderClass == "CamLineEdit")
 	{
+		if(lastFocusedWidget->objectName() != "linePassword"){//or else using KC_RIGHT on the service password lineEdit would cause the tabWidget on utilWindow to advance to the next tab
+			emit codeGenerated(KC_RIGHT); //to deselect any text that might already be selected
+			emit characterGenerated(QChar('a')); //insert arbitrary char to have selectAll() have any effect
+		}
 		QLineEdit *lineEdit = qobject_cast<QLineEdit*>(lastFocusedWidget);
 		emit codeGenerated(KC_BACKSPACE);
 		lineEdit->selectAll();
@@ -46,6 +52,8 @@ void keyboardBase::selectAllInFocusedWidget(){
 
 	if(senderClass.contains("SpinBox"))
 	{
+		emit codeGenerated(KC_RIGHT); //to deselect any text that might already be selected
+		emit characterGenerated(QChar('a')); //insert arbitrary char to have selectAll() have any effect
 		QAbstractSpinBox *spinBox = qobject_cast<QAbstractSpinBox*>(lastFocusedWidget);
 		spinBox->selectAll();
 		//spinBoxes and doubleSpinBoxes both inherit from QAbstractSpinBox
