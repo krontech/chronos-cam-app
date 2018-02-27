@@ -29,11 +29,13 @@ void keyboardBase::selectAllInFocusedWidget(){
 
 	if(senderClass == "CamTextEdit")
 	{
+		QTextEdit *textEdit = qobject_cast<QTextEdit*>(lastFocusedWidget);
 		if(lastFocusedWidget->objectName() != "KickstarterBackersTextEdit"){
-			emit codeGenerated(KC_RIGHT); //to deselect any text that might already be selected
+			textEdit->moveCursor(QTextCursor::End);
+			textEdit->moveCursor(QTextCursor::Left);
+			//emit codeGenerated(KC_RIGHT); //to deselect any text that might already be selected
 			emit characterGenerated(QChar('a')); //insert arbitrary char to have selectAll() have any effect
 		}
-		QTextEdit *textEdit = qobject_cast<QTextEdit*>(lastFocusedWidget);
 		emit codeGenerated(KC_BACKSPACE);
 		//backspace is to remove the arbitrary char
 		textEdit->selectAll();
@@ -41,20 +43,20 @@ void keyboardBase::selectAllInFocusedWidget(){
 
 	if(senderClass == "CamLineEdit")
 	{
-		if(lastFocusedWidget->objectName() != "linePassword"){//or else using KC_RIGHT on the service password lineEdit would cause the tabWidget on utilWindow to advance to the next tab
-			emit codeGenerated(KC_RIGHT); //to deselect any text that might already be selected
-			emit characterGenerated(QChar('a')); //insert arbitrary char to have selectAll() have any effect
-		}
 		QLineEdit *lineEdit = qobject_cast<QLineEdit*>(lastFocusedWidget);
-		emit codeGenerated(KC_BACKSPACE);
+		if(lastFocusedWidget->objectName() != "linePassword"){//or else using KC_RIGHT on the service password lineEdit would cause the tabWidget on utilWindow to advance to the next tab
+			lineEdit->deselect();
+			emit characterGenerated(QChar('a')); //insert arbitrary char to have selectAll() have any effect
+			emit codeGenerated(KC_BACKSPACE);
+		}
 		lineEdit->selectAll();
 	}
 
 	if(senderClass.contains("SpinBox"))
 	{
+		QAbstractSpinBox *spinBox = qobject_cast<QAbstractSpinBox*>(lastFocusedWidget);
 		emit codeGenerated(KC_RIGHT); //to deselect any text that might already be selected
 		emit characterGenerated(QChar('a')); //insert arbitrary char to have selectAll() have any effect
-		QAbstractSpinBox *spinBox = qobject_cast<QAbstractSpinBox*>(lastFocusedWidget);
 		spinBox->selectAll();
 		//spinBoxes and doubleSpinBoxes both inherit from QAbstractSpinBox
 		//these will not accept alphabetic chars, so a backspace is not needed in that case
