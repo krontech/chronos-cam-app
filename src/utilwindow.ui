@@ -26,7 +26,7 @@
     <enum>QTabWidget::East</enum>
    </property>
    <property name="currentIndex">
-    <number>0</number>
+    <number>3</number>
    </property>
    <widget class="QWidget" name="tabMain">
     <attribute name="title">
@@ -527,8 +527,8 @@ Display</string>
        <string>Always</string>
       </property>
      </item>
-		</widget>
-</widget>
+    </widget>
+   </widget>
    <widget class="QWidget" name="tabSettings">
     <attribute name="title">
      <string>Settings</string>
@@ -605,7 +605,7 @@ from backup</string>
     <attribute name="title">
      <string>Kickstarter Backers</string>
     </attribute>
-    <widget class="QTextEdit" name="textEdit">
+    <widget class="QTextEdit" name="KickstarterBackersTextEdit">
      <property name="geometry">
       <rect>
        <x>10</x>
