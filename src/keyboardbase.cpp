@@ -34,10 +34,10 @@ void keyboardBase::selectAllInFocusedWidget(){
 			textEdit->moveCursor(QTextCursor::End);//This and the following line deselect any text that might already be selected
 			textEdit->moveCursor(QTextCursor::Left);
 			emit characterGenerated(QChar('a')); //insert arbitrary char to have selectAll() have any effect
+			emit codeGenerated(KC_BACKSPACE);
+			//backspace is to remove the arbitrary char
+			textEdit->selectAll();
 		}
-		emit codeGenerated(KC_BACKSPACE);
-		//backspace is to remove the arbitrary char
-		textEdit->selectAll();
 	}
 
 	if(senderClass == "CamLineEdit")
@@ -47,8 +47,8 @@ void keyboardBase::selectAllInFocusedWidget(){
 			lineEdit->deselect();
 			emit characterGenerated(QChar('a')); //insert arbitrary char to have selectAll() have any effect
 			emit codeGenerated(KC_BACKSPACE);
+			lineEdit->selectAll();
 		}
-		lineEdit->selectAll();
 	}
 
 	if(senderClass.contains("SpinBox"))
