@@ -55,7 +55,7 @@ void keyboardBase::selectAllInFocusedWidget(){
 	if(senderClass.contains("SpinBox"))
 	{
 		QAbstractSpinBox *spinBox = qobject_cast<QAbstractSpinBox*>(lastFocusedWidget);
-		emit codeGenerated(KC_RIGHT); //to deselect any text that might already be selected
+		//emit codeGenerated(KC_RIGHT); //to deselect any text that might already be selected
 		emit characterGenerated(QChar('a')); //insert arbitrary char to have selectAll() have any effect
 		spinBox->selectAll();
 		//spinBoxes and doubleSpinBoxes both inherit from QAbstractSpinBox
