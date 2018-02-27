@@ -31,9 +31,8 @@ void keyboardBase::selectAllInFocusedWidget(){
 	{
 		QTextEdit *textEdit = qobject_cast<QTextEdit*>(lastFocusedWidget);
 		if(lastFocusedWidget->objectName() != "KickstarterBackersTextEdit"){
-			textEdit->moveCursor(QTextCursor::End);
+			textEdit->moveCursor(QTextCursor::End);//This and the following line deselect any text that might already be selected
 			textEdit->moveCursor(QTextCursor::Left);
-			//emit codeGenerated(KC_RIGHT); //to deselect any text that might already be selected
 			emit characterGenerated(QChar('a')); //insert arbitrary char to have selectAll() have any effect
 		}
 		emit codeGenerated(KC_BACKSPACE);
@@ -55,7 +54,6 @@ void keyboardBase::selectAllInFocusedWidget(){
 	if(senderClass.contains("SpinBox"))
 	{
 		QAbstractSpinBox *spinBox = qobject_cast<QAbstractSpinBox*>(lastFocusedWidget);
-		//emit codeGenerated(KC_RIGHT); //to deselect any text that might already be selected
 		emit characterGenerated(QChar('a')); //insert arbitrary char to have selectAll() have any effect
 		spinBox->selectAll();
 		//spinBoxes and doubleSpinBoxes both inherit from QAbstractSpinBox
