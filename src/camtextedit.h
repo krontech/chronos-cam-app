@@ -23,7 +23,7 @@ class CamTextEdit : public QTextEdit
 {
 	Q_OBJECT
 public:
-	CamTextEdit(QWidget * parent = 0);
+	explicit CamTextEdit(QWidget * parent = 0);
 
 protected:
 	void focusInEvent(QFocusEvent *e);
