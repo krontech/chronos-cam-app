@@ -2995,7 +2995,6 @@ void Camera::setFocusPeakEnable(bool en)
 
 int Camera::getFocusPeakColor(){
 	QSettings appSettings;
-	qDebug()<< "getFocusPeakColor() " << appSettings.value("camera/focusPeakColorIndex", 2);
 	return appSettings.value("camera/focusPeakColorIndex", 2).toInt();//default setting of 3 is cyan
 }
 
@@ -3004,7 +3003,6 @@ void Camera::setFocusPeakColor(int value){
 	setFocusPeakColorLL(value);
 	focusPeakColorIndex = value;
 	appSettings.setValue("camera/focusPeakColorIndex", value);
-	qDebug()<< "setFocusPeakColor() " << value;
 }
 
 

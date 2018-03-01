@@ -68,8 +68,6 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	ui->comboFPColor->addItem("Yellow");
 	ui->comboFPColor->addItem("White");
 	ui->comboFPColor->setCurrentIndex(camera->getFocusPeakColorLL() - 1);
-	qDebug() << "Init set color combo index to" << camera->getFocusPeakColorLL() - 1;
-	//ui->comboFPColor->setEnabled(true);
 	ui->chkZebraEnable->setChecked(camera->getZebraEnable());
 
 	if(camera->getFocusPeakThresholdLL() == FOCUS_PEAK_THRESH_HIGH)
@@ -345,7 +343,6 @@ void UtilWindow::on_comboFPColor_currentIndexChanged(int index)
 	if(ui->comboFPColor->count() < 7)	//Hack so the incorrect value doesn't get set during population of values
 		return;
 	camera->setFocusPeakColor(index + 1);
-	qDebug() << "Set focus peak color to" << index+1;
 }
 
 void UtilWindow::on_radioFPSensLow_toggled(bool checked)
