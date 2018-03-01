@@ -535,6 +535,11 @@ void CamMainWindow::on_cmdUtil_clicked()
 	w->setAttribute(Qt::WA_DeleteOnClose);
 	w->show();
 	connect(w, SIGNAL(moveCamMainWindow()), this, SLOT(updateCamMainWindowPosition()));
+	connect(w, SIGNAL(destroyed()), this, SLOT(UtilWindow_closed()));
+}
+
+void CamMainWindow::UtilWindow_closed(){
+	ui->cmdFocusAid->setChecked(camera->getFocusPeakEnable());
 }
 
 void CamMainWindow::updateCamMainWindowPosition(){

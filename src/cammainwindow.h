@@ -33,7 +33,7 @@ class CamMainWindow;
 class CamMainWindow : public QDialog
 {
 	Q_OBJECT
-	
+
 public:
 	explicit CamMainWindow(QWidget *parent = 0);
 	~CamMainWindow();
@@ -64,6 +64,8 @@ private slots:
 	void on_MainWindowTimeoutTimer();
 
 	void on_cmdFocusAid_clicked(bool focusAidEnabled);
+
+	void UtilWindow_closed();
 
 	void on_expSlider_sliderMoved(int position);
 
