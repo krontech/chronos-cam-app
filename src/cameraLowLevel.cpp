@@ -326,12 +326,12 @@ void Camera::setZebraEnableLL(bool en)
 	gpmc->write32(DISPLAY_CTL_ADDR, (reg & ~DISPLAY_CTL_ZEBRA_EN_MASK) | (en ? DISPLAY_CTL_ZEBRA_EN_MASK : 0));
 }
 
-void Camera::setFocusPeakThreshold(UInt32 thresh)
+void Camera::setFocusPeakThresholdLL(UInt32 thresh)
 {
 	gpmc->write32(DISPLAY_PEAKING_THRESH_ADDR, thresh);
 }
 
-UInt32 Camera::getFocusPeakThreshold(void)
+UInt32 Camera::getFocusPeakThresholdLL(void)
 {
 	return gpmc->read32(DISPLAY_PEAKING_THRESH_ADDR);
 }

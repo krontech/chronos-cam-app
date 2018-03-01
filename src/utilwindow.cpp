@@ -72,11 +72,11 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	//ui->comboFPColor->setEnabled(true);
 	ui->chkZebraEnable->setChecked(camera->getZebraEnable());
 
-	if(camera->getFocusPeakThreshold() == FOCUS_PEAK_THRESH_HIGH)
+	if(camera->getFocusPeakThresholdLL() == FOCUS_PEAK_THRESH_HIGH)
 		ui->radioFPSensHigh->setChecked(true);
-	else if(camera->getFocusPeakThreshold() == FOCUS_PEAK_THRESH_MED)
+	else if(camera->getFocusPeakThresholdLL() == FOCUS_PEAK_THRESH_MED)
 		ui->radioFPSensMed->setChecked(true);
-	else if(camera->getFocusPeakThreshold() == FOCUS_PEAK_THRESH_LOW)
+	else if(camera->getFocusPeakThresholdLL() == FOCUS_PEAK_THRESH_LOW)
 		ui->radioFPSensLow->setChecked(true);
 
 
@@ -352,7 +352,7 @@ void UtilWindow::on_radioFPSensLow_toggled(bool checked)
 {
 	if(checked)
 	{
-		camera->setFocusPeakThreshold(FOCUS_PEAK_THRESH_LOW);
+		camera->setFocusPeakThresholdLL(FOCUS_PEAK_THRESH_LOW);
 	}
 }
 
@@ -360,7 +360,7 @@ void UtilWindow::on_radioFPSensMed_toggled(bool checked)
 {
 	if(checked)
 	{
-		camera->setFocusPeakThreshold(FOCUS_PEAK_THRESH_MED);
+		camera->setFocusPeakThresholdLL(FOCUS_PEAK_THRESH_MED);
 	}
 }
 
@@ -368,7 +368,7 @@ void UtilWindow::on_radioFPSensHigh_toggled(bool checked)
 {
 	if(checked)
 	{
-		camera->setFocusPeakThreshold(FOCUS_PEAK_THRESH_HIGH);
+		camera->setFocusPeakThresholdLL(FOCUS_PEAK_THRESH_HIGH);
 	}
 }
 

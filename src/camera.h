@@ -279,8 +279,8 @@ public:
 	void setFocusPeakColorLL(UInt8 color);
 	bool getZebraEnableLL(void);
 	void setZebraEnableLL(bool en);
-	void setFocusPeakThreshold(UInt32 thresh);
-	UInt32 getFocusPeakThreshold(void);
+	void setFocusPeakThresholdLL(UInt32 thresh);
+	UInt32 getFocusPeakThresholdLL(void);
     Int32 getRamSizeGB(UInt32 * stick0SizeGB, UInt32 * stick1SizeGB);
 	Int32 readSerialNumber(char * dest);
 	Int32 writeSerialNumber(char * src);
