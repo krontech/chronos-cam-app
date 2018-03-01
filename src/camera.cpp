@@ -413,6 +413,7 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 
 	setZebraEnable(appSettings.value("camera/zebra", true).toBool());;
 	setFocusPeakEnable(appSettings.value("camera/focusPeak", false).toBool());;
+	setFocusPeakColorLL(getFocusPeakColor());
 
 	printf("Video init done\n");
 
@@ -2989,6 +2990,20 @@ void Camera::setFocusPeakEnable(bool en)
 	setFocusPeakEnableLL(en);
 	focusPeakEnabled = en;
 	appSettings.setValue("camera/focusPeak", en);
+}
+
+int Camera::getFocusPeakColor(){
+	QSettings appSettings;
+	qDebug()<< "getFocusPeakColor() " << appSettings.value("camera/focusPeakColorIndex", 2);
+	return appSettings.value("camera/focusPeakColorIndex", 2).toInt();//default setting of 3 is cyan
+}
+
+void Camera::setFocusPeakColor(int value){
+	QSettings appSettings;
+	setFocusPeakColorLL(value);
+	focusPeakColorIndex = value;
+	appSettings.setValue("camera/focusPeakColorIndex", value);
+	qDebug()<< "setFocusPeakColor() " << value;
 }
 
 

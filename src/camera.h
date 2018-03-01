@@ -275,8 +275,8 @@ private:
 public:
 	bool getFocusPeakEnableLL(void);
 	void setFocusPeakEnableLL(bool en);
-	UInt8 getFocusPeakColor(void);
-	void setFocusPeakColor(UInt8 color);
+	UInt8 getFocusPeakColorLL(void);
+	void setFocusPeakColorLL(UInt8 color);
 	bool getZebraEnableLL(void);
 	void setZebraEnableLL(bool en);
 	void setFocusPeakThreshold(UInt32 thresh);
@@ -312,6 +312,7 @@ private:
 	double wbMat[3];	//Actual white balance computed during runtime
 	double imgGain;
 	bool focusPeakEnabled;
+	int focusPeakColorIndex;
 	bool zebraEnabled;
 	char serialNumber[SERIAL_NUMBER_MAX_LEN+1];
 
@@ -332,6 +333,8 @@ public:
 	bool RotationArgumentIsSet();
 	void upsideDownTransform(int rotation);
 	void updateVideoPosition();
+	int getFocusPeakColor();
+	void setFocusPeakColor(int value);
 private:
 	bool lastRecording;
 	bool terminateRecDataThread;

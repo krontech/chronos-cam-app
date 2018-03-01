@@ -67,8 +67,8 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	ui->comboFPColor->addItem("Magenta");
 	ui->comboFPColor->addItem("Yellow");
 	ui->comboFPColor->addItem("White");
-	ui->comboFPColor->setCurrentIndex(camera->getFocusPeakColor() - 1);
-	qDebug() << "Init set color combo index to" << camera->getFocusPeakColor() - 1;
+	ui->comboFPColor->setCurrentIndex(camera->getFocusPeakColorLL() - 1);
+	qDebug() << "Init set color combo index to" << camera->getFocusPeakColorLL() - 1;
 	//ui->comboFPColor->setEnabled(true);
 	ui->chkZebraEnable->setChecked(camera->getZebraEnable());
 
