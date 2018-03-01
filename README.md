@@ -159,7 +159,7 @@ project, you will need to set up the kits by deselecting the default
 
 ![QT Creator project configuration](/doc/qtcreator_project.png)
 
-Click on the  `Configure Project` button to select the kits. Click the "Run" toggle, in the "Camera" Build/Run box near the top. Delete the step 'check for available disk space', so only 'Upload files via SFTP' is left. Now, add a new step, 'run custom remote command'. Set it to `killall camApp; sleep 0.25 #Gracefully close the app, so we don't mess up the graphics driver state. Give it time to shut down.` Move it above 'Upload files via SFTP'.
+Click on the  `Configure Project` button to select the kits. Click the "Run" toggle, in the "Camera" Build/Run box near the top. Delete the step 'check for available disk space', so only 'Upload files via SFTP' is left. Now, add a new step, 'run custom remote command'. Set it to `killall camApp; sleep 0.8`, and position it above the 'Upload files via SFTP' step. This command will gracefully close the app, so we don't mess up the graphics driver state.
 
 Scrolling down a little, you'll find the Run box where you can specify 'Arguments' and 'Working directory'. Set 'Arguments' to `-qws -display transformed:rot0`, and 'Working directory' to `/opt/camera`.
 
