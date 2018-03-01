@@ -93,6 +93,7 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	ui->expSlider->setMaximum(camera->sensor->getMaxCurrentIntegrationTime() * 100000000.0);
 	ui->expSlider->setValue(camera->sensor->getIntegrationTime() * 100000000.0);
 	ui->cmdWB->setEnabled(camera->getIsColor());
+	ui->cmdFocusAid->setChecked(camera->getFocusPeakEnable());
 
 	const char * myfifo = "/var/run/bmsFifo";
 
