@@ -93,7 +93,7 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	ui->expSlider->setMaximum(camera->sensor->getMaxCurrentIntegrationTime() * 100000000.0);
 	ui->expSlider->setValue(camera->sensor->getIntegrationTime() * 100000000.0);
 	ui->cmdWB->setEnabled(camera->getIsColor());
-	ui->cmdFocusAid->setChecked(camera->getFocusPeakEnable());
+	ui->chkFocusAid->setChecked(camera->getFocusPeakEnable());
 
 	const char * myfifo = "/var/run/bmsFifo";
 
@@ -119,7 +119,7 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 		ui->cmdClose->setVisible(false);
 		ui->cmdDPCButton->setVisible(false);
 	}
-/*	ui->cmdFocusAid->setVisible(false);
+/*	ui->chkFocusAid->setVisible(false);
 	ui->cmdFPNCal->setVisible(false);
 	ui->cmdIOSettings->setVisible(false);
 	ui->cmdPlay->setVisible(false);
@@ -456,7 +456,7 @@ void CamMainWindow::on_MainWindowTimer()
 void CamMainWindow::on_MainWindowTimeoutTimer()
 {
 	menuTimeoutTimer->stop();
-/*	ui->cmdFocusAid->setVisible(false);
+/*	ui->chkFocusAid->setVisible(false);
 	ui->cmdFPNCal->setVisible(false);
 	ui->cmdIOSettings->setVisible(false);
 	ui->cmdPlay->setVisible(false);
@@ -470,7 +470,7 @@ void CamMainWindow::on_MainWindowTimeoutTimer()
 	ui->lblExp->setVisible(false);*/
 }
 
-void CamMainWindow::on_cmdFocusAid_clicked(bool focusAidEnabled)
+void CamMainWindow::on_chkFocusAid_clicked(bool focusAidEnabled)
 {
 	camera->setFocusPeakEnable(focusAidEnabled);
 }
@@ -540,7 +540,7 @@ void CamMainWindow::on_cmdUtil_clicked()
 }
 
 void CamMainWindow::UtilWindow_closed(){
-	ui->cmdFocusAid->setChecked(camera->getFocusPeakEnable());
+	ui->chkFocusAid->setChecked(camera->getFocusPeakEnable());
 }
 
 void CamMainWindow::updateCamMainWindowPosition(){
@@ -551,7 +551,7 @@ void CamMainWindow::updateCamMainWindowPosition(){
 
 void CamMainWindow::on_cmdBkGndButton_clicked()
 {
-	ui->cmdFocusAid->setVisible(true);
+	ui->chkFocusAid->setVisible(true);
 	ui->cmdFPNCal->setVisible(true);
 	ui->cmdIOSettings->setVisible(true);
 	ui->cmdPlay->setVisible(true);

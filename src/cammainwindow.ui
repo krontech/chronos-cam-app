@@ -238,7 +238,7 @@ Balance</string>
 Settings</string>
    </property>
   </widget>
-  <widget class="QCheckBox" name="cmdFocusAid">
+  <widget class="QCheckBox" name="chkFocusAid">
    <property name="geometry">
     <rect>
      <x>100</x>
@@ -403,7 +403,7 @@ border-color: black;</string>
   <zorder>cmdFPNCal</zorder>
   <zorder>cmdWB</zorder>
   <zorder>cmdIOSettings</zorder>
-  <zorder>cmdFocusAid</zorder>
+  <zorder>chkFocusAid</zorder>
   <zorder>expSlider</zorder>
   <zorder>lblCurrent</zorder>
   <zorder>cmdClose</zorder>

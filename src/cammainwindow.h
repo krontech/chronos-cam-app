@@ -63,7 +63,7 @@ private slots:
 
 	void on_MainWindowTimeoutTimer();
 
-	void on_cmdFocusAid_clicked(bool focusAidEnabled);
+	void on_chkFocusAid_clicked(bool focusAidEnabled);
 
 	void UtilWindow_closed();
 
