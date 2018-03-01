@@ -353,7 +353,10 @@ void UtilWindow::on_radioFPSensLow_toggled(bool checked)
 	if(checked)
 	{
 		camera->setFocusPeakThresholdLL(FOCUS_PEAK_THRESH_LOW);
+		QSettings appSettings;
+		appSettings.setValue("camera/focusPeakThreshold", FOCUS_PEAK_THRESH_LOW);
 	}
+
 }
 
 void UtilWindow::on_radioFPSensMed_toggled(bool checked)
@@ -361,6 +364,8 @@ void UtilWindow::on_radioFPSensMed_toggled(bool checked)
 	if(checked)
 	{
 		camera->setFocusPeakThresholdLL(FOCUS_PEAK_THRESH_MED);
+		QSettings appSettings;
+		appSettings.setValue("camera/focusPeakThreshold", FOCUS_PEAK_THRESH_MED);
 	}
 }
 
@@ -369,6 +374,8 @@ void UtilWindow::on_radioFPSensHigh_toggled(bool checked)
 	if(checked)
 	{
 		camera->setFocusPeakThresholdLL(FOCUS_PEAK_THRESH_HIGH);
+		QSettings appSettings;
+		appSettings.setValue("camera/focusPeakThreshold", FOCUS_PEAK_THRESH_HIGH);
 	}
 }
 

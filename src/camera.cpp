@@ -414,6 +414,7 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 	setZebraEnable(appSettings.value("camera/zebra", true).toBool());;
 	setFocusPeakEnable(appSettings.value("camera/focusPeak", false).toBool());;
 	setFocusPeakColorLL(getFocusPeakColor());
+	setFocusPeakThresholdLL(appSettings.value("camera/focusPeakThreshold", 25).toUInt());
 
 	printf("Video init done\n");
 
