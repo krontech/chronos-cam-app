@@ -125,6 +125,9 @@
      <bold>true</bold>
     </font>
    </property>
+   <property name="autoFillBackground">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Record</string>
    </property>
@@ -235,7 +238,7 @@ Balance</string>
 Settings</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="cmdFocusAid">
+  <widget class="QCheckBox" name="cmdFocusAid">
    <property name="geometry">
     <rect>
      <x>100</x>
@@ -250,6 +253,18 @@ Settings</string>
      <weight>75</weight>
      <bold>true</bold>
     </font>
+   </property>
+   <property name="autoFillBackground">
+    <bool>true</bool>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QCheckBox::indicator {
+     width: 28px;
+     height: 28px;
+}
+
+
+</string>
    </property>
    <property name="text">
     <string>Focus

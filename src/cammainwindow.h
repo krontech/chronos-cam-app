@@ -63,7 +63,7 @@ private slots:
 
 	void on_MainWindowTimeoutTimer();
 
-	void on_cmdFocusAid_clicked();
+	void on_cmdFocusAid_clicked(bool focusAidEnabled);
 
 	void on_expSlider_sliderMoved(int position);
 

@@ -469,18 +469,9 @@ void CamMainWindow::on_MainWindowTimeoutTimer()
 	ui->lblExp->setVisible(false);*/
 }
 
-void CamMainWindow::on_cmdFocusAid_clicked()
+void CamMainWindow::on_cmdFocusAid_clicked(bool focusAidEnabled)
 {
-	camera->setFocusPeakEnable(!focusAidEnabled);
-	focusAidEnabled = !focusAidEnabled;
-	if(focusAidEnabled)
-	{
-		ui->cmdFocusAid->setText("Focus\nAid (On)");
-	}
-	else
-	{
-		ui->cmdFocusAid->setText("Focus\nAid");
-	}
+	camera->setFocusPeakEnable(focusAidEnabled);
 }
 
 void CamMainWindow::on_expSlider_sliderMoved(int position)
