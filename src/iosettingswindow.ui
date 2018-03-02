@@ -269,9 +269,9 @@
     <property name="geometry">
      <rect>
       <x>340</x>
-      <y>10</y>
+      <y>8</y>
       <width>20</width>
-      <height>121</height>
+      <height>123</height>
      </rect>
     </property>
     <property name="frameShadow">
@@ -336,8 +336,8 @@
    <widget class="QRadioButton" name="radioIO2FSOut">
     <property name="geometry">
      <rect>
-      <x>510</x>
-      <y>10</y>
+      <x>320</x>
+      <y>15</y>
       <width>231</width>
       <height>41</height>
      </rect>
@@ -387,8 +387,8 @@
    <widget class="QCheckBox" name="chkIO2InvertIn">
     <property name="geometry">
      <rect>
-      <x>340</x>
-      <y>10</y>
+      <x>590</x>
+      <y>15</y>
       <width>97</width>
       <height>41</height>
      </rect>
@@ -406,8 +406,8 @@
    <widget class="QCheckBox" name="chkIO2Debounce">
     <property name="geometry">
      <rect>
-      <x>340</x>
-      <y>55</y>
+      <x>590</x>
+      <y>60</y>
       <width>151</width>
       <height>41</height>
      </rect>
@@ -425,8 +425,8 @@
    <widget class="QCheckBox" name="chkIO2InvertOut">
     <property name="geometry">
      <rect>
-      <x>510</x>
-      <y>55</y>
+      <x>320</x>
+      <y>60</y>
       <width>151</width>
       <height>41</height>
      </rect>
@@ -444,8 +444,8 @@
    <widget class="QCheckBox" name="chkIO2Pull">
     <property name="geometry">
      <rect>
-      <x>340</x>
-      <y>100</y>
+      <x>590</x>
+      <y>105</y>
       <width>151</width>
       <height>41</height>
      </rect>
@@ -500,8 +500,8 @@
    <widget class="QRadioButton" name="radioIO2None">
     <property name="geometry">
      <rect>
-      <x>510</x>
-      <y>100</y>
+      <x>320</x>
+      <y>105</y>
       <width>101</width>
       <height>41</height>
      </rect>
@@ -524,10 +524,10 @@
    <widget class="Line" name="line">
     <property name="geometry">
      <rect>
-      <x>480</x>
-      <y>10</y>
+      <x>560</x>
+      <y>8</y>
       <width>20</width>
-      <height>141</height>
+      <height>142</height>
      </rect>
     </property>
     <property name="frameShadow">
