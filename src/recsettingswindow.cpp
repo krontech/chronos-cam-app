@@ -47,7 +47,7 @@ RecSettingsWindow::RecSettingsWindow(QWidget *parent, Camera * cameraInst) :
 	this->move(0,0);
 
     is = new ImagerSettings_t;
-	connect(ui->cmdCancel, SIGNAL(clicked()), this, SLOT(close()));
+        //[gui2] connect(ui->cmdCancel, SIGNAL(clicked()), this, SLOT(close()));
 
 	camera = cameraInst;
 
@@ -122,13 +122,13 @@ RecSettingsWindow::RecSettingsWindow(QWidget *parent, Camera * cameraInst) :
     if(	is->hOffset == round((camera->sensor->getMaxHRes() - is->stride) / 2, camera->sensor->getHResIncrement()) &&
         is->vOffset == round((camera->sensor->getMaxVRes() - is->vRes) / 2, camera->sensor->getVResIncrement()))
 	{
-		ui->chkCenter->setChecked(true);
+                //[gui2] ui->chkCenter->setChecked(true);
 		ui->spinHOffset->setEnabled(false);
 		ui->spinVOffset->setEnabled(false);
 	}
 	else
 	{
-		ui->chkCenter->setChecked(false);
+                //[gui2] ui->chkCenter->setChecked(false);
 		ui->spinHOffset->setEnabled(true);
 		ui->spinVOffset->setEnabled(true);
 	}
@@ -137,22 +137,20 @@ RecSettingsWindow::RecSettingsWindow(QWidget *parent, Camera * cameraInst) :
 	//Set the frame period
     double framePeriod = (double)is->period / 100000000.0;
 	getSIText(str, framePeriod, 10, DEF_SI_OPTS, 8);
-	ui->linePeriod->setText(str);
+        ui->linePeriod->setText(str);
 
 	//Set the frame rate
 	double frameRate = 1.0 / framePeriod;
 	getSIText(str, frameRate, ceil(log10(framePeriod*100000000.0)+1), DEF_SI_OPTS, 1000);
-	ui->lineRate->setText(str);
+        ui->lineRate->setText(str);
 
 	//Set the exposure
     double exposure = (double)is->exposure / 100000000.0;
 	getSIText(str, exposure, 10, DEF_SI_OPTS, 8);
-	ui->lineExp->setText(str);
+        ui->lineExp->setText(str);
 
-
-	ui->frameImage->setGeometry(QRect(ui->spinHOffset->value()/4, ui->spinVOffset->value()/4, ui->spinHRes->value()/4, ui->spinVRes->value()/4));
-
-	updateInfoText();
+    updateInfoText();
+	updatePreviewBox();
 
     qDebug() << "---- Rec Settings Window ---- Init complete";
     windowInitComplete = true;  //This is used to avoid control on_change events firing with incomplete values populated
@@ -251,7 +249,7 @@ void RecSettingsWindow::on_spinHRes_valueChanged(int arg1)
         updateOffsetLimits();
 
 
-        ui->frameImage->setGeometry(QRect(ui->spinHOffset->value()/4, ui->spinVOffset->value()/4, ui->spinHRes->value()/4, ui->spinVRes->value()/4));
+        updatePreviewBox();
         updateInfoText();
 
         is->recRegionSizeFrames = camera->getMaxRecordRegionSizeFrames(ui->spinHRes->value(), ui->spinVRes->value());
@@ -264,7 +262,7 @@ void RecSettingsWindow::on_spinHRes_editingFinished()
 
 	ui->spinHRes->setValue(round((UInt32)ui->spinHRes->value(), camera->sensor->getHResIncrement()));
 
-	ui->frameImage->setGeometry(QRect(ui->spinHOffset->value()/4, ui->spinVOffset->value()/4, ui->spinHRes->value()/4, ui->spinVRes->value()/4));
+	updatePreviewBox();
 	qDebug() << "editing finished ";
 	updateInfoText();
 }
@@ -274,7 +272,7 @@ void RecSettingsWindow::on_spinVRes_valueChanged(int arg1)
     if(windowInitComplete)
     {
         updateOffsetLimits();
-        ui->frameImage->setGeometry(QRect(ui->spinHOffset->value()/4, ui->spinVOffset->value()/4, ui->spinHRes->value()/4, ui->spinVRes->value()/4));
+        updatePreviewBox();
         updateInfoText();
         is->recRegionSizeFrames = camera->getMaxRecordRegionSizeFrames(ui->spinHRes->value(), ui->spinVRes->value());
         qDebug() << "---- Rec Settings Window ---- hres =" << ui->spinHRes->value() << "vres =" << ui->spinVRes->value() << "recRegionSizeFrames =" << is->recRegionSizeFrames;
@@ -285,13 +283,13 @@ void RecSettingsWindow::on_spinVRes_editingFinished()
 {
 	ui->spinVRes->setValue(round((UInt32)ui->spinVRes->value(), camera->sensor->getVResIncrement()));
 
-	ui->frameImage->setGeometry(QRect(ui->spinHOffset->value()/4, ui->spinVOffset->value()/4, ui->spinHRes->value()/4, ui->spinVRes->value()/4));
+	updatePreviewBox();
 	updateInfoText();
 }
 
 void RecSettingsWindow::on_spinHOffset_valueChanged(int arg1)
 {
-	ui->frameImage->setGeometry(QRect(ui->spinHOffset->value()/4, ui->spinVOffset->value()/4, ui->spinHRes->value()/4, ui->spinVRes->value()/4));
+	updatePreviewBox();
 	updateInfoText();
 }
 
@@ -299,13 +297,13 @@ void RecSettingsWindow::on_spinHOffset_editingFinished()
 {
 	ui->spinHOffset->setValue(round((UInt32)ui->spinHOffset->value(), camera->sensor->getHResIncrement()));
 
-	ui->frameImage->setGeometry(QRect(ui->spinHOffset->value()/4, ui->spinVOffset->value()/4, ui->spinHRes->value()/4, ui->spinVRes->value()/4));
+	updatePreviewBox();
 	updateInfoText();
 }
 
 void RecSettingsWindow::on_spinVOffset_valueChanged(int arg1)
 {
-	ui->frameImage->setGeometry(QRect(ui->spinHOffset->value()/4, ui->spinVOffset->value()/4, ui->spinHRes->value()/4, ui->spinVRes->value()/4));
+	updatePreviewBox();
 	updateInfoText();
 }
 
@@ -313,7 +311,7 @@ void RecSettingsWindow::on_spinVOffset_editingFinished()
 {
 	ui->spinVOffset->setValue(round((UInt32)ui->spinVOffset->value(), camera->sensor->getVResIncrement()));
 
-	ui->frameImage->setGeometry(QRect(ui->spinHOffset->value()/4, ui->spinVOffset->value()/4, ui->spinHRes->value()/4, ui->spinVRes->value()/4));
+	updatePreviewBox();
 	updateInfoText();
 }
 
@@ -322,7 +320,8 @@ void RecSettingsWindow::updateOffsetLimits()
 	ui->spinHOffset->setMaximum(camera->sensor->getMaxHStride() - ui->spinHRes->value());
 	ui->spinVOffset->setMaximum(camera->sensor->getMaxVRes() - ui->spinVRes->value());
 
-	if(ui->chkCenter->checkState())
+        //[gui2] if(ui->chkCenter->checkState())
+        if(true)
 	{
 		ui->spinHOffset->setValue(round((camera->sensor->getMaxHRes() - ui->spinHRes->value()) / 2, camera->sensor->getHResIncrement()));
 		ui->spinVOffset->setValue(round((camera->sensor->getMaxVRes() - ui->spinVRes->value()) / 2, camera->sensor->getVResIncrement()));
@@ -349,13 +348,13 @@ void RecSettingsWindow::on_cmdMax_clicked()
 
 	getSIText(str, framePeriod, 10, DEF_SI_OPTS, 8);
 	qDebug() << framePeriod;
-	ui->linePeriod->setText(str);
+        ui->linePeriod->setText(str);
 
 	double frameRate = 1.0 / framePeriod;
 	qDebug() << frameRate;
 	getSIText(str, frameRate, ceil(log10(framePeriod * 100000000.0)+1), DEF_SI_OPTS, 1000);
 
-	ui->lineRate->setText(str);
+        ui->lineRate->setText(str);
 
 	//Make sure exposure is within limits
 	double exp = camera->sensor->getActualIntegrationTime(siText2Double(ui->lineExp->text().toStdString().c_str()),
@@ -366,7 +365,7 @@ void RecSettingsWindow::on_cmdMax_clicked()
 	//Format the entered value nicely
 	getSIText(str, exp, 10, DEF_SI_OPTS, 8);
 	qDebug() << exp;
-	ui->lineExp->setText(str);
+        ui->lineExp->setText(str);
 
 }
 
@@ -419,14 +418,14 @@ void RecSettingsWindow::on_linePeriod_returnPressed()
 	//format the entered value nicely
 	getSIText(str, framePeriod, 10, DEF_SI_OPTS, 8);
 	qDebug() << framePeriod;
-	ui->linePeriod->setText(str);
+        ui->linePeriod->setText(str);
 
 	//Set the frame rate
 	double frameRate = 1.0 / framePeriod;
 	qDebug() << frameRate;
 	getSIText(str, frameRate, ceil(log10(framePeriod*100000000.0)+1), DEF_SI_OPTS, 1000);
 
-	ui->lineRate->setText(str);
+        ui->lineRate->setText(str);
 
 	//Make sure exposure is within limits
 	double exp = camera->sensor->getActualIntegrationTime(siText2Double(ui->lineExp->text().toStdString().c_str()),
@@ -437,7 +436,7 @@ void RecSettingsWindow::on_linePeriod_returnPressed()
 	//Format the entered value nicely
 	getSIText(str, exp, 10, DEF_SI_OPTS, 8);
 	qDebug() << exp;
-	ui->lineExp->setText(str);
+        ui->lineExp->setText(str);
 
 }
 /*
@@ -505,14 +504,14 @@ void RecSettingsWindow::on_lineRate_returnPressed()
 	//Set the frame period box
 	getSIText(str, framePeriod, 10, DEF_SI_OPTS, 8);
 	qDebug() << framePeriod;
-	ui->linePeriod->setText(str);
+        ui->linePeriod->setText(str);
 
 	//Refill the frame rate box with the nicely formatted value
 	frameRate = 1.0 / framePeriod;
 	qDebug() << frameRate;
 	getSIText(str, frameRate, ceil(log10(framePeriod * 100000000.0)+1), DEF_SI_OPTS, 1000);
 
-	ui->lineRate->setText(str);
+        ui->lineRate->setText(str);
 
 	//Make sure exposure is within limits
 	double exp = camera->sensor->getActualIntegrationTime(siText2Double(ui->lineExp->text().toStdString().c_str()),
@@ -523,7 +522,7 @@ void RecSettingsWindow::on_lineRate_returnPressed()
 	//Format the entered value nicely
 	getSIText(str, exp, 10, DEF_SI_OPTS, 8);
 	qDebug() << exp;
-	ui->lineExp->setText(str);
+        ui->lineExp->setText(str);
 
 }
 
@@ -598,7 +597,7 @@ void RecSettingsWindow::on_lineExp_returnPressed()
 	//Format the entered value nicely
 	getSIText(str, exp, 10, DEF_SI_OPTS, 8);
 	qDebug() << exp;
-	ui->lineExp->setText(str);
+        ui->lineExp->setText(str);
 }
 
 /*
@@ -650,7 +649,7 @@ void RecSettingsWindow::on_cmdExpMax_clicked()
 	//Format the entered value nicely
 	getSIText(str, exp, 10, DEF_SI_OPTS, 8);
 	qDebug() << exp;
-	ui->lineExp->setText(str);
+        ui->lineExp->setText(str);
 }
 
 /*
@@ -691,7 +690,43 @@ void RecSettingsWindow::updateInfoText()
 	getSIText(maxExposureStr, (double)camera->sensor->getMaxExposure(fp*100000000.0) / 100000000.0, 10, DEF_SI_OPTS, 8);
 
 	sprintf(str, "Max rate for this resolution:\r\n%sfps\r\nMin Period: %ss", maxRateStr, minPeriodStr);
-	ui->lblInfo->setText(str);
+        //[gui2] ui->lblInfo->setText(str);
+}
+
+void RecSettingsWindow::updatePreviewBox()
+{
+	int padding = 2; //Make room for the borders of the preview box.
+	float scaleX = MAX_FRAME_SIZE_H / 1.0 / (ui->frame->width() - padding);
+	float scaleY = MAX_FRAME_SIZE_V / 1.0 / (ui->frame->height() - padding);
+	
+	int outerLeft   = 0;
+	int outerTop    = 0;
+	int outerRight  = ui->frame->width();
+	int outerBottom = ui->frame->height();
+	
+	int innerLeft   = round(ui->spinHOffset->value() / scaleX + padding / 2);
+	int innerTop    = round(ui->spinVOffset->value() / scaleY + padding / 2);
+	int innerRight  = round(innerLeft + ui->spinHRes->value() / scaleX);
+	int innerBottom = round(innerTop  + ui->spinVRes->value() / scaleY);
+	
+	//Passepartout components. Four, for the four sides. We can't cut holes in stuff very easily, and this was easier than figuring out how masks work.
+	ui->passepartoutLeft->setGeometry(
+		QRect(outerLeft, outerTop, innerLeft, outerBottom-outerTop)
+	);
+	ui->passepartoutTop->setGeometry(
+		QRect(innerLeft, outerTop, innerRight-innerLeft, innerTop)
+	);
+	ui->passepartoutRight->setGeometry(
+		QRect(innerRight, outerTop, outerRight-innerRight, outerBottom-outerTop)
+	);
+	ui->passepartoutBottom->setGeometry(
+		QRect(innerLeft, innerBottom, innerRight-innerLeft, outerBottom-innerBottom)
+	);
+	
+	//Inner rectangle, draws black border inside passepartout.
+	ui->frameImage->setGeometry(
+		QRect(innerLeft, innerTop, innerRight-innerLeft, innerBottom-innerTop)
+	);
 }
 
 
