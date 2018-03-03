@@ -75,6 +75,7 @@ RecSettingsWindow::RecSettingsWindow(QWidget *parent, Camera * cameraInst) :
     ui->spinHOffset->setValue(is->hOffset);
     ui->spinVOffset->setValue(is->vOffset);
 
+    ui->comboGain->clear(); //Remove the placeholder from the .ui file.
 	ui->comboGain->addItem("0dB (x1)");
 	ui->comboGain->addItem("6dB (x2)");
 	ui->comboGain->addItem("12dB (x4)");
@@ -89,6 +90,8 @@ RecSettingsWindow::RecSettingsWindow(QWidget *parent, Camera * cameraInst) :
 	fp = fopen("resolutions", "r");
 	if (fp != NULL)
 	{
+		ui->comboRes->clear(); //Remove the placeholder from the .ui file.
+		
 		while (fgets(line, 30, fp) != NULL) {
 			//Remove any newline or carrage return and replace with null
 			char *pos;
@@ -103,12 +106,9 @@ RecSettingsWindow::RecSettingsWindow(QWidget *parent, Camera * cameraInst) :
 			sscanf(line, "%dx%d", &hRes, &vRes);
 
 			int fr =  100000000.0 / (double)camera->sensor->getMinFramePeriod(hRes, vRes);
-			qDebug() << "hres" << hRes << "vRes" << vRes << "mperiod" << camera->sensor->getMinFramePeriod(hRes, vRes) << "fr" << fr;
-			char tmp[20];
-			sprintf(tmp, " %d fps", fr);
-			strcat(line, tmp);
+			QString lineLabel = QString::fromUtf8("%1×%2 @ %3fps").arg(hRes).arg(vRes).arg(fr);
 
-			ui->comboRes->addItem(line);
+			ui->comboRes->addItem(lineLabel);
 		}
 
 		fclose(fp);
@@ -167,7 +167,7 @@ RecSettingsWindow::~RecSettingsWindow()
 
 void RecSettingsWindow::on_cmdOK_clicked()
 {
-	ImagerSettings_t settings;
+	//ImagerSettings_t settings;
 
     is->hRes = ui->spinHRes->value();		//pixels
     is->vRes = ui->spinVRes->value();		//pixels
@@ -735,7 +735,8 @@ void RecSettingsWindow::setResFromText(char * str)
 	int hRes, vRes;
 	int hOffset, vOffset;
 
-	sscanf(str, "%dx%d", &hRes, &vRes);
+	sscanf(str, "%d", &hRes);
+	sscanf(str + std::string(str).find_first_not_of("0123456879") + 1, "%d", &vRes); //Skip over whatever that middle × gets munged to here.
 	hOffset = round((camera->sensor->getMaxHRes() - hRes) / 2, camera->sensor->getHResIncrement());
 	vOffset = round((camera->sensor->getMaxVRes() - vRes) / 2, camera->sensor->getVResIncrement());
 
