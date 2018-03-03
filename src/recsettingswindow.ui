@@ -20,9 +20,17 @@
     
     .QPushButton {
       border: 1px solid black;
+      border-top-color: rgb(50,50,50);
+      border-left-color: rgb(50,50,50);
       background: white;
-      box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.75);
       margin: 20px; /*Use margin to increase clickable area. Makes the whole thing much less fiddly.*/
+    }
+    
+    .QPushButton:pressed {
+      border: 1px solid rgb(50,50,50);
+      border-top-color: black;
+      border-left-color: black;
+      background: rgb(240,240,240);
     }
     
     .QComboBox {
@@ -51,9 +59,10 @@
       border-left-width: 1px;
       background: white;
       color: black;
+      max-height: 100px;
     }
-    QComboBox::down-button {
-      color: black;
+    QComboBox::down-arrow {
+      image: url(assets/wedge-down.png);
     }
     
     
@@ -62,13 +71,16 @@
       padding-right: 40px;
       font-size: 6pt;
       margin: 10px;
+      padding-left: 10px;
     }  
     QSpinBox::up-button { 
       subcontrol-position: right; 
       right: 40px; 
+      image: url(assets/wedge-up.png);
     }
     QSpinBox::down-button { 
       subcontrol-position: right; 
+      image: url(assets/wedge-down.png);
     }
     QSpinBox::up-button, QSpinBox::down-button {
       border: 0px solid black;
@@ -80,6 +92,7 @@
     .CamLineEdit {
       border: 1px solid black;
       margin: 10px; /*This doesn't show up in Qt Designer, but it works in the app.*/
+      padding-left: 10px;
     }
     
     
@@ -713,7 +726,7 @@
     </font>
    </property>
    <property name="text">
-    <string>Record Modes…</string>
+    <string>Record Modes</string>
    </property>
   </widget>
   <widget class="QWidget" name="widget" native="true">
