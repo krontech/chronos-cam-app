@@ -82,6 +82,7 @@ private:
 	UInt32 lastPlayframe;
 	QTimer * timer;
 	QTimer * saveDoneTimer;
+	Int32 playbackExponent;
 	Int32 playbackRate;
 	bool autoSaveFlag;
 
