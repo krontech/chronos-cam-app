@@ -78,12 +78,14 @@ private:
 	void updateStatusText();
 	void updatePlayRateLabel(Int32 playbackRate);
 	void setControlEnable(bool en);
+
 	UInt32 markInFrame, markOutFrame;
 	UInt32 lastPlayframe;
 	QTimer * timer;
 	QTimer * saveDoneTimer;
 	Int32 playbackExponent;
 	Int32 playbackRate;
+	UInt32 playFrame;
 	bool autoSaveFlag;
 
 signals:

@@ -15,7 +15,8 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #------------------------------------------------------------------------------
 
-QT       += core gui dbus
+QT       += core gui
+QT       += dbus
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets multimedia
 

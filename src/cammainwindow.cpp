@@ -257,7 +257,6 @@ void CamMainWindow::on_cmdPlay_clicked()
 	//w->camera = camera;
 	w->setAttribute(Qt::WA_DeleteOnClose);
 	w->show();
-	//w->setGeometry(0, 0,w->width(), w->height());
 }
 
 void CamMainWindow::playFinishedSaving()
@@ -287,10 +286,10 @@ void CamMainWindow::on_cmdRecSettings_clicked()
 	//w->camera = camera;
 	w->setAttribute(Qt::WA_DeleteOnClose);
 	w->show();
-
+	
 	/*while(w->isHidden() == false)
 	  delayms(100);
-
+	  
 	  qDebug() << "deleting window";
 	  delete w;*/
 }
@@ -613,4 +612,3 @@ void CamMainWindow::on_cmdDPCButton_clicked()
 		msg.exec();
 	}
 }
-

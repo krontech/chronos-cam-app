@@ -94,6 +94,26 @@ bool MyInputPanelContext::filterEvent(const QEvent* event)
 
 		keyboardActive = true;
 
+
+
+		//Select all the text in the widget if it's a text or line edit
+		//QWidget *widget = focusWidget();
+		QString text;
+		QString senderClass = widget->metaObject()->className();
+		qDebug() << senderClass;
+		if (senderClass == "CamTextEdit") {
+			QTextEdit *textEdit = qobject_cast<QTextEdit*>(widget);
+			textEdit->selectAll();
+		} else if (senderClass == "CamLineEdit") {
+			QLineEdit *lineEdit = qobject_cast<QLineEdit*>(widget);
+			lineEdit->selectAll();
+		} else if (senderClass == "CamSpinBox") {
+			QSpinBox *spinBox = qobject_cast<QSpinBox*>(widget);
+			spinBox->selectAll();
+			//QTimer::singleShot( 250, spinBox, SLOT( selectAll() ) );
+		}
+
+
         return true;
 	}
 	else if ((event->type() == QEvent::CloseSoftwareInputPanel) && (true == keyboardActive))

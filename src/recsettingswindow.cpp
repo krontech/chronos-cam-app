@@ -176,8 +176,6 @@ RecSettingsWindow::~RecSettingsWindow()
 
 void RecSettingsWindow::on_cmdOK_clicked()
 {
-	//ImagerSettings_t settings;
-
     is->hRes = ui->spinHRes->value();		//pixels
     is->vRes = ui->spinVRes->value();		//pixels
     is->stride = ui->spinHRes->value();		//Number of pixels per line (allows for dark pixels in the last column), always multiple of 16
