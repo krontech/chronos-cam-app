@@ -18,6 +18,9 @@
 #include <QDebug>
 #include <fcntl.h>
 #include <unistd.h>
+#include <QResource>
+#include <QDir>
+#include <QIODevice>
 
 #include "spi.h"
 #include "util.h"
@@ -309,7 +312,7 @@ CameraErrortype LUX1310::initSensor()
 	SCIWrite(0x39, 0x1); //ADC offset enable??
 
 	//Set ADC offsets
-	loadADCOffsetsFromFile("cal/lux1310Offsets.bin");
+	loadADCOffsetsFromFile();
 
 	//Set Gain
 	SCIWrite(0x51, 0x007F);	//gain selection sampling cap (11)	12 bit
@@ -347,7 +350,7 @@ void LUX1310::SCIWrite(UInt8 address, UInt16 data)
 	//qDebug() << "sci write" << data;
 
 	//Clear RW and reset FIFO
-	gpmc->write16(SENSOR_SCI_CONTROL_ADDR, 0x8000 | gpmc->read16(SENSOR_SCI_CONTROL_ADDR) & ~SENSOR_SCI_CONTROL_RW_MASK);
+	gpmc->write16(SENSOR_SCI_CONTROL_ADDR, 0x8000 | (gpmc->read16(SENSOR_SCI_CONTROL_ADDR) & ~SENSOR_SCI_CONTROL_RW_MASK));
 
 	//Set up address, transfer length and put data into FIFO
 	gpmc->write16(SENSOR_SCI_ADDRESS_ADDR, address);
@@ -378,7 +381,7 @@ void LUX1310::SCIWrite(UInt8 address, UInt16 data)
 void LUX1310::SCIWriteBuf(UInt8 address, UInt8 * data, UInt32 dataLen)
 {
 	//Clear RW and reset FIFO
-	gpmc->write16(SENSOR_SCI_CONTROL_ADDR, 0x8000 | gpmc->read16(SENSOR_SCI_CONTROL_ADDR) & ~SENSOR_SCI_CONTROL_RW_MASK);
+	gpmc->write16(SENSOR_SCI_CONTROL_ADDR, 0x8000 | (gpmc->read16(SENSOR_SCI_CONTROL_ADDR) & ~SENSOR_SCI_CONTROL_RW_MASK));
 
 	//Set up address, transfer length and put data into FIFO
 	gpmc->write16(SENSOR_SCI_ADDRESS_ADDR, address);
@@ -962,10 +965,23 @@ Int16 LUX1310::getADCOffset(UInt8 channel)
 		return val & 0x3FF;
 }
 
-Int32 LUX1310::loadADCOffsetsFromFile(const char * filename)
+Int32 LUX1310::loadADCOffsetsFromFile(void)
 {
 	Int16 offsets[LUX1310_HRES_INCREMENT];
-	std::string fn = getFilename("cal/lux1310Offsets", ".bin");
+
+	QString filename;
+	
+	//Generate the filename for this particular resolution and offset
+	filename.sprintf("cal:lux1310Offsets");
+	
+	std::string fn;
+	fn = getFilename("", ".raw");
+	filename.append(fn.c_str());
+	QFileInfo adcOffsetsFile(filename);
+	if (adcOffsetsFile.exists() && adcOffsetsFile.isFile()) 
+		fn = adcOffsetsFile.absoluteFilePath().toLocal8Bit().constData();
+	else 
+		return CAMERA_FILE_NOT_FOUND;
 
 	qDebug() << "attempting to load ADC offsets from" << fn.c_str();
 
@@ -988,11 +1004,25 @@ Int32 LUX1310::loadADCOffsetsFromFile(const char * filename)
 	return SUCCESS;
 }
 
-Int32 LUX1310::saveADCOffsetsToFile(const char * filename)
+Int32 LUX1310::saveADCOffsetsToFile(void)
 {
 	Int16 offsets[LUX1310_HRES_INCREMENT];
-	std::string fn = getFilename("cal/lux1310Offsets", ".bin");
 
+	QString filename;
+	
+	//Generate the filename for this particular resolution and offset
+	if (!QDir("./cal").exists())
+		filename.append("/opt/camera/cal/lux1310Offsets");
+	else
+		filename.append("./cal/lux1310Offsets");
+	
+	std::string fn;
+	fn = getFilename("", ".raw");
+	filename.append(fn.c_str());
+	fn = filename.toLocal8Bit().constData();
+
+	qDebug("writing ADC offsets to %s", fn.c_str());
+	
 	FILE * fp;
 	fp = fopen(fn.c_str(), "wb");
 	if(!fp)
@@ -1106,6 +1136,7 @@ Int32 LUX1310::setGain(UInt32 gainSetting)
 	}
 
 	gain = gainSetting;
+	return SUCCESS;
 }
 
 
@@ -1125,4 +1156,5 @@ UInt8 LUX1310::getFilterColor(UInt32 h, UInt32 v)
 Int32 LUX1310::setABNDelayClocks(UInt32 ABNOffset)
 {
 	gpmc->write16(SENSOR_MAGIC_START_DELAY_ADDR, ABNOffset);
+	return SUCCESS;
 }

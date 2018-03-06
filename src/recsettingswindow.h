@@ -81,7 +81,7 @@ private:
 	Ui::RecSettingsWindow *ui;
 	Camera * camera;
     ImagerSettings_t * is;
-    bool windowInitComplete = false;
+    bool windowInitComplete;
 
 signals:
 	void settingsChanged();

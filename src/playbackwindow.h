@@ -69,6 +69,8 @@ private slots:
 
 	void on_cmdClose_clicked();
 
+	void keyPressEvent(QKeyEvent *ev);
+
 private:
 	Ui::playbackWindow *ui;
 	Camera * camera;

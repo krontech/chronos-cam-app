@@ -28,6 +28,7 @@
 #include <QTimer>
 #include <QMessageBox>
 #include <QSettings>
+#include <QKeyEvent>
 
 
 playbackWindow::playbackWindow(QWidget *parent, Camera * cameraInst, bool autosave) :
@@ -53,17 +54,18 @@ playbackWindow::playbackWindow(QWidget *parent, Camera * cameraInst, bool autosa
 	ui->verticalSlider->setHighlightRegion(markInFrame, markOutFrame);
 
 	camera->setPlayMode(true);
+	camera->vinst->setPosition(0, 0);
 
-	lastPlayframe = camera->playFrame;
-
-	playbackRate = 1;
-	updatePlayRateLabel(playbackRate);
+	playbackExponent = 0;
+	updatePlayRateLabel(playbackExponent);
 
 	timer = new QTimer(this);
 	connect(timer, SIGNAL(timeout()), this, SLOT(updatePlayFrame()));
 	timer->start(30);
 
 	updateStatusText();
+
+	setFocusPolicy(Qt::StrongFocus);
 
 	if(autoSaveFlag) {
 		on_cmdSave_clicked();
@@ -81,32 +83,35 @@ playbackWindow::~playbackWindow()
 
 void playbackWindow::on_verticalSlider_sliderMoved(int position)
 {
-	camera->playFrame = position;
+	/* Note that a rate of zero will also pause playback. */
+	camera->vinst->setPosition(position, 0);
 }
 
 void playbackWindow::on_verticalSlider_valueChanged(int value)
 {
-	camera->playFrame = value;
+
 }
 
 void playbackWindow::on_cmdPlayForward_pressed()
 {
-	camera->setPlaybackRate(playbackRate, true);
+	int fps = (playbackExponent >= 0) ? (60 << playbackExponent) : 60 / (1 - playbackExponent);
+	camera->vinst->setPlayback(fps);
 }
 
 void playbackWindow::on_cmdPlayForward_released()
 {
-	camera->setPlaybackRate(0, true);
+	camera->vinst->setPlayback(0);
 }
 
 void playbackWindow::on_cmdPlayReverse_pressed()
 {
-	camera->setPlaybackRate(playbackRate, false);
+	int fps = (playbackExponent >= 0) ? (60 << playbackExponent) : 60 / (1 - playbackExponent);
+	camera->vinst->setPlayback(-fps);
 }
 
 void playbackWindow::on_cmdPlayReverse_released()
 {
-	camera->setPlaybackRate(0, false);
+	camera->vinst->setPlayback(0);
 }
 
 void playbackWindow::on_cmdSave_clicked()
@@ -269,6 +274,34 @@ void playbackWindow::on_cmdMarkOut_clicked()
 	updateStatusText();
 }
 
+void playbackWindow::keyPressEvent(QKeyEvent *ev)
+{
+	unsigned int skip = 1;
+	switch (ev->key()) {
+	case Qt::Key_PageUp:
+		skip = 10;
+		if (playbackExponent > 0) {
+			skip <<= playbackExponent;
+		}
+	case Qt::Key_Up:
+		camera->vinst->setPosition((camera->playFrame + skip) % camera->recordingData.totalFrames, 0);
+		break;
+
+	case Qt::Key_PageDown:
+		skip = 10;
+		if (playbackExponent > 0) {
+			skip <<= playbackExponent;
+		}
+	case Qt::Key_Down:
+		if (camera->playFrame >= skip) {
+			camera->vinst->setPosition(camera->playFrame - skip, 0);
+		} else {
+			camera->vinst->setPosition(camera->playFrame + camera->recordingData.totalFrames - skip, 0);
+		}
+		break;
+	}
+}
+
 void playbackWindow::updateStatusText()
 {
 	char text[100];
@@ -279,13 +312,9 @@ void playbackWindow::updateStatusText()
 //Periodically check if the play frame is updated
 void playbackWindow::updatePlayFrame()
 {
-	UInt32 playFrame = camera->playFrame;
-	if(playFrame != lastPlayframe)
-	{
-		ui->verticalSlider->setValue(playFrame);
-		updateStatusText();
-		lastPlayframe = camera->playFrame;
-	}
+	camera->playFrame = camera->vinst->getPosition();
+	ui->verticalSlider->setValue(camera->playFrame);
+	updateStatusText();
 }
 
 //Once save is done, re-enable the window
@@ -299,7 +328,7 @@ void playbackWindow::checkForSaveDone()
 		sw->close();
 		ui->cmdSave->setText("Save");
 		setControlEnable(true);
-		updatePlayRateLabel(playbackRate);
+		updatePlayRateLabel(playbackExponent);
 
 		if(autoSaveFlag) {
 			close();
@@ -314,22 +343,18 @@ void playbackWindow::checkForSaveDone()
 
 void playbackWindow::on_cmdRateUp_clicked()
 {
-	if(playbackRate < 5)
-		playbackRate++;
-	if(0 == playbackRate)	//Don't let playback rate be 0 (no playback)
-		playbackRate = 1;
+	if(playbackExponent < 5)
+		playbackExponent++;
 
-	updatePlayRateLabel(playbackRate);
+	updatePlayRateLabel(playbackExponent);
 }
 
 void playbackWindow::on_cmdRateDn_clicked()
 {
-	if(playbackRate > -12)
-		playbackRate--;
-	if(0 == playbackRate)	//Don't let playback rate be 0 (no playback)
-		playbackRate = -1;
+	if(playbackExponent > -5)
+		playbackExponent--;
 
-	updatePlayRateLabel(playbackRate);
+	updatePlayRateLabel(playbackExponent);
 }
 
 void playbackWindow::updatePlayRateLabel(Int32 playbackRate)
@@ -337,7 +362,7 @@ void playbackWindow::updatePlayRateLabel(Int32 playbackRate)
 	char playRateStr[100];
 	double playRate;
 
-	playRate = playbackRate > 0 ? 60.0 * (double)(1 << (playbackRate - 1)) : 60.0 / (double)(-playbackRate+1);
+	playRate = (playbackExponent >= 0) ? (60 << playbackExponent) : 60.0 / (1 - playbackExponent);
 	sprintf(playRateStr, "%.1ffps", playRate);
 
 	ui->lblFrameRate->setText(playRateStr);

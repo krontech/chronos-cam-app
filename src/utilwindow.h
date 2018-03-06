@@ -19,6 +19,7 @@
 
 #include <QWidget>
 #include "camera.h"
+#include <QDBusInterface>
 
 namespace Ui {
 class UtilWindow;
@@ -95,11 +96,17 @@ private slots:
 
 	void on_comboDisableUnsavedWarning_currentIndexChanged(int index);
 
+    //void rxDBus_get_camera_data(QList<QVariant> &response);
+    //void errDBus_get_camera_data(const QDBusError &error);
+
 private:
 	Ui::UtilWindow *ui;
 	Camera * camera;
 	QTimer * timer;
 	bool settingClock;
+
+	//QDBusConnection *dbusControl;
+	//QDBusConnection *dbusVideo;
 };
 
 #endif // UTILWINDOW_H

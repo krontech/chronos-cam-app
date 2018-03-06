@@ -204,7 +204,6 @@ public:
     UInt32 setDisplaySettings(bool encoderSafe, UInt32 maxFps);
 	UInt32 setPlayMode(bool playMode);
 	UInt32 playFrame;
-	void setPlaybackRate(Int32 speed, bool forward);
 	void writeFrameNumbers();
 	UInt16 readPixel(UInt32 pixel, UInt32 offset);
 	void writePixel(UInt32 pixel, UInt32 offset, UInt16 value);
@@ -216,10 +215,10 @@ public:
 	void computeFPNCorrection();
 	void computeFPNCorrection2(UInt32 framesToAverage, bool writeToFile = false, bool factory = false);
 	UInt32 autoFPNCorrection(UInt32 framesToAverage, bool writeToFile = false, bool noCap = false, bool factory = false);
-	Int32 loadFPNFromFile(const char * filename);
+	Int32 loadFPNFromFile(void);
 	Int32 computeColGainCorrection(UInt32 framesToAverage, bool writeToFile = false);
-	Int32 loadColGainFromFile(const char * filename);
-	UInt32 adcOffsetCorrection(UInt32 iterations, const char * filename = "");
+	Int32 loadColGainFromFile(void);
+	UInt32 adcOffsetCorrection(UInt32 iterations, bool writeToFile = true);
 	void offsetCorrectionIteration(UInt32 wordAddress = LIVE_FRAME_0_ADDRESS);
 	int autoAdcOffsetCorrection(void);
 	Int32 autoColGainCorrection(void);
@@ -294,9 +293,7 @@ private:
 	UInt32 getBlockFrameAddress(UInt32 block, UInt32 frame);
 	UInt16 getMaxFPNValue(UInt16 * buf, UInt32 count);
 
-
 	friend void* recDataThread(void *arg);
-	friend void frameCallback(void * arg);
 
 	volatile bool recording;
 	bool playbackMode;

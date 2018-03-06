@@ -37,9 +37,6 @@
 #include "cameraRegisters.h"
 #include "camera.h"
 
-extern "C" {
-#include "vpss/ilmain.h"
-}
 #include "video.h"
 #include "videoRecord.h"
 #include "types.h"
@@ -393,12 +390,12 @@ void MainWindow::on_cmdGC_clicked()
 void MainWindow::on_cmdOffsetCorrection_clicked()
 {
 	//camera->offsetCorrectionIteration();
-	camera->adcOffsetCorrection(32, "");
+	camera->adcOffsetCorrection(32, false);
 }
 
 void MainWindow::on_cmdSaveOC_clicked()
 {
-	camera->sensor->saveADCOffsetsToFile("cal/lux1310Offsets.bin");
+	camera->sensor->saveADCOffsetsToFile();
 }
 
 void MainWindow::on_cmdAutoBlack_clicked()
