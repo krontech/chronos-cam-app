@@ -91,7 +91,6 @@ RecSettingsWindow::RecSettingsWindow(QWidget *parent, Camera * cameraInst) :
 	QFile fp;
 	QString filename;
 	QByteArray line;
-	QString lineText;
 
 	filename.append("camApp:resolutions");
 	QFileInfo resolutionsFile(filename);
@@ -119,9 +118,7 @@ RecSettingsWindow::RecSettingsWindow(QWidget *parent, Camera * cameraInst) :
 		int fr =  100000000.0 / (double)camera->sensor->getMinFramePeriod(hRes, vRes);
 		qDebug() << "hres" << hRes << "vRes" << vRes << "mperiod" << camera->sensor->getMinFramePeriod(hRes, vRes) << "fr" << fr;
 
-		lineText.sprintf("%d×%d @ %dfps", hRes, vRes, fr);
-		
-		ui->comboRes->addItem(line);
+		ui->comboRes->addItem(QString::fromUtf8("%1×%2 @ %3fps").arg(hRes).arg(vRes).arg(fr));
 	}
 	
 	fp.close();
