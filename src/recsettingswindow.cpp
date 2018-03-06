@@ -105,6 +105,7 @@ RecSettingsWindow::RecSettingsWindow(QWidget *parent, Camera * cameraInst) :
 		qDebug("Error: resolutions file isn't present");
 	}
 
+	ui->comboRes->clear();
 	while(true) {
 		line = fp.readLine(30);
 		if (line.isEmpty() || line.isNull())
