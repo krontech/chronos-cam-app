@@ -612,7 +612,7 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
   <widget class="QPushButton" name="cmdResetToDefaults">
    <property name="geometry">
     <rect>
-     <x>100</x>
+     <x>20</x>
      <y>360</y>
      <width>200</width>
      <height>91</height>
@@ -628,6 +628,58 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
    <property name="text">
     <string>Reset To
 Defaults</string>
+   </property>
+  </widget>
+  <widget class="QComboBox" name="comboGain">
+   <property name="geometry">
+    <rect>
+     <x>240</x>
+     <y>415</y>
+     <width>431</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>12</pointsize>
+     <weight>75</weight>
+     <italic>true</italic>
+     <bold>true</bold>
+    </font>
+   </property>
+   <item>
+    <property name="text">
+     <string>Ratio of Post-trigger to Pre-trigger or Pre-record time</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>Post-trigger seconds</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>Post-trigger frames</string>
+    </property>
+   </item>
+  </widget>
+  <widget class="QLabel" name="lblRes_21">
+   <property name="geometry">
+    <rect>
+     <x>250</x>
+     <y>360</y>
+     <width>241</width>
+     <height>56</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>16</pointsize>
+    </font>
+   </property>
+   <property name="text">
+    <string>Keep this constant when
+changing resolutions:</string>
    </property>
   </widget>
  </widget>
