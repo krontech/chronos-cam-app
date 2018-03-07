@@ -51,9 +51,10 @@
     }
     .QComboBox QAbstractItemView::item {
       padding: 10px;
+      margin: 5px;
     }
     
-    QComboBox::drop-down {
+    .QComboBox::drop-down {
       width: 40px;
       border: 0px solid black;
       border-left-width: 1px;
@@ -61,10 +62,40 @@
       color: black;
       max-height: 100px;
     }
-    QComboBox::down-arrow {
+    .QComboBox::drop-down:on {
+      /*Stupid hack because the dropdown scrollbar *can't* be increased in width. It's off the width of the drop-down button by -1px. We can't just decrease the width of the drop-down button, because every other button we own is 40px instead of 39px. So. What we do is adjust the button size down when the drop-down is open, because that's the only time the off-by-one with QScrollBar is noticable, and you're distracted by the scrollbar then.*/
+      padding-left: -1px;
+    }
+    .QComboBox::down-arrow {
       image: url(assets/wedge-down.png);
     }
-    
+
+    QScrollBar, QScrollBar:vertical, QScrollBar:horizontal {
+      border-left: 1px solid black;
+      /*width: 41px; /*This horribly breaks scrolling.*/
+    }
+    QScrollBar::handle:vertical {
+      border: 1px solid black;
+      border-radius: 0;
+      background: white;
+      min-height: 72px;
+      image: url(assets/handle-bars.png);
+      margin: -1px;
+    }
+    /* This remvoes the bottom button by setting the height to 0px */
+    QScrollBar::add-line:vertical {
+      height: 0px;
+      subcontrol-position: bottom;
+      subcontrol-origin: margin;
+    }
+    /* This remvoes the top button by setting the height to 0px */
+    QScrollBar::sub-line:vertical {
+      height: 0px;
+      subcontrol-position: top;
+      subcontrol-origin: margin;
+    }
+
+
     
     QSpinBox { 
       border: 1px solid black;
