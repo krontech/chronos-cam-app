@@ -67,7 +67,7 @@
       padding-left: -1px;
     }
     .QComboBox::down-arrow {
-      image: url(assets/wedge-down.png);
+      image: url(assets/wedge-down-enabled.png);
     }
 
     QScrollBar, QScrollBar:vertical, QScrollBar:horizontal {
@@ -103,15 +103,25 @@
       font-size: 6pt;
       margin: 10px;
       padding-left: 10px;
-    }  
+    }
+    QSpinBox:disabled { 
+      color: #969696;
+    }
     QSpinBox::up-button { 
       subcontrol-position: right; 
       right: 40px; 
-      image: url(assets/wedge-up.png);
+      image: url(assets/wedge-up-enabled.png);
+    }
+    QSpinBox::up-button:disabled { 
+      image: url(assets/wedge-up-disabled.png);
     }
     QSpinBox::down-button { 
       subcontrol-position: right; 
-      image: url(assets/wedge-down.png);
+      image: url(assets/wedge-down-enabled.png);
+    }
+    QSpinBox::down-button:disabled { 
+      subcontrol-position: right; 
+      image: url(assets/wedge-down-disabled.png);
     }
     QSpinBox::up-button, QSpinBox::down-button {
       border: 0px solid black;
