@@ -20,7 +20,7 @@
 #include <QApplication>
 #include <QDebug>
 
-#define HANDLE_HEIGHT 30
+#define HANDLE_HEIGHT 60
 
 PlaybackSlider::PlaybackSlider(QWidget *parent) :
 	QSlider(parent)
