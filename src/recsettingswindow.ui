@@ -901,6 +901,22 @@
    <header>camLineEdit.h</header>
   </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>comboRes</tabstop>
+  <tabstop>spinHRes</tabstop>
+  <tabstop>spinVRes</tabstop>
+  <tabstop>spinHOffset</tabstop>
+  <tabstop>spinVOffset</tabstop>
+  <tabstop>lineRate</tabstop>
+  <tabstop>cmdMax</tabstop>
+  <tabstop>cmdMax_2</tabstop>
+  <tabstop>linePeriod</tabstop>
+  <tabstop>lineExp</tabstop>
+  <tabstop>cmdExpMax</tabstop>
+  <tabstop>comboGain</tabstop>
+  <tabstop>cmdRecMode</tabstop>
+  <tabstop>cmdOK</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>
