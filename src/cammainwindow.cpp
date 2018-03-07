@@ -93,6 +93,7 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	ui->expSlider->setMaximum(camera->sensor->getMaxCurrentIntegrationTime() * 100000000.0);
 	ui->expSlider->setValue(camera->sensor->getIntegrationTime() * 100000000.0);
 	ui->cmdWB->setEnabled(camera->getIsColor());
+	ui->chkFocusAid->setChecked(camera->getFocusPeakEnable());
 
 	const char * myfifo = "/var/run/bmsFifo";
 
@@ -118,7 +119,7 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 		ui->cmdClose->setVisible(false);
 		ui->cmdDPCButton->setVisible(false);
 	}
-/*	ui->cmdFocusAid->setVisible(false);
+/*	ui->chkFocusAid->setVisible(false);
 	ui->cmdFPNCal->setVisible(false);
 	ui->cmdIOSettings->setVisible(false);
 	ui->cmdPlay->setVisible(false);
@@ -455,7 +456,7 @@ void CamMainWindow::on_MainWindowTimer()
 void CamMainWindow::on_MainWindowTimeoutTimer()
 {
 	menuTimeoutTimer->stop();
-/*	ui->cmdFocusAid->setVisible(false);
+/*	ui->chkFocusAid->setVisible(false);
 	ui->cmdFPNCal->setVisible(false);
 	ui->cmdIOSettings->setVisible(false);
 	ui->cmdPlay->setVisible(false);
@@ -469,18 +470,9 @@ void CamMainWindow::on_MainWindowTimeoutTimer()
 	ui->lblExp->setVisible(false);*/
 }
 
-void CamMainWindow::on_cmdFocusAid_clicked()
+void CamMainWindow::on_chkFocusAid_clicked(bool focusAidEnabled)
 {
-	camera->setFocusPeakEnable(!focusAidEnabled);
-	focusAidEnabled = !focusAidEnabled;
-	if(focusAidEnabled)
-	{
-		ui->cmdFocusAid->setText("Focus\nAid (On)");
-	}
-	else
-	{
-		ui->cmdFocusAid->setText("Focus\nAid");
-	}
+	camera->setFocusPeakEnable(focusAidEnabled);
 }
 
 void CamMainWindow::on_expSlider_sliderMoved(int position)
@@ -544,6 +536,11 @@ void CamMainWindow::on_cmdUtil_clicked()
 	w->setAttribute(Qt::WA_DeleteOnClose);
 	w->show();
 	connect(w, SIGNAL(moveCamMainWindow()), this, SLOT(updateCamMainWindowPosition()));
+	connect(w, SIGNAL(destroyed()), this, SLOT(UtilWindow_closed()));
+}
+
+void CamMainWindow::UtilWindow_closed(){
+	ui->chkFocusAid->setChecked(camera->getFocusPeakEnable());
 }
 
 void CamMainWindow::updateCamMainWindowPosition(){
@@ -554,7 +551,7 @@ void CamMainWindow::updateCamMainWindowPosition(){
 
 void CamMainWindow::on_cmdBkGndButton_clicked()
 {
-	ui->cmdFocusAid->setVisible(true);
+	ui->chkFocusAid->setVisible(true);
 	ui->cmdFPNCal->setVisible(true);
 	ui->cmdIOSettings->setVisible(true);
 	ui->cmdPlay->setVisible(true);

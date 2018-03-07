@@ -299,14 +299,14 @@ void Camera::setFocusPeakEnableLL(bool en)
 }
 
 
-UInt8 Camera::getFocusPeakColor(void)
+UInt8 Camera::getFocusPeakColorLL(void)
 {
 	return (gpmc->read32(DISPLAY_CTL_ADDR) & DISPLAY_CTL_FOCUS_PEAK_COLOR_MASK) >> DISPLAY_CTL_FOCUS_PEAK_COLOR_OFFSET;
 }
 
 
 
-void Camera::setFocusPeakColor(UInt8 color)
+void Camera::setFocusPeakColorLL(UInt8 color)
 {
 	UInt32 reg = gpmc->read32(DISPLAY_CTL_ADDR);
 	gpmc->write32(DISPLAY_CTL_ADDR, (reg & ~DISPLAY_CTL_FOCUS_PEAK_COLOR_MASK) | ((color & 7) << DISPLAY_CTL_FOCUS_PEAK_COLOR_OFFSET));
@@ -326,12 +326,12 @@ void Camera::setZebraEnableLL(bool en)
 	gpmc->write32(DISPLAY_CTL_ADDR, (reg & ~DISPLAY_CTL_ZEBRA_EN_MASK) | (en ? DISPLAY_CTL_ZEBRA_EN_MASK : 0));
 }
 
-void Camera::setFocusPeakThreshold(UInt32 thresh)
+void Camera::setFocusPeakThresholdLL(UInt32 thresh)
 {
 	gpmc->write32(DISPLAY_PEAKING_THRESH_ADDR, thresh);
 }
 
-UInt32 Camera::getFocusPeakThreshold(void)
+UInt32 Camera::getFocusPeakThresholdLL(void)
 {
 	return gpmc->read32(DISPLAY_PEAKING_THRESH_ADDR);
 }
