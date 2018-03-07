@@ -19,7 +19,7 @@ triggerDelayWindow::triggerDelayWindow(QWidget *parent, Camera * cameraInst, Ima
     ui->horizontalSlider->setHighlightRegion(0, recLenFrames);
     ui->spinPreFrames->setMaximum(recLenFrames);
     ui->spinPreSeconds->setMaximum((double)recLenFrames * period);
-    updateControls(camera->io->getTriggerDelayFrames());
+    ui->comboKeepConstant->setCurrentIndex(camera->getTriggerDelayConstant());
 }
 
 triggerDelayWindow::~triggerDelayWindow()
@@ -29,6 +29,7 @@ triggerDelayWindow::~triggerDelayWindow()
 
 void triggerDelayWindow::on_cmdOK_clicked()
 {
+     camera->setTriggerDelayConstant(ui->comboKeepConstant->currentIndex());
     camera->io->setTriggerDelayFrames(ui->spinPostFrames->value());
     close();
 }
@@ -41,7 +42,7 @@ void triggerDelayWindow::on_cmdCancel_clicked()
 void triggerDelayWindow::on_horizontalSlider_sliderMoved(int position)
 {
     if(ui->horizontalSlider->hasFocus())
-        updateControls(position);
+	 updateControls(position);
 }
 
 void triggerDelayWindow::on_cmdZeroPercent_clicked()
@@ -65,7 +66,7 @@ void triggerDelayWindow::updateControls(UInt32 postTriggerFrames)
     UInt32 preRecFrames = max((Int32)postTriggerFrames - (Int32)recLenFrames, 0);
 
     if(postTriggerFrames > ui->horizontalSlider->maximum())
-        ui->horizontalSlider->setMaximum(postTriggerFrames);
+	 ui->horizontalSlider->setMaximum(postTriggerFrames);
 
     if(!ui->horizontalSlider->hasFocus())   ui->horizontalSlider->setSliderPosition(postTriggerFrames);
     if(!ui->spinPreFrames->hasFocus())      ui->spinPreFrames->setValue(pretriggerFrames);
@@ -85,25 +86,25 @@ void triggerDelayWindow::on_cmdMax_clicked()
 void triggerDelayWindow::on_spinPreSeconds_valueChanged(double arg1)
 {
     if(ui->spinPreSeconds->hasFocus())
-        updateControls(recLenFrames - (arg1 / period));
+	 updateControls(recLenFrames - (arg1 / period));
 }
 
 void triggerDelayWindow::on_spinPreFrames_valueChanged(int arg1)
 {
     if(ui->spinPreFrames->hasFocus())
-        updateControls(recLenFrames - arg1);
+	 updateControls(recLenFrames - arg1);
 }
 
 void triggerDelayWindow::on_spinPostSeconds_valueChanged(double arg1)
 {
     if(ui->spinPostSeconds->hasFocus())
-        updateControls(arg1 / period);
+	 updateControls(arg1 / period);
 }
 
 void triggerDelayWindow::on_spinPostFrames_valueChanged(int arg1)
 {
     if(ui->spinPostFrames->hasFocus())
-        updateControls(arg1);
+	 updateControls(arg1);
 }
 
 void triggerDelayWindow::on_cmdResetPreRec_clicked()
@@ -114,13 +115,13 @@ void triggerDelayWindow::on_cmdResetPreRec_clicked()
 void triggerDelayWindow::on_spinPreRecSeconds_valueChanged(double arg1)
 {
     if(ui->spinPreRecSeconds->hasFocus())
-        updateControls(recLenFrames + (arg1 / period));
+	 updateControls(recLenFrames + (arg1 / period));
 }
 
 void triggerDelayWindow::on_spinPreRecFrames_valueChanged(int arg1)
 {
     if(ui->spinPreRecFrames->hasFocus())
-        updateControls(recLenFrames + arg1);
+	 updateControls(recLenFrames + arg1);
 }
 
 void triggerDelayWindow::on_cmdResetToDefaults_clicked()

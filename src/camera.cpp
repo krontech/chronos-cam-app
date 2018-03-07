@@ -901,6 +901,7 @@ UInt32 Camera::getPlayFrameAddr(UInt32 playFrame)
 	return 0;
 }
 
+
 bool Camera::getIsRecording(void)
 {
 	return recording;
@@ -3139,3 +3140,13 @@ void recordErrorCallback(void * arg, char * message)
 	fflush(stdout);
 }
 
+unsigned short Camera::getTriggerDelayConstant()
+{
+     QSettings appSettings;
+     return appSettings.value("camera/triggerDelayConstant", TRIGGERDELAY_FRACTION).toUInt();
+}
+
+void Camera::setTriggerDelayConstant(unsigned short value){
+     QSettings appSettings;
+     appSettings.setValue("camera/triggerDelayConstant", value);
+}

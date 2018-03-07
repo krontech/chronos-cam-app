@@ -69,6 +69,10 @@
 
 #define CAMERA_MAX_EXPOSURE_TARGET 3584
 
+#define TRIGGERDELAY_FRACTION 0
+#define TRIGGERDELAY_SECONDS 1
+#define TRIGGERDELAY_FRAMES 2
+
 /*
 typedef enum CameraErrortype
 {
@@ -140,6 +144,7 @@ typedef struct {
     UInt32 segments;            //Number of segments in segmented mode
     UInt32 segmentLengthFrames; //Length of segment in segmented mode
     UInt32 prerecordFrames;     //Number of frames to record before each burst in Gated Burst mode
+    unsigned short triggerDelayConstant;
 
 	struct {
 		unsigned temporary : 1; // set this to disable saving of state
@@ -199,6 +204,8 @@ public:
 	UInt32 getPlayFrameAddr(UInt32 playFrame);
 	RecordSettings_t recordingData;
 	ImagerSettings_t getImagerSettings() { return imagerSettings; }
+	unsigned short getTriggerDelayConstant();
+	void setTriggerDelayConstant(unsigned short value);
 	UInt32 setImagerSettings(ImagerSettings_t settings);
 	UInt32 setIntegrationTime(double intTime, UInt32 hRes, UInt32 vRes, Int32 flags);
     UInt32 setDisplaySettings(bool encoderSafe, UInt32 maxFps);
