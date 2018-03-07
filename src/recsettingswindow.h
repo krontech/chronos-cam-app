@@ -73,6 +73,7 @@ private slots:
 
     void on_cmdDelaySettings_clicked();
 
+    void moveTransparentWidget();
 private:
 	void updateOffsetLimits();
 	void updateInfoText();
@@ -81,7 +82,8 @@ private:
 	Ui::RecSettingsWindow *ui;
 	Camera * camera;
     ImagerSettings_t * is;
-    bool windowInitComplete;
+    bool windowInitComplete = false;
+    bool dragIsOccuring;
 
 signals:
 	void settingsChanged();

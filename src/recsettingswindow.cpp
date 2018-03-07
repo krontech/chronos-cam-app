@@ -21,6 +21,7 @@
 #include <QMessageBox>
 #include <QResource>
 #include <QDir>
+#include "frameimage.h"
 
 #include <QDebug>
 #include <cstdio>
@@ -43,8 +44,6 @@ RecSettingsWindow::RecSettingsWindow(QWidget *parent, Camera * cameraInst) :
 	ui(new Ui::RecSettingsWindow)
 {
 	char str[100];
-	// as non-static data member initializers can't happen in the .h, making sure it's set correct here.
-    windowInitComplete = false;
 
 	ui->setupUi(this);
 	this->setWindowFlags(Qt::Dialog /*| Qt::WindowStaysOnTopHint*/ | Qt::FramelessWindowHint);
@@ -159,6 +158,9 @@ RecSettingsWindow::RecSettingsWindow(QWidget *parent, Camera * cameraInst) :
     updateInfoText();
 	updatePreviewBox();
 
+	dragIsOccuring = false;
+	connect(ui->frameImage, SIGNAL(moved()), this, SLOT(moveTransparentWidget()));
+
     qDebug() << "---- Rec Settings Window ---- Init complete";
     windowInitComplete = true;  //This is used to avoid control on_change events firing with incomplete values populated
 }
@@ -174,6 +176,8 @@ RecSettingsWindow::~RecSettingsWindow()
 
 void RecSettingsWindow::on_cmdOK_clicked()
 {
+	ImagerSettings_t settings;
+
     is->hRes = ui->spinHRes->value();		//pixels
     is->vRes = ui->spinVRes->value();		//pixels
     is->stride = ui->spinHRes->value();		//Number of pixels per line (allows for dark pixels in the last column), always multiple of 16
@@ -206,7 +210,7 @@ void RecSettingsWindow::on_cmdOK_clicked()
     camera->setImagerSettings(*is);
     camera->setDisplaySettings(false, MAX_LIVE_FRAMERATE);
 
-	if(CAMERA_FILE_NOT_FOUND == camera->loadFPNFromFile())
+	if(CAMERA_FILE_NOT_FOUND == camera->loadFPNFromFile(FPN_FILENAME))
 		camera->autoFPNCorrection(2, false, true);
 
 	close();
@@ -242,7 +246,7 @@ void RecSettingsWindow::on_cmdOK_clicked()
 	camera->setImagerSettings(settings);
     camera->setDisplaySettings(false, MAX_LIVE_FRAMERATE);
 
-	camera->loadFPNFromFile();
+	camera->loadFPNFromFile(FPN_FILENAME);
 
 	close();
 }
@@ -824,4 +828,11 @@ void RecSettingsWindow::on_cmdDelaySettings_clicked()
         w->setAttribute(Qt::WA_DeleteOnClose);
         w->show();
     }
+}
+
+void RecSettingsWindow::moveTransparentWidget(){
+	qDebug()<<"moveTransparentWidget";
+	//ui->frameImage->
+	//int newX = FrameImage.x + (QCursor::pos().x + )
+
 }

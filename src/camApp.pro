@@ -38,7 +38,8 @@ INSTALLS += target
 INCLUDEPATH += $${QT_SYSROOT}/usr/include \
                $${QT_SYSROOT}/usr/include/gstreamer-0.10 \
                $${QT_SYSROOT}/usr/include/glib-2.0 \
-	       $${QT_SYSROOT}/usr/lib/glib-2.0/include
+               $${QT_SYSROOT}/usr/lib/glib-2.0/include \
+               $${QT_SYSROOT}/usr/include/ti/omx/interfaces/openMaxv11
 
 # Library notes:
 # In OMX documentation, it says to include omxcore.av5T in the above list. However, this conflicts with
@@ -47,7 +48,7 @@ INCLUDEPATH += $${QT_SYSROOT}/usr/include \
 # Workaround is to include the following shared libaries that are included by libgstomx instead of omxcore.av5t
 #
 QMAKE_LIBDIR += $${QT_SYSROOT}/usr/lib $${QT_SYSROOT}/usr/lib/gstreamer-0.10
-LIBS += -ldl -lgmodule-2.0 -lgobject-2.0 -lgstbase-0.10 -lgstreamer-0.10 -lm -lpthread -l:libxml2.so.2 -l:libz.so.1 -lgthread-2.0 -lrt -lglib-2.0
+LIBS += -lOMX_Core  -ldl -lgmodule-2.0 -lgobject-2.0 -lgstbase-0.10 -lgstreamer-0.10 -lm -lpthread -l:libxml2.so.2 -l:libz.so.1 -lgthread-2.0 -lrt -lglib-2.0
 LIBS += -lgstapp-0.10
 LIBS += -static-libstdc++
 #LIBS += -lgstreamer-0.10 -lgobject-2.0 -lgthread-2.0 -lgmodule-2.0 -lrt -lglib-2.0
@@ -58,6 +59,9 @@ SOURCES += main.cpp\
     lupa1300.cpp \
     spi.cpp \
     gpmc.cpp \
+    vpss/ilclient_utils.c \
+    vpss/semp.c \
+    vpss/dm814x/platform_utils.c \
     video.cpp \
     cammainwindow.cpp \
     myinputpanelcontext.cpp \
@@ -89,7 +93,8 @@ SOURCES += main.cpp\
     triggerslider.cpp \
     playbackslider.cpp \
     chronosControlInterface.cpp \
-    chronosVideoInterface.cpp
+    chronosVideoInterface.cpp\
+    frameimage.cpp
 
 ## Generate version.cpp on every build
 versionTarget.target = version.cpp
@@ -109,6 +114,9 @@ HEADERS  += mainwindow.h \
     defines.h \
     types.h \
     cameraRegisters.h \
+    vpss/ilclient_utils.h \
+    vpss/semp.h \
+    vpss/dm814x/platform_utils.h \
     video.h \
     cammainwindow.h \
     myinputpanelcontext.h \
@@ -143,7 +151,8 @@ HEADERS  += mainwindow.h \
     triggerslider.h \
     playbackslider.h \
     chronosControlInterface.h \
-    chronosVideoInterface.h
+    chronosVideoInterface.h \
+    frameimage.h
 
 
 

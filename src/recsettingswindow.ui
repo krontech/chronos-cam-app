@@ -559,7 +559,7 @@
    <property name="frameShadow">
     <enum>QFrame::Raised</enum>
    </property>
-   <widget class="QFrame" name="frameImage">
+   <widget class="FrameImage" name="frameImage">
     <property name="geometry">
      <rect>
       <x>50</x>
@@ -901,14 +901,20 @@
  </widget>
  <customwidgets>
   <customwidget>
+   <class>CamLineEdit</class>
+   <extends>QLineEdit</extends>
+   <header>camLineEdit.h</header>
+  </customwidget>
+  <customwidget>
    <class>CamSpinBox</class>
    <extends>QSpinBox</extends>
    <header>camspinbox.h</header>
   </customwidget>
   <customwidget>
-   <class>CamLineEdit</class>
-   <extends>QLineEdit</extends>
-   <header>camLineEdit.h</header>
+   <class>FrameImage</class>
+   <extends>QFrame</extends>
+   <header>frameimage.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <tabstops>
