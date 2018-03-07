@@ -3150,3 +3150,9 @@ void Camera::setTriggerDelayConstant(unsigned short value){
      QSettings appSettings;
      appSettings.setValue("camera/triggerDelayConstant", value);
 }
+
+void Camera::setTriggerDelayValues(double ratio, double seconds, UInt32 frames){
+     triggerTimeRatio = ratio;
+     triggerPostSeconds = seconds;
+     triggerPostFrames = frames;
+}

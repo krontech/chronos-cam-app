@@ -636,12 +636,12 @@ Defaults</string>
      <x>240</x>
      <y>415</y>
      <width>431</width>
-     <height>41</height>
+     <height>56</height>
     </rect>
    </property>
    <property name="font">
     <font>
-     <pointsize>12</pointsize>
+     <pointsize>15</pointsize>
      <weight>75</weight>
      <italic>true</italic>
      <bold>true</bold>
@@ -649,7 +649,7 @@ Defaults</string>
    </property>
    <item>
     <property name="text">
-     <string>Ratio of Post-trigger to Pre-trigger or Pre-record time</string>
+     <string>Ratio of Post-trigger time to record time</string>
     </property>
    </item>
    <item>

@@ -2,7 +2,7 @@
 #include "ui_triggerdelaywindow.h"
 #include "camera.h"
 #include <QDebug>
-triggerDelayWindow::triggerDelayWindow(QWidget *parent, Camera * cameraInst, ImagerSettings_t * imagerSettings) :
+triggerDelayWindow::triggerDelayWindow(QWidget *parent, Camera * cameraInst, ImagerSettings_t * imagerSettings, double periodFromRecSettingsWindow) :
     QWidget(parent),
     ui(new Ui::triggerDelayWindow)
 {
@@ -13,13 +13,22 @@ triggerDelayWindow::triggerDelayWindow(QWidget *parent, Camera * cameraInst, Ima
     camera = cameraInst;
     is = imagerSettings;
 
-    period = (double)is->period / 100000000.0;
+    period = periodFromRecSettingsWindow;
     recLenFrames = ((is->mode == RECORD_MODE_NORMAL || is->mode == RECORD_MODE_GATED_BURST) ? is->recRegionSizeFrames : is->recRegionSizeFrames / is->segments);
     ui->horizontalSlider->setMaximum(max(recLenFrames, camera->io->getTriggerDelayFrames()));
     ui->horizontalSlider->setHighlightRegion(0, recLenFrames);
     ui->spinPreFrames->setMaximum(recLenFrames);
     ui->spinPreSeconds->setMaximum((double)recLenFrames * period);
     ui->comboKeepConstant->setCurrentIndex(camera->getTriggerDelayConstant());
+    if(camera->getTriggerDelayConstant() == TRIGGERDELAY_FRACTION)
+	  updateControls(recLenFrames * camera->triggerTimeRatio);
+
+    else if(camera->getTriggerDelayConstant() == TRIGGERDELAY_SECONDS)
+	  updateControls(camera->triggerPostSeconds / period);
+
+    else if(camera->getTriggerDelayConstant() == TRIGGERDELAY_FRAMES)
+	  updateControls(camera->triggerPostFrames);
+
 }
 
 triggerDelayWindow::~triggerDelayWindow()
@@ -31,6 +40,9 @@ void triggerDelayWindow::on_cmdOK_clicked()
 {
      camera->setTriggerDelayConstant(ui->comboKeepConstant->currentIndex());
     camera->io->setTriggerDelayFrames(ui->spinPostFrames->value());
+    camera->setTriggerDelayValues((double)ui->spinPostFrames->value() / recLenFrames,
+				      ui->spinPostSeconds->value(),
+				      ui->spinPostFrames->value());
     close();
 }
 

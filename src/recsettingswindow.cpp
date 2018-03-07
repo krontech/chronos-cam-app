@@ -783,7 +783,7 @@ void RecSettingsWindow::on_cmdDelaySettings_clicked()
     }
     else
     {
-        triggerDelayWindow *w = new triggerDelayWindow(NULL, camera, is);
+	 triggerDelayWindow *w = new triggerDelayWindow(NULL, camera, is, siText2Double(ui->linePeriod->text().toAscii()));
         //w->camera = camera;
         w->setAttribute(Qt::WA_DeleteOnClose);
         w->show();

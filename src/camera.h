@@ -144,7 +144,6 @@ typedef struct {
     UInt32 segments;            //Number of segments in segmented mode
     UInt32 segmentLengthFrames; //Length of segment in segmented mode
     UInt32 prerecordFrames;     //Number of frames to record before each burst in Gated Burst mode
-    unsigned short triggerDelayConstant;
 
 	struct {
 		unsigned temporary : 1; // set this to disable saving of state
@@ -204,8 +203,15 @@ public:
 	UInt32 getPlayFrameAddr(UInt32 playFrame);
 	RecordSettings_t recordingData;
 	ImagerSettings_t getImagerSettings() { return imagerSettings; }
+
 	unsigned short getTriggerDelayConstant();
 	void setTriggerDelayConstant(unsigned short value);
+	void setTriggerDelayValues(double ratio, double seconds, UInt32 frames);
+	unsigned short triggerDelayConstant;
+	double triggerTimeRatio;
+	double triggerPostSeconds;
+	UInt32 triggerPostFrames;
+
 	UInt32 setImagerSettings(ImagerSettings_t settings);
 	UInt32 setIntegrationTime(double intTime, UInt32 hRes, UInt32 vRes, Int32 flags);
     UInt32 setDisplaySettings(bool encoderSafe, UInt32 maxFps);
