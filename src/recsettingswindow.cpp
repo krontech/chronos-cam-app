@@ -120,7 +120,7 @@ RecSettingsWindow::RecSettingsWindow(QWidget *parent, Camera * cameraInst) :
 
 	//If the current image position is in the center, check the centered checkbox
     if(	is->hOffset == round((camera->sensor->getMaxHRes() - is->stride) / 2, camera->sensor->getHResIncrement()) &&
-        is->vOffset == round((camera->sensor->getMaxVRes() - is->vRes) / 2, camera->sensor->getVResIncrement()))
+	 is->vOffset == round((camera->sensor->getMaxVRes() - is->vRes) / 2, camera->sensor->getVResIncrement()))
 	{
 		ui->chkCenter->setChecked(true);
 		ui->spinHOffset->setEnabled(false);
@@ -203,7 +203,15 @@ void RecSettingsWindow::on_cmdOK_clicked()
     camera->setImagerSettings(*is);
     camera->setDisplaySettings(false, MAX_LIVE_FRAMERATE);
 
-	if(CAMERA_FILE_NOT_FOUND == camera->loadFPNFromFile(FPN_FILENAME))
+    if(camera->getTriggerDelayConstant() == TRIGGERDELAY_FRACTION)
+	  camera->io->setTriggerDelayFrames(is->recRegionSizeFrames * camera->triggerTimeRatio);
+    if(camera->getTriggerDelayConstant() == TRIGGERDELAY_SECONDS)
+	  camera->io->setTriggerDelayFrames(camera->triggerPostSeconds / is->period);
+    /*
+    if(camera->getTriggerDelayConstant() == TRIGGERDELAY_FRAMES)
+	  camera->io->setTriggerDelayFrames();
+*/
+    if(CAMERA_FILE_NOT_FOUND == camera->loadFPNFromFile(FPN_FILENAME))
 		camera->autoFPNCorrection(2, false, true);
 
 	close();
@@ -248,14 +256,14 @@ void RecSettingsWindow::on_spinHRes_valueChanged(int arg1)
 {
     if(windowInitComplete)
     {
-        updateOffsetLimits();
+	 updateOffsetLimits();
 
 
-        ui->frameImage->setGeometry(QRect(ui->spinHOffset->value()/4, ui->spinVOffset->value()/4, ui->spinHRes->value()/4, ui->spinVRes->value()/4));
-        updateInfoText();
+	 ui->frameImage->setGeometry(QRect(ui->spinHOffset->value()/4, ui->spinVOffset->value()/4, ui->spinHRes->value()/4, ui->spinVRes->value()/4));
+	 updateInfoText();
 
-        is->recRegionSizeFrames = camera->getMaxRecordRegionSizeFrames(ui->spinHRes->value(), ui->spinVRes->value());
-        qDebug() << "---- Rec Settings Window ---- hres =" << ui->spinHRes->value() << "vres =" << ui->spinVRes->value() << "recRegionSizeFrames =" << is->recRegionSizeFrames;
+	 is->recRegionSizeFrames = camera->getMaxRecordRegionSizeFrames(ui->spinHRes->value(), ui->spinVRes->value());
+	 qDebug() << "---- Rec Settings Window ---- hres =" << ui->spinHRes->value() << "vres =" << ui->spinVRes->value() << "recRegionSizeFrames =" << is->recRegionSizeFrames;
     }
 }
 
@@ -273,11 +281,11 @@ void RecSettingsWindow::on_spinVRes_valueChanged(int arg1)
 {
     if(windowInitComplete)
     {
-        updateOffsetLimits();
-        ui->frameImage->setGeometry(QRect(ui->spinHOffset->value()/4, ui->spinVOffset->value()/4, ui->spinHRes->value()/4, ui->spinVRes->value()/4));
-        updateInfoText();
-        is->recRegionSizeFrames = camera->getMaxRecordRegionSizeFrames(ui->spinHRes->value(), ui->spinVRes->value());
-        qDebug() << "---- Rec Settings Window ---- hres =" << ui->spinHRes->value() << "vres =" << ui->spinVRes->value() << "recRegionSizeFrames =" << is->recRegionSizeFrames;
+	 updateOffsetLimits();
+	 ui->frameImage->setGeometry(QRect(ui->spinHOffset->value()/4, ui->spinVOffset->value()/4, ui->spinHRes->value()/4, ui->spinVRes->value()/4));
+	 updateInfoText();
+	 is->recRegionSizeFrames = camera->getMaxRecordRegionSizeFrames(ui->spinHRes->value(), ui->spinVRes->value());
+	 qDebug() << "---- Rec Settings Window ---- hres =" << ui->spinHRes->value() << "vres =" << ui->spinVRes->value() << "recRegionSizeFrames =" << is->recRegionSizeFrames;
     }
 }
 
@@ -750,15 +758,15 @@ void RecSettingsWindow::on_cmdRecMode_clicked()
 //    is->temporary = 0;
 
     double framePeriod = camera->sensor->getActualFramePeriod(siText2Double(ui->linePeriod->text().toStdString().c_str()),
-                                                       ui->spinHRes->value(),
-                                                       ui->spinVRes->value());
+							      ui->spinHRes->value(),
+							      ui->spinVRes->value());
 
     is->period = framePeriod * 100000000.0;
 
     double exp = camera->sensor->getActualIntegrationTime(siText2Double(ui->lineExp->text().toStdString().c_str()),
-                                                          framePeriod,
-                                                          ui->spinHRes->value(),
-                                                          ui->spinVRes->value());
+								  framePeriod,
+								  ui->spinHRes->value(),
+								  ui->spinVRes->value());
 
 
     is->exposure = exp * 100000000.0;
@@ -776,16 +784,16 @@ void RecSettingsWindow::on_cmdDelaySettings_clicked()
 {
     if(is->mode == RECORD_MODE_GATED_BURST)
     {
-        QMessageBox msg;
-        msg.setText("Record mode is set to Gated Burst. This mode has no adjustable trigger settings.");
-        msg.exec();
-        return;
+	 QMessageBox msg;
+	 msg.setText("Record mode is set to Gated Burst. This mode has no adjustable trigger settings.");
+	 msg.exec();
+	 return;
     }
     else
     {
 	 triggerDelayWindow *w = new triggerDelayWindow(NULL, camera, is, siText2Double(ui->linePeriod->text().toAscii()));
-        //w->camera = camera;
-        w->setAttribute(Qt::WA_DeleteOnClose);
-        w->show();
+	 //w->camera = camera;
+	 w->setAttribute(Qt::WA_DeleteOnClose);
+	 w->show();
     }
 }
