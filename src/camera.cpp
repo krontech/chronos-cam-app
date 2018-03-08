@@ -323,6 +323,10 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 	//Set to full resolution
 	ImagerSettings_t settings;
 
+	setTriggerDelayValues((double) io->getTriggerDelayFrames() / getImagerSettings().recRegionSizeFrames,
+				 io->getTriggerDelayFrames() * getImagerSettings().period,
+				 io->getTriggerDelayFrames());
+
     settings.hRes                   = appSettings.value("camera/hRes", MAX_FRAME_SIZE_H).toInt();
     settings.vRes                   = appSettings.value("camera/vRes", MAX_FRAME_SIZE_V).toInt();
     settings.stride                 = appSettings.value("camera/stride", settings.hRes).toInt();
@@ -340,6 +344,8 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
     settings.temporary              = 0;
 	setImagerSettings(settings);
     setDisplaySettings(false, MAX_LIVE_FRAMERATE);
+
+
 
 	vinst->setRunning(true);
 
@@ -527,17 +533,17 @@ void Camera::updateTriggerValues(ImagerSettings_t settings){
      if(getTriggerDelayConstant() == TRIGGERDELAY_FRACTION){
 	   io->setTriggerDelayFrames(settings.recRegionSizeFrames * triggerTimeRatio);
 	   triggerPostFrames = triggerTimeRatio * settings.recRegionSizeFrames;
-	   triggerPostSeconds = triggerPostFrames * settings.period;
+	   triggerPostSeconds = triggerPostFrames * ((double)settings.period / 100000000);
      }
      if(getTriggerDelayConstant() == TRIGGERDELAY_SECONDS){
-	   io->setTriggerDelayFrames(triggerPostSeconds / settings.period);
-	   triggerTimeRatio = settings.recRegionSizeFrames / settings.period;
-	   triggerPostFrames = triggerPostSeconds / settings.period;
+	   io->setTriggerDelayFrames(triggerPostSeconds / ((double)settings.period / 100000000));
+	   triggerTimeRatio = settings.recRegionSizeFrames / ((double)settings.period / 100000000);
+	   triggerPostFrames = triggerPostSeconds / ((double)settings.period / 100000000);
      }
      if(getTriggerDelayConstant() == TRIGGERDELAY_SECONDS){
 	   io->setTriggerDelayFrames(triggerPostFrames);
 	   triggerTimeRatio   = triggerPostFrames / settings.recRegionSizeFrames;
-	   triggerPostSeconds = triggerPostFrames * settings.period;
+	   triggerPostSeconds = triggerPostFrames * ((double)settings.period / 100000000);
      }
 }
 
@@ -555,6 +561,10 @@ void Camera::setTriggerDelayValues(double ratio, double seconds, UInt32 frames){
      triggerTimeRatio = ratio;
      triggerPostSeconds = seconds;
      triggerPostFrames = frames;
+     qDebug()<<"setTriggerDelayValues";
+     qDebug()<<"ratio:" << ratio;
+     qDebug()<<"seconds: " << seconds;
+     qDebug()<<"frames: " << frames;
 }
 
 UInt32 Camera::setIntegrationTime(double intTime, UInt32 hRes, UInt32 vRes, Int32 flags)
