@@ -39,10 +39,10 @@ triggerDelayWindow::~triggerDelayWindow()
 void triggerDelayWindow::on_cmdOK_clicked()
 {
      camera->setTriggerDelayConstant(ui->comboKeepConstant->currentIndex());
+     camera->setTriggerDelayValues((double)ui->spinPostFrames->value() / recLenFrames,
+					ui->spinPostSeconds->value(),
+					ui->spinPostFrames->value());
     camera->io->setTriggerDelayFrames(ui->spinPostFrames->value());
-    camera->setTriggerDelayValues((double)ui->spinPostFrames->value() / recLenFrames,
-				      ui->spinPostSeconds->value(),
-				      ui->spinPostFrames->value());
     close();
 }
 

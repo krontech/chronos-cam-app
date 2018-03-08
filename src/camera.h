@@ -207,6 +207,7 @@ public:
 	unsigned short getTriggerDelayConstant();
 	void setTriggerDelayConstant(unsigned short value);
 	void setTriggerDelayValues(double ratio, double seconds, UInt32 frames);
+	void updateTriggerValues(ImagerSettings_t settings);
 	unsigned short triggerDelayConstant;
 	double triggerTimeRatio;
 	double triggerPostSeconds;

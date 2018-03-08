@@ -203,14 +203,6 @@ void RecSettingsWindow::on_cmdOK_clicked()
     camera->setImagerSettings(*is);
     camera->setDisplaySettings(false, MAX_LIVE_FRAMERATE);
 
-    if(camera->getTriggerDelayConstant() == TRIGGERDELAY_FRACTION)
-	  camera->io->setTriggerDelayFrames(is->recRegionSizeFrames * camera->triggerTimeRatio);
-    if(camera->getTriggerDelayConstant() == TRIGGERDELAY_SECONDS)
-	  camera->io->setTriggerDelayFrames(camera->triggerPostSeconds / is->period);
-    /*
-    if(camera->getTriggerDelayConstant() == TRIGGERDELAY_FRAMES)
-	  camera->io->setTriggerDelayFrames();
-*/
     if(CAMERA_FILE_NOT_FOUND == camera->loadFPNFromFile(FPN_FILENAME))
 		camera->autoFPNCorrection(2, false, true);
 

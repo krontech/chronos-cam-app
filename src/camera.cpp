@@ -465,6 +465,8 @@ UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
     imagerSettings.segmentLengthFrames = settings.segmentLengthFrames;
     imagerSettings.segments = settings.segments;
 
+     updateTriggerValues(settings);
+
     //Zero trigger delay for Gated Burst
     if(settings.mode == RECORD_MODE_GATED_BURST)
 	io->setTriggerDelayFrames(0, FLAG_TEMPORARY);
@@ -519,6 +521,13 @@ UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 	}
 
 	return SUCCESS;
+}
+
+void Camera::updateTriggerValues(ImagerSettings_t settings){
+     if(getTriggerDelayConstant() == TRIGGERDELAY_FRACTION)
+	   io->setTriggerDelayFrames(settings.recRegionSizeFrames * triggerTimeRatio);
+     if(getTriggerDelayConstant() == TRIGGERDELAY_SECONDS)
+	   io->setTriggerDelayFrames(triggerPostSeconds / settings.period);
 }
 
 UInt32 Camera::setIntegrationTime(double intTime, UInt32 hRes, UInt32 vRes, Int32 flags)
