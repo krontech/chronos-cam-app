@@ -69,6 +69,9 @@
 
 #define CAMERA_MAX_EXPOSURE_TARGET 3584
 
+#define DISPLAY_SIZE_V			480 //Resolution of the display screen on the back of the camera, in px.
+#define DISPLAY_SIZE_H			800
+
 /*
 typedef enum CameraErrortype
 {
@@ -140,7 +143,8 @@ typedef struct {
     UInt32 segments;            //Number of segments in segmented mode
     UInt32 segmentLengthFrames; //Length of segment in segmented mode
     UInt32 prerecordFrames;     //Number of frames to record before each burst in Gated Burst mode
-
+	QRect  displayArea;         //In pixels, the xywh area on the screen to display the video in. Set to null to turn off video.
+	
 	struct {
 		unsigned temporary : 1; // set this to disable saving of state
         unsigned disableRingBuffer : 1; //Set this to disable the ring buffer (record ends when at the end of memory rather than rolling over to the beginning)

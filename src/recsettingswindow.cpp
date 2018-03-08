@@ -43,6 +43,8 @@ RecSettingsWindow::RecSettingsWindow(QWidget *parent, Camera * cameraInst) :
 	QWidget(parent),
 	ui(new Ui::RecSettingsWindow)
 {
+	windowInitComplete = false;
+	
 	char str[100];
 
 	ui->setupUi(this);
@@ -85,7 +87,30 @@ RecSettingsWindow::RecSettingsWindow(QWidget *parent, Camera * cameraInst) :
 	ui->comboGain->addItem("18dB (x8)");
 	ui->comboGain->addItem("24dB (x16)");
     ui->comboGain->setCurrentIndex(is->gain);
+    
+    
+    //Set the preview video mode to the full sensor, displayed in the little preview box.
+    is->temporary = true;
+    is->hRes = MAX_FRAME_SIZE_H;
+    is->vRes = MAX_FRAME_SIZE_V;
+    is->hOffset = 0;
+    is->vOffset = 0;
+    is->stride = is->hRes;
+    is->gain = ui->comboGain->currentIndex();
+    //is->period = camera->sensor->getActualFramePeriod(
+    //    siText2Double("945.75 u"), is->hRes, is->vRes
+    //) * 100000000.0;
+    //is->exposure = camera->sensor->getActualIntegrationTime(
+	//	siText2Double("940.75 u"), is->period, is->hRes, is->vRes
+	//) * 100000000.0;
+	is->displayArea = QRect(ui->frame->pos(), ui->frame->size());
+	camera->setImagerSettings(*is);
+    camera->setDisplaySettings(false, MAX_LIVE_FRAMERATE);
+    
+    if(CAMERA_FILE_NOT_FOUND == camera->loadFPNFromFile())
+		camera->autoFPNCorrection(2, false, true);
 
+	
 	//Populate the common resolution combo box from the list of resolutions
 	QFile fp;
 	QString filename;
@@ -176,14 +201,15 @@ RecSettingsWindow::~RecSettingsWindow()
 
 void RecSettingsWindow::on_cmdOK_clicked()
 {
-	ImagerSettings_t settings;
+	//ImagerSettings_t settings;
 
-    is->hRes = ui->spinHRes->value();		//pixels
-    is->vRes = ui->spinVRes->value();		//pixels
-    is->stride = ui->spinHRes->value();		//Number of pixels per line (allows for dark pixels in the last column), always multiple of 16
-    is->hOffset = ui->spinHOffset->value();	//Active area offset from left
-    is->vOffset = ui->spinVOffset->value();		//Active area offset from top
+    is->hRes = ui->spinHRes->value();       //pixels
+    is->vRes = ui->spinVRes->value();       //pixels
+    is->hOffset = ui->spinHOffset->value(); //Active area offset from left
+    is->vOffset = ui->spinVOffset->value(); //Active area offset from top
+    is->stride = is->hRes;                  //Number of pixels per line (allows for dark pixels in the last column), always multiple of 16
     is->gain = ui->comboGain->currentIndex();
+	is->displayArea = QRect(0, 0, DISPLAY_SIZE_H, DISPLAY_SIZE_V);
 //    is->recRegionSizeFrames = is->recRegionSizeFrames;
 //    is->disableRingBuffer = is->disableRingBuffer;
 //    is->mode = is->mode;
@@ -206,51 +232,16 @@ void RecSettingsWindow::on_cmdOK_clicked()
 
     is->exposure = exp * 100000000.0;
 
-    is->temporary = 0;
+    is->temporary = false;
     camera->setImagerSettings(*is);
     camera->setDisplaySettings(false, MAX_LIVE_FRAMERATE);
 
-	if(CAMERA_FILE_NOT_FOUND == camera->loadFPNFromFile(FPN_FILENAME))
+	if(CAMERA_FILE_NOT_FOUND == camera->loadFPNFromFile())
 		camera->autoFPNCorrection(2, false, true);
 
 	close();
 }
 
-/*
-void RecSettingsWindow::on_cmdOK_clicked()
-{
-	ImagerSettings_t settings;
-
-	settings.hRes = min(ui->spinHRes->value(), 1280);		//pixels
-	settings.vRes = ui->spinVRes->value();		//pixels
-	settings.stride = ui->spinHRes->value();		//Number of pixels per line (allows for dark pixels in the last column), always multiple of 16
-	settings.hOffset = ui->spinHOffset->value();	//Active area offset from left
-	settings.vOffset = ui->spinVOffset->value();		//Active area offset from top
-
-	double framePeriodMin = (double)camera->sensor->getMinFramePeriod(settings.stride, settings.vRes) / 100000000.0;
-	double framePeriod = siText2Double(ui->linePeriod->text().toStdString().c_str());
-
-	if(framePeriod < framePeriodMin)
-		framePeriod = framePeriodMin;
-
-	settings.period = framePeriod * 100000000.0;
-
-	double expMax = (double)camera->sensor->getMaxExposure(settings.period) / 100000000.0;
-	double exp = siText2Double(ui->lineExp->text().toStdString().c_str());
-
-	if(exp > expMax)
-		exp = expMax;
-
-	settings.exposure = exp * 100000000.0;
-
-	camera->setImagerSettings(settings);
-    camera->setDisplaySettings(false, MAX_LIVE_FRAMERATE);
-
-	camera->loadFPNFromFile(FPN_FILENAME);
-
-	close();
-}
-*/
 void RecSettingsWindow::on_spinHRes_valueChanged(int arg1)
 {
     if(windowInitComplete)
@@ -329,8 +320,8 @@ void RecSettingsWindow::updateOffsetLimits()
 	ui->spinHOffset->setMaximum(camera->sensor->getMaxHStride() - ui->spinHRes->value());
 	ui->spinVOffset->setMaximum(camera->sensor->getMaxVRes() - ui->spinVRes->value());
 
-        //[gui2] if(ui->chkCenter->checkState())
-        if(true)
+    //[gui2] if(ui->chkCenter->checkState())
+    if(true)
 	{
 		ui->spinHOffset->setValue(round((camera->sensor->getMaxHRes() - ui->spinHRes->value()) / 2, camera->sensor->getHResIncrement()));
 		ui->spinVOffset->setValue(round((camera->sensor->getMaxVRes() - ui->spinVRes->value()) / 2, camera->sensor->getVResIncrement()));
@@ -718,7 +709,7 @@ void RecSettingsWindow::updatePreviewBox()
 	int innerRight  = round(innerLeft + ui->spinHRes->value() / scaleX);
 	int innerBottom = round(innerTop  + ui->spinVRes->value() / scaleY);
 	
-	//Passepartout components. Four, for the four sides. We can't cut holes in stuff very easily, and this was easier than figuring out how masks work.
+	//Passepartout components. Four, for the four sides. We can't cut holes in stuff very easily, and this was simpler and more visual than figuring out how masks work.
 	ui->passepartoutLeft->setGeometry(
 		QRect(outerLeft, outerTop, innerLeft, outerBottom-outerTop)
 	);
@@ -773,6 +764,17 @@ void RecSettingsWindow::on_comboRes_activated(const QString &arg1)
 	setResFromText(ba.data());
 }
 
+void RecSettingsWindow::on_comboGain_activated()
+{
+	is->gain = ui->comboGain->currentIndex();
+	
+	camera->setImagerSettings(*is);
+    camera->setDisplaySettings(false, MAX_LIVE_FRAMERATE);
+	
+	//TODO DDR: Figure out why the preview is sometimes bluegray after this.
+}
+
+
 void RecSettingsWindow::on_cmdRecMode_clicked()
 {
     is->hRes = ui->spinHRes->value();		//pixels
@@ -781,8 +783,9 @@ void RecSettingsWindow::on_cmdRecMode_clicked()
     is->hOffset = ui->spinHOffset->value();	//Active area offset from left
     is->vOffset = ui->spinVOffset->value();		//Active area offset from top
     is->gain = ui->comboGain->currentIndex();
+	is->displayArea = QRect(0, 0, DISPLAY_SIZE_H, DISPLAY_SIZE_V); //Set the video output back to fullscreen.
 //    is->recRegionSizeFrames = is->recRegionSizeFrames;
- //   is->disableRingBuffer = is->disableRingBuffer;
+//    is->disableRingBuffer = is->disableRingBuffer;
 //    is->mode = is->mode;
 //    is->prerecordFrames = is->prerecordFrames;
 //    is->segmentLengthFrames = is->segmentLengthFrames;
@@ -803,7 +806,7 @@ void RecSettingsWindow::on_cmdRecMode_clicked()
 
     is->exposure = exp * 100000000.0;
 
-    is->temporary = 0;
+    is->temporary = false;
 
 
     recModeWindow *w = new recModeWindow(NULL, camera, is);

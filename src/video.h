@@ -23,7 +23,8 @@ public:
 
 	void addRegion(UInt32 base, UInt32 size, UInt32 offset);
 	bool isRunning(void) {return running;}
-	bool setRunning(bool run);
+	bool setRunning(void* area);
+	bool setRunning(QRect area);
 	CameraErrortype setScaling(UInt32 startX, UInt32 startY, UInt32 cropX, UInt32 cropY);
 
 	void setDisplayWindowStartX(bool videoOnRight);

@@ -59,9 +59,6 @@ SOURCES += main.cpp\
     lupa1300.cpp \
     spi.cpp \
     gpmc.cpp \
-    vpss/ilclient_utils.c \
-    vpss/semp.c \
-    vpss/dm814x/platform_utils.c \
     video.cpp \
     cammainwindow.cpp \
     myinputpanelcontext.cpp \
@@ -114,9 +111,6 @@ HEADERS  += mainwindow.h \
     defines.h \
     types.h \
     cameraRegisters.h \
-    vpss/ilclient_utils.h \
-    vpss/semp.h \
-    vpss/dm814x/platform_utils.h \
     video.h \
     cammainwindow.h \
     myinputpanelcontext.h \

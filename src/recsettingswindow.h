@@ -66,8 +66,10 @@ private slots:
 	void on_cmdExpMax_clicked();
 
 	void closeEvent(QCloseEvent *event);
-
+	
 	void on_comboRes_activated(const QString &arg1);
+	
+	void on_comboGain_activated();
 
     void on_cmdRecMode_clicked();
 
@@ -82,7 +84,7 @@ private:
 	Ui::RecSettingsWindow *ui;
 	Camera * camera;
     ImagerSettings_t * is;
-    bool windowInitComplete = false;
+    bool windowInitComplete;
     bool dragIsOccuring;
 
 signals:

@@ -314,6 +314,7 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
     imagerSettings.prerecordFrames = 1;
     imagerSettings.segmentLengthFrames = imagerSettings.recRegionSizeFrames;
     imagerSettings.segments = 1;
+	imagerSettings.displayArea = QRect(0, 0, DISPLAY_SIZE_H, DISPLAY_SIZE_V);
 
 	vinst->init();
 
@@ -329,7 +330,8 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
     settings.period                 = appSettings.value("camera/period", sensor->getMinFramePeriod(settings.hRes, settings.vRes)).toInt();
     settings.exposure               = appSettings.value("camera/exposure", sensor->getMaxExposure(settings.period)).toInt();
     settings.recRegionSizeFrames    = appSettings.value("camera/recRegionSizeFrames", getMaxRecordRegionSizeFrames(settings.hRes, settings.vRes)).toInt();
-    settings.disableRingBuffer      = appSettings.value("camera/disableRingBuffer", 0).toInt();
+    settings.displayArea            = QRect(0, 0, DISPLAY_SIZE_H, DISPLAY_SIZE_V);
+	settings.disableRingBuffer      = appSettings.value("camera/disableRingBuffer", 0).toInt();
     settings.mode                   = (CameraRecordModeType)appSettings.value("camera/mode", RECORD_MODE_NORMAL).toInt();
     settings.prerecordFrames        = appSettings.value("camera/prerecordFrames", 1).toInt();
     settings.segmentLengthFrames    = appSettings.value("camera/segmentLengthFrames", settings.recRegionSizeFrames).toInt();
@@ -338,7 +340,7 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 	setImagerSettings(settings);
     setDisplaySettings(false, MAX_LIVE_FRAMERATE);
 
-	vinst->setRunning(true);
+	vinst->setRunning(imagerSettings.displayArea);
 
 	recorder = new VideoRecord();
 
@@ -460,7 +462,8 @@ UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
     imagerSettings.mode = settings.mode;
     imagerSettings.prerecordFrames = settings.prerecordFrames;
     imagerSettings.segmentLengthFrames = settings.segmentLengthFrames;
-    imagerSettings.segments = settings.segments;
+	imagerSettings.segments = settings.segments;
+	imagerSettings.displayArea = settings.displayArea;
 
     //Zero trigger delay for Gated Burst
     if(settings.mode == RECORD_MODE_GATED_BURST)
@@ -543,7 +546,7 @@ UInt32 Camera::setDisplaySettings(bool encoderSafe, UInt32 maxFps)
 	//Stop live video if running
 	bool running = vinst->isRunning();
 	if(running)
-		vinst->setRunning(false);
+		vinst->setRunning(NULL);
 
     setLiveOutputTiming(imagerSettings.hRes, imagerSettings.vRes,
                         imagerSettings.hRes, imagerSettings.vRes,
@@ -551,7 +554,7 @@ UInt32 Camera::setDisplaySettings(bool encoderSafe, UInt32 maxFps)
 
 	//Restart live video if it was running
 	if(running)
-		vinst->setRunning(true);
+		vinst->setRunning(imagerSettings.displayArea);
 
 	return SUCCESS;
 }
@@ -2570,7 +2573,7 @@ Int32 Camera::startSave(UInt32 startFrame, UInt32 length)
 	if(startFrame + length > recordingData.totalFrames)
 		return CAMERA_INVALID_SETTINGS;
 
-	vinst->setRunning(false);
+	vinst->setRunning(NULL);
 	delayms(100); //Gstreamer crashes with no delay here, OMX needs time to deinit stuff?
     setDisplaySettings(true, MAX_RECORD_FRAMERATE);	//Set to encoder safe mode, and increase the framerate.
 
@@ -2588,7 +2591,7 @@ Int32 Camera::startSave(UInt32 startFrame, UInt32 length)
 	
 	if(retVal != SUCCESS)
     {
-		vinst->setRunning(true);
+		vinst->setRunning(imagerSettings.displayArea);
 		if(RECORD_DIRECTORY_NOT_WRITABLE == retVal)
 			return RECORD_DIRECTORY_NOT_WRITABLE;
 		else if(RECORD_FILE_EXISTS == retVal)
@@ -2759,7 +2762,7 @@ Int32 Camera::blackCalAllStdRes(bool factory)
 	QString filename;
 	QByteArray line;
 
-	vinst->setRunning(false);
+	vinst->setRunning(NULL);
 
 	filename.append("camApp:resolutions");
 	QFileInfo resolutionsFile(filename);
@@ -2856,7 +2859,7 @@ Int32 Camera::blackCalAllStdRes(bool factory)
 		return retVal;
 	}
 
-	vinst->setRunning(true);
+	vinst->setRunning(imagerSettings.displayArea);
 
 	return SUCCESS;
 }
@@ -3160,7 +3163,7 @@ void recordEosCallback(void * arg)
 	camera->recorder->stop();
     camera->setDisplaySettings(false, MAX_LIVE_FRAMERATE);
 	camera->gpmc->write16(DISPLAY_PIPELINE_ADDR, 0x0000); // turn off raw/bipass modes, if they're set
-	camera->vinst->setRunning(true);
+	camera->vinst->setRunning(QRect(0, 0, DISPLAY_SIZE_H, DISPLAY_SIZE_V));
 	fflush(stdout);
 }
 

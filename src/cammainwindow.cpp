@@ -195,7 +195,7 @@ CamMainWindow::~CamMainWindow()
 	delete ui;
 	if(camera->vinst->isRunning())
 	{
-		camera->vinst->setRunning(false);
+		camera->vinst->setRunning(NULL);
 	}
 	delete camera;
 }

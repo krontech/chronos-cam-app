@@ -28,33 +28,45 @@ Int32 Video::init(void)
 	return SUCCESS;
 }
 
-bool Video::setRunning(bool run)
+//setRunning: Turn the video off, or turn it on. Requires the area of the screen to display the video on.
+//(Turning on the video twice will restart the video, even if the parameters are the same. Do not depend on this, it is likely to change.)
+bool Video::setRunning(void* area)
 {
-	if(!running && run) {
-		int child = fork();
-		if (child < 0) {
-			/* Could not start the video pipeline. */
-			return false;
-		}
-		else if (child == 0) {
-			/* child process - start the pipeline */
-			const char *path = "/opt/camera/cam-pipeline";
-			char display[64];
-			char offset[64];
-			snprintf(display, sizeof(display), "%ux%u", displayWindowXSize, displayWindowYSize);
-			snprintf(offset, sizeof(offset), "%ux%u", displayWindowXOff, displayWindowYOff);
-			execl(path, path, display, "--offset", offset, NULL);
-			exit(EXIT_FAILURE);
-		}
-		pid = child;
-		running = true;
-	}
-	else if(running && !run) {
+	if(area) { throw std::invalid_argument( "setRunning must be called with NULL or a QRect." ); }
+	
+	if(running) {
 		int status;
 		kill(pid, SIGINT);
 		waitpid(pid, &status, 0);
 		running = false;
 	}
+	
+	return true;
+}
+
+bool Video::setRunning(QRect area)
+{
+	setRunning(NULL);
+	
+	int child = fork();
+	if (child < 0) {
+		/* Could not start the video pipeline. */
+		return false;
+	}
+	else if (child == 0) {
+		/* child process - start the pipeline */
+		const char *path = "/opt/camera/cam-pipeline";
+		char display[64];
+		char offset[64];
+		//qDebug() << "__RES 1" << displayWindowXSize << displayWindowYSize << displayWindowXOff << displayWindowYOff;
+		snprintf(display, sizeof(display), "%ux%u", area.width(), area.height());
+		snprintf(offset, sizeof(offset), "%ux%u", area.left(), area.top());
+		execl(path, path, display, "--offset", offset, NULL);
+		exit(EXIT_FAILURE);
+	}
+	pid = child;
+	running = true;
+	
 	return true;
 }
 
@@ -157,6 +169,6 @@ Video::Video() : iface("com.krontech.chronos.video", "/com/krontech/chronos/vide
 
 Video::~Video()
 {
-	setRunning(false);
+	setRunning(NULL);
 	pthread_mutex_destroy(&mutex);
 }
