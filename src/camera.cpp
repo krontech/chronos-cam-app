@@ -323,10 +323,6 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 	//Set to full resolution
 	ImagerSettings_t settings;
 
-	setTriggerDelayValues((double) io->getTriggerDelayFrames() / getImagerSettings().recRegionSizeFrames,
-				 io->getTriggerDelayFrames() * (getImagerSettings().period / 100000000),
-				 io->getTriggerDelayFrames());
-
     settings.hRes                   = appSettings.value("camera/hRes", MAX_FRAME_SIZE_H).toInt();
     settings.vRes                   = appSettings.value("camera/vRes", MAX_FRAME_SIZE_V).toInt();
     settings.stride                 = appSettings.value("camera/stride", settings.hRes).toInt();
@@ -342,7 +338,12 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
     settings.segmentLengthFrames    = appSettings.value("camera/segmentLengthFrames", settings.recRegionSizeFrames).toInt();
     settings.segments               = appSettings.value("camera/segments", 1).toInt();
     settings.temporary              = 0;
-	setImagerSettings(settings);
+
+    setTriggerDelayValues((double) io->getTriggerDelayFrames() / settings.recRegionSizeFrames,
+			     io->getTriggerDelayFrames() * (settings.period / 100000000),
+			     io->getTriggerDelayFrames());
+
+    setImagerSettings(settings);
     setDisplaySettings(false, MAX_LIVE_FRAMERATE);
 
 
@@ -531,20 +532,18 @@ UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 
 void Camera::updateTriggerValues(ImagerSettings_t settings){
      if(getTriggerDelayConstant() == TRIGGERDELAY_FRACTION){
-	   io->setTriggerDelayFrames(settings.recRegionSizeFrames * triggerTimeRatio);
 	   triggerPostFrames = triggerTimeRatio * settings.recRegionSizeFrames;
 	   triggerPostSeconds = triggerPostFrames * ((double)settings.period / 100000000);
      }
      if(getTriggerDelayConstant() == TRIGGERDELAY_SECONDS){
-	   io->setTriggerDelayFrames(triggerPostSeconds / ((double)settings.period / 100000000));
 	   triggerTimeRatio = settings.recRegionSizeFrames / ((double)settings.period / 100000000);
 	   triggerPostFrames = triggerPostSeconds / ((double)settings.period / 100000000);
      }
      if(getTriggerDelayConstant() == TRIGGERDELAY_SECONDS){
-	   io->setTriggerDelayFrames(triggerPostFrames);
 	   triggerTimeRatio   = triggerPostFrames / settings.recRegionSizeFrames;
 	   triggerPostSeconds = triggerPostFrames * ((double)settings.period / 100000000);
      }
+     io->setTriggerDelayFrames(triggerPostFrames);
 }
 
 unsigned short Camera::getTriggerDelayConstant(){
@@ -561,10 +560,10 @@ void Camera::setTriggerDelayValues(double ratio, double seconds, UInt32 frames){
      triggerTimeRatio = ratio;
      triggerPostSeconds = seconds;
      triggerPostFrames = frames;
-     qDebug()<<"setTriggerDelayValues";
+     /*qDebug()<<"setTriggerDelayValues";
      qDebug()<<"ratio:" << ratio;
      qDebug()<<"seconds: " << seconds;
-     qDebug()<<"frames: " << frames;
+     qDebug()<<"frames: " << frames;*/
 }
 
 UInt32 Camera::setIntegrationTime(double intTime, UInt32 hRes, UInt32 vRes, Int32 flags)

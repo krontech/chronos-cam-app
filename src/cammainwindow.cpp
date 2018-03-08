@@ -481,10 +481,6 @@ void CamMainWindow::on_cmdFocusAid_clicked()
 	{
 		ui->cmdFocusAid->setText("Focus\nAid");
 	}
-
-	//This is here so you can check the sizes of the record region and trigger delay while on the main screen.
-	qDebug()<<"getTriggerDelayFrames(): " << camera->io->getTriggerDelayFrames();
-	qDebug()<<"recRegionSizeFrames: " << camera->getImagerSettings().recRegionSizeFrames;
 }
 
 void CamMainWindow::on_expSlider_sliderMoved(int position)
