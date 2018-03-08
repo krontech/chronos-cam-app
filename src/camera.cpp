@@ -324,7 +324,7 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 	ImagerSettings_t settings;
 
 	setTriggerDelayValues((double) io->getTriggerDelayFrames() / getImagerSettings().recRegionSizeFrames,
-				 io->getTriggerDelayFrames() * getImagerSettings().period,
+				 io->getTriggerDelayFrames() * (getImagerSettings().period / 100000000),
 				 io->getTriggerDelayFrames());
 
     settings.hRes                   = appSettings.value("camera/hRes", MAX_FRAME_SIZE_H).toInt();
