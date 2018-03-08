@@ -524,10 +524,37 @@ UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 }
 
 void Camera::updateTriggerValues(ImagerSettings_t settings){
-     if(getTriggerDelayConstant() == TRIGGERDELAY_FRACTION)
+     if(getTriggerDelayConstant() == TRIGGERDELAY_FRACTION){
 	   io->setTriggerDelayFrames(settings.recRegionSizeFrames * triggerTimeRatio);
-     if(getTriggerDelayConstant() == TRIGGERDELAY_SECONDS)
+	   triggerPostFrames = triggerTimeRatio * settings.recRegionSizeFrames;
+	   triggerPostSeconds = triggerPostFrames * settings.period;
+     }
+     if(getTriggerDelayConstant() == TRIGGERDELAY_SECONDS){
 	   io->setTriggerDelayFrames(triggerPostSeconds / settings.period);
+	   triggerTimeRatio = settings.recRegionSizeFrames / settings.period;
+	   triggerPostFrames = triggerPostSeconds / settings.period;
+     }
+     if(getTriggerDelayConstant() == TRIGGERDELAY_SECONDS){
+	   io->setTriggerDelayFrames(triggerPostFrames);
+	   triggerTimeRatio   = triggerPostFrames / settings.recRegionSizeFrames;
+	   triggerPostSeconds = triggerPostFrames * settings.period;
+     }
+}
+
+unsigned short Camera::getTriggerDelayConstant(){
+     QSettings appSettings;
+     return appSettings.value("camera/triggerDelayConstant", TRIGGERDELAY_FRACTION).toUInt();
+}
+
+void Camera::setTriggerDelayConstant(unsigned short value){
+     QSettings appSettings;
+     appSettings.setValue("camera/triggerDelayConstant", value);
+}
+
+void Camera::setTriggerDelayValues(double ratio, double seconds, UInt32 frames){
+     triggerTimeRatio = ratio;
+     triggerPostSeconds = seconds;
+     triggerPostFrames = frames;
 }
 
 UInt32 Camera::setIntegrationTime(double intTime, UInt32 hRes, UInt32 vRes, Int32 flags)
@@ -3149,19 +3176,3 @@ void recordErrorCallback(void * arg, char * message)
 	fflush(stdout);
 }
 
-unsigned short Camera::getTriggerDelayConstant()
-{
-     QSettings appSettings;
-     return appSettings.value("camera/triggerDelayConstant", TRIGGERDELAY_FRACTION).toUInt();
-}
-
-void Camera::setTriggerDelayConstant(unsigned short value){
-     QSettings appSettings;
-     appSettings.setValue("camera/triggerDelayConstant", value);
-}
-
-void Camera::setTriggerDelayValues(double ratio, double seconds, UInt32 frames){
-     triggerTimeRatio = ratio;
-     triggerPostSeconds = seconds;
-     triggerPostFrames = frames;
-}
