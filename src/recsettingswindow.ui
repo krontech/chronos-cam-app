@@ -550,7 +550,7 @@
      <x>549</x>
      <y>20</y>
      <width>231</width>
-     <height>181</height>
+     <height>185</height>
     </rect>
    </property>
    <property name="frameShape">
@@ -581,7 +581,7 @@
       <x>181</x>
       <y>0</y>
       <width>50</width>
-      <height>181</height>
+      <height>185</height>
      </rect>
     </property>
    </widget>
@@ -591,7 +591,7 @@
       <x>0</x>
       <y>0</y>
       <width>50</width>
-      <height>181</height>
+      <height>185</height>
      </rect>
     </property>
    </widget>
@@ -611,7 +611,7 @@
       <x>50</x>
       <y>140</y>
       <width>131</width>
-      <height>41</height>
+      <height>45</height>
      </rect>
     </property>
    </widget>
@@ -794,9 +794,9 @@
    <property name="geometry">
     <rect>
      <x>550</x>
-     <y>200</y>
+     <y>204</y>
      <width>251</width>
-     <height>281</height>
+     <height>277</height>
     </rect>
    </property>
   </widget>
@@ -806,7 +806,7 @@
      <x>780</x>
      <y>20</y>
      <width>21</width>
-     <height>181</height>
+     <height>185</height>
     </rect>
    </property>
   </widget>
@@ -901,14 +901,14 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>CamLineEdit</class>
-   <extends>QLineEdit</extends>
-   <header>camLineEdit.h</header>
-  </customwidget>
-  <customwidget>
    <class>CamSpinBox</class>
    <extends>QSpinBox</extends>
    <header>camspinbox.h</header>
+  </customwidget>
+  <customwidget>
+   <class>CamLineEdit</class>
+   <extends>QLineEdit</extends>
+   <header>camLineEdit.h</header>
   </customwidget>
   <customwidget>
    <class>FrameImage</class>
