@@ -506,7 +506,7 @@ void CamMainWindow::updateCurrentSettingsLabel()
 	char battStr[50];
 	char fpsString[30];
 	char expString[30];
-	getSIText(fpsString, 1.0 / camera->sensor->getCurrentFramePeriodDouble(), 4, DEF_SI_OPTS, 10);
+	sprintf(fpsString, QString::number(1 / camera->sensor->getCurrentFramePeriodDouble()).toAscii());
 	getSIText(expString, camera->sensor->getCurrentExposureDouble(), 4, DEF_SI_OPTS, 10);
 	UInt32 expPercent = camera->sensor->getCurrentExposureDouble() * 100 / camera->sensor->getCurrentFramePeriodDouble();
 
