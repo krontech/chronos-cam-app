@@ -348,7 +348,7 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 
     io->setTriggerDelayFrames(3, FLAG_USESAVED);
     setTriggerDelayValues((double) io->getTriggerDelayFrames() / settings.recRegionSizeFrames,
-			     io->getTriggerDelayFrames() * (double)(settings.period / 100000000),
+			     io->getTriggerDelayFrames() * ((double)settings.period / 100000000),
 			     io->getTriggerDelayFrames());
     qDebug()<<"init. (after setimagersettings)  getTriggerDelayFrames() is " << io->getTriggerDelayFrames();
 
@@ -477,7 +477,7 @@ UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
     imagerSettings.segmentLengthFrames = settings.segmentLengthFrames;
     imagerSettings.segments = settings.segments;
 
-     updateTriggerValues(settings);
+     //updateTriggerValues(settings);
 
     //Zero trigger delay for Gated Burst
     if(settings.mode == RECORD_MODE_GATED_BURST)

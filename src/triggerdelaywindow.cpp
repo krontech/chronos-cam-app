@@ -14,6 +14,8 @@ triggerDelayWindow::triggerDelayWindow(QWidget *parent, Camera * cameraInst, Ima
     is = imagerSettings;
 
     period = periodFromRecSettingsWindow;
+    qDebug()<<"periodFromRecSettingsWindow" << periodFromRecSettingsWindow;
+     qDebug()<<"camera->triggerPostSeconds" << camera->triggerPostSeconds;
     recLenFrames = ((is->mode == RECORD_MODE_NORMAL || is->mode == RECORD_MODE_GATED_BURST) ? is->recRegionSizeFrames : is->recRegionSizeFrames / is->segments);
     ui->horizontalSlider->setMaximum(max(recLenFrames, camera->io->getTriggerDelayFrames()));
     ui->horizontalSlider->setHighlightRegion(0, recLenFrames);
