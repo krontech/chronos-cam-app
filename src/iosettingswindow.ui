@@ -43,7 +43,7 @@
    <widget class="QRadioButton" name="radioIO1FSOut">
     <property name="geometry">
      <rect>
-      <x>360</x>
+      <x>395</x>
       <y>15</y>
       <width>231</width>
       <height>41</height>
@@ -67,7 +67,7 @@
    <widget class="QRadioButton" name="radioIO1TrigIn">
     <property name="geometry">
      <rect>
-      <x>80</x>
+      <x>150</x>
       <y>15</y>
       <width>241</width>
       <height>41</height>
@@ -94,7 +94,7 @@
    <widget class="QRadioButton" name="radioIO1TriggeredShutter">
     <property name="geometry">
      <rect>
-      <x>80</x>
+      <x>150</x>
       <y>60</y>
       <width>241</width>
       <height>41</height>
@@ -118,7 +118,7 @@
    <widget class="QCheckBox" name="chkIO1InvertIn">
     <property name="geometry">
      <rect>
-      <x>80</x>
+      <x>150</x>
       <y>150</y>
       <width>97</width>
       <height>41</height>
@@ -137,7 +137,7 @@
    <widget class="QCheckBox" name="chkIO1Debounce">
     <property name="geometry">
      <rect>
-      <x>500</x>
+      <x>570</x>
       <y>150</y>
       <width>151</width>
       <height>41</height>
@@ -156,7 +156,7 @@
    <widget class="QCheckBox" name="chkIO1InvertOut">
     <property name="geometry">
      <rect>
-      <x>360</x>
+      <x>395</x>
       <y>60</y>
       <width>151</width>
       <height>41</height>
@@ -175,7 +175,7 @@
    <widget class="QCheckBox" name="chkIO1WeakPull">
     <property name="geometry">
      <rect>
-      <x>360</x>
+      <x>430</x>
       <y>150</y>
       <width>151</width>
       <height>41</height>
@@ -194,7 +194,7 @@
    <widget class="QCheckBox" name="chkIO1Pull">
     <property name="geometry">
      <rect>
-      <x>210</x>
+      <x>280</x>
       <y>150</y>
       <width>151</width>
       <height>41</height>
@@ -210,29 +210,11 @@
      <string>20mA pullup</string>
     </property>
    </widget>
-   <widget class="CamLineEdit" name="lineIO1Thresh">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>100</y>
-      <width>61</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>16</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>0</string>
-    </property>
-   </widget>
    <widget class="QLabel" name="label">
     <property name="geometry">
      <rect>
-      <x>10</x>
-      <y>80</y>
+      <x>20</x>
+      <y>63</y>
       <width>66</width>
       <height>17</height>
      </rect>
@@ -268,7 +250,7 @@
    <widget class="Line" name="line_2">
     <property name="geometry">
      <rect>
-      <x>340</x>
+      <x>365</x>
       <y>10</y>
       <width>20</width>
       <height>121</height>
@@ -284,7 +266,7 @@
    <widget class="QRadioButton" name="radioIO1ShutterGating">
     <property name="geometry">
      <rect>
-      <x>80</x>
+      <x>150</x>
       <y>105</y>
       <width>231</width>
       <height>41</height>
@@ -303,6 +285,46 @@
     </property>
     <property name="text">
      <string>Shutter Gating</string>
+    </property>
+   </widget>
+   <widget class="CamDoubleSpinBox" name="spinIO1Thresh">
+    <property name="geometry">
+     <rect>
+      <x>5</x>
+      <y>83</y>
+      <width>136</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>16</pointsize>
+      <weight>75</weight>
+      <italic>true</italic>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QDoubleSpinBox { border: 3px outset grey;padding-right: 40px;}  
+
+QDoubleSpinBox::up-button { subcontrol-position: right; right: 40px; width: 40px; height: 35px;}
+
+QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}</string>
+    </property>
+    <property name="decimals">
+     <number>2</number>
+    </property>
+    <property name="minimum">
+     <double>0.000000000000000</double>
+    </property>
+    <property name="maximum">
+     <double>7200.000000000000000</double>
+    </property>
+    <property name="singleStep">
+     <double>0.100000000000000</double>
+    </property>
+    <property name="value">
+     <double>0.000000000000000</double>
     </property>
    </widget>
   </widget>
@@ -336,7 +358,7 @@
    <widget class="QRadioButton" name="radioIO2FSOut">
     <property name="geometry">
      <rect>
-      <x>510</x>
+      <x>540</x>
       <y>10</y>
       <width>231</width>
       <height>41</height>
@@ -360,7 +382,7 @@
    <widget class="QRadioButton" name="radioIO2TrigIn">
     <property name="geometry">
      <rect>
-      <x>80</x>
+      <x>150</x>
       <y>15</y>
       <width>241</width>
       <height>41</height>
@@ -387,7 +409,7 @@
    <widget class="QCheckBox" name="chkIO2InvertIn">
     <property name="geometry">
      <rect>
-      <x>340</x>
+      <x>370</x>
       <y>10</y>
       <width>97</width>
       <height>41</height>
@@ -406,7 +428,7 @@
    <widget class="QCheckBox" name="chkIO2Debounce">
     <property name="geometry">
      <rect>
-      <x>340</x>
+      <x>370</x>
       <y>55</y>
       <width>151</width>
       <height>41</height>
@@ -425,7 +447,7 @@
    <widget class="QCheckBox" name="chkIO2InvertOut">
     <property name="geometry">
      <rect>
-      <x>510</x>
+      <x>540</x>
       <y>55</y>
       <width>151</width>
       <height>41</height>
@@ -444,7 +466,7 @@
    <widget class="QCheckBox" name="chkIO2Pull">
     <property name="geometry">
      <rect>
-      <x>340</x>
+      <x>370</x>
       <y>100</y>
       <width>151</width>
       <height>41</height>
@@ -460,34 +482,10 @@
      <string>20mA pullup</string>
     </property>
    </widget>
-   <widget class="CamLineEdit" name="lineIO2Thresh">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>60</y>
-      <width>61</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>16</pointsize>
-     </font>
-    </property>
-    <property name="inputMask">
-     <string/>
-    </property>
-    <property name="text">
-     <string>0</string>
-    </property>
-    <property name="placeholderText">
-     <string/>
-    </property>
-   </widget>
    <widget class="QLabel" name="label_2">
     <property name="geometry">
      <rect>
-      <x>10</x>
+      <x>20</x>
       <y>40</y>
       <width>66</width>
       <height>17</height>
@@ -500,7 +498,7 @@
    <widget class="QRadioButton" name="radioIO2None">
     <property name="geometry">
      <rect>
-      <x>510</x>
+      <x>540</x>
       <y>100</y>
       <width>101</width>
       <height>41</height>
@@ -524,7 +522,7 @@
    <widget class="Line" name="line">
     <property name="geometry">
      <rect>
-      <x>480</x>
+      <x>510</x>
       <y>10</y>
       <width>20</width>
       <height>141</height>
@@ -540,7 +538,7 @@
    <widget class="QRadioButton" name="radioIO2TriggeredShutter">
     <property name="geometry">
      <rect>
-      <x>80</x>
+      <x>150</x>
       <y>60</y>
       <width>241</width>
       <height>41</height>
@@ -564,7 +562,7 @@
    <widget class="QRadioButton" name="radioIO2ShutterGating">
     <property name="geometry">
      <rect>
-      <x>80</x>
+      <x>150</x>
       <y>105</y>
       <width>231</width>
       <height>41</height>
@@ -583,6 +581,46 @@
     </property>
     <property name="text">
      <string>Shutter Gating</string>
+    </property>
+   </widget>
+   <widget class="CamDoubleSpinBox" name="spinIO2Thresh">
+    <property name="geometry">
+     <rect>
+      <x>5</x>
+      <y>60</y>
+      <width>136</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>16</pointsize>
+      <weight>75</weight>
+      <italic>true</italic>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QDoubleSpinBox { border: 3px outset grey;padding-right: 40px;}  
+
+QDoubleSpinBox::up-button { subcontrol-position: right; right: 40px; width: 40px; height: 35px;}
+
+QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}</string>
+    </property>
+    <property name="decimals">
+     <number>2</number>
+    </property>
+    <property name="minimum">
+     <double>0.000000000000000</double>
+    </property>
+    <property name="maximum">
+     <double>7200.000000000000000</double>
+    </property>
+    <property name="singleStep">
+     <double>0.100000000000000</double>
+    </property>
+    <property name="value">
+     <double>0.000000000000000</double>
     </property>
    </widget>
   </widget>
@@ -739,9 +777,9 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>CamLineEdit</class>
-   <extends>QLineEdit</extends>
-   <header>camLineEdit.h</header>
+   <class>CamDoubleSpinBox</class>
+   <extends>QDoubleSpinBox</extends>
+   <header>camdoublespinbox.h</header>
   </customwidget>
  </customwidgets>
  <resources/>
