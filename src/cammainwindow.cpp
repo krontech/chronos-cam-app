@@ -481,6 +481,7 @@ void CamMainWindow::on_cmdFocusAid_clicked()
 	{
 		ui->cmdFocusAid->setText("Focus\nAid");
 	}
+	qDebug()<<"postframes: " <<camera->io->getTriggerDelayFrames();
 }
 
 void CamMainWindow::on_expSlider_sliderMoved(int position)

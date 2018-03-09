@@ -339,13 +339,18 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
     settings.segments               = appSettings.value("camera/segments", 1).toInt();
     settings.temporary              = 0;
 
-    setTriggerDelayValues((double) io->getTriggerDelayFrames() / settings.recRegionSizeFrames,
-			     io->getTriggerDelayFrames() * (settings.period / 100000000),
-			     io->getTriggerDelayFrames());
+    qDebug()<<"init. (beforesettrigger)   getTriggerDelayFrames() is " << io->getTriggerDelayFrames();
+
+    qDebug()<<"init.   getTriggerDelayFrames() is " << io->getTriggerDelayFrames();
 
     setImagerSettings(settings);
     setDisplaySettings(false, MAX_LIVE_FRAMERATE);
 
+    io->setTriggerDelayFrames(3, FLAG_USESAVED);
+    setTriggerDelayValues((double) io->getTriggerDelayFrames() / settings.recRegionSizeFrames,
+			     io->getTriggerDelayFrames() * (double)(settings.period / 100000000),
+			     io->getTriggerDelayFrames());
+    qDebug()<<"init. (after setimagersettings)  getTriggerDelayFrames() is " << io->getTriggerDelayFrames();
 
 
 	vinst->setRunning(true);
