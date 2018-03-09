@@ -1,4 +1,5 @@
 #include "keyboardbase.h"
+#include "camLineEdit.h"
 
 keyboardBase::keyboardBase(QWidget *parent) :
 	QWidget(parent)
@@ -40,11 +41,11 @@ void keyboardBase::selectAllInFocusedWidget(){
 
 	if(senderClass == "CamLineEdit")
 	{
-		QLineEdit *lineEdit = qobject_cast<QLineEdit*>(lastFocusedWidget);
+		CamLineEdit *lineEdit = qobject_cast<CamLineEdit*>(lastFocusedWidget);
 		lineEdit->deselect();
 		emit characterGenerated(QChar('a')); //insert arbitrary char to have selectAll() have any effect
 		emit codeGenerated(KC_BACKSPACE);
-		lineEdit->selectAll();
+		lineEdit->selectText();
 	}
 
 	if(senderClass.contains("SpinBox"))
