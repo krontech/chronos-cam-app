@@ -17,20 +17,22 @@ triggerDelayWindow::triggerDelayWindow(QWidget *parent, Camera * cameraInst, Ima
     qDebug()<<"periodFromRecSettingsWindow" << periodFromRecSettingsWindow;
      qDebug()<<"camera->triggerPostSeconds" << camera->triggerPostSeconds;
     recLenFrames = ((is->mode == RECORD_MODE_NORMAL || is->mode == RECORD_MODE_GATED_BURST) ? is->recRegionSizeFrames : is->recRegionSizeFrames / is->segments);
-    ui->horizontalSlider->setMaximum(max(max(recLenFrames, camera->io->getTriggerDelayFrames()), camera->maxPostFrames));
-    ui->horizontalSlider->setHighlightRegion(0, recLenFrames);
+
+    qDebug()<<"camera->triggerPostFrames: " << camera->triggerPostFrames;
     ui->spinPreFrames->setMaximum(recLenFrames);
     ui->spinPreSeconds->setMaximum((double)recLenFrames * period);
     ui->comboKeepConstant->setCurrentIndex(camera->getTriggerDelayConstant());
-    if(camera->getTriggerDelayConstant() == TRIGGERDELAY_FRACTION)
-	  updateControls(recLenFrames * camera->triggerTimeRatio);
 
+    UInt32 position;
+	 if(camera->getTriggerDelayConstant() == TRIGGERDELAY_FRACTION)
+	  position = (recLenFrames * camera->triggerTimeRatio);
     else if(camera->getTriggerDelayConstant() == TRIGGERDELAY_SECONDS)
-	  updateControls(camera->triggerPostSeconds / period);
-
+	  position = (camera->triggerPostSeconds / period);
     else if(camera->getTriggerDelayConstant() == TRIGGERDELAY_FRAMES)
-	  updateControls(camera->triggerPostFrames);
-
+	  position = (camera->triggerPostFrames);
+    ui->horizontalSlider->setMaximum(camera->maxPostFramesRatio * max(recLenFrames, position));
+    ui->horizontalSlider->setHighlightRegion(0, recLenFrames);
+    updateControls(position);
 }
 
 triggerDelayWindow::~triggerDelayWindow()
@@ -45,7 +47,9 @@ void triggerDelayWindow::on_cmdOK_clicked()
 					ui->spinPostSeconds->value(),
 					ui->spinPostFrames->value());
     camera->io->setTriggerDelayFrames(ui->spinPostFrames->value());
-    camera->maxPostFrames = ui->horizontalSlider->maximum();
+    qDebug()<<"ratio was " <<camera->maxPostFramesRatio;
+    camera->maxPostFramesRatio = ui->horizontalSlider->maximum() / (double)max(recLenFrames, ui->horizontalSlider->value());
+    qDebug()<<"ratio is  " <<camera->maxPostFramesRatio;
     close();
 }
 
