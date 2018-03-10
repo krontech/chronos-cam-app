@@ -212,6 +212,7 @@ public:
 	double triggerTimeRatio;
 	double triggerPostSeconds;
 	UInt32 triggerPostFrames;
+	UInt32 maxPostFrames;
 
 	UInt32 setImagerSettings(ImagerSettings_t settings);
 	UInt32 setIntegrationTime(double intTime, UInt32 hRes, UInt32 vRes, Int32 flags);
