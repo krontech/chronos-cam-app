@@ -36,6 +36,7 @@ class CamMainWindow : public QDialog
 	
 public:
 	explicit CamMainWindow(QWidget *parent = 0);
+	short getWindowsAlwaysOpen();
 	~CamMainWindow();
 
 public slots:
@@ -84,6 +85,7 @@ private:
 	bool lastShutterButton;
 	bool lastRecording;
 	int bmsFifoFD;
+	int windowsAlwaysOpen;
 
 	UInt8 battCapacityPercent;  //Battery data from ENEL4A.c
 	UInt8 battSOHPercent;
