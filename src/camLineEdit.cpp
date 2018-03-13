@@ -22,6 +22,7 @@ CamLineEdit::CamLineEdit(QWidget *parent) :
 	QLineEdit(parent)
 {
 	//qDebug() << "CamLineEdit Consturcted";
+    hasUnits = false;
 }
 
 void CamLineEdit::focusInEvent(QFocusEvent *e)
@@ -38,4 +39,22 @@ void CamLineEdit::mouseReleaseEvent(QMouseEvent *)
 {
 	QEvent event(QEvent::RequestSoftwareInputPanel);	//Call up the software input panel
 	qApp->sendEvent(this, &event);
+}
+
+void CamLineEdit::selectText(){
+	int length = text().length();
+	if(text()[length - 1].isLetter() && this->hasUnits){
+		if(text()[length - 2] == ' ')//check whether there is a space present so we know how many chars to avoid selecting
+			setSelection(0, length - 2);
+		else
+			setSelection(0, length - 1);
+	}
+	else selectAll();
+}
+
+bool CamLineEdit::getHasUnits(){
+	return hasUnits;
+}
+void CamLineEdit::setHasUnits(bool value){
+	hasUnits = value;
 }
