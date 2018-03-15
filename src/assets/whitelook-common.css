@@ -1,0 +1,132 @@
+/*
+=== X General Styles for the CamApp ===
+
+CSS for all widgets across the cam app. These are defined in
+whitelook-common.css, and copied to each .ui file that needs
+them. Our .ui files *can't* have external resources but they
+*should* share this common css resource. Otherwise they will
+end up looking slightly different as their individual copies
+of the master style sheet diverge. To do this we synchronise
+regions of text with sync-clip-regions.py. It's only one-way
+for now, which means that if you edit the .ui stylesheet all
+the changes made to the clipped region will get overwritten.
+*/
+
+
+.QPushButton {
+  border: 1px solid black;
+  border-top-color: rgb(50,50,50);
+  border-left-color: rgb(50,50,50);
+  background: white;
+  margin: 20px; /*Use margin to increase clickable area. Makes the whole thing much less fiddly.*/
+}
+
+.QPushButton:pressed {
+  border: 1px solid rgb(50,50,50);
+  border-top-color: black;
+  border-left-color: black;
+  background: rgb(240,240,240);
+}
+
+.QComboBox {
+  /*subcontrol-origin: padding; does nothing but mess up the drop-down button*/
+  background: white;
+  border: 1px solid black;
+  /*margin: 10px; breaks drop-down; hard to fix*/
+  padding-left: 10px;
+}
+QComboBox:on {
+  /*when dropdown exists*/
+}
+
+.QComboBox QAbstractItemView { /*This is the drop-down menu.*/
+  border: 1px solid black;
+  color: black;
+  selection-background-color: grey;
+}
+.QComboBox QAbstractItemView::item {
+  padding: 10px;
+  margin: 5px;
+}
+
+.QComboBox::drop-down {
+  width: 40px;
+  border: 0px solid black;
+  border-left-width: 1px;
+  background: white;
+  color: black;
+  max-height: 100px;
+}
+.QComboBox::drop-down:on {
+  /*Stupid hack because the dropdown scrollbar *can't* be increased in width. It's off the width of the drop-down button by -1px. We can't just decrease the width of the drop-down button, because every other button we own is 40px instead of 39px. So. What we do is adjust the button size down when the drop-down is open, because that's the only time the off-by-one with QScrollBar is noticable, and you're distracted by the scrollbar then.*/
+  padding-left: -1px;
+}
+.QComboBox::down-arrow {
+  image: url(assets/wedge-down-enabled.png);
+}
+
+QScrollBar, QScrollBar:vertical, QScrollBar:horizontal {
+  border-left: 1px solid black;
+  /*width: 41px; /*This horribly breaks scrolling.*/
+}
+QScrollBar::handle:vertical {
+  border: 1px solid black;
+  border-radius: 0;
+  background: white;
+  min-height: 72px;
+  image: url(assets/handle-bars.png);
+  margin: -1px;
+}
+/* This remvoes the bottom button by setting the height to 0px */
+QScrollBar::add-line:vertical {
+  height: 0px;
+  subcontrol-position: bottom;
+  subcontrol-origin: margin;
+}
+/* This remvoes the top button by setting the height to 0px */
+QScrollBar::sub-line:vertical {
+  height: 0px;
+  subcontrol-position: top;
+  subcontrol-origin: margin;
+}
+
+
+
+QSpinBox { 
+  border: 1px solid black;
+  padding-right: 40px;
+  font-size: 6pt;
+  margin: 10px;
+  padding-left: 10px;
+}
+QSpinBox:disabled { 
+  color: #969696;
+}
+QSpinBox::up-button { 
+  subcontrol-position: right; 
+  right: 40px; 
+  image: url(assets/wedge-up-enabled.png);
+}
+QSpinBox::up-button:disabled { 
+  image: url(assets/wedge-up-disabled.png);
+}
+QSpinBox::down-button { 
+  subcontrol-position: right; 
+  image: url(assets/wedge-down-enabled.png);
+}
+QSpinBox::down-button:disabled { 
+  subcontrol-position: right; 
+  image: url(assets/wedge-down-disabled.png);
+}
+QSpinBox::up-button, QSpinBox::down-button {
+  border: 0px solid black;
+  border-left-width: 1px;
+  width: 40px; 
+  height: 40px;
+}
+
+.CamLineEdit {
+  border: 1px solid black;
+  margin: 10px; /*This doesn't show up in Qt Designer, but it works in the app.*/
+  padding-left: 10px;
+}

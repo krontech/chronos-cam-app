@@ -102,6 +102,12 @@ QMAKE_CLEAN += $$versionTarget.target
 PRE_TARGETDEPS += $$versionTarget.target
 GENERATED_SOURCES += $$versionTarget.target
 
+## Sync clip regions in .ui files on every build
+# Using system(1) isn't ideal, since it runs absolutely every time we invoke QMake,
+# but I can't figure out a way to make a target run commands like above.
+#   --DDR 2018-03-14
+system(python3 ./assets/supporting-scripts/sync-clip-regions.py)
+
 HEADERS  += mainwindow.h \
     gpmc.h \
     gpmcRegs.h \

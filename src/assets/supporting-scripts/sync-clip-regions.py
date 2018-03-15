@@ -30,8 +30,9 @@
 # External Entity processor. We need to edit the .ui files with the external
 # reference subbed-in, in QT Creator. However, we need the .ui files to also
 # have the external reference, so we can include snippets of CSS across the
-# whole project. I couldn't find a general solution to inline the clip regions
-# alongside their content. The solution was to write a little scr
+# whole project. I couldn't find a general solution to inline the clip regions'
+# metadata alongside their content. Or propagate a single change back to the
+# clip region source.
 
 import os
 import sys
@@ -50,7 +51,7 @@ while not projectPath.joinpath('camApp.pro').exists():
 		projectPath.as_posix()
 	)
 
-os.chdir(projectPath)
+os.chdir(str(projectPath))
 
 # split files into clip regions
 tagBeginPattern = '^[^\n]*?«begin clip[^\n]*?»[^\n]*?$'
@@ -110,12 +111,12 @@ checksumFailure and sys.exit(2)
 # patch regions of each file and write the file
 # note: The region source is probably generated from a .sass file with SassC.
 for file in files:
-	with open(file.get('path'), 'w') as outfile:
+	with open(str(file.get('path')), 'w') as outfile:
 		for chunk in file.get('contents'):
 			if not chunk.get('replace'):
 				outfile.write(chunk.get('text'))
 			else:
-				with open(chunk.get('replacementPath')) as infile:
+				with open(str(chunk.get('replacementPath'))) as infile:
 					headerbits = chunk.get('header')
 					newContents = functools.reduce( #indent the lines of the pasted file, so it is coherent and readable
 						lambda a, b: a + headerbits('indent') + b,

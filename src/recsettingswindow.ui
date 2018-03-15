@@ -15,8 +15,21 @@
   </property>
   <property name="styleSheet">
    <string notr="true">
+    /* «begin clip from "assets/whitelook-common.css" (dc0b76a65ee8a2aba12284d86b0b3639)» */
+    /*
+    === X General Styles for the CamApp ===
     
-    /* === General Styles === */
+    CSS for all widgets across the cam app. These are defined in
+    whitelook-common.css, and copied to each .ui file that needs
+    them. Our .ui files *can't* have external resources but they
+    *should* share this common css resource. Otherwise they will
+    end up looking slightly different as their individual copies
+    of the master style sheet diverge. To do this we synchronise
+    regions of text with sync-clip-regions.py. It's only one-way
+    for now, which means that if you edit the .ui stylesheet all
+    the changes made to the clipped region will get overwritten.
+    */
+    
     
     .QPushButton {
       border: 1px solid black;
@@ -69,7 +82,7 @@
     .QComboBox::down-arrow {
       image: url(assets/wedge-down-enabled.png);
     }
-
+    
     QScrollBar, QScrollBar:vertical, QScrollBar:horizontal {
       border-left: 1px solid black;
       /*width: 41px; /*This horribly breaks scrolling.*/
@@ -94,8 +107,8 @@
       subcontrol-position: top;
       subcontrol-origin: margin;
     }
-
-
+    
+    
     
     QSpinBox { 
       border: 1px solid black;
@@ -135,7 +148,7 @@
       margin: 10px; /*This doesn't show up in Qt Designer, but it works in the app.*/
       padding-left: 10px;
     }
-    
+    /* «end clip» */
     
     
     /* === Screen-Specific Styles === */
