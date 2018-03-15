@@ -43,7 +43,8 @@ void CamLineEdit::mouseReleaseEvent(QMouseEvent *)
 
 void CamLineEdit::selectText(){
 	int length = text().length();
-	if(text()[length - 1].isLetter() && this->hasUnits){
+	if(length == 0) return;
+	if(text()[length - 1].isLetter() && this->hasUnits && length > 1){
 		if(text()[length - 2] == ' ')//check whether there is a space present so we know how many chars to avoid selecting
 			setSelection(0, length - 2);
 		else
