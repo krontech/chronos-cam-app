@@ -155,7 +155,7 @@ QSlider::handle:vertical {
    </property>
    <property name="text">
     <string>Mark
-In</string>
+Start</string>
    </property>
   </widget>
   <widget class="QPushButton" name="cmdMarkOut">
@@ -169,7 +169,7 @@ In</string>
    </property>
    <property name="text">
     <string>Mark
-Out</string>
+End</string>
    </property>
   </widget>
   <widget class="QLabel" name="lblInfo">
