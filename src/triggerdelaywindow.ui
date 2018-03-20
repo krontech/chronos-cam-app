@@ -668,8 +668,8 @@ Defaults</string>
    <property name="geometry">
     <rect>
      <x>205</x>
-     <y>375</y>
-     <width>241</width>
+     <y>370</y>
+     <width>196</width>
      <height>81</height>
     </rect>
    </property>
@@ -682,6 +682,9 @@ Defaults</string>
     <string>Keep this constant when
 changing resolution
 or framerate:</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
    </property>
   </widget>
  </widget>
