@@ -523,6 +523,13 @@ void UtilWindow::on_cmdSetSN_clicked()
 	camera->writeSerialNumber(camera->getSerialNumber());
 }
 
+void UtilWindow::statErrorMessage(){
+	QMessageBox msg;
+	msg.setText("stat() failed");
+	msg.setWindowFlags(Qt::WindowStaysOnTopHint);
+	msg.exec();
+}
+
 void UtilWindow::on_cmdSaveCal_clicked()
 {
 	StatusWindow sw;
@@ -535,9 +542,7 @@ void UtilWindow::on_cmdSaveCal_clicked()
 	retVal = stat("/media/sda1",&st);
 	if(retVal != 0)
 	{
-		msg.setText("stat() failed");
-		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
-		msg.exec();
+		statErrorMessage();
 		return;
 	}
 
@@ -607,9 +612,7 @@ void UtilWindow::on_cmdRestoreCal_clicked()
 	retVal = stat("/media/sda1",&st);
 	if(retVal != 0)
 	{
-		msg.setText("stat() failed");
-		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
-		msg.exec();
+		statErrorMessage();
 		return;
 	}
 
@@ -766,9 +769,7 @@ void UtilWindow::on_cmdBackupSettings_clicked()
 	retVal = stat("/media/sda1",&st);
 	if(retVal != 0)
 	{
-		msg.setText("stat() failed");
-		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
-		msg.exec();
+		statErrorMessage();
 		return;
 	}
 
@@ -835,9 +836,7 @@ void UtilWindow::on_cmdRestoreSettings_clicked()
 	retVal = stat("/media/sda1",&st);
 	if(retVal != 0)
 	{
-		msg.setText("stat() failed");
-		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
-		msg.exec();
+		statErrorMessage();
 		return;
 	}
 
