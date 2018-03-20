@@ -670,7 +670,7 @@ Defaults</string>
      <x>205</x>
      <y>375</y>
      <width>241</width>
-     <height>56</height>
+     <height>81</height>
     </rect>
    </property>
    <property name="font">
@@ -680,7 +680,8 @@ Defaults</string>
    </property>
    <property name="text">
     <string>Keep this constant when
-changing resolutions:</string>
+changing resolution
+or framerate:</string>
    </property>
   </widget>
  </widget>
