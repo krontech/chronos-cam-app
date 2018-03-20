@@ -614,7 +614,7 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
     <rect>
      <x>20</x>
      <y>360</y>
-     <width>200</width>
+     <width>151</width>
      <height>91</height>
     </rect>
    </property>
@@ -633,10 +633,10 @@ Defaults</string>
   <widget class="QComboBox" name="comboKeepConstant">
    <property name="geometry">
     <rect>
-     <x>240</x>
-     <y>415</y>
-     <width>431</width>
-     <height>56</height>
+     <x>415</x>
+     <y>365</y>
+     <width>251</width>
+     <height>91</height>
     </rect>
    </property>
    <property name="font">
@@ -649,7 +649,8 @@ Defaults</string>
    </property>
    <item>
     <property name="text">
-     <string>Ratio of Post-trigger time to record time</string>
+     <string>Ratio of Post-trigger time
+    to record time</string>
     </property>
    </item>
    <item>
@@ -666,8 +667,8 @@ Defaults</string>
   <widget class="QLabel" name="lblRes_21">
    <property name="geometry">
     <rect>
-     <x>250</x>
-     <y>360</y>
+     <x>205</x>
+     <y>375</y>
      <width>241</width>
      <height>56</height>
     </rect>
