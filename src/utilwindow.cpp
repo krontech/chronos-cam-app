@@ -525,7 +525,7 @@ void UtilWindow::on_cmdSetSN_clicked()
 
 void UtilWindow::statErrorMessage(){
 	QMessageBox msg;
-	msg.setText("stat() failed");
+	msg.setText("Error reading SD card");
 	msg.setWindowFlags(Qt::WindowStaysOnTopHint);
 	msg.exec();
 }
