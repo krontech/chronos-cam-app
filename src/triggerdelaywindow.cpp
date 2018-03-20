@@ -91,12 +91,6 @@ void triggerDelayWindow::updateControls(UInt32 postTriggerFrames)
     if(!ui->spinPreRecSeconds->hasFocus())  ui->spinPreRecSeconds->setValue((double)preRecFrames * period);
 }
 
-void triggerDelayWindow::on_cmdMax_clicked()
-{
-    ui->horizontalSlider->setMaximum(ui->horizontalSlider->maximum() * 2);
-    ui->horizontalSlider->setHighlightRegion(0, recLenFrames);
-}
-
 void triggerDelayWindow::on_spinPreSeconds_valueChanged(double arg1)
 {
     if(ui->spinPreSeconds->hasFocus())
