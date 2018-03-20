@@ -655,7 +655,7 @@ Defaults</string>
    </property>
    <item>
     <property name="text">
-     <string>Pre-record or
+     <string>Pre-record and
 pre-trigger seconds</string>
     </property>
    </item>
