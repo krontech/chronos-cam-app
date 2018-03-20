@@ -546,7 +546,7 @@ void Camera::updateTriggerValues(ImagerSettings_t settings){
 	   triggerTimeRatio = settings.recRegionSizeFrames / ((double)settings.period / 100000000);
 	   triggerPostFrames = triggerPostSeconds / ((double)settings.period / 100000000);
      }
-     if(getTriggerDelayConstant() == TRIGGERDELAY_SECONDS){
+     if(getTriggerDelayConstant() == TRIGGERDELAY_FRAMES){
 	   triggerTimeRatio   = triggerPostFrames / settings.recRegionSizeFrames;
 	   triggerPostSeconds = triggerPostFrames * ((double)settings.period / 100000000);
      }
