@@ -24,8 +24,8 @@ triggerDelayWindow::triggerDelayWindow(QWidget *parent, Camera * cameraInst, Ima
     ui->comboKeepConstant->setCurrentIndex(camera->getTriggerDelayConstant());
 
     UInt32 position;
-	 if(camera->getTriggerDelayConstant() == TRIGGERDELAY_FRACTION)
-	  position = (recLenFrames * camera->triggerTimeRatio);
+	 if(camera->getTriggerDelayConstant() == TRIGGERDELAY_PRERECORDSECONDS)
+	  position = recLenFrames + (camera->triggerPreRecordSeconds / period);
     else if(camera->getTriggerDelayConstant() == TRIGGERDELAY_SECONDS)
 	  position = (camera->triggerPostSeconds / period);
     else if(camera->getTriggerDelayConstant() == TRIGGERDELAY_FRAMES)
@@ -43,7 +43,7 @@ triggerDelayWindow::~triggerDelayWindow()
 void triggerDelayWindow::on_cmdOK_clicked()
 {
      camera->setTriggerDelayConstant(ui->comboKeepConstant->currentIndex());
-     camera->setTriggerDelayValues((double)ui->spinPostFrames->value() / recLenFrames,
+     camera->setTriggerDelayValues(ui->spinPreRecSeconds->value() - ui->spinPreSeconds->value(),//positive value if pre-rec time is used, or negative value if pre-trigger time is used
 					ui->spinPostSeconds->value(),
 					ui->spinPostFrames->value());
     camera->io->setTriggerDelayFrames(ui->spinPostFrames->value());

@@ -634,9 +634,9 @@ Defaults</string>
    <property name="geometry">
     <rect>
      <x>415</x>
-     <y>365</y>
+     <y>350</y>
      <width>251</width>
-     <height>91</height>
+     <height>65</height>
     </rect>
    </property>
    <property name="font">
@@ -649,8 +649,8 @@ Defaults</string>
    </property>
    <item>
     <property name="text">
-     <string>Ratio of Post-trigger time
-    to record time</string>
+     <string>Pre-record or
+pre-trigger seconds</string>
     </property>
    </item>
    <item>
@@ -668,7 +668,7 @@ Defaults</string>
    <property name="geometry">
     <rect>
      <x>205</x>
-     <y>370</y>
+     <y>340</y>
      <width>196</width>
      <height>81</height>
     </rect>

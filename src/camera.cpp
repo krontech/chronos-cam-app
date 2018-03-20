@@ -538,16 +538,16 @@ UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 }
 
 void Camera::updateTriggerValues(ImagerSettings_t settings){
-     if(getTriggerDelayConstant() == TRIGGERDELAY_FRACTION){
-	   triggerPostFrames = triggerTimeRatio * settings.recRegionSizeFrames;
+     if(getTriggerDelayConstant() == TRIGGERDELAY_PRERECORDSECONDS){
+	   triggerPostFrames = triggerPreRecordSeconds / ((double)settings.period / 100000000) + settings.recRegionSizeFrames;
 	   triggerPostSeconds = triggerPostFrames * ((double)settings.period / 100000000);
      }
      if(getTriggerDelayConstant() == TRIGGERDELAY_SECONDS){
-	   triggerTimeRatio = settings.recRegionSizeFrames / ((double)settings.period / 100000000);
+	   triggerPreRecordSeconds = triggerPostSeconds - (settings.recRegionSizeFrames / ((double)settings.period / 100000000));
 	   triggerPostFrames = triggerPostSeconds / ((double)settings.period / 100000000);
      }
      if(getTriggerDelayConstant() == TRIGGERDELAY_FRAMES){
-	   triggerTimeRatio   = triggerPostFrames / settings.recRegionSizeFrames;
+	   triggerPreRecordSeconds   = (triggerPostFrames - settings.recRegionSizeFrames) * ((double)settings.period / 100000000);
 	   triggerPostSeconds = triggerPostFrames * ((double)settings.period / 100000000);
      }
      io->setTriggerDelayFrames(triggerPostFrames);
@@ -555,7 +555,7 @@ void Camera::updateTriggerValues(ImagerSettings_t settings){
 
 unsigned short Camera::getTriggerDelayConstant(){
      QSettings appSettings;
-     return appSettings.value("camera/triggerDelayConstant", TRIGGERDELAY_FRACTION).toUInt();
+     return appSettings.value("camera/triggerDelayConstant", TRIGGERDELAY_PRERECORDSECONDS).toUInt();
 }
 
 void Camera::setTriggerDelayConstant(unsigned short value){
@@ -563,8 +563,8 @@ void Camera::setTriggerDelayConstant(unsigned short value){
      appSettings.setValue("camera/triggerDelayConstant", value);
 }
 
-void Camera::setTriggerDelayValues(double ratio, double seconds, UInt32 frames){
-     triggerTimeRatio = ratio;
+void Camera::setTriggerDelayValues(double preRecSeconds, double seconds, UInt32 frames){
+     triggerPreRecordSeconds = preRecSeconds;
      triggerPostSeconds = seconds;
      triggerPostFrames = frames;
      /*qDebug()<<"setTriggerDelayValues";
