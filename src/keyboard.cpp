@@ -18,7 +18,7 @@
 #include "ui_keyboard.h"
 
 keyboard::keyboard(QWidget *parent) :
-	QDialog(parent),
+	keyboardBase(parent),//QDialog(parent),
 	ui(new Ui::keyboard)
 {
 	ui->setupUi(this);
@@ -115,79 +115,6 @@ keyboard::~keyboard()
 }
 
 
-void keyboard::show()
-{
-	//QDesktopWidget * qdw = QApplication::desktop();
-
-	this->setWindowFlags(Qt::Dialog | Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
-	QWidget::show();
-	//Moving after showing because window height isn't set until show()
-	this->move(0,QApplication::desktop()->screenGeometry().height() - height());
-	QTimer::singleShot(1, this, SLOT(selectAllInFocusedWidget()));
-}
-
-void keyboard::selectAllInFocusedWidget(){
-	emit codeGenerated(KC_RIGHT); //to deselect any text that might already be selected
-	emit characterGenerated(QChar('a')); //insert arbitrary char to have selectAll() have any effect
-
-	QString senderClass = lastFocusedWidget->metaObject()->className();
-	qDebug() << senderClass;
-
-	if(senderClass == "CamTextEdit")
-	{
-		QTextEdit *textEdit = qobject_cast<QTextEdit*>(lastFocusedWidget);
-		emit codeGenerated(KC_BACKSPACE);
-		//backspace is to remove the arbitrary char
-		textEdit->selectAll();
-	}
-
-	if(senderClass == "CamLineEdit")
-	{
-		QLineEdit *lineEdit = qobject_cast<QLineEdit*>(lastFocusedWidget);
-		emit codeGenerated(KC_BACKSPACE);
-		lineEdit->selectAll();
-	}
-
-	if(senderClass.contains("SpinBox"))
-	{
-		QAbstractSpinBox *spinBox = qobject_cast<QAbstractSpinBox*>(lastFocusedWidget);
-		spinBox->selectAll();
-		//spinBoxes and doubleSpinBoxes both inherit from QAbstractSpinBox
-		//these will not accept alphabetic chars, so a backspace is not needed in that case
-	}
-
-
-}
-
-bool keyboard::event(QEvent *e)
-{
-	switch (e->type()) {
-
-	case QEvent::WindowActivate:
-		if (lastFocusedWidget)
-		{
-			lastFocusedWidget->activateWindow();
-			qDebug() << "keyboard::event lastFocusedWidget activated" << lastFocusedWidget;
-		}
-		break;
-	default:
-		break;
-	}
-
-	return QWidget::event(e);
-}
-
-
-
-void keyboard::saveFocusWidget(QWidget * /*oldFocus*/, QWidget *newFocus)
-{
-	if (newFocus != 0 && !this->isAncestorOf(newFocus)) {
-		lastFocusedWidget = newFocus;
-		qDebug() << "keyboard::saveFocusWidget lastFocusedWidget set to" << newFocus;
-	}
-}
-
-
 
 void keyboard::buttonClicked(QWidget *w)
 {
@@ -215,11 +142,6 @@ void keyboard::on_caps_clicked()
 	}
 }
 
-void keyboard::on_back_clicked()
-{
-	emit codeGenerated(KC_BACKSPACE);
-}
-
 void keyboard::on_space_clicked()
 {
 	emit characterGenerated(QChar(' '));
@@ -239,32 +161,3 @@ void keyboard::on_shift_clicked()
 	}
 }
 
-void keyboard::on_up_clicked()
-{
-	emit codeGenerated(KC_UP);
-}
-
-void keyboard::on_down_clicked()
-{
-	emit codeGenerated(KC_DOWN);
-}
-
-void keyboard::on_left_clicked()
-{
-	emit codeGenerated(KC_LEFT);
-}
-
-void keyboard::on_right_clicked()
-{
-	emit codeGenerated(KC_RIGHT);
-}
-
-void keyboard::on_enter_clicked()
-{
-	emit codeGenerated(KC_ENTER);
-}
-
-void keyboard::on_close_clicked()
-{
-	emit codeGenerated(KC_CLOSE);
-}

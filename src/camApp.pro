@@ -90,7 +90,9 @@ SOURCES += main.cpp\
     recmodewindow.cpp \
     triggerdelaywindow.cpp \
     triggerslider.cpp \
-    playbackslider.cpp
+    playbackslider.cpp \
+    keyboardbase.cpp \
+    keyboardnumeric.cpp
 
 ## Generate version.cpp on every build
 versionTarget.target = version.cpp
@@ -145,7 +147,9 @@ HEADERS  += mainwindow.h \
     recmodewindow.h \
     triggerdelaywindow.h \
     triggerslider.h \
-    playbackslider.h
+    playbackslider.h \
+    keyboardbase.h \
+    keyboardnumeric.h
 
 
 
@@ -162,7 +166,8 @@ FORMS    += mainwindow.ui \
     utilwindow.ui \
     statuswindow.ui \
     recmodewindow.ui \
-    triggerdelaywindow.ui
+    triggerdelaywindow.ui \
+    keyboardnumeric.ui
 
 RESOURCES += \
     Images.qrc
