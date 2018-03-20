@@ -22,7 +22,7 @@ triggerDelayWindow::triggerDelayWindow(QWidget *parent, Camera * cameraInst, Ima
 
     UInt32 position;
 	 if(camera->getTriggerDelayConstant() == TRIGGERDELAY_PRERECORDSECONDS)
-	  position = recLenFrames + (camera->triggerPreRecordSeconds / period);
+      position = recLenFrames + (camera->triggerPreRecordSeconds / period);
     else if(camera->getTriggerDelayConstant() == TRIGGERDELAY_SECONDS)
 	  position = (camera->triggerPostSeconds / period);
     else if(camera->getTriggerDelayConstant() == TRIGGERDELAY_FRAMES)
@@ -39,10 +39,10 @@ triggerDelayWindow::~triggerDelayWindow()
 
 void triggerDelayWindow::on_cmdOK_clicked()
 {
-     camera->setTriggerDelayConstant(ui->comboKeepConstant->currentIndex());
-     camera->setTriggerDelayValues(ui->spinPreRecSeconds->value() - ui->spinPreSeconds->value(),//positive value if pre-rec time is used, or negative value if pre-trigger time is used
-					ui->spinPostSeconds->value(),
-					ui->spinPostFrames->value());
+    camera->setTriggerDelayConstant(ui->comboKeepConstant->currentIndex());
+    camera->setTriggerDelayValues(ui->spinPreRecSeconds->value() - ui->spinPreSeconds->value(),//positive value if pre-rec time is used, or negative value if pre-trigger time is used
+                                  ui->spinPostSeconds->value(),
+                                  ui->spinPostFrames->value());
     camera->io->setTriggerDelayFrames(ui->spinPostFrames->value());
     camera->maxPostFramesRatio = ui->horizontalSlider->maximum() / (double)max(recLenFrames, ui->horizontalSlider->value());
     close();
@@ -56,7 +56,7 @@ void triggerDelayWindow::on_cmdCancel_clicked()
 void triggerDelayWindow::on_horizontalSlider_sliderMoved(int position)
 {
     if(ui->horizontalSlider->hasFocus())
-	 updateControls(position);
+        updateControls(position);
 }
 
 void triggerDelayWindow::on_cmdZeroPercent_clicked()
@@ -80,7 +80,7 @@ void triggerDelayWindow::updateControls(UInt32 postTriggerFrames)
     UInt32 preRecFrames = max((Int32)postTriggerFrames - (Int32)recLenFrames, 0);
 
     if(postTriggerFrames > ui->horizontalSlider->maximum())
-	 ui->horizontalSlider->setMaximum(postTriggerFrames);
+        ui->horizontalSlider->setMaximum(postTriggerFrames);
 
     if(!ui->horizontalSlider->hasFocus())   ui->horizontalSlider->setSliderPosition(postTriggerFrames);
     if(!ui->spinPreFrames->hasFocus())      ui->spinPreFrames->setValue(pretriggerFrames);
@@ -100,37 +100,37 @@ void triggerDelayWindow::on_cmdMax_clicked()
 void triggerDelayWindow::on_spinPreSeconds_valueChanged(double arg1)
 {
     if(ui->spinPreSeconds->hasFocus())
-	 updateControls(recLenFrames - (arg1 / period));
+        updateControls(recLenFrames - (arg1 / period));
 }
 
 void triggerDelayWindow::on_spinPreFrames_valueChanged(int arg1)
 {
     if(ui->spinPreFrames->hasFocus())
-	 updateControls(recLenFrames - arg1);
+        updateControls(recLenFrames - arg1);
 }
 
 void triggerDelayWindow::on_spinPostSeconds_valueChanged(double arg1)
 {
     if(ui->spinPostSeconds->hasFocus())
-	 updateControls(arg1 / period);
+        updateControls(arg1 / period);
 }
 
 void triggerDelayWindow::on_spinPostFrames_valueChanged(int arg1)
 {
     if(ui->spinPostFrames->hasFocus())
-	 updateControls(arg1);
+        updateControls(arg1);
 }
 
 void triggerDelayWindow::on_spinPreRecSeconds_valueChanged(double arg1)
 {
     if(ui->spinPreRecSeconds->hasFocus())
-	 updateControls(recLenFrames + (arg1 / period));
+        updateControls(recLenFrames + (arg1 / period));
 }
 
 void triggerDelayWindow::on_spinPreRecFrames_valueChanged(int arg1)
 {
     if(ui->spinPreRecFrames->hasFocus())
-	 updateControls(recLenFrames + arg1);
+        updateControls(recLenFrames + arg1);
 }
 
 void triggerDelayWindow::on_cmdResetToDefaults_clicked()
