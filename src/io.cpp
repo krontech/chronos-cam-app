@@ -190,10 +190,8 @@ void IO::setTriggerDelayFrames(UInt32 delayFrames, Int32 flags)
 	QSettings appSettings;
 	if (flags & FLAG_USESAVED){
 	    delayFrames = appSettings.value("io/triggerDelayFrames", 0).toUInt();
-	    qDebug()<<"usesaved";
 	}
 	gpmc->write32(SEQ_TRIG_DELAY_ADDR, delayFrames);
-	qDebug()<<"delayFrames: " << delayFrames;
 	if (!(flags & FLAG_TEMPORARY) && !(flags & FLAG_USESAVED))
 		appSettings.setValue("io/triggerDelayFrames", delayFrames);
 }

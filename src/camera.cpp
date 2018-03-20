@@ -339,10 +339,6 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
     settings.segments               = appSettings.value("camera/segments", 1).toInt();
     settings.temporary              = 0;
 
-    qDebug()<<"init. (beforesettrigger)   getTriggerDelayFrames() is " << io->getTriggerDelayFrames();
-
-    qDebug()<<"init.   getTriggerDelayFrames() is " << io->getTriggerDelayFrames();
-
     setImagerSettings(settings);
     setDisplaySettings(false, MAX_LIVE_FRAMERATE);
 
@@ -350,7 +346,6 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
     setTriggerDelayValues((double) io->getTriggerDelayFrames() / settings.recRegionSizeFrames,
 			     io->getTriggerDelayFrames() * ((double)settings.period / 100000000),
 			     io->getTriggerDelayFrames());
-    qDebug()<<"init. (after setimagersettings)  getTriggerDelayFrames() is " << io->getTriggerDelayFrames();
 
 
 	vinst->setRunning(true);
@@ -479,8 +474,6 @@ UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
     imagerSettings.segmentLengthFrames = settings.segmentLengthFrames;
     imagerSettings.segments = settings.segments;
 
-     //updateTriggerValues(settings);
-
     //Zero trigger delay for Gated Burst
     if(settings.mode == RECORD_MODE_GATED_BURST)
 	io->setTriggerDelayFrames(0, FLAG_TEMPORARY);
@@ -567,10 +560,6 @@ void Camera::setTriggerDelayValues(double preRecSeconds, double seconds, UInt32 
      triggerPreRecordSeconds = preRecSeconds;
      triggerPostSeconds = seconds;
      triggerPostFrames = frames;
-     /*qDebug()<<"setTriggerDelayValues";
-     qDebug()<<"ratio:" << ratio;
-     qDebug()<<"seconds: " << seconds;
-     qDebug()<<"frames: " << frames;*/
 }
 
 UInt32 Camera::setIntegrationTime(double intTime, UInt32 hRes, UInt32 vRes, Int32 flags)
@@ -952,7 +941,6 @@ UInt32 Camera::getPlayFrameAddr(UInt32 playFrame)
 	/* Should not get here */
 	return 0;
 }
-
 
 bool Camera::getIsRecording(void)
 {

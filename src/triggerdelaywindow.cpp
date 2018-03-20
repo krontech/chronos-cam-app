@@ -14,11 +14,8 @@ triggerDelayWindow::triggerDelayWindow(QWidget *parent, Camera * cameraInst, Ima
     is = imagerSettings;
 
     period = periodFromRecSettingsWindow;
-    qDebug()<<"periodFromRecSettingsWindow" << periodFromRecSettingsWindow;
-     qDebug()<<"camera->triggerPostSeconds" << camera->triggerPostSeconds;
     recLenFrames = ((is->mode == RECORD_MODE_NORMAL || is->mode == RECORD_MODE_GATED_BURST) ? is->recRegionSizeFrames : is->recRegionSizeFrames / is->segments);
 
-    qDebug()<<"camera->triggerPostFrames: " << camera->triggerPostFrames;
     ui->spinPreFrames->setMaximum(recLenFrames);
     ui->spinPreSeconds->setMaximum((double)recLenFrames * period);
     ui->comboKeepConstant->setCurrentIndex(camera->getTriggerDelayConstant());
@@ -47,9 +44,7 @@ void triggerDelayWindow::on_cmdOK_clicked()
 					ui->spinPostSeconds->value(),
 					ui->spinPostFrames->value());
     camera->io->setTriggerDelayFrames(ui->spinPostFrames->value());
-    qDebug()<<"ratio was " <<camera->maxPostFramesRatio;
     camera->maxPostFramesRatio = ui->horizontalSlider->maximum() / (double)max(recLenFrames, ui->horizontalSlider->value());
-    qDebug()<<"ratio is  " <<camera->maxPostFramesRatio;
     close();
 }
 

@@ -201,30 +201,11 @@ void RecSettingsWindow::on_cmdOK_clicked()
 
     is->temporary = 0;
 
-    qDebug()<<"cmdOK. (before updateTriggerValues)   getTriggerDelayFrames() is " << camera->io->getTriggerDelayFrames();
     camera->updateTriggerValues(*is);
-    qDebug()<<"cmdOK. (after updateTriggerValues)   getTriggerDelayFrames() is " << camera->io->getTriggerDelayFrames();
-
 
     camera->setImagerSettings(*is);
     camera->setDisplaySettings(false, MAX_LIVE_FRAMERATE);
 
-    /*
-    qDebug()<<"cmdOK. (before settrigger)   getTriggerDelayFrames() is " << camera->io->getTriggerDelayFrames();
-    if(camera->getTriggerDelayConstant() == TRIGGERDELAY_FRACTION){
-	  camera->io->setTriggerDelayFrames(is->recRegionSizeFrames * camera->triggerTimeRatio);
-    }
-    if(camera->getTriggerDelayConstant() == TRIGGERDELAY_SECONDS){
-	camera->io->setTriggerDelayFrames(camera->triggerPostSeconds / framePeriod);
-	qDebug()<<"TRIGGERDELAY_SECONDS";
-	qDebug()<<"camera->triggerPostSeconds = " << camera->triggerPostSeconds;
-	qDebug()<<"framePeriod = " << framePeriod;
-    }
-    if(camera->getTriggerDelayConstant() == TRIGGERDELAY_SECONDS){
-	camera->io->setTriggerDelayFrames(camera->triggerPostFrames);
-    }
-    qDebug()<<"cmdOK. (after settrigger)   getTriggerDelayFrames() is " << camera->io->getTriggerDelayFrames();
-*/
     if(CAMERA_FILE_NOT_FOUND == camera->loadFPNFromFile(FPN_FILENAME))
 		camera->autoFPNCorrection(2, false, true);
 
