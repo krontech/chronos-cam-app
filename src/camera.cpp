@@ -342,8 +342,8 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
     setImagerSettings(settings);
     setDisplaySettings(false, MAX_LIVE_FRAMERATE);
 
-    io->setTriggerDelayFrames(3, FLAG_USESAVED);
-    setTriggerDelayValues((double) io->getTriggerDelayFrames() / settings.recRegionSizeFrames,
+    io->setTriggerDelayFrames(0, FLAG_USESAVED);
+    setTriggerDelayValues(((double) io->getTriggerDelayFrames() - settings.recRegionSizeFrames) * ((double)settings.period / 100000000),
 			     io->getTriggerDelayFrames() * ((double)settings.period / 100000000),
 			     io->getTriggerDelayFrames());
 
