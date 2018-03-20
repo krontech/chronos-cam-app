@@ -633,10 +633,10 @@ Defaults</string>
   <widget class="QComboBox" name="comboKeepConstant">
    <property name="geometry">
     <rect>
-     <x>415</x>
+     <x>470</x>
      <y>350</y>
-     <width>251</width>
-     <height>65</height>
+     <width>201</width>
+     <height>51</height>
     </rect>
    </property>
    <property name="font">
@@ -646,6 +646,12 @@ Defaults</string>
      <italic>true</italic>
      <bold>true</bold>
     </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QComboBox QAbstractItemView::item {
+  padding: 10px;
+  margin: 5px;
+}</string>
    </property>
    <item>
     <property name="text">
@@ -667,10 +673,10 @@ pre-trigger seconds</string>
   <widget class="QLabel" name="lblRes_21">
    <property name="geometry">
     <rect>
-     <x>205</x>
-     <y>340</y>
-     <width>196</width>
-     <height>81</height>
+     <x>179</x>
+     <y>350</y>
+     <width>281</width>
+     <height>51</height>
     </rect>
    </property>
    <property name="font">
@@ -679,9 +685,8 @@ pre-trigger seconds</string>
     </font>
    </property>
    <property name="text">
-    <string>Keep this constant when
-changing resolution
-or framerate:</string>
+    <string>Keep this constant when changing
+resolution or framerate:</string>
    </property>
    <property name="alignment">
     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
