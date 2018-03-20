@@ -33,9 +33,10 @@ class CamMainWindow;
 class CamMainWindow : public QDialog
 {
 	Q_OBJECT
-	
+
 public:
 	explicit CamMainWindow(QWidget *parent = 0);
+	short getWindowsAlwaysOpen();
 	~CamMainWindow();
 
 public slots:
@@ -63,7 +64,9 @@ private slots:
 
 	void on_MainWindowTimeoutTimer();
 
-	void on_cmdFocusAid_clicked();
+	void on_chkFocusAid_clicked(bool focusAidEnabled);
+
+	void UtilWindow_closed();
 
 	void on_expSlider_sliderMoved(int position);
 
@@ -84,6 +87,7 @@ private:
 	bool lastShutterButton;
 	bool lastRecording;
 	int bmsFifoFD;
+	int windowsAlwaysOpen;
 
 	UInt8 battCapacityPercent;  //Battery data from ENEL4A.c
 	UInt8 battSOHPercent;

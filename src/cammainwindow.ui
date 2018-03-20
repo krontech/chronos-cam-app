@@ -125,6 +125,9 @@
      <bold>true</bold>
     </font>
    </property>
+   <property name="autoFillBackground">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Record</string>
    </property>
@@ -235,7 +238,7 @@ Balance</string>
 Settings</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="cmdFocusAid">
+  <widget class="QCheckBox" name="chkFocusAid">
    <property name="geometry">
     <rect>
      <x>100</x>
@@ -250,6 +253,18 @@ Settings</string>
      <weight>75</weight>
      <bold>true</bold>
     </font>
+   </property>
+   <property name="autoFillBackground">
+    <bool>true</bool>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QCheckBox::indicator {
+     width: 28px;
+     height: 28px;
+}
+
+
+</string>
    </property>
    <property name="text">
     <string>Focus
@@ -275,7 +290,7 @@ Aid</string>
 QSlider::handle:vertical {
      background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #b4b4b4, stop:1 #8f8f8f);
      border: 1px solid #5c5c5c;
-     height: 28px;
+     height: 60px;
      margin: -2px 0; /* handle is placed by default on the contents rect of the groove. Expand outside the groove */
      border-radius: 3px;
  }</string>
@@ -388,7 +403,7 @@ border-color: black;</string>
   <zorder>cmdFPNCal</zorder>
   <zorder>cmdWB</zorder>
   <zorder>cmdIOSettings</zorder>
-  <zorder>cmdFocusAid</zorder>
+  <zorder>chkFocusAid</zorder>
   <zorder>expSlider</zorder>
   <zorder>lblCurrent</zorder>
   <zorder>cmdClose</zorder>

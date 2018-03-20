@@ -21,7 +21,7 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets multimedia
 
 TARGET = camApp
 CONFIG += qt console link_pkgconfig
-target.path = /home/root/qt
+target.path = /opt/camera
 
 QMAKE_CFLAGS += -Dxdc_target_types__=ti/targets/std.h -D__TMS470__ -DPlatform_dm814x -DG_THREADS_MANDATORY -DG_DISABLE_CAST_CHECKS -DG_DISABLE_ASSERT -pthread -march=armv7-a -mtune=cortex-a8 -mfpu=neon -mfloat-abi=softfp
 QMAKE_CXXFLAGS += -Dxdc_target_types__=ti/targets/std.h -D__TMS470__ -DPlatform_dm814x -DG_THREADS_MANDATORY -DG_DISABLE_CAST_CHECKS -DG_DISABLE_ASSERT -pthread -march=armv7-a -mtune=cortex-a8 -mfpu=neon -mfloat-abi=softfp
@@ -90,7 +90,9 @@ SOURCES += main.cpp\
     recmodewindow.cpp \
     triggerdelaywindow.cpp \
     triggerslider.cpp \
-    playbackslider.cpp
+    playbackslider.cpp \
+    keyboardbase.cpp \
+    keyboardnumeric.cpp
 
 ## Generate version.cpp on every build
 versionTarget.target = version.cpp
@@ -145,7 +147,9 @@ HEADERS  += mainwindow.h \
     recmodewindow.h \
     triggerdelaywindow.h \
     triggerslider.h \
-    playbackslider.h
+    playbackslider.h \
+    keyboardbase.h \
+    keyboardnumeric.h
 
 
 
@@ -162,7 +166,8 @@ FORMS    += mainwindow.ui \
     utilwindow.ui \
     statuswindow.ui \
     recmodewindow.ui \
-    triggerdelaywindow.ui
+    triggerdelaywindow.ui \
+    keyboardnumeric.ui
 
 RESOURCES += \
     Images.qrc

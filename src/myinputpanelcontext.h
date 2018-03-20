@@ -44,6 +44,8 @@
 #include <QtGui/QInputContext>
 
 #include "keyboard.h"
+#include "keyboardnumeric.h"
+
 class MyInputPanel;
 
 //! [0]
@@ -70,7 +72,9 @@ private slots:
 	void sendCode(int code);
 
 public:
-	keyboard *inputPanel;
+	keyboardBase *inputPanel;
+	keyboard *inputPanelAlphabetic;
+	keyboardNumeric *inputPanelNumeric;
 private:
 	QPoint originalPos;
 	bool keyboardActive;

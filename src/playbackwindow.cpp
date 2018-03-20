@@ -249,6 +249,14 @@ void playbackWindow::on_cmdSaveSettings_clicked()
 	w->setAttribute(Qt::WA_DeleteOnClose);
 	w->show();
 	if(camera->ButtonsOnLeft) w->move(230, 0);
+	ui->cmdSaveSettings->setEnabled(false);
+	ui->cmdClose->setEnabled(false);
+	connect(w, SIGNAL(destroyed()), this, SLOT(enableCloseAndSettings()));
+}
+
+void playbackWindow::enableCloseAndSettings(){
+	ui->cmdSaveSettings->setEnabled(true);
+	ui->cmdClose->setEnabled(true);
 }
 
 void playbackWindow::on_cmdMarkIn_clicked()
