@@ -29,8 +29,6 @@ private slots:
 
     void on_cmdHundredPercent_clicked();
 
-    void on_cmdMax_clicked();
-
     void on_spinPreSeconds_valueChanged(double arg1);
 
     void on_spinPreFrames_valueChanged(int arg1);
@@ -38,8 +36,6 @@ private slots:
     void on_spinPostSeconds_valueChanged(double arg1);
 
     void on_spinPostFrames_valueChanged(int arg1);
-
-    void on_cmdResetPreRec_clicked();
 
     void on_spinPreRecSeconds_valueChanged(double arg1);
 
