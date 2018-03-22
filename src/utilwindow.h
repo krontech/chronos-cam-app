@@ -100,6 +100,7 @@ private:
 	Camera * camera;
 	QTimer * timer;
 	bool settingClock;
+	void statErrorMessage();
 };
 
 #endif // UTILWINDOW_H
