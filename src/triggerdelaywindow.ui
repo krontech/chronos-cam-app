@@ -633,9 +633,9 @@ Defaults</string>
   <widget class="QComboBox" name="comboKeepConstant">
    <property name="geometry">
     <rect>
-     <x>470</x>
-     <y>350</y>
-     <width>201</width>
+     <x>281</x>
+     <y>410</y>
+     <width>321</width>
      <height>51</height>
     </rect>
    </property>
@@ -655,8 +655,7 @@ Defaults</string>
    </property>
    <item>
     <property name="text">
-     <string>Pre-record and
-pre-trigger seconds</string>
+     <string>Pre-record and pre-trigger seconds</string>
     </property>
    </item>
    <item>
@@ -673,8 +672,8 @@ pre-trigger seconds</string>
   <widget class="QLabel" name="lblRes_21">
    <property name="geometry">
     <rect>
-     <x>179</x>
-     <y>350</y>
+     <x>280</x>
+     <y>355</y>
      <width>281</width>
      <height>51</height>
     </rect>
@@ -689,7 +688,7 @@ pre-trigger seconds</string>
 resolution or framerate:</string>
    </property>
    <property name="alignment">
-    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
    </property>
   </widget>
  </widget>
