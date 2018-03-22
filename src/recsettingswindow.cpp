@@ -143,9 +143,7 @@ RecSettingsWindow::RecSettingsWindow(QWidget *parent, Camera * cameraInst) :
 
 	//Set the frame rate
 	double frameRate = 1.0 / framePeriod;
-	getSIText(str, frameRate, ceil(log10(framePeriod*100000000.0)+1), DEF_SI_OPTS, 1000);
-	ui->lineRate->setText(str);
-	ui->lineRate->setHasUnits(true);
+	ui->lineRate->setText(QString::number(frameRate));
 
 	//Set the exposure
     //double exposure = (double)is->exposure / 100000000.0;
@@ -358,9 +356,7 @@ void RecSettingsWindow::on_cmdMax_clicked()
 
 	double frameRate = 1.0 / framePeriod;
 	qDebug() << frameRate;
-	getSIText(str, frameRate, ceil(log10(framePeriod * 100000000.0)+1), DEF_SI_OPTS, 1000);
-
-	ui->lineRate->setText(str);
+	ui->lineRate->setText(QString::number(frameRate));
 
 	//Make sure exposure is within limits
 	double exp = camera->sensor->getActualIntegrationTime(siText2Double(ui->lineExp->text().toStdString().c_str()),
@@ -428,10 +424,8 @@ void RecSettingsWindow::on_linePeriod_returnPressed()
 
 	//Set the frame rate
 	double frameRate = 1.0 / framePeriod;
-	qDebug() << frameRate;
-	getSIText(str, frameRate, ceil(log10(framePeriod*100000000.0)+1), DEF_SI_OPTS, 1000);
 
-	ui->lineRate->setText(str);
+	ui->lineRate->setText(QString::number(frameRate));
 
 	//Make sure exposure is within limits
 	double exp = camera->sensor->getActualIntegrationTime(siText2Double(ui->lineExp->text().toStdString().c_str()),
@@ -515,9 +509,8 @@ void RecSettingsWindow::on_lineRate_returnPressed()
 	//Refill the frame rate box with the nicely formatted value
 	frameRate = 1.0 / framePeriod;
 	qDebug() << frameRate;
-	getSIText(str, frameRate, ceil(log10(framePeriod * 100000000.0)+1), DEF_SI_OPTS, 1000);
 
-	ui->lineRate->setText(str);
+	ui->lineRate->setText(QString::number(frameRate));
 
 	//Make sure exposure is within limits
 	double exp = camera->sensor->getActualIntegrationTime(siText2Double(ui->lineExp->text().toStdString().c_str()),

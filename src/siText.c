@@ -39,7 +39,7 @@ void getSIText(char * buf, double val, UInt32 sigfigs, UInt32 options, Int32 res
 
 	if(val != 0)
 		{
-		if(val >= 1000.0)
+		if(val >= 10000.0)
 		{
 			do {
 				val /= 1000.0;
