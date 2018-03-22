@@ -247,7 +247,7 @@
     </font>
    </property>
    <property name="text">
-    <string>Backspace</string>
+    <string>←</string>
    </property>
   </widget>
   <widget class="QPushButton" name="num9">
@@ -394,7 +394,7 @@
     </font>
    </property>
    <property name="text">
-    <string>Enter</string>
+    <string>Apply</string>
    </property>
   </widget>
  </widget>
