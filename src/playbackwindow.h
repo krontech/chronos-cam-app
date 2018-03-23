@@ -79,6 +79,7 @@ private:
 	void updatePlayRateLabel(Int32 playbackRate);
 	void setControlEnable(bool en);
 	UInt32 markInFrame, markOutFrame;
+	UInt32 markInFrameOld;
 	UInt32 lastPlayframe;
 	QTimer * timer;
 	QTimer * saveDoneTimer;
