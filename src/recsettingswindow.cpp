@@ -148,8 +148,7 @@ RecSettingsWindow::RecSettingsWindow(QWidget *parent, Camera * cameraInst) :
 	ui->lineRate->setHasUnits(true);
 
 	//Set the exposure
-    //double exposure = (double)is->exposure / 100000000.0;
-    double exposure = (camera->sensor->getIntegrationTime());
+	double exposure = (camera->sensor->getIntegrationTime());
 	getSIText(str, exposure, 10, DEF_SI_OPTS, 8);
 	ui->lineExp->setText(str);
 	ui->lineExp->setHasUnits(true);

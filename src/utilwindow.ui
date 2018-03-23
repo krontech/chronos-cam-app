@@ -789,6 +789,9 @@ p, li { white-space: pre-wrap; }
      <property name="textInteractionFlags">
       <set>Qt::NoTextInteraction</set>
      </property>
+     <property name="textInteractionFlags">
+      <set>Qt::NoTextInteraction</set>
+     </property>
     </widget>
    </widget>
    <widget class="QWidget" name="tabFact">
