@@ -82,6 +82,7 @@ private:
 	void setControlEnable(bool en);
 
 	UInt32 markInFrame, markOutFrame;
+	UInt32 markInFrameOld;
 	UInt32 lastPlayframe;
 	QTimer * timer;
 	QTimer * saveDoneTimer;
