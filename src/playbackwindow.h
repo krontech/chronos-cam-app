@@ -69,7 +69,7 @@ private slots:
 
 	void on_cmdClose_clicked();
 
-	void enableCloseAndSettings();
+	void saveSettingsClosed();
 
 private:
 	Ui::playbackWindow *ui;
