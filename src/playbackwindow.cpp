@@ -66,6 +66,8 @@ playbackWindow::playbackWindow(QWidget *parent, Camera * cameraInst, bool autosa
 	updateStatusText();
 
 	setFocusPolicy(Qt::StrongFocus);
+	
+	settingsWindowIsOpen = false;
 
 	if(autoSaveFlag) {
 		on_cmdSave_clicked();
@@ -258,6 +260,7 @@ void playbackWindow::on_cmdSaveSettings_clicked()
 	saveSettingsWindow *w = new saveSettingsWindow(NULL, camera);
 	w->setAttribute(Qt::WA_DeleteOnClose);
 	w->show();
+	settingsWindowIsOpen = true;
 	if(camera->ButtonsOnLeft) w->move(230, 0);
 	ui->cmdSaveSettings->setEnabled(false);
 	ui->cmdClose->setEnabled(false);
@@ -265,8 +268,11 @@ void playbackWindow::on_cmdSaveSettings_clicked()
 }
 
 void playbackWindow::enableCloseAndSettings(){
-	ui->cmdSaveSettings->setEnabled(true);
-	ui->cmdClose->setEnabled(true);
+	settingsWindowIsOpen = false;
+	if(!camera->recorder->getRunning()){//Only enable these buttons if the camera is not saving a video
+		ui->cmdSaveSettings->setEnabled(true);
+		ui->cmdClose->setEnabled(true);
+	}
 }
 
 void playbackWindow::on_cmdMarkIn_clicked()
@@ -351,6 +357,7 @@ void playbackWindow::checkForSaveDone()
 		char tmp[64];
 		sprintf(tmp, "%.1ffps", camera->recorder->getFramerate());
 		ui->lblFrameRate->setText(tmp);
+		setControlEnable(false);
 	}
 }
 
@@ -383,16 +390,17 @@ void playbackWindow::updatePlayRateLabel(Int32 playbackRate)
 
 void playbackWindow::setControlEnable(bool en)
 {
-	ui->cmdClose->setEnabled(en);
+	if(!settingsWindowIsOpen){//While settings window is open, don't let the user close the playback window or open another settings window.
+		ui->cmdClose->setEnabled(en);
+		ui->cmdSaveSettings->setEnabled(en);
+	}
 	ui->cmdMarkIn->setEnabled(en);
 	ui->cmdMarkOut->setEnabled(en);
 	ui->cmdPlayForward->setEnabled(en);
 	ui->cmdPlayReverse->setEnabled(en);
 	ui->cmdRateDn->setEnabled(en);
 	ui->cmdRateUp->setEnabled(en);
-	ui->cmdSaveSettings->setEnabled(en);
 	ui->verticalSlider->setEnabled(en);
-
 }
 
 void playbackWindow::on_cmdClose_clicked()

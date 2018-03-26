@@ -90,6 +90,7 @@ private:
 	Int32 playbackRate;
 	UInt32 playFrame;
 	bool autoSaveFlag;
+	bool settingsWindowIsOpen;
 
 signals:
 	void finishedSaving();
