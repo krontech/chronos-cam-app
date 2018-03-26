@@ -84,6 +84,7 @@ private:
 	QTimer * saveDoneTimer;
 	Int32 playbackRate;
 	bool autoSaveFlag;
+	bool settingsWindowIsOpen;
 
 signals:
 	void finishedSaving();
