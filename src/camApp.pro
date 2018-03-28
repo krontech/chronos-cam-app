@@ -92,7 +92,8 @@ SOURCES += main.cpp\
     chronosControlInterface.cpp \
     chronosVideoInterface.cpp\
     frameimage.cpp \
-    keyboardbase.cpp
+    keyboardbase.cpp \
+    keyboardnumeric.cpp
 
 ## Generate version.cpp on every build
 versionTarget.target = version.cpp
@@ -154,7 +155,8 @@ HEADERS  += mainwindow.h \
     chronosControlInterface.h \
     chronosVideoInterface.h \
     frameimage.h \
-    keyboardbase.h
+    keyboardbase.h \
+    keyboardnumeric.h
 
 
 
@@ -171,7 +173,8 @@ FORMS    += mainwindow.ui \
     utilwindow.ui \
     statuswindow.ui \
     recmodewindow.ui \
-    triggerdelaywindow.ui
+    triggerdelaywindow.ui \
+    keyboardnumeric.ui
 
 RESOURCES += \
     Images.qrc

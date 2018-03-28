@@ -1,8 +1,7 @@
 #include "keyboardbase.h"
 
 keyboardBase::keyboardBase(QWidget *parent) :
-	QWidget(parent)/*,
-	ui(new Ui::keyboardbase)*/
+	QWidget(parent)
 {
 
 }
