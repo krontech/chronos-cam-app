@@ -525,7 +525,7 @@ void UtilWindow::on_cmdSetSN_clicked()
 
 void UtilWindow::statErrorMessage(){
 	QMessageBox msg;
-	msg.setText("Error: USB device (/media/sda1) not present");
+	msg.setText("Error: USB device not detected"); // /media/sda1
 	msg.setWindowFlags(Qt::WindowStaysOnTopHint);
 	msg.exec();
 }
