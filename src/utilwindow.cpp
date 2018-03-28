@@ -529,7 +529,7 @@ void UtilWindow::on_cmdSetSN_clicked()
 
 void UtilWindow::statErrorMessage(){
 	QMessageBox msg;
-	msg.setText("Error reading SD card");
+	msg.setText("Error: USB device not detected"); // /media/sda1
 	msg.setWindowFlags(Qt::WindowStaysOnTopHint);
 	msg.exec();
 }
