@@ -69,7 +69,7 @@ private slots:
 
 	void on_cmdClose_clicked();
 
-	void enableCloseAndSettings();
+	void saveSettingsClosed();
 
 private:
 	Ui::playbackWindow *ui;
@@ -85,6 +85,7 @@ private:
 	QTimer * saveDoneTimer;
 	Int32 playbackRate;
 	bool autoSaveFlag;
+	bool settingsWindowIsOpen;
 
 signals:
 	void finishedSaving();
