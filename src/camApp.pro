@@ -91,7 +91,8 @@ SOURCES += main.cpp\
     playbackslider.cpp \
     chronosControlInterface.cpp \
     chronosVideoInterface.cpp\
-    frameimage.cpp
+    frameimage.cpp \
+    keyboardbase.cpp
 
 ## Generate version.cpp on every build
 versionTarget.target = version.cpp
@@ -152,7 +153,8 @@ HEADERS  += mainwindow.h \
     playbackslider.h \
     chronosControlInterface.h \
     chronosVideoInterface.h \
-    frameimage.h
+    frameimage.h \
+    keyboardbase.h
 
 
 
