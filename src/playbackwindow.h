@@ -73,8 +73,6 @@ private slots:
 
 	void keyPressEvent(QKeyEvent *ev);
 
-	void enableCloseAndSettings();
-
 private:
 	Ui::playbackWindow *ui;
 	Camera * camera;
