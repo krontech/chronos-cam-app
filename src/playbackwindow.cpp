@@ -267,7 +267,7 @@ void playbackWindow::on_cmdSaveSettings_clicked()
 	connect(w, SIGNAL(destroyed()), this, SLOT(saveSettingsClosed()));
 }
 
-void playbackWindow::saveSettingsClosed(){
+void playbackWindow::enableCloseAndSettings(){
 	settingsWindowIsOpen = false;
 	if(!camera->recorder->getRunning()){//Only enable these buttons if the camera is not saving a video
 		ui->cmdSaveSettings->setEnabled(true);
