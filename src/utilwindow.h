@@ -104,9 +104,8 @@ private:
 	Camera * camera;
 	QTimer * timer;
 	bool settingClock;
-
-	//QDBusConnection *dbusControl;
-	//QDBusConnection *dbusVideo;
+	
+	void statErrorMessage();
 };
 
 #endif // UTILWINDOW_H
