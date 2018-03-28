@@ -45,6 +45,7 @@ Camera * camera;
 Video * vinst;
 UserInterface * userInterface;
 bool focusAidEnabled = false;
+QTimer * menuTimeoutTimer;
 
 /**********************************************************
  * QWS Screensaver helper for interactive window hiding.
@@ -125,6 +126,7 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	ui->expSlider->setMaximum(camera->sensor->getMaxCurrentIntegrationTime() * 100000000.0);
 	ui->expSlider->setValue(camera->sensor->getIntegrationTime() * 100000000.0);
 	ui->cmdWB->setEnabled(camera->getIsColor());
+	ui->chkFocusAid->setChecked(camera->getFocusPeakEnable());
 
 	const char * myfifo = "/var/run/bmsFifo";
 
@@ -147,13 +149,16 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	timer = new QTimer(this);
 	connect(timer, SIGNAL(timeout()), this, SLOT(on_MainWindowTimer()));
 	timer->start(16);
+	
+	menuTimeoutTimer = new QTimer(this);
+	connect(menuTimeoutTimer, SIGNAL(timeout()), this, SLOT(on_MainWindowTimeoutTimer()));
 
 	if (appSettings.value("debug/hideDebug", true).toBool()) {
 		ui->cmdDebugWnd->setVisible(false);
 		ui->cmdClose->setVisible(false);
 		ui->cmdDPCButton->setVisible(false);
 	}
-/*	ui->cmdFocusAid->setVisible(false);
+/*	ui->chkFocusAid->setVisible(false);
 	ui->cmdFPNCal->setVisible(false);
 	ui->cmdIOSettings->setVisible(false);
 	ui->cmdPlay->setVisible(false);
@@ -489,18 +494,27 @@ void CamMainWindow::on_MainWindowTimer()
 	}
 }
 
-void CamMainWindow::on_cmdFocusAid_clicked()
+void CamMainWindow::on_MainWindowTimeoutTimer()
 {
-	camera->setFocusPeakEnable(!focusAidEnabled);
-	focusAidEnabled = !focusAidEnabled;
-	if(focusAidEnabled)
-	{
-		ui->cmdFocusAid->setText("Focus\nAid (On)");
-	}
-	else
-	{
-		ui->cmdFocusAid->setText("Focus\nAid");
-	}
+	menuTimeoutTimer->stop();
+/*	ui->chkFocusAid->setVisible(false);
+	ui->cmdFPNCal->setVisible(false);
+	ui->cmdIOSettings->setVisible(false);
+	ui->cmdPlay->setVisible(false);
+	ui->cmdRec->setVisible(false);
+	ui->cmdRecSettings->setVisible(false);
+	ui->cmdUtil->setVisible(false);
+
+	ui->cmdWB->setVisible(false);
+	ui->expSlider->setVisible(false);
+	ui->lblCurrent->setVisible(false);
+	ui->lblExp->setVisible(false);*/
+}
+
+//Was void CamMainWindow::on_cmdFocusAid_clicked()?
+void CamMainWindow::on_chkFocusAid_clicked(bool focusAidEnabled)
+{
+	camera->setFocusPeakEnable(focusAidEnabled);
 }
 
 void CamMainWindow::on_expSlider_sliderMoved(int position)
@@ -564,6 +578,11 @@ void CamMainWindow::on_cmdUtil_clicked()
 	w->setAttribute(Qt::WA_DeleteOnClose);
 	w->show();
 	connect(w, SIGNAL(moveCamMainWindow()), this, SLOT(updateCamMainWindowPosition()));
+	connect(w, SIGNAL(destroyed()), this, SLOT(UtilWindow_closed()));
+}
+
+void CamMainWindow::UtilWindow_closed(){
+	ui->chkFocusAid->setChecked(camera->getFocusPeakEnable());
 }
 
 void CamMainWindow::updateCamMainWindowPosition(){
@@ -574,7 +593,7 @@ void CamMainWindow::updateCamMainWindowPosition(){
 
 void CamMainWindow::on_cmdBkGndButton_clicked()
 {
-	ui->cmdFocusAid->setVisible(true);
+	ui->chkFocusAid->setVisible(true);
 	ui->cmdFPNCal->setVisible(true);
 	ui->cmdIOSettings->setVisible(true);
 	ui->cmdPlay->setVisible(true);

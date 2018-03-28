@@ -35,7 +35,7 @@ class CamAutoHide;
 class CamMainWindow : public QDialog
 {
 	Q_OBJECT
-	
+
 public:
 	explicit CamMainWindow(QWidget *parent = 0);
 	short getWindowsAlwaysOpen();
@@ -65,6 +65,12 @@ private slots:
 	void on_MainWindowTimer();
 
 	void on_cmdFocusAid_clicked();
+	
+	void on_MainWindowTimeoutTimer();
+
+	void on_chkFocusAid_clicked(bool focusAidEnabled);
+
+	void UtilWindow_closed();
 
 	void on_expSlider_sliderMoved(int position);
 
