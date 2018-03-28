@@ -54,8 +54,6 @@ private slots:
 	void on_cmdStopSave_clicked();
 
 	void on_cmdSaveSettings_clicked();
-	
-	void enableCloseAndSettings();
 
 	void on_cmdMarkIn_clicked();
 
@@ -72,6 +70,8 @@ private slots:
 	void on_cmdClose_clicked();
 
 	void keyPressEvent(QKeyEvent *ev);
+	
+	void saveSettingsClosed();
 
 private:
 	Ui::playbackWindow *ui;
