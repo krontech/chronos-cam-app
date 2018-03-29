@@ -339,7 +339,7 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
     settings.segments               = appSettings.value("camera/segments", 1).toInt();
     settings.temporary              = 0;
 
-    setImagerSettings(settings);
+	setImagerSettings(settings);
     setDisplaySettings(false, MAX_LIVE_FRAMERATE);
 
     io->setTriggerDelayFrames(0, FLAG_USESAVED);
@@ -548,7 +548,8 @@ void Camera::updateTriggerValues(ImagerSettings_t settings){
 
 unsigned short Camera::getTriggerDelayConstant(){
      QSettings appSettings;
-     return appSettings.value("camera/triggerDelayConstant", TRIGGERDELAY_PRERECORDSECONDS).toUInt();
+	//return appSettings.value("camera/triggerDelayConstant", TRIGGERDELAY_PRERECORDSECONDS).toUInt();
+	return TRIGGERDELAY_PRERECORDSECONDS;//With comboBox removed, always use this choice instead.
 }
 
 void Camera::setTriggerDelayConstant(unsigned short value){

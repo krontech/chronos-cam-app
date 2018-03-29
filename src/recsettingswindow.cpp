@@ -206,7 +206,7 @@ void RecSettingsWindow::on_cmdOK_clicked()
     camera->setImagerSettings(*is);
     camera->setDisplaySettings(false, MAX_LIVE_FRAMERATE);
 
-    if(CAMERA_FILE_NOT_FOUND == camera->loadFPNFromFile(FPN_FILENAME))
+	if(CAMERA_FILE_NOT_FOUND == camera->loadFPNFromFile(FPN_FILENAME))
 		camera->autoFPNCorrection(2, false, true);
 
 	close();

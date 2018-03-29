@@ -19,6 +19,9 @@ triggerDelayWindow::triggerDelayWindow(QWidget *parent, Camera * cameraInst, Ima
     ui->spinPreFrames->setMaximum(recLenFrames);
     ui->spinPreSeconds->setMaximum((double)recLenFrames * period);
     ui->comboKeepConstant->setCurrentIndex(camera->getTriggerDelayConstant());
+    //comboBox set to invisible to simplify the UI
+    ui->comboKeepConstant->setVisible(false);
+    ui->lblRes_21->setVisible(false);
 
     UInt32 position;
 	 if(camera->getTriggerDelayConstant() == TRIGGERDELAY_PRERECORDSECONDS)
