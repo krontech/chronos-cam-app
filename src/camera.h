@@ -69,7 +69,7 @@
 
 #define CAMERA_MAX_EXPOSURE_TARGET 3584
 
-#define TRIGGERDELAY_PRERECORDSECONDS 0
+#define TRIGGERDELAY_TIME_RATIO 0
 #define TRIGGERDELAY_SECONDS 1
 #define TRIGGERDELAY_FRAMES 2
 
@@ -209,7 +209,7 @@ public:
 	void setTriggerDelayValues(double ratio, double seconds, UInt32 frames);
 	void updateTriggerValues(ImagerSettings_t settings);
 	unsigned short triggerDelayConstant;
-	double triggerPreRecordSeconds;
+	double triggerTimeRatio;
 	double triggerPostSeconds;
 	UInt32 triggerPostFrames;
 	double maxPostFramesRatio;
