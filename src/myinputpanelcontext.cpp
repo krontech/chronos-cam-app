@@ -43,6 +43,8 @@
 #include "myinputpanelcontext.h"
 #include "keyboard.h"
 
+#include <algorithm>
+
 MyInputPanelContext::MyInputPanelContext()
 {
 	inputPanelAlphabetic = new keyboard();
@@ -99,8 +101,11 @@ bool MyInputPanelContext::filterEvent(const QEvent* event)
 		if(widget->mapToGlobal(QPoint(0,0)).y() + widget->size().height() > QApplication::desktop()->screenGeometry().height() - inputPanel->height())
 		{
 			window->move(window->pos().x(),
+					   std::max(
 						 (QApplication::desktop()->screenGeometry().height() - inputPanel->height()) / 2 - //Center of visible screen above keyboard
-						  widget->mapToGlobal(QPoint(0,0)).y() - widget->size().height() / 2); //Focused widget center
+						   widget->mapToGlobal(QPoint(0,0)).y() - widget->size().height() / 2 //Focused widget center
+						   , //max value of these two to prevent the window from moving up too far if a widget that is very close to the bottom of the screen requests a keyboard.
+						   -inputPanel->height()));
 		}
 
 		keyboardActive = true;
