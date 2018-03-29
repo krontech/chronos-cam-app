@@ -178,6 +178,12 @@ void playbackWindow::on_cmdSave_clicked()
 				if(QMessageBox::Yes != reply)
 					return;
 			}
+
+			/* Prevent the user from pressing the abort/save button just after the last frame,
+			 * as that can make the camera try to save a 2nd video too soon, crashing the camapp.
+			 * It is also disabled in checkForSaveDone(), but if the video is very short,
+			 * that might not be called at all before the end of the video, so just disable the button right away.*/
+			if(markOutFrame - markInFrame < 10) ui->cmdSave->setEnabled(false);
 		}
 
 		//Check that the path exists
@@ -318,6 +324,7 @@ void playbackWindow::checkForSaveDone()
 		sw->close();
 		ui->cmdSave->setText("Save");
 		setControlEnable(true);
+		ui->cmdSave->setEnabled(true);
 		updatePlayRateLabel(playbackRate);
 
 		if(autoSaveFlag) {
@@ -329,6 +336,11 @@ void playbackWindow::checkForSaveDone()
 		sprintf(tmp, "%.1ffps", camera->recorder->getFramerate());
 		ui->lblFrameRate->setText(tmp);
 		setControlEnable(false);
+
+		/* Prevent the user from pressing the abort/save button just after the last frame,
+		 * as that can make the camera try to save a 2nd video too soon, crashing the camapp.*/
+		if(camera->playFrame >= markOutFrame - 10)
+			ui->cmdSave->setEnabled(false);
 	}
 }
 
