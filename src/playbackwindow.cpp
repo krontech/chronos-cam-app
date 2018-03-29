@@ -178,12 +178,6 @@ void playbackWindow::on_cmdSave_clicked()
 				if(QMessageBox::Yes != reply)
 					return;
 			}
-
-			/* Prevent the user from pressing the abort/save button just after the last frame,
-			 * as that can make the camera try to save a 2nd video too soon, crashing the camapp.
-			 * It is also disabled in checkForSaveDone(), but if the video is very short,
-			 * that might not be called at all before the end of the video, so just disable the button right away.*/
-			if(markOutFrame - markInFrame < 10) ui->cmdSave->setEnabled(false);
 		}
 
 		//Check that the path exists
@@ -222,9 +216,17 @@ void playbackWindow::on_cmdSave_clicked()
 			setControlEnable(false);
 			sw->setText("Saving...");
 			sw->show();
+
 			saveDoneTimer = new QTimer(this);
 			connect(saveDoneTimer, SIGNAL(timeout()), this, SLOT(checkForSaveDone()));
 			saveDoneTimer->start(100);
+
+			/* Prevent the user from pressing the abort/save button just after the last frame,
+			 * as that can make the camera try to save a 2nd video too soon, crashing the camapp.
+			 * It is also disabled in checkForSaveDone(), but if the video is very short,
+			 * that might not be called at all before the end of the video, so just disable the button right away.*/
+			if(markOutFrame - markInFrame < 25) ui->cmdSave->setEnabled(false);
+
 			ui->verticalSlider->appendRegionToList();
 			ui->verticalSlider->setHighlightRegion(markOutFrame, markOutFrame);
 			//both arguments should be markout because a new rectangle will be drawn, and it should not overlap the one that was just appended
@@ -339,7 +341,7 @@ void playbackWindow::checkForSaveDone()
 
 		/* Prevent the user from pressing the abort/save button just after the last frame,
 		 * as that can make the camera try to save a 2nd video too soon, crashing the camapp.*/
-		if(camera->playFrame >= markOutFrame - 10)
+		if(camera->playFrame >= markOutFrame - 25)
 			ui->cmdSave->setEnabled(false);
 	}
 }
