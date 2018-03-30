@@ -3022,7 +3022,7 @@ void Camera::setZebraEnable(bool en)
 
 int Camera::getUnsavedWarnEnable(void){
 	QSettings appSettings;
-	return appSettings.value("camera/unsavedWarn", unsavedWarnEnabled).toInt();
+	return appSettings.value("camera/unsavedWarn", 1).toInt();
 	//If there is unsaved video in RAM, prompt to start record.  2=always, 1=if not reviewed, 0=never
 }
 
