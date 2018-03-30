@@ -63,8 +63,6 @@ private slots:
 	void on_cmdIOSettings_clicked();
 
 	void on_MainWindowTimer();
-
-	void on_cmdFocusAid_clicked();
 	
 	void on_MainWindowTimeoutTimer();
 

@@ -70,8 +70,6 @@ private slots:
 	void on_cmdClose_clicked();
 
 	void keyPressEvent(QKeyEvent *ev);
-	
-	void saveSettingsClosed();
 
 private:
 	Ui::playbackWindow *ui;
