@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 #
+# About:
 # This file processes the «clip» regions in our *.ui files. It just copies and
 # pastes text around, as a very simple preprocessor. It is needed because, when
 # we are laying out a .ui file in Qt Designer, we need to see some things like
@@ -7,8 +8,8 @@
 # anything like what the final product on the camera will be. This is essential
 # to the new UI look as it uses styles to enlarge most element's click targets.
 #
-# Differences are not resolved. However, the md5sum exists to keep work from
-# lost inadvertently.
+# Differences are not resolved at the moment. However, the md5sum does keep
+# work from being inadvertently overwritten.
 # 
 # Replacement Syntax:
 # 	Start of region: a line containing something like 
@@ -32,7 +33,11 @@
 # have the external reference, so we can include snippets of CSS across the
 # whole project. I couldn't find a general solution to inline the clip regions'
 # metadata alongside their content. Or propagate a single change back to the
-# clip region source.
+# clip region source. For example, the C preprocessor does not work, because
+# "#include my.css" is not actually valid CSS syntax. We couldn't edit the file
+# graphically, because then we'd be editing the compiled output and not the
+# input. The output would just get overwritten when we changed the input, which
+# we don't want.
 
 import os
 import sys
@@ -67,7 +72,7 @@ files = [{
 
 # parse clip region information
 tagInfoPattern = re.compile(
-	'(?s)^(?P<indent>\s*)(?P<hleading>.*?)«begin clip.*?"(?P<filename>.*?)".*?\((?P<md5sum>\w{32})?.*?\).*?»(?P<htrailing>.*?)\n(?P<textContent>.*?)«end clip»(?P<ftrailing>.*)' )
+	'(?s)^(?P<indent>\s*)(?P<hleading>.*?)«begin clip.*?\'(?P<filename>.*?)\'.*?\((?P<md5sum>\w{32})?.*?\).*?»(?P<htrailing>.*?)\n(?P<textContent>.*?)«end clip»(?P<ftrailing>.*)' )
 for file in files:
 	for chunk in file.get('contents'):
 		match = re.fullmatch(tagInfoPattern, chunk.get('text'))
@@ -118,13 +123,13 @@ for file in files:
 			else:
 				with open(str(chunk.get('replacementPath'))) as infile:
 					headerbits = chunk.get('header')
-					newContents = functools.reduce( #indent the lines of the pasted file, so it is coherent and readable
-						lambda a, b: a + headerbits('indent') + b,
+					newContents = functools.reduce( #Indent the lines of the pasted file, so it is coherent and readable.
+						lambda a, b: a + headerbits('indent') + '  ' + b, #'  ': Add another level of indentation to the pasted code, so code folding works. I find this to be more readable anyway.
 						infile.readlines(), 
 						''
 					)
 					
-					outfile.write('%s%s«begin clip from "%s" (%s)»%s\n' % (
+					outfile.write('%s%s«begin clip from \'%s\' (%s)»%s\n' % (
 						headerbits('indent'),
 						headerbits('hleading'),
 						headerbits('filename'),
