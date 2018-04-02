@@ -39,9 +39,6 @@ public:
 
 
 private slots:
-
-	void on_caps_clicked();
-
 	void on_space_clicked();
 
 	void on_shift_clicked();

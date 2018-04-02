@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>800</width>
-    <height>220</height>
+    <height>260</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -19,34 +19,177 @@
   <property name="windowTitle">
    <string>Keyboard</string>
   </property>
-  <widget class="QPushButton" name="down">
-   <property name="geometry">
-    <rect>
-     <x>500</x>
-     <y>160</y>
-     <width>51</width>
-     <height>51</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>14</pointsize>
-     <weight>75</weight>
-     <italic>false</italic>
-     <bold>true</bold>
-    </font>
-   </property>
-   <property name="text">
-    <string>▼</string>
-   </property>
-  </widget>
+  <property name="styleSheet">
+   <string notr="true">
+    /* «begin clip from 'assets/whitelook-common.css' (35563587176a49b8380b5374d91c45c9)» */
+      /*
+      === X General Styles for the CamApp ===
+      
+      CSS for all widgets across the cam app. These are defined in
+      whitelook-common.css, and copied to each .ui file that needs
+      them. Our .ui files *can't* have external resources but they
+      *should* share this common css resource. Otherwise they will
+      end up looking slightly different as their individual copies
+      of the master style sheet diverge. To do this we synchronise
+      regions of text with sync-clip-regions.py. It's only one-way
+      for now, which means that if you edit the .ui stylesheet all
+      the changes made to the clipped region will get overwritten.
+      */
+      
+      
+      .QPushButton {
+        border: 1px solid black;
+        border-top-color: rgb(50,50,50);
+        border-left-color: rgb(50,50,50);
+        background: white;
+        margin: 20px; /*Use margin to increase clickable area. Makes the whole thing much less fiddly.*/
+      }
+      
+      .QPushButton:pressed {
+        border: 1px solid rgb(50,50,50);
+        border-top-color: black;
+        border-left-color: black;
+        background: rgb(240,240,240);
+      }
+      
+      .QComboBox {
+        /*subcontrol-origin: padding; does nothing but mess up the drop-down button*/
+        background: white;
+        border: 1px solid black;
+        /*margin: 10px; breaks drop-down; hard to fix*/
+        padding-left: 10px;
+      }
+      QComboBox:on {
+        /*when dropdown exists*/
+      }
+      
+      .QComboBox QAbstractItemView { /*This is the drop-down menu.*/
+        border: 1px solid black;
+        color: black;
+        selection-background-color: grey;
+      }
+      .QComboBox QAbstractItemView::item {
+        padding: 10px;
+        margin: 5px;
+      }
+      
+      .QComboBox::drop-down {
+        width: 40px;
+        border: 0px solid black;
+        border-left-width: 1px;
+        background: white;
+        color: black;
+        max-height: 100px;
+      }
+      .QComboBox::drop-down:on {
+        /*Stupid hack because the dropdown scrollbar *can't* be increased in width. It's off the width of the drop-down button by -1px. We can't just decrease the width of the drop-down button, because every other button we own is 40px instead of 39px. So. What we do is adjust the button size down when the drop-down is open, because that's the only time the off-by-one with QScrollBar is noticable, and you're distracted by the scrollbar then.*/
+        padding-left: -1px;
+      }
+      .QComboBox::down-arrow {
+        image: url(assets/wedge-down-enabled.png);
+      }
+      
+      QScrollBar, QScrollBar:vertical, QScrollBar:horizontal {
+        border-left: 1px solid black;
+        /*width: 41px; /*This horribly breaks scrolling.*/
+      }
+      QScrollBar::handle:vertical {
+        border: 1px solid black;
+        border-radius: 0;
+        background: white;
+        min-height: 72px;
+        image: url(assets/handle-bars.png);
+        margin: -1px;
+      }
+      /* This remvoes the bottom button by setting the height to 0px */
+      QScrollBar::add-line:vertical {
+        height: 0px;
+        subcontrol-position: bottom;
+        subcontrol-origin: margin;
+      }
+      /* This remvoes the top button by setting the height to 0px */
+      QScrollBar::sub-line:vertical {
+        height: 0px;
+        subcontrol-position: top;
+        subcontrol-origin: margin;
+      }
+      
+      
+      
+      QSpinBox { 
+        border: 1px solid black;
+        padding-right: 40px;
+        font-size: 6pt;
+        margin: 10px;
+        padding-left: 10px;
+      }
+      QSpinBox:disabled { 
+        color: #969696;
+      }
+      QSpinBox::up-button { 
+        subcontrol-position: right; 
+        right: 40px; 
+        image: url(assets/wedge-up-enabled.png);
+      }
+      QSpinBox::up-button:disabled { 
+        image: url(assets/wedge-up-disabled.png);
+      }
+      QSpinBox::down-button { 
+        subcontrol-position: right; 
+        image: url(assets/wedge-down-enabled.png);
+      }
+      QSpinBox::down-button:disabled { 
+        subcontrol-position: right; 
+        image: url(assets/wedge-down-disabled.png);
+      }
+      QSpinBox::up-button, QSpinBox::down-button {
+        border: 0px solid black;
+        border-left-width: 1px;
+        width: 40px; 
+        height: 40px;
+      }
+      
+      .CamLineEdit {
+        border: 1px solid black;
+        margin: 10px; /*This doesn't show up in Qt Designer, but it works in the app.*/
+        padding-left: 10px;
+      }
+    /* «end clip» */
+    
+    /* «begin clip from 'assets/keyboard-common.css' (d101d2b41c21786ed8e0850260b5de73)» */
+      .QWidget[is-keyboard] {
+        background: white;
+      }
+      
+      .QPushButton {
+        margin: 0; /*Opt in to margins on this panel, because margins are *not* behind widgets like we want - they seem to overlap on top of keys to the side.*/
+      }
+      
+      .QPushButton[on-top] {
+        margin-top: 20px;
+      }
+      .QPushButton[on-left] {
+        margin-left: 20px;
+      }
+      .QPushButton[on-right] {
+        margin-right: 20px;
+      }
+      .QPushButton[on-bottom] {
+        margin-bottom: 20px;
+      }
+    /* «end clip» */
+  </string>
+  </property>
+  <property name="is-keyboard" stdset="0">
+   <bool>true</bool>
+  </property>
   <widget class="QPushButton" name="num5">
    <property name="geometry">
     <rect>
      <x>670</x>
-     <y>60</y>
+     <y>70</y>
      <width>61</width>
-     <height>51</height>
+     <height>61</height>
     </rect>
    </property>
    <property name="font">
@@ -64,10 +207,10 @@
   <widget class="QPushButton" name="W">
    <property name="geometry">
     <rect>
-     <x>60</x>
-     <y>10</y>
-     <width>51</width>
-     <height>51</height>
+     <x>70</x>
+     <y>-10</y>
+     <width>61</width>
+     <height>81</height>
     </rect>
    </property>
    <property name="font">
@@ -81,14 +224,17 @@
    <property name="text">
     <string>W</string>
    </property>
+   <property name="on-top" stdset="0">
+    <bool>true</bool>
+   </property>
   </widget>
   <widget class="QPushButton" name="J">
    <property name="geometry">
     <rect>
-     <x>330</x>
-     <y>60</y>
-     <width>51</width>
-     <height>51</height>
+     <x>390</x>
+     <y>70</y>
+     <width>61</width>
+     <height>61</height>
     </rect>
    </property>
    <property name="font">
@@ -106,10 +252,10 @@
   <widget class="QPushButton" name="right">
    <property name="geometry">
     <rect>
-     <x>550</x>
-     <y>160</y>
-     <width>51</width>
-     <height>51</height>
+     <x>510</x>
+     <y>190</y>
+     <width>81</width>
+     <height>81</height>
     </rect>
    </property>
    <property name="font">
@@ -123,14 +269,20 @@
    <property name="text">
     <string>▶</string>
    </property>
+   <property name="on-bottom" stdset="0">
+    <bool>true</bool>
+   </property>
+   <property name="on-right" stdset="0">
+    <bool>true</bool>
+   </property>
   </widget>
   <widget class="QPushButton" name="T">
    <property name="geometry">
     <rect>
-     <x>210</x>
-     <y>10</y>
-     <width>51</width>
-     <height>51</height>
+     <x>250</x>
+     <y>-10</y>
+     <width>61</width>
+     <height>81</height>
     </rect>
    </property>
    <property name="font">
@@ -144,14 +296,17 @@
    <property name="text">
     <string>T</string>
    </property>
+   <property name="on-top" stdset="0">
+    <bool>true</bool>
+   </property>
   </widget>
   <widget class="QPushButton" name="C">
    <property name="geometry">
     <rect>
-     <x>170</x>
-     <y>110</y>
-     <width>51</width>
-     <height>51</height>
+     <x>190</x>
+     <y>130</y>
+     <width>61</width>
+     <height>61</height>
     </rect>
    </property>
    <property name="font">
@@ -166,37 +321,13 @@
     <string>C</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="caps">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>160</y>
-     <width>81</width>
-     <height>51</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>14</pointsize>
-     <weight>75</weight>
-     <italic>false</italic>
-     <bold>true</bold>
-    </font>
-   </property>
-   <property name="styleSheet">
-    <string notr="true"/>
-   </property>
-   <property name="text">
-    <string>Caps</string>
-   </property>
-  </widget>
   <widget class="QPushButton" name="num4">
    <property name="geometry">
     <rect>
-     <x>610</x>
-     <y>60</y>
-     <width>61</width>
-     <height>51</height>
+     <x>590</x>
+     <y>70</y>
+     <width>81</width>
+     <height>61</height>
     </rect>
    </property>
    <property name="font">
@@ -210,14 +341,17 @@
    <property name="text">
     <string>4</string>
    </property>
+   <property name="on-left" stdset="0">
+    <bool>true</bool>
+   </property>
   </widget>
   <widget class="QPushButton" name="Z">
    <property name="geometry">
     <rect>
      <x>70</x>
-     <y>110</y>
-     <width>51</width>
-     <height>51</height>
+     <y>130</y>
+     <width>61</width>
+     <height>61</height>
     </rect>
    </property>
    <property name="font">
@@ -235,10 +369,10 @@
   <widget class="QPushButton" name="X">
    <property name="geometry">
     <rect>
-     <x>120</x>
-     <y>110</y>
-     <width>51</width>
-     <height>51</height>
+     <x>130</x>
+     <y>130</y>
+     <width>61</width>
+     <height>61</height>
     </rect>
    </property>
    <property name="font">
@@ -256,10 +390,10 @@
   <widget class="QPushButton" name="space">
    <property name="geometry">
     <rect>
-     <x>110</x>
-     <y>160</y>
-     <width>301</width>
-     <height>51</height>
+     <x>10</x>
+     <y>190</y>
+     <width>321</width>
+     <height>81</height>
     </rect>
    </property>
    <property name="font">
@@ -271,16 +405,22 @@
     </font>
    </property>
    <property name="text">
-    <string/>
+    <string>Space</string>
+   </property>
+   <property name="on-left" stdset="0">
+    <bool>true</bool>
+   </property>
+   <property name="on-bottom" stdset="0">
+    <bool>true</bool>
    </property>
   </widget>
   <widget class="QPushButton" name="R">
    <property name="geometry">
     <rect>
-     <x>160</x>
-     <y>10</y>
-     <width>51</width>
-     <height>51</height>
+     <x>190</x>
+     <y>-10</y>
+     <width>61</width>
+     <height>81</height>
     </rect>
    </property>
    <property name="font">
@@ -294,14 +434,17 @@
    <property name="text">
     <string>R</string>
    </property>
+   <property name="on-top" stdset="0">
+    <bool>true</bool>
+   </property>
   </widget>
   <widget class="QPushButton" name="B">
    <property name="geometry">
     <rect>
-     <x>270</x>
-     <y>110</y>
-     <width>51</width>
-     <height>51</height>
+     <x>310</x>
+     <y>130</y>
+     <width>61</width>
+     <height>61</height>
     </rect>
    </property>
    <property name="font">
@@ -319,10 +462,10 @@
   <widget class="QPushButton" name="num1">
    <property name="geometry">
     <rect>
-     <x>610</x>
-     <y>110</y>
-     <width>61</width>
-     <height>51</height>
+     <x>590</x>
+     <y>130</y>
+     <width>81</width>
+     <height>61</height>
     </rect>
    </property>
    <property name="font">
@@ -336,14 +479,17 @@
    <property name="text">
     <string>1</string>
    </property>
+   <property name="on-left" stdset="0">
+    <bool>true</bool>
+   </property>
   </widget>
   <widget class="QPushButton" name="V">
    <property name="geometry">
     <rect>
-     <x>220</x>
-     <y>110</y>
-     <width>51</width>
-     <height>51</height>
+     <x>250</x>
+     <y>130</y>
+     <width>61</width>
+     <height>61</height>
     </rect>
    </property>
    <property name="font">
@@ -361,10 +507,10 @@
   <widget class="QPushButton" name="G">
    <property name="geometry">
     <rect>
-     <x>230</x>
-     <y>60</y>
-     <width>51</width>
-     <height>51</height>
+     <x>270</x>
+     <y>70</y>
+     <width>61</width>
+     <height>61</height>
     </rect>
    </property>
    <property name="font">
@@ -382,10 +528,10 @@
   <widget class="QPushButton" name="K">
    <property name="geometry">
     <rect>
-     <x>380</x>
-     <y>60</y>
-     <width>51</width>
-     <height>51</height>
+     <x>450</x>
+     <y>70</y>
+     <width>61</width>
+     <height>61</height>
     </rect>
    </property>
    <property name="font">
@@ -404,9 +550,9 @@
    <property name="geometry">
     <rect>
      <x>730</x>
-     <y>60</y>
-     <width>61</width>
-     <height>51</height>
+     <y>70</y>
+     <width>81</width>
+     <height>61</height>
     </rect>
    </property>
    <property name="font">
@@ -420,14 +566,17 @@
    <property name="text">
     <string>6</string>
    </property>
+   <property name="on-right" stdset="0">
+    <bool>true</bool>
+   </property>
   </widget>
   <widget class="QPushButton" name="num2">
    <property name="geometry">
     <rect>
      <x>670</x>
-     <y>110</y>
+     <y>130</y>
      <width>61</width>
-     <height>51</height>
+     <height>61</height>
     </rect>
    </property>
    <property name="font">
@@ -445,10 +594,10 @@
   <widget class="QPushButton" name="I">
    <property name="geometry">
     <rect>
-     <x>360</x>
-     <y>10</y>
-     <width>51</width>
-     <height>51</height>
+     <x>430</x>
+     <y>-10</y>
+     <width>61</width>
+     <height>81</height>
     </rect>
    </property>
    <property name="font">
@@ -462,14 +611,17 @@
    <property name="text">
     <string>I</string>
    </property>
+   <property name="on-top" stdset="0">
+    <bool>true</bool>
+   </property>
   </widget>
   <widget class="QPushButton" name="shift">
    <property name="geometry">
     <rect>
-     <x>10</x>
-     <y>110</y>
-     <width>61</width>
-     <height>51</height>
+     <x>-10</x>
+     <y>130</y>
+     <width>81</width>
+     <height>61</height>
     </rect>
    </property>
    <property name="font">
@@ -481,16 +633,19 @@
     </font>
    </property>
    <property name="text">
-    <string>^</string>
+    <string>⇧</string>
+   </property>
+   <property name="on-left" stdset="0">
+    <bool>true</bool>
    </property>
   </widget>
   <widget class="QPushButton" name="M">
    <property name="geometry">
     <rect>
-     <x>370</x>
-     <y>110</y>
-     <width>51</width>
-     <height>51</height>
+     <x>430</x>
+     <y>130</y>
+     <width>61</width>
+     <height>61</height>
     </rect>
    </property>
    <property name="font">
@@ -508,10 +663,10 @@
   <widget class="QPushButton" name="D">
    <property name="geometry">
     <rect>
-     <x>130</x>
-     <y>60</y>
-     <width>51</width>
-     <height>51</height>
+     <x>150</x>
+     <y>70</y>
+     <width>61</width>
+     <height>61</height>
     </rect>
    </property>
    <property name="font">
@@ -526,34 +681,13 @@
     <string>D</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="up">
-   <property name="geometry">
-    <rect>
-     <x>500</x>
-     <y>110</y>
-     <width>51</width>
-     <height>51</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>14</pointsize>
-     <weight>75</weight>
-     <italic>false</italic>
-     <bold>true</bold>
-    </font>
-   </property>
-   <property name="text">
-    <string>▲</string>
-   </property>
-  </widget>
   <widget class="QPushButton" name="H">
    <property name="geometry">
     <rect>
-     <x>280</x>
-     <y>60</y>
-     <width>51</width>
-     <height>51</height>
+     <x>330</x>
+     <y>70</y>
+     <width>61</width>
+     <height>61</height>
     </rect>
    </property>
    <property name="font">
@@ -568,34 +702,13 @@
     <string>H</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="enter">
-   <property name="geometry">
-    <rect>
-     <x>480</x>
-     <y>60</y>
-     <width>81</width>
-     <height>51</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>14</pointsize>
-     <weight>75</weight>
-     <italic>false</italic>
-     <bold>true</bold>
-    </font>
-   </property>
-   <property name="text">
-    <string>Apply</string>
-   </property>
-  </widget>
   <widget class="QPushButton" name="num0">
    <property name="geometry">
     <rect>
-     <x>610</x>
-     <y>160</y>
-     <width>61</width>
-     <height>51</height>
+     <x>590</x>
+     <y>190</y>
+     <width>81</width>
+     <height>81</height>
     </rect>
    </property>
    <property name="font">
@@ -609,14 +722,20 @@
    <property name="text">
     <string>0</string>
    </property>
+   <property name="on-bottom" stdset="0">
+    <bool>true</bool>
+   </property>
+   <property name="on-left" stdset="0">
+    <bool>true</bool>
+   </property>
   </widget>
   <widget class="QPushButton" name="num3">
    <property name="geometry">
     <rect>
      <x>730</x>
-     <y>110</y>
-     <width>61</width>
-     <height>51</height>
+     <y>130</y>
+     <width>81</width>
+     <height>61</height>
     </rect>
    </property>
    <property name="font">
@@ -630,14 +749,17 @@
    <property name="text">
     <string>3</string>
    </property>
+   <property name="on-right" stdset="0">
+    <bool>true</bool>
+   </property>
   </widget>
   <widget class="QPushButton" name="numdot">
    <property name="geometry">
     <rect>
-     <x>670</x>
-     <y>160</y>
-     <width>61</width>
-     <height>51</height>
+     <x>490</x>
+     <y>130</y>
+     <width>81</width>
+     <height>61</height>
     </rect>
    </property>
    <property name="font">
@@ -651,14 +773,17 @@
    <property name="text">
     <string>.</string>
    </property>
+   <property name="on-right" stdset="0">
+    <bool>true</bool>
+   </property>
   </widget>
   <widget class="QPushButton" name="E">
    <property name="geometry">
     <rect>
-     <x>110</x>
-     <y>10</y>
-     <width>51</width>
-     <height>51</height>
+     <x>130</x>
+     <y>-10</y>
+     <width>61</width>
+     <height>81</height>
     </rect>
    </property>
    <property name="font">
@@ -672,14 +797,17 @@
    <property name="text">
     <string>E</string>
    </property>
+   <property name="on-top" stdset="0">
+    <bool>true</bool>
+   </property>
   </widget>
   <widget class="QPushButton" name="S">
    <property name="geometry">
     <rect>
-     <x>80</x>
-     <y>60</y>
-     <width>51</width>
-     <height>51</height>
+     <x>90</x>
+     <y>70</y>
+     <width>61</width>
+     <height>61</height>
     </rect>
    </property>
    <property name="font">
@@ -698,9 +826,9 @@
    <property name="geometry">
     <rect>
      <x>610</x>
-     <y>10</y>
+     <y>-10</y>
      <width>61</width>
-     <height>51</height>
+     <height>81</height>
     </rect>
    </property>
    <property name="font">
@@ -714,14 +842,17 @@
    <property name="text">
     <string>7</string>
    </property>
+   <property name="on-top" stdset="0">
+    <bool>true</bool>
+   </property>
   </widget>
   <widget class="QPushButton" name="num8">
    <property name="geometry">
     <rect>
      <x>670</x>
-     <y>10</y>
+     <y>-10</y>
      <width>61</width>
-     <height>51</height>
+     <height>81</height>
     </rect>
    </property>
    <property name="font">
@@ -735,14 +866,17 @@
    <property name="text">
     <string>8</string>
    </property>
+   <property name="on-top" stdset="0">
+    <bool>true</bool>
+   </property>
   </widget>
   <widget class="QPushButton" name="O">
    <property name="geometry">
     <rect>
-     <x>410</x>
-     <y>10</y>
-     <width>51</width>
-     <height>51</height>
+     <x>490</x>
+     <y>-10</y>
+     <width>61</width>
+     <height>81</height>
     </rect>
    </property>
    <property name="font">
@@ -756,14 +890,17 @@
    <property name="text">
     <string>O</string>
    </property>
+   <property name="on-top" stdset="0">
+    <bool>true</bool>
+   </property>
   </widget>
   <widget class="QPushButton" name="L">
    <property name="geometry">
     <rect>
-     <x>430</x>
-     <y>60</y>
-     <width>51</width>
-     <height>51</height>
+     <x>510</x>
+     <y>70</y>
+     <width>81</width>
+     <height>61</height>
     </rect>
    </property>
    <property name="font">
@@ -777,14 +914,17 @@
    <property name="text">
     <string>L</string>
    </property>
+   <property name="on-right" stdset="0">
+    <bool>true</bool>
+   </property>
   </widget>
   <widget class="QPushButton" name="back">
    <property name="geometry">
     <rect>
-     <x>520</x>
-     <y>10</y>
-     <width>71</width>
-     <height>51</height>
+     <x>330</x>
+     <y>190</y>
+     <width>121</width>
+     <height>81</height>
     </rect>
    </property>
    <property name="font">
@@ -798,14 +938,17 @@
    <property name="text">
     <string>←</string>
    </property>
+   <property name="on-bottom" stdset="0">
+    <bool>true</bool>
+   </property>
   </widget>
   <widget class="QPushButton" name="P">
    <property name="geometry">
     <rect>
-     <x>460</x>
-     <y>10</y>
-     <width>51</width>
-     <height>51</height>
+     <x>550</x>
+     <y>-10</y>
+     <width>61</width>
+     <height>81</height>
     </rect>
    </property>
    <property name="font">
@@ -819,14 +962,17 @@
    <property name="text">
     <string>P</string>
    </property>
+   <property name="on-top" stdset="0">
+    <bool>true</bool>
+   </property>
   </widget>
   <widget class="QPushButton" name="num9">
    <property name="geometry">
     <rect>
      <x>730</x>
-     <y>10</y>
-     <width>61</width>
-     <height>51</height>
+     <y>-10</y>
+     <width>81</width>
+     <height>81</height>
     </rect>
    </property>
    <property name="font">
@@ -840,14 +986,20 @@
    <property name="text">
     <string>9</string>
    </property>
+   <property name="on-top" stdset="0">
+    <bool>true</bool>
+   </property>
+   <property name="on-right" stdset="0">
+    <bool>true</bool>
+   </property>
   </widget>
   <widget class="QPushButton" name="U">
    <property name="geometry">
     <rect>
-     <x>310</x>
-     <y>10</y>
-     <width>51</width>
-     <height>51</height>
+     <x>370</x>
+     <y>-10</y>
+     <width>61</width>
+     <height>81</height>
     </rect>
    </property>
    <property name="font">
@@ -861,14 +1013,17 @@
    <property name="text">
     <string>U</string>
    </property>
+   <property name="on-top" stdset="0">
+    <bool>true</bool>
+   </property>
   </widget>
   <widget class="QPushButton" name="Q">
    <property name="geometry">
     <rect>
-     <x>10</x>
-     <y>10</y>
-     <width>51</width>
-     <height>51</height>
+     <x>-10</x>
+     <y>-10</y>
+     <width>81</width>
+     <height>81</height>
     </rect>
    </property>
    <property name="font">
@@ -882,14 +1037,20 @@
    <property name="text">
     <string>Q</string>
    </property>
+   <property name="on-top" stdset="0">
+    <bool>true</bool>
+   </property>
+   <property name="on-left" stdset="0">
+    <bool>true</bool>
+   </property>
   </widget>
   <widget class="QPushButton" name="Y">
    <property name="geometry">
     <rect>
-     <x>260</x>
-     <y>10</y>
-     <width>51</width>
-     <height>51</height>
+     <x>310</x>
+     <y>-10</y>
+     <width>61</width>
+     <height>81</height>
     </rect>
    </property>
    <property name="font">
@@ -903,14 +1064,17 @@
    <property name="text">
     <string>Y</string>
    </property>
+   <property name="on-top" stdset="0">
+    <bool>true</bool>
+   </property>
   </widget>
   <widget class="QPushButton" name="close">
    <property name="geometry">
     <rect>
-     <x>740</x>
-     <y>170</y>
-     <width>61</width>
-     <height>51</height>
+     <x>670</x>
+     <y>190</y>
+     <width>141</width>
+     <height>81</height>
     </rect>
    </property>
    <property name="font">
@@ -924,14 +1088,20 @@
    <property name="text">
     <string>Close</string>
    </property>
+   <property name="on-right" stdset="0">
+    <bool>true</bool>
+   </property>
+   <property name="on-bottom" stdset="0">
+    <bool>true</bool>
+   </property>
   </widget>
   <widget class="QPushButton" name="F">
    <property name="geometry">
     <rect>
-     <x>180</x>
-     <y>60</y>
-     <width>51</width>
-     <height>51</height>
+     <x>210</x>
+     <y>70</y>
+     <width>61</width>
+     <height>61</height>
     </rect>
    </property>
    <property name="font">
@@ -949,10 +1119,10 @@
   <widget class="QPushButton" name="A">
    <property name="geometry">
     <rect>
-     <x>30</x>
-     <y>60</y>
-     <width>51</width>
-     <height>51</height>
+     <x>10</x>
+     <y>70</y>
+     <width>81</width>
+     <height>61</height>
     </rect>
    </property>
    <property name="font">
@@ -966,14 +1136,17 @@
    <property name="text">
     <string>A</string>
    </property>
+   <property name="on-left" stdset="0">
+    <bool>true</bool>
+   </property>
   </widget>
   <widget class="QPushButton" name="left">
    <property name="geometry">
     <rect>
      <x>450</x>
-     <y>160</y>
-     <width>51</width>
-     <height>51</height>
+     <y>190</y>
+     <width>61</width>
+     <height>81</height>
     </rect>
    </property>
    <property name="font">
@@ -987,14 +1160,17 @@
    <property name="text">
     <string>◀</string>
    </property>
+   <property name="on-bottom" stdset="0">
+    <bool>true</bool>
+   </property>
   </widget>
   <widget class="QPushButton" name="N">
    <property name="geometry">
     <rect>
-     <x>320</x>
-     <y>110</y>
-     <width>51</width>
-     <height>51</height>
+     <x>370</x>
+     <y>130</y>
+     <width>61</width>
+     <height>61</height>
     </rect>
    </property>
    <property name="font">
@@ -1010,6 +1186,51 @@
    </property>
   </widget>
  </widget>
+ <tabstops>
+  <tabstop>close</tabstop>
+  <tabstop>Q</tabstop>
+  <tabstop>W</tabstop>
+  <tabstop>E</tabstop>
+  <tabstop>R</tabstop>
+  <tabstop>T</tabstop>
+  <tabstop>Y</tabstop>
+  <tabstop>U</tabstop>
+  <tabstop>I</tabstop>
+  <tabstop>O</tabstop>
+  <tabstop>P</tabstop>
+  <tabstop>num7</tabstop>
+  <tabstop>num8</tabstop>
+  <tabstop>num9</tabstop>
+  <tabstop>A</tabstop>
+  <tabstop>S</tabstop>
+  <tabstop>D</tabstop>
+  <tabstop>F</tabstop>
+  <tabstop>G</tabstop>
+  <tabstop>H</tabstop>
+  <tabstop>J</tabstop>
+  <tabstop>K</tabstop>
+  <tabstop>L</tabstop>
+  <tabstop>num4</tabstop>
+  <tabstop>num5</tabstop>
+  <tabstop>num6</tabstop>
+  <tabstop>shift</tabstop>
+  <tabstop>Z</tabstop>
+  <tabstop>X</tabstop>
+  <tabstop>C</tabstop>
+  <tabstop>V</tabstop>
+  <tabstop>B</tabstop>
+  <tabstop>N</tabstop>
+  <tabstop>M</tabstop>
+  <tabstop>numdot</tabstop>
+  <tabstop>num1</tabstop>
+  <tabstop>num2</tabstop>
+  <tabstop>num3</tabstop>
+  <tabstop>space</tabstop>
+  <tabstop>back</tabstop>
+  <tabstop>left</tabstop>
+  <tabstop>right</tabstop>
+  <tabstop>num0</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

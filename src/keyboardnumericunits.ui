@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>280</width>
+    <width>380</width>
     <height>480</height>
    </rect>
   </property>
@@ -480,9 +480,9 @@
   <widget class="QPushButton" name="close">
    <property name="geometry">
     <rect>
-     <x>180</x>
+     <x>260</x>
      <y>360</y>
-     <width>101</width>
+     <width>121</width>
      <height>121</height>
     </rect>
    </property>
@@ -496,6 +496,9 @@
    </property>
    <property name="text">
     <string>Close</string>
+   </property>
+   <property name="on-left" stdset="0">
+    <bool>true</bool>
    </property>
    <property name="on-right" stdset="0">
     <bool>true</bool>
@@ -542,7 +545,7 @@
     <rect>
      <x>100</x>
      <y>360</y>
-     <width>81</width>
+     <width>101</width>
      <height>121</height>
     </rect>
    </property>
@@ -563,6 +566,111 @@
    <property name="on-bottom" stdset="0">
     <bool>true</bool>
    </property>
+   <property name="on-right" stdset="0">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="megaUnit">
+   <property name="geometry">
+    <rect>
+     <x>280</x>
+     <y>0</y>
+     <width>101</width>
+     <height>101</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>30</pointsize>
+     <weight>75</weight>
+     <italic>false</italic>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="text">
+    <string>M</string>
+   </property>
+   <property name="on-right" stdset="0">
+    <bool>true</bool>
+   </property>
+   <property name="on-top" stdset="0">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="kiloUnit">
+   <property name="geometry">
+    <rect>
+     <x>280</x>
+     <y>100</y>
+     <width>101</width>
+     <height>81</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>30</pointsize>
+     <weight>75</weight>
+     <italic>false</italic>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="text">
+    <string>k</string>
+   </property>
+   <property name="on-right" stdset="0">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="milliUnit">
+   <property name="geometry">
+    <rect>
+     <x>280</x>
+     <y>180</y>
+     <width>101</width>
+     <height>81</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>30</pointsize>
+     <weight>75</weight>
+     <italic>false</italic>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="text">
+    <string>m</string>
+   </property>
+   <property name="on-right" stdset="0">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="microUnit">
+   <property name="geometry">
+    <rect>
+     <x>280</x>
+     <y>260</y>
+     <width>101</width>
+     <height>101</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>20</pointsize>
+     <weight>75</weight>
+     <italic>false</italic>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="text">
+    <string>µ</string>
+   </property>
+   <property name="on-right" stdset="0">
+    <bool>true</bool>
+   </property>
+   <property name="on-bottom" stdset="0">
+    <bool>true</bool>
+   </property>
   </widget>
  </widget>
  <tabstops>
@@ -570,15 +678,19 @@
   <tabstop>num7</tabstop>
   <tabstop>num8</tabstop>
   <tabstop>num9</tabstop>
+  <tabstop>megaUnit</tabstop>
   <tabstop>num4</tabstop>
   <tabstop>num5</tabstop>
   <tabstop>num6</tabstop>
+  <tabstop>kiloUnit</tabstop>
   <tabstop>num1</tabstop>
   <tabstop>num2</tabstop>
   <tabstop>num3</tabstop>
+  <tabstop>milliUnit</tabstop>
   <tabstop>num0</tabstop>
   <tabstop>numdot</tabstop>
   <tabstop>back</tabstop>
+  <tabstop>microUnit</tabstop>
   <tabstop>left</tabstop>
   <tabstop>right</tabstop>
  </tabstops>

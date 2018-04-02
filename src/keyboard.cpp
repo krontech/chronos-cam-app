@@ -128,20 +128,6 @@ void keyboard::buttonClicked(QWidget *w)
 	}
 }
 
-void keyboard::on_caps_clicked()
-{
-	if(capslock)
-	{
-		capslock = false;
-		ui->caps->setStyleSheet(QString(""));
-	}
-	else
-	{
-		capslock = true;
-		ui->caps->setStyleSheet(QString(KEYBOARD_BACKGROUND_BUTTON));
-	}
-}
-
 void keyboard::on_space_clicked()
 {
 	emit characterGenerated(QChar(' '));

@@ -1,0 +1,20 @@
+.QWidget[is-keyboard] {
+  background: white;
+}
+
+.QPushButton {
+  margin: 0; /*Opt in to margins on this panel, because margins are *not* behind widgets like we want - they seem to overlap on top of keys to the side.*/
+}
+
+.QPushButton[on-top] {
+  margin-top: 20px;
+}
+.QPushButton[on-left] {
+  margin-left: 20px;
+}
+.QPushButton[on-right] {
+  margin-right: 20px;
+}
+.QPushButton[on-bottom] {
+  margin-bottom: 20px;
+}
