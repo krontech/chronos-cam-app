@@ -22,6 +22,7 @@ if [ -n "$camAppPID" ]; then
 	if [ -n "$camAppPID" ]; then #If the camApp is still running now, it must be frozen. Kill it ungracefully.
 		killall -KILL camApp
 		echo "WARNING - camApp frozen - video will not work until after camera reboot"
-		wait 0.1
 	fi
+	
+	wait 0.1
 fi
