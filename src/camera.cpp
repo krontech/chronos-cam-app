@@ -65,74 +65,7 @@ Camera::Camera()
 	UpsideDownDisplay = getUpsideDownDisplay();
 	strcpy(serialNumber, "Not_Set");
 
-/*
-		//WPPLS
-		ccMatrix[0] = 1.7701;	ccMatrix[1] = -0.3927;	ccMatrix[2] = -0.1725;
-		ccMatrix[3] = -0.3323;	ccMatrix[4] = 1.4063;	ccMatrix[5] = -0.1257;
-		ccMatrix[6] = -0.1747;	ccMatrix[7] = 0.2080;	ccMatrix[8] = 0.8756;
-
-		//LS
-		ccMatrix[0] = 1.7356;	ccMatrix[1] = -0.3398;	ccMatrix[2] = -0.1910;
-		ccMatrix[3] = -0.3422;	ccMatrix[4] = 1.4605;	ccMatrix[5] = -0.1701;
-		ccMatrix[6] = -0.1165;	ccMatrix[7] = -0.0475;	ccMatrix[8] = 1.0728;
-
-		wbMatrix[0] = 1.0309;	wbMatrix[1] = 1.0;	wbMatrix[2] = 1.4406;
-
-		//LED3000K
-		ccMatrix[0] = 1.4689;	ccMatrix[1] = -0.1712;	ccMatrix[2] = -0.0926;
-		ccMatrix[3] = -0.3208;	ccMatrix[4] = 1.3082;	ccMatrix[5] = -0.0392;
-		ccMatrix[6] = -0.0395;	ccMatrix[7] = -0.1952;	ccMatrix[8] = 1.1435;
-
-		wbMatrix[0] = 0.7424;	wbMatrix[1] = 1.0;	wbMatrix[2] = 2.2724;
-
-*/
-
-/*
- *LUX1310 response
- *
- *		D50
-		//WPPLS
-		ccMatrix[0] = 1.4996;	ccMatrix[1] = 0.5791;	ccMatrix[2] = -0.8738;
-		ccMatrix[3] = -0.4962;	ccMatrix[4] = 1.3805;	ccMatrix[5] = 0.0640;
-		ccMatrix[6] = -0.0610;	ccMatrix[7] = -0.6490;	ccMatrix[8] = 1.6188;
-
-		//LS
-		ccMatrix[0] = 1.5584;	ccMatrix[1] = 0.4102;	ccMatrix[2] = -0.7083;
-		ccMatrix[3] = -0.5440;	ccMatrix[4] = 1.5178;	ccMatrix[5] = -0.0706;
-		ccMatrix[6] = -0.0130;	ccMatrix[7] = -0.7868;	ccMatrix[8] = 1.7540;
-
-		//CIECAM02
-		ccMatrix[0] = 1.6410;	ccMatrix[1] = -0.0255;	ccMatrix[2] = -0.4398;
-		ccMatrix[3] = -0.3992;	ccMatrix[4] = 1.4600;	ccMatrix[5] = -0.0851;
-		ccMatrix[6] = -0.0338;	ccMatrix[7] = -0.6913;	ccMatrix[8] = 1.4470;
-
-		wbMatrix[0] = 1.1405;	wbMatrix[1] = 1.0;	wbMatrix[2] = 1.1563;
-		*/
-		//LED3000K LS
-//		ccMatrix[0] = 1.4444;	ccMatrix[1] = 0.7958;	ccMatrix[2] = -1.1809;
-//		ccMatrix[3] = -0.5068;	ccMatrix[4] = 1.4137;	ccMatrix[5] = 0.0310;
-//		ccMatrix[6] = -0.0675;	ccMatrix[7] = -0.6846;	ccMatrix[8] = 1.7197;
-
-
-		//LED3000K WPPLS
-		ccMatrix[0] = 1.4508;	ccMatrix[1] = 0.6010;	ccMatrix[2] = -0.8470;
-		ccMatrix[3] = -0.5063;	ccMatrix[4] = 1.3998;	ccMatrix[5] = 0.0549;
-		ccMatrix[6] = -0.0701;	ccMatrix[7] = -0.6060;	ccMatrix[8] = 1.5849;
-
-		wbMatrix[0] = 0.8748;	wbMatrix[1] = 1.0;	wbMatrix[2] = 1.6607;
-
-/*
-		//LED3000K WPPLS without white balancing
-		ccMatrix[0] = 1.9103;	ccMatrix[1] = 1.0115;	ccMatrix[2] = -1.7170;
-		ccMatrix[3] = -0.6258;	ccMatrix[4] = 1.3750;	ccMatrix[5] = 0.1991;
-		ccMatrix[6] = -0.3871;	ccMatrix[7] = -0.9426;	ccMatrix[8] = 2.2385;
-
-		wbMatrix[0] = 1.0;	wbMatrix[1] = 1.0;	wbMatrix[2] = 1.0;
-
-		*/
-
-
-		sem_init(&playMutex, 0, 1);
+	sem_init(&playMutex, 0, 1);
 
 }
 
