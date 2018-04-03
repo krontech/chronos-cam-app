@@ -156,8 +156,9 @@
       }
     /* «end clip» */
     
-    /* «begin clip from 'assets/keyboard-common.css' (d101d2b41c21786ed8e0850260b5de73)» */
-      .QWidget[is-keyboard] {
+    /* «begin clip from 'assets/keyboard-common.css' (aaff66570f937112a896a132fdd80f35)» */
+      .QWidget[is-keyboard], /*This doesn't select the keyboard backgrounds, despite working for QPushButtons.*/
+      #keyboard, #keyboardNumeric, #keyboardNumericUnits  {
         background: white;
       }
       

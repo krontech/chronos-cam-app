@@ -1,4 +1,5 @@
-.QWidget[is-keyboard] {
+.QWidget[is-keyboard], /*This doesn't select the keyboard backgrounds, despite working for QPushButtons.*/
+#keyboard, #keyboardNumeric, #keyboardNumericUnits  {
   background: white;
 }
 
