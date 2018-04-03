@@ -99,7 +99,7 @@ checksumFailure = False
 if not ('-f' in sys.argv or '--force' in sys.argv):
 	for file in files:
 		for chunk in file.get('contents'):
-			if chunk.get('md5sum') and chunk.get('md5sum') != hashlib.md5(chunk.get('text').strip('\n\t /*#<>!-[]').encode('utf-8')).hexdigest(): #Strip whitespace AND characters used to start comments because I can't figure out how to swallow the leading content of the last line of text here, before the «end clip» marker.
+			if chunk.get('md5sum') and chunk.get('md5sum') != hashlib.md5(chunk.get('text').strip('\n\t /*#<>!-[]').replace('&quot;', '"').encode('utf-8')).hexdigest(): #Strip whitespace AND characters used to start comments because I can't figure out how to swallow the leading content of the last line of text here, before the «end clip» marker.
 				unresolvableFiles = True
 				print("\nError: %r has a clip region, for the target %r, that has had it's contents changed in-place. Updating the clip region with the target file would overwrite these changes. To continue, delete the hash %r in %r, or run this script again with -f (--force)." % (
 					file.get('path').as_posix(),
