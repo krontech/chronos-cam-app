@@ -84,43 +84,69 @@ UInt32 Video::getPosition(void)
 void Video::setPosition(unsigned int position, int rate)
 {
 	QVariantMap args;
-	QVariantMap reply;
-	QDBusError err;
+	QDBusPendingReply<QVariantMap> reply;
 	args.insert("framerate", QVariant(rate));
 	args.insert("position", QVariant(position));
 
 	pthread_mutex_lock(&mutex);
 	reply = iface.playback(args);
-	err = iface.lastError();
+	reply.waitForFinished();
 	pthread_mutex_unlock(&mutex);
 
-	if (err.isValid()) {
-		printf("Failed to set playback position: %s - %s", err.name().data(), err.message().toAscii().data());
+	if (reply.isError()) {
+		QDBusError err = reply.error();
+		fprintf(stderr, "Failed to set playback position: %s - %s\n", err.name().data(), err.message().toAscii().data());
 	}
 }
 
 void Video::setPlayback(int rate)
 {
 	QVariantMap args;
-	QVariantMap reply;
-	QDBusError err;
+	QDBusPendingReply<QVariantMap> reply;
 	args.insert("framerate", QVariant(rate));
 
 	pthread_mutex_lock(&mutex);
 	reply = iface.playback(args);
-	err = iface.lastError();
+	reply.waitForFinished();
 	pthread_mutex_unlock(&mutex);
 
-	if (err.isValid()) {
-		printf("Failed to set playback rate: %s - %s", err.name().data(), err.message().toAscii().data());
+	if (reply.isError()) {
+		QDBusError err = reply.error();
+		fprintf(stderr, "Failed to set playback rate: %s - %s\n", err.name().data(), err.message().toAscii().data());
 	}
+}
+
+void Video::setDisplayOptions(bool zebra, bool peaking)
+{
+	QVariantMap args;
+	QDBusPendingReply<QVariantMap> reply;
+	args.insert("zebra", QVariant(zebra));
+	args.insert("peaking", QVariant(peaking));
+
+	pthread_mutex_lock(&mutex);
+	reply = iface.liveflags(args);
+	pthread_mutex_unlock(&mutex);
+
+	if (reply.isError()) {
+		QDBusError err = reply.error();
+		fprintf(stderr, "Failed to set live display mode: %s - %s\n", err.name().data(), err.message().toAscii().data());
+	}
+}
+
+void Video::liveDisplay(void)
+{
+	QDBusPendingReply<QVariantMap> reply;
+
+	pthread_mutex_lock(&mutex);
+	reply = iface.livedisplay();
+	reply.waitForFinished();
+	pthread_mutex_unlock(&mutex);
 }
 
 void Video::addRegion(UInt32 base, UInt32 size, UInt32 offset)
 {
+	QDBusPendingReply<QVariantMap> reply;
 	QVariantMap region;
-	QVariantMap reply;
-	QDBusError err;
 
 	region.insert("base", QVariant(base));
 	region.insert("size", QVariant(size));
@@ -128,14 +154,14 @@ void Video::addRegion(UInt32 base, UInt32 size, UInt32 offset)
 
 	pthread_mutex_lock(&mutex);
 	reply = iface.addregion(region);
-	err = iface.lastError();
+	reply.waitForFinished();
 	pthread_mutex_unlock(&mutex);
 
-	if (err.isValid()) {
-		printf("Failed to set video region: %s - %s", err.name().data(), err.message().toAscii().data());
+	if (reply.isError()) {
+		QDBusError err = reply.error();
+		fprintf(stderr, "Failed to set video region: %s - %s\n", err.name().data(), err.message().toAscii().data());
 	}
 }
-
 
 Video::Video() : iface("com.krontech.chronos.video", "/com/krontech/chronos/video", QDBusConnection::systemBus())
 {

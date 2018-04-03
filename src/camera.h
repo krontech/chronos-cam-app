@@ -270,12 +270,8 @@ private:
 	void writeDGCMem(double gain, UInt32 column);
 	bool readIsColor(void);
 public:
-	bool getFocusPeakEnableLL(void);
-	void setFocusPeakEnableLL(bool en);
 	UInt8 getFocusPeakColor(void);
 	void setFocusPeakColor(UInt8 color);
-	bool getZebraEnableLL(void);
-	void setZebraEnableLL(bool en);
 	void setFocusPeakThreshold(UInt32 thresh);
 	UInt32 getFocusPeakThreshold(void);
     Int32 getRamSizeGB(UInt32 * stick0SizeGB, UInt32 * stick1SizeGB);
@@ -293,10 +289,6 @@ private:
 
 	volatile bool recording;
 	bool playbackMode;
-	Int32 playbackSpeed;
-	bool playbackForward;
-	UInt32 playDivisorCount;
-	void processPlay(void);
 
 	ImagerSettings_t imagerSettings;
 	bool isColor;

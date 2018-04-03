@@ -20,6 +20,8 @@ public:
 	UInt32 getPosition(void);
 	void setPosition(unsigned int position, int rate);
 	void setPlayback(int rate);
+	void setDisplayOptions(bool zebra, bool peaking);
+	void liveDisplay(void);
 
 	void addRegion(UInt32 base, UInt32 size, UInt32 offset);
 	bool isRunning(void) {return running;}

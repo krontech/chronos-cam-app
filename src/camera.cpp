@@ -50,9 +50,6 @@ Camera::Camera()
 	lastRecording = false;
 	playbackMode = false;
 	recording = false;
-	playbackSpeed = 0;
-	playbackForward = true;
-	playDivisorCount = 0;
 	endOfRecCallback = NULL;
 	imgGain = 1.0;
 	recordingData.hasBeenSaved = true;		//Nothing in RAM at power up so there's nothing to lose
@@ -403,8 +400,10 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 	qDebug() << gpmc->read16(CCM_21_ADDR) << gpmc->read16(CCM_22_ADDR) << gpmc->read16(CCM_23_ADDR);
 	qDebug() << gpmc->read16(CCM_31_ADDR) << gpmc->read16(CCM_32_ADDR) << gpmc->read16(CCM_33_ADDR);
 
-	setZebraEnable(appSettings.value("camera/zebra", true).toBool());;
-	setFocusPeakEnable(appSettings.value("camera/focusPeak", false).toBool());;
+	setZebraEnable(appSettings.value("camera/zebra", true).toBool());
+	setFocusPeakEnable(appSettings.value("camera/focusPeak", false).toBool());
+	vinst->setDisplayOptions(getZebraEnable(), getFocusPeakEnable());
+	vinst->liveDisplay();
 
 	printf("Video init done\n");
 
@@ -888,8 +887,6 @@ bool Camera::getIsRecording(void)
 
 UInt32 Camera::setPlayMode(bool playMode)
 {
-    UInt32 displayCtl;
-
 	if(recording)
 		return CAMERA_ALREADY_RECORDING;
 	if(!recordingData.valid)
@@ -897,52 +894,15 @@ UInt32 Camera::setPlayMode(bool playMode)
 
     playbackMode = playMode;
 
-    displayCtl = gpmc->read32(DISPLAY_CTL_ADDR);
     if(playMode)
-    {
-        gpmc->write32(DISPLAY_CTL_ADDR, displayCtl | DISPLAY_CTL_SYNC_INH_MASK);
-        setDisplayFrameAddress(getPlayFrameAddr(playFrame));
-		setFocusPeakEnableLL(false);	//Disable focus peaking and zebras
-		setZebraEnableLL(false);
-	}
-	else
-    {
-        gpmc->write32(DISPLAY_CTL_ADDR, displayCtl & ~DISPLAY_CTL_SYNC_INH_MASK);
-		setFocusPeakEnableLL(getFocusPeakEnable());	//Enable focus peaking and zebras if they were enabled previously
-		setZebraEnableLL(getZebraEnable());
-	}
-
-	setDisplayFrameSource(!playMode);
-
-	return SUCCESS;
-}
-
-/* processPlay
- *
- * processes playback, adjusting playframe according to the playback rate set in setPlaybackRate
- *
- * returns: nothing
- **/
-void Camera::processPlay(void)
-{
-	//take care of encoder
-	Int32 encMovementLowRes;
-	Int32 encMovement = ui->getEncoderValue(&encMovementLowRes);
-	if(ui->getEncoderSwitch())
-		encMovement *= 10;
-	else
-		encMovement = encMovementLowRes;
-
-	if(encMovement >= 0)
-		playFrame = (playFrame + encMovement) % recordingData.totalFrames; //Roll over past the end
-	else
 	{
-		encMovement = -encMovement;
-		if(encMovement > playFrame)
-			playFrame = playFrame - encMovement + recordingData.totalFrames; //If going backwards past the end, take care of rolling over
-		else
-			playFrame -= encMovement; //Not rolling over
+		vinst->setPosition(0, 0);
 	}
+	else
+    {
+		vinst->liveDisplay();
+	}
+	return SUCCESS;
 }
 
 /* Camera::writeFrameNumbers
@@ -2982,9 +2942,9 @@ bool Camera::getFocusPeakEnable(void)
 void Camera::setFocusPeakEnable(bool en)
 {
 	QSettings appSettings;
-	setFocusPeakEnableLL(en);
 	focusPeakEnabled = en;
 	appSettings.setValue("camera/focusPeak", en);
+	vinst->setDisplayOptions(zebraEnabled, focusPeakEnabled);
 }
 bool Camera::getZebraEnable(void)
 {
@@ -2994,9 +2954,9 @@ bool Camera::getZebraEnable(void)
 void Camera::setZebraEnable(bool en)
 {
 	QSettings appSettings;
-	setZebraEnableLL(en);
 	zebraEnabled = en;
 	appSettings.setValue("camera/zebra", en);
+	vinst->setDisplayOptions(zebraEnabled, focusPeakEnabled);
 }
 
 void Camera::set_autoSave(bool state) {
