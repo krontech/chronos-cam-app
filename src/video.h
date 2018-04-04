@@ -1,20 +1,25 @@
 #ifndef VIDEO_H
 #define VIDEO_H
 
+
 #include <pthread.h>
 #include <poll.h>
 #include "errorCodes.h"
 #include "chronosVideoInterface.h"
 #include "types.h"
 
+#include <QObject>
+
 /******************************************************************************/
 
 void* frameThread(void *arg);
 
-class Video {
+class Video : public QObject {
+	Q_OBJECT
+
 public:
 	Video();
-	~Video();
+	~Video(); /* Class needs at least one virtual function for slots to work */
 	Int32 init();
 
 	UInt32 getPosition(void);
@@ -39,6 +44,17 @@ private:
 	UInt32 displayWindowYSize;
 	UInt32 displayWindowXOff;
 	UInt32 displayWindowYOff;
+
+private slots:
+	void sof(const QVariantMap &args)
+	{
+		qDebug() << "video sof received: playback = " << args["playback"].toBool();
+	}
+
+	void eof(const QVariantMap &args)
+	{
+		qDebug() << "video eof received: playback = " << args["playback"].toBool();
+	}
 };
 
 #endif // VIDEO_H

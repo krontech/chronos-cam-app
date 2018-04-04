@@ -82,9 +82,6 @@ public Q_SLOTS: // METHODS
         QList<QVariant> argumentList;
         return asyncCallWithArgumentList(QLatin1String("status"), argumentList);
     }
-
-Q_SIGNALS: // SIGNALS
-    void eof();
 };
 
 namespace com {

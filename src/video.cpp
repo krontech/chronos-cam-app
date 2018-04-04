@@ -66,19 +66,18 @@ CameraErrortype Video::setScaling(UInt32 startX, UInt32 startY, UInt32 cropX, UI
 
 UInt32 Video::getPosition(void)
 {
-	ComKrontechChronosVideoInterface vif("com.krontech.chronos.video", "/com/krontech/chronos/video", QDBusConnection::systemBus());
-	QVariantMap reply;
-	QDBusError err;
+	QDBusPendingReply<QVariantMap> reply;
+	QVariantMap map;
 
 	pthread_mutex_lock(&mutex);
-	reply = vif.status();
-	err = vif.lastError();
+	reply = iface.status();
+	reply.waitForFinished();
 	pthread_mutex_unlock(&mutex);
-
-	if (err.isValid()) {
+	if (reply.isError()) {
 		return 0;
 	}
-	return reply["position"].toUInt();
+	map = reply.value();
+	return map["position"].toUInt();
 }
 
 void Video::setPosition(unsigned int position, int rate)
@@ -165,6 +164,7 @@ void Video::addRegion(UInt32 base, UInt32 size, UInt32 offset)
 
 Video::Video() : iface("com.krontech.chronos.video", "/com/krontech/chronos/video", QDBusConnection::systemBus())
 {
+	QDBusConnection conn = iface.connection();
 	pid = -1;
 	running = false;
 
@@ -179,6 +179,12 @@ Video::Video() : iface("com.krontech.chronos.video", "/com/krontech/chronos/vide
 	displayWindowYOff = 0;
 
 	pthread_mutex_init(&mutex, NULL);
+
+	/* Connect DBus signals */
+	conn.connect("com.krontech.chronos.video", "/com/krontech/chronos/video", "com.krontech.chronos.video",
+				 "sof", this, SLOT(sof(const QVariantMap&)));
+	conn.connect("com.krontech.chronos.video", "/com/krontech/chronos/video", "com.krontech.chronos.video",
+				 "eof", this, SLOT(eof(const QVariantMap&)));
 }
 
 Video::~Video()
