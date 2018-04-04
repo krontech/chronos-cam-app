@@ -202,7 +202,7 @@ void RecSettingsWindow::on_cmdOK_clicked()
 														  ui->spinVRes->value());
 
 
-    is->exposure = exp * 100000000.0;
+    is->exposure = exp * 100000000.0 - 20;
 
     is->temporary = 0;
     camera->setImagerSettings(*is);
