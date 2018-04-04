@@ -90,7 +90,7 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	qDebug() << "camera->sensor->getMaxCurrentIntegrationTime() returned" << camera->sensor->getMaxCurrentIntegrationTime();
 
 	ui->expSlider->setMinimum(LUX1310_MIN_INT_TIME * 100000000.0);
-	ui->expSlider->setMaximum(camera->sensor->getMaxCurrentIntegrationTime() * 100000000.0);
+	ui->expSlider->setMaximum(camera->sensor->getMaxCurrentIntegrationTime() * 100000000.0 - 20);
 	ui->expSlider->setValue(camera->sensor->getIntegrationTime() * 100000000.0);
 	ui->cmdWB->setEnabled(camera->getIsColor());
 	ui->chkFocusAid->setChecked(camera->getFocusPeakEnable());
@@ -489,7 +489,7 @@ void CamMainWindow::on_expSlider_sliderMoved(int position)
 void CamMainWindow::recSettingsClosed()
 {
 	ui->expSlider->setMinimum(LUX1310_MIN_INT_TIME * 100000000.0);
-	ui->expSlider->setMaximum(camera->sensor->getMaxCurrentIntegrationTime() * 100000000.0);
+	ui->expSlider->setMaximum(camera->sensor->getMaxCurrentIntegrationTime() * 100000000.0 - 20);
 	ui->expSlider->setValue(camera->sensor->getIntegrationTime() * 100000000.0);
 	updateCurrentSettingsLabel();
 }
