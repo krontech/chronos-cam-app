@@ -15,7 +15,7 @@
   </property>
   <property name="styleSheet">
    <string notr="true">
-    /* «begin clip from 'assets/whitelook-common.css' (35563587176a49b8380b5374d91c45c9)» */
+    /* «begin clip from 'assets/whitelook-common.css' (754a5c938491b9b25ee4da98364d39a4)» */
       /*
       === X General Styles for the CamApp ===
       
@@ -30,6 +30,10 @@
       the changes made to the clipped region will get overwritten.
       */
       
+      
+      * {
+        font: 6.75pt "DejaVu Sans";
+      }
       
       .QPushButton {
         border: 1px solid black;
@@ -113,7 +117,6 @@
       QSpinBox { 
         border: 1px solid black;
         padding-right: 40px;
-        font-size: 6pt;
         margin: 10px;
         padding-left: 10px;
       }
@@ -177,14 +180,6 @@
       border-width: 0;
       border-radius: 0;
     }
-    
-    /*For some reason, these two borders are rendered one pixel narrower than they should be. (This seems independant of the set DPI.)*/
-    #spinHRes, #spinHOffset {
-      border-right-width: 2px;
-    }
-    #spinVRes, #spinVOffset {
-      border-left-width: 2px;
-    }
    </string>
   </property>
   <widget class="QLabel" name="label">
@@ -198,7 +193,11 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>8</pointsize>
+     <family>DejaVu Sans</family>
+     <pointsize>7</pointsize>
+     <weight>50</weight>
+     <italic>false</italic>
+     <bold>false</bold>
     </font>
    </property>
    <property name="text">
@@ -208,15 +207,19 @@
   <widget class="QComboBox" name="comboRes">
    <property name="geometry">
     <rect>
-     <x>160</x>
+     <x>140</x>
      <y>20</y>
-     <width>341</width>
+     <width>361</width>
      <height>41</height>
     </rect>
    </property>
    <property name="font">
     <font>
-     <pointsize>6</pointsize>
+     <family>DejaVu Sans</family>
+     <pointsize>7</pointsize>
+     <weight>50</weight>
+     <italic>false</italic>
+     <bold>false</bold>
     </font>
    </property>
    <item>
@@ -225,47 +228,19 @@
     </property>
    </item>
   </widget>
-  <widget class="CamSpinBox" name="spinHRes">
-   <property name="geometry">
-    <rect>
-     <x>150</x>
-     <y>60</y>
-     <width>171</width>
-     <height>61</height>
-    </rect>
-   </property>
-   <property name="sizePolicy">
-    <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-     <horstretch>0</horstretch>
-     <verstretch>0</verstretch>
-    </sizepolicy>
-   </property>
-   <property name="baseSize">
-    <size>
-     <width>0</width>
-     <height>0</height>
-    </size>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>6</pointsize>
-     <weight>50</weight>
-     <bold>false</bold>
-    </font>
-   </property>
-  </widget>
   <widget class="CamSpinBox" name="spinVRes">
    <property name="geometry">
     <rect>
-     <x>340</x>
+     <x>330</x>
      <y>60</y>
-     <width>171</width>
+     <width>181</width>
      <height>61</height>
     </rect>
    </property>
    <property name="font">
     <font>
-     <pointsize>6</pointsize>
+     <family>DejaVu Sans</family>
+     <pointsize>7</pointsize>
      <weight>50</weight>
      <italic>false</italic>
      <bold>false</bold>
@@ -275,48 +250,19 @@
     <bool>true</bool>
    </property>
   </widget>
-  <widget class="CamSpinBox" name="spinHOffset">
-   <property name="geometry">
-    <rect>
-     <x>150</x>
-     <y>120</y>
-     <width>171</width>
-     <height>61</height>
-    </rect>
-   </property>
-   <property name="sizePolicy">
-    <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-     <horstretch>0</horstretch>
-     <verstretch>0</verstretch>
-    </sizepolicy>
-   </property>
-   <property name="baseSize">
-    <size>
-     <width>0</width>
-     <height>0</height>
-    </size>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>6</pointsize>
-     <weight>50</weight>
-     <italic>false</italic>
-     <bold>false</bold>
-    </font>
-   </property>
-  </widget>
   <widget class="CamSpinBox" name="spinVOffset">
    <property name="geometry">
     <rect>
-     <x>340</x>
+     <x>329</x>
      <y>120</y>
-     <width>170</width>
+     <width>181</width>
      <height>60</height>
     </rect>
    </property>
    <property name="font">
     <font>
-     <pointsize>6</pointsize>
+     <family>DejaVu Sans</family>
+     <pointsize>7</pointsize>
      <weight>50</weight>
      <italic>false</italic>
      <bold>false</bold>
@@ -337,7 +283,11 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>8</pointsize>
+     <family>DejaVu Sans</family>
+     <pointsize>7</pointsize>
+     <weight>50</weight>
+     <italic>false</italic>
+     <bold>false</bold>
     </font>
    </property>
    <property name="text">
@@ -355,7 +305,11 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>6</pointsize>
+     <family>DejaVu Sans</family>
+     <pointsize>7</pointsize>
+     <weight>50</weight>
+     <italic>false</italic>
+     <bold>false</bold>
     </font>
    </property>
    <property name="text">
@@ -373,53 +327,15 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>8</pointsize>
+     <family>DejaVu Sans</family>
+     <pointsize>7</pointsize>
+     <weight>50</weight>
+     <italic>false</italic>
+     <bold>false</bold>
     </font>
    </property>
    <property name="text">
     <string>Frame Rate</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_4">
-   <property name="geometry">
-    <rect>
-     <x>310</x>
-     <y>130</y>
-     <width>41</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>6</pointsize>
-    </font>
-   </property>
-   <property name="text">
-    <string>×</string>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignCenter</set>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_5">
-   <property name="geometry">
-    <rect>
-     <x>310</x>
-     <y>70</y>
-     <width>41</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>6</pointsize>
-    </font>
-   </property>
-   <property name="text">
-    <string>×</string>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignCenter</set>
    </property>
   </widget>
   <widget class="QLabel" name="label_7">
@@ -433,7 +349,11 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>6</pointsize>
+     <family>DejaVu Sans</family>
+     <pointsize>7</pointsize>
+     <weight>50</weight>
+     <italic>false</italic>
+     <bold>false</bold>
     </font>
    </property>
    <property name="text">
@@ -454,7 +374,11 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>6</pointsize>
+     <family>DejaVu Sans</family>
+     <pointsize>7</pointsize>
+     <weight>50</weight>
+     <italic>false</italic>
+     <bold>false</bold>
     </font>
    </property>
    <property name="text">
@@ -475,7 +399,11 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>6</pointsize>
+     <family>DejaVu Sans</family>
+     <pointsize>7</pointsize>
+     <weight>50</weight>
+     <italic>false</italic>
+     <bold>false</bold>
     </font>
    </property>
    <property name="text">
@@ -493,7 +421,11 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>6</pointsize>
+     <family>DejaVu Sans</family>
+     <pointsize>7</pointsize>
+     <weight>50</weight>
+     <italic>false</italic>
+     <bold>false</bold>
     </font>
    </property>
    <property name="text">
@@ -503,9 +435,9 @@
   <widget class="Line" name="line">
    <property name="geometry">
     <rect>
-     <x>390</x>
+     <x>393</x>
      <y>200</y>
-     <width>11</width>
+     <width>8</width>
      <height>20</height>
     </rect>
    </property>
@@ -522,9 +454,9 @@
   <widget class="Line" name="line_2">
    <property name="geometry">
     <rect>
-     <x>390</x>
+     <x>393</x>
      <y>252</y>
-     <width>11</width>
+     <width>8</width>
      <height>20</height>
     </rect>
    </property>
@@ -657,7 +589,11 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>6</pointsize>
+     <family>DejaVu Sans</family>
+     <pointsize>7</pointsize>
+     <weight>50</weight>
+     <italic>false</italic>
+     <bold>false</bold>
     </font>
    </property>
    <property name="text">
@@ -675,7 +611,11 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>6</pointsize>
+     <family>DejaVu Sans</family>
+     <pointsize>7</pointsize>
+     <weight>50</weight>
+     <italic>false</italic>
+     <bold>false</bold>
     </font>
    </property>
    <property name="text">
@@ -693,7 +633,11 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>6</pointsize>
+     <family>DejaVu Sans</family>
+     <pointsize>7</pointsize>
+     <weight>50</weight>
+     <italic>false</italic>
+     <bold>false</bold>
     </font>
    </property>
    <property name="text">
@@ -711,7 +655,11 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>8</pointsize>
+     <family>DejaVu Sans</family>
+     <pointsize>7</pointsize>
+     <weight>50</weight>
+     <italic>false</italic>
+     <bold>false</bold>
     </font>
    </property>
    <property name="text">
@@ -729,7 +677,11 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>8</pointsize>
+     <family>DejaVu Sans</family>
+     <pointsize>7</pointsize>
+     <weight>50</weight>
+     <italic>false</italic>
+     <bold>false</bold>
     </font>
    </property>
    <property name="text">
@@ -739,15 +691,16 @@
   <widget class="QComboBox" name="comboGain">
    <property name="geometry">
     <rect>
-     <x>159</x>
+     <x>139</x>
      <y>359</y>
-     <width>191</width>
+     <width>211</width>
      <height>41</height>
     </rect>
    </property>
    <property name="font">
     <font>
-     <pointsize>6</pointsize>
+     <family>DejaVu Sans</family>
+     <pointsize>7</pointsize>
      <weight>50</weight>
      <italic>false</italic>
      <bold>false</bold>
@@ -770,7 +723,11 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>6</pointsize>
+     <family>DejaVu Sans</family>
+     <pointsize>7</pointsize>
+     <weight>50</weight>
+     <italic>false</italic>
+     <bold>false</bold>
     </font>
    </property>
    <property name="text">
@@ -788,11 +745,15 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>6</pointsize>
+     <family>DejaVu Sans</family>
+     <pointsize>7</pointsize>
+     <weight>50</weight>
+     <italic>false</italic>
+     <bold>false</bold>
     </font>
    </property>
    <property name="text">
-    <string>Rec. Modes…</string>
+    <string>Rec. Modes</string>
    </property>
   </widget>
   <widget class="QWidget" name="widget" native="true">
@@ -804,6 +765,118 @@
      <height>481</height>
     </rect>
    </property>
+   <widget class="CamSpinBox" name="spinHRes">
+    <property name="geometry">
+     <rect>
+      <x>130</x>
+      <y>60</y>
+      <width>181</width>
+      <height>61</height>
+     </rect>
+    </property>
+    <property name="sizePolicy">
+     <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+      <horstretch>0</horstretch>
+      <verstretch>0</verstretch>
+     </sizepolicy>
+    </property>
+    <property name="baseSize">
+     <size>
+      <width>0</width>
+      <height>0</height>
+     </size>
+    </property>
+    <property name="font">
+     <font>
+      <family>DejaVu Sans</family>
+      <pointsize>7</pointsize>
+      <weight>50</weight>
+      <italic>false</italic>
+      <bold>false</bold>
+     </font>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_5">
+    <property name="geometry">
+     <rect>
+      <x>300</x>
+      <y>70</y>
+      <width>41</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>DejaVu Sans</family>
+      <pointsize>7</pointsize>
+      <weight>50</weight>
+      <italic>false</italic>
+      <bold>false</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>×</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="CamSpinBox" name="spinHOffset">
+    <property name="geometry">
+     <rect>
+      <x>130</x>
+      <y>120</y>
+      <width>181</width>
+      <height>61</height>
+     </rect>
+    </property>
+    <property name="sizePolicy">
+     <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+      <horstretch>0</horstretch>
+      <verstretch>0</verstretch>
+     </sizepolicy>
+    </property>
+    <property name="baseSize">
+     <size>
+      <width>0</width>
+      <height>0</height>
+     </size>
+    </property>
+    <property name="font">
+     <font>
+      <family>DejaVu Sans</family>
+      <pointsize>7</pointsize>
+      <weight>50</weight>
+      <italic>false</italic>
+      <bold>false</bold>
+     </font>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_4">
+    <property name="geometry">
+     <rect>
+      <x>300</x>
+      <y>130</y>
+      <width>41</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>DejaVu Sans</family>
+      <pointsize>7</pointsize>
+      <weight>50</weight>
+      <italic>false</italic>
+      <bold>false</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>×</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
   </widget>
   <widget class="QWidget" name="widget_2" native="true">
    <property name="geometry">
@@ -838,15 +911,19 @@
   <widget class="CamLineEdit" name="lineRate">
    <property name="geometry">
     <rect>
-     <x>150</x>
+     <x>130</x>
      <y>180</y>
-     <width>211</width>
+     <width>231</width>
      <height>61</height>
     </rect>
    </property>
    <property name="font">
     <font>
-     <pointsize>6</pointsize>
+     <family>DejaVu Sans</family>
+     <pointsize>7</pointsize>
+     <weight>50</weight>
+     <italic>false</italic>
+     <bold>false</bold>
     </font>
    </property>
    <property name="text">
@@ -856,15 +933,19 @@
   <widget class="CamLineEdit" name="linePeriod">
    <property name="geometry">
     <rect>
-     <x>150</x>
+     <x>130</x>
      <y>230</y>
-     <width>211</width>
+     <width>231</width>
      <height>61</height>
     </rect>
    </property>
    <property name="font">
     <font>
-     <pointsize>6</pointsize>
+     <family>DejaVu Sans</family>
+     <pointsize>7</pointsize>
+     <weight>50</weight>
+     <italic>false</italic>
+     <bold>false</bold>
     </font>
    </property>
    <property name="text">
@@ -874,36 +955,36 @@
   <widget class="CamLineEdit" name="lineExp">
    <property name="geometry">
     <rect>
-     <x>150</x>
+     <x>130</x>
      <y>290</y>
-     <width>211</width>
+     <width>231</width>
      <height>61</height>
     </rect>
    </property>
    <property name="font">
     <font>
-     <pointsize>6</pointsize>
+     <family>DejaVu Sans</family>
+     <pointsize>7</pointsize>
+     <weight>50</weight>
+     <italic>false</italic>
+     <bold>false</bold>
     </font>
    </property>
    <property name="text">
     <string>990.00u</string>
    </property>
   </widget>
+  <zorder>label_2</zorder>
   <zorder>widget_2</zorder>
   <zorder>widget_3</zorder>
   <zorder>widget_4</zorder>
   <zorder>widget</zorder>
   <zorder>label</zorder>
   <zorder>comboRes</zorder>
-  <zorder>spinHRes</zorder>
   <zorder>spinVRes</zorder>
-  <zorder>spinHOffset</zorder>
   <zorder>spinVOffset</zorder>
-  <zorder>label_2</zorder>
   <zorder>cmdMax</zorder>
   <zorder>label_3</zorder>
-  <zorder>label_4</zorder>
-  <zorder>label_5</zorder>
   <zorder>label_7</zorder>
   <zorder>label_8</zorder>
   <zorder>label_9</zorder>

@@ -13,6 +13,10 @@ the changes made to the clipped region will get overwritten.
 */
 
 
+* {
+  font: 6.75pt "DejaVu Sans";
+}
+
 .QPushButton {
   border: 1px solid black;
   border-top-color: rgb(50,50,50);
@@ -95,7 +99,6 @@ QScrollBar::sub-line:vertical {
 QSpinBox { 
   border: 1px solid black;
   padding-right: 40px;
-  font-size: 6pt;
   margin: 10px;
   padding-left: 10px;
 }
