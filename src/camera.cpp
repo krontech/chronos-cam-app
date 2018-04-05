@@ -324,25 +324,9 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 	*/
 
 	//For mono version, set color matrix to just pass straight through
-	if(!isColor)
-	{
-		defaultColorCalMatrix[0] = 1.0;	defaultColorCalMatrix[1] = 0.0;	defaultColorCalMatrix[2] = 0.0;
-		defaultColorCalMatrix[3] = 0.0;	defaultColorCalMatrix[4] = 1.0;	defaultColorCalMatrix[5] = 0.0;
-		defaultColorCalMatrix[6] = 0.0;	defaultColorCalMatrix[7] = 0.0;	defaultColorCalMatrix[8] = 1.0;
-		defaultWhiteBalMatrix[0] = 1.0;	defaultWhiteBalMatrix[1] = 1.0;	defaultWhiteBalMatrix[2] = 1.0;
-	}
-
-	qDebug() << gpmc->read16(CCM_11_ADDR) << gpmc->read16(CCM_12_ADDR) << gpmc->read16(CCM_13_ADDR);
-	qDebug() << gpmc->read16(CCM_21_ADDR) << gpmc->read16(CCM_22_ADDR) << gpmc->read16(CCM_23_ADDR);
-	qDebug() << gpmc->read16(CCM_31_ADDR) << gpmc->read16(CCM_32_ADDR) << gpmc->read16(CCM_33_ADDR);
-
-
-	whiteBalMatrix[0] = whiteBalMatrix[1] = whiteBalMatrix[2] = 1.0;
-	setCCMatrix(whiteBalMatrix);
-
-	qDebug() << gpmc->read16(CCM_11_ADDR) << gpmc->read16(CCM_12_ADDR) << gpmc->read16(CCM_13_ADDR);
-	qDebug() << gpmc->read16(CCM_21_ADDR) << gpmc->read16(CCM_22_ADDR) << gpmc->read16(CCM_23_ADDR);
-	qDebug() << gpmc->read16(CCM_31_ADDR) << gpmc->read16(CCM_32_ADDR) << gpmc->read16(CCM_33_ADDR);
+	colorCalMatrix = isColor ? defaultColorCalMatrix : nullColorCalMatrix;
+	whiteBalMatrix = isColor ? defaultWhiteBalMatrix : nullWhiteBalMatrix;
+	setCCMatrix();
 
 	setZebraEnable(appSettings.value("camera/zebra", true).toBool());;
 	setFocusPeakEnable(appSettings.value("camera/focusPeak", false).toBool());;
@@ -1272,7 +1256,7 @@ void Camera::computeFPNCorrection2(UInt32 framesToAverage, bool writeToFile, boo
 
 	imgGain = 4096.0 / (double)(4096 - getMaxFPNValue(buffer, pixelsPerFrame)) * IMAGE_GAIN_FUDGE_FACTOR;
 	qDebug() << "imgGain set to" << imgGain;
-	setCCMatrix(whiteBalMatrix);
+	setCCMatrix();
 
 	qDebug() << "About to write file...";
 	if(writeToFile)
@@ -2519,7 +2503,7 @@ Int32 Camera::startSave(UInt32 startFrame, UInt32 length)
 
 #define COLOR_MATRIX_MAXVAL	((1 << SENSOR_DATA_WIDTH) * (1 << COLOR_MATRIX_INT_BITS))
 
-void Camera::setCCMatrix(std::array<double, 3> userWhiteBal)
+void Camera::setCCMatrix()
 {
 	std::array<UInt32, 9> gpuColorCorrectionMatrixAddress = {
 		CCM_11_ADDR, CCM_12_ADDR, CCM_13_ADDR,
@@ -2528,9 +2512,8 @@ void Camera::setCCMatrix(std::array<double, 3> userWhiteBal)
 	};
 	
 	auto colorCorrectionMatrix = calculateFinalColorCorrectionMatrix(
-		defaultColorCalMatrix,
-		defaultWhiteBalMatrix,
-		userWhiteBal,
+		colorCalMatrix,
+		whiteBalMatrix,
 		imgGain
 	);
 	
@@ -2549,21 +2532,21 @@ void Camera::setCCMatrix(std::array<double, 3> userWhiteBal)
 	}
 }
 
-auto Camera::calculateFinalColorCorrectionMatrix (auto colorCal, auto defaultWhiteBal, auto userWhiteBal, auto gain)
+auto Camera::calculateFinalColorCorrectionMatrix (auto colorCal, auto whiteBal, auto gain)
 {
 	std::array<double, 9> finalMatrix;
 	
-	finalMatrix[0] = colorCal[0] * defaultWhiteBal[0] * userWhiteBal[0] * gain;
-	finalMatrix[1] = colorCal[1] * defaultWhiteBal[0] * userWhiteBal[0] * gain;
-	finalMatrix[2] = colorCal[2] * defaultWhiteBal[0] * userWhiteBal[0] * gain;
+	finalMatrix[0] = colorCal[0] * whiteBal[0] * gain;
+	finalMatrix[1] = colorCal[1] * whiteBal[0] * gain;
+	finalMatrix[2] = colorCal[2] * whiteBal[0] * gain;
 
-	finalMatrix[3] = colorCal[3] * defaultWhiteBal[1] * userWhiteBal[1] * gain;
-	finalMatrix[4] = colorCal[4] * defaultWhiteBal[1] * userWhiteBal[1] * gain;
-	finalMatrix[5] = colorCal[5] * defaultWhiteBal[1] * userWhiteBal[1] * gain;
+	finalMatrix[3] = colorCal[3] * whiteBal[1] * gain;
+	finalMatrix[4] = colorCal[4] * whiteBal[1] * gain;
+	finalMatrix[5] = colorCal[5] * whiteBal[1] * gain;
 
-	finalMatrix[6] = colorCal[6] * defaultWhiteBal[2] * userWhiteBal[2] * gain;
-	finalMatrix[7] = colorCal[7] * defaultWhiteBal[2] * userWhiteBal[2] * gain;
-	finalMatrix[8] = colorCal[8] * defaultWhiteBal[2] * userWhiteBal[2] * gain;
+	finalMatrix[6] = colorCal[6] * whiteBal[2] * gain;
+	finalMatrix[7] = colorCal[7] * whiteBal[2] * gain;
+	finalMatrix[8] = colorCal[8] * whiteBal[2] * gain;
 	
 	return finalMatrix;
 }
@@ -2624,7 +2607,7 @@ Int32 Camera::setWhiteBalance(UInt32 x, UInt32 y)
 
 	qDebug() << "Setting WB matrix to " << whiteBalMatrix[0] << whiteBalMatrix[1] << whiteBalMatrix[2];
 
-	setCCMatrix(whiteBalMatrix);
+	setCCMatrix();
 	return SUCCESS;
 
 }
