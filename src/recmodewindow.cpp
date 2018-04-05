@@ -122,7 +122,7 @@ void recModeWindow::on_cmdMax_clicked()
     UInt32 recLenFrames = camera->getMaxRecordRegionSizeFrames(is->hRes, is->vRes);
     ui->spinRecLengthFrames->setValue(recLenFrames);
     ui->spinRecLengthSeconds->setValue((double)recLenFrames * (double) is->period / 100000000.0);
-    ui->spinSegmentCount->setMaximum(min(SEGMENT_COUNT_MAX, recLenFrames));
+    ui->spinSegmentCount->setMaximum(std::min(SEGMENT_COUNT_MAX, recLenFrames));
     updateSegmentSizeText(ui->spinSegmentCount->value());
 }
 
@@ -140,7 +140,7 @@ void recModeWindow::on_spinRecLengthSeconds_valueChanged(double arg1)
         }
 
         ui->spinRecLengthFrames->setValue(recLenFrames);
-        ui->spinSegmentCount->setMaximum(min(SEGMENT_COUNT_MAX, recLenFrames));
+        ui->spinSegmentCount->setMaximum(std::min(SEGMENT_COUNT_MAX, recLenFrames));
 
         if(ui->radioSegmented->isChecked())
             updateSegmentSizeText(ui->spinSegmentCount->value());
@@ -153,7 +153,7 @@ void recModeWindow::on_spinRecLengthFrames_valueChanged(int arg1)
     if(ui->spinRecLengthFrames->hasFocus())
     {
         ui->spinRecLengthSeconds->setValue((double)arg1 * ((double) is->period / 100000000.0));
-        ui->spinSegmentCount->setMaximum(min(SEGMENT_COUNT_MAX, arg1));
+        ui->spinSegmentCount->setMaximum(std::min((int)SEGMENT_COUNT_MAX, arg1));
 
         if(ui->radioSegmented->isChecked())
             updateSegmentSizeText(ui->spinSegmentCount->value());

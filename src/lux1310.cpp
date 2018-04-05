@@ -584,7 +584,7 @@ UInt32 LUX1310::getMinFramePeriod(UInt32 hRes, UInt32 vRes, UInt32 wtSize)
 	double tRead = (double)(hRes / LUX1310_HRES_INCREMENT) * LUX1310_CLOCK_PERIOD;
 	double tHBlank = 2.0 * LUX1310_CLOCK_PERIOD;
 	double tWavetable = wtSize * LUX1310_CLOCK_PERIOD;
-	double tRow = max(tRead+tHBlank, tWavetable+3*LUX1310_CLOCK_PERIOD);
+	double tRow = std::max(tRead+tHBlank, tWavetable+3*LUX1310_CLOCK_PERIOD);
 	double tTx = 25 * LUX1310_CLOCK_PERIOD;
 	double tFovf = 50 * LUX1310_CLOCK_PERIOD;
 	double tFovb = (50) * LUX1310_CLOCK_PERIOD;//Duration between PRSTN falling and TXN falling (I think)
@@ -609,7 +609,7 @@ double LUX1310::getMinMasterFramePeriod(UInt32 hRes, UInt32 vRes)
 	double tRead = (double)(hRes / LUX1310_HRES_INCREMENT) * LUX1310_CLOCK_PERIOD;
 	double tHBlank = 2.0 * LUX1310_CLOCK_PERIOD;
 	double tWavetable = wtSize * LUX1310_CLOCK_PERIOD;
-	double tRow = max(tRead+tHBlank, tWavetable+3*LUX1310_CLOCK_PERIOD);
+	double tRow = std::max(tRead+tHBlank, tWavetable+3*LUX1310_CLOCK_PERIOD);
 	double tTx = 25 * LUX1310_CLOCK_PERIOD;
 	double tFovf = 50 * LUX1310_CLOCK_PERIOD;
 	double tFovb = (50) * LUX1310_CLOCK_PERIOD;//Duration between PRSTN falling and TXN falling (I think)
@@ -643,7 +643,7 @@ double LUX1310::getActualFramePeriod(double targetPeriod, UInt32 hRes, UInt32 vR
 	double minPeriod = getMinMasterFramePeriod(hRes, vRes);
 	double maxPeriod = LUX1310_MAX_SLAVE_PERIOD;
 
-	return within(targetPeriod, minPeriod, maxPeriod);
+	return clamp(targetPeriod, minPeriod, maxPeriod);
 }
 
 double LUX1310::setFramePeriod(double period, UInt32 hRes, UInt32 vRes)
@@ -654,7 +654,7 @@ double LUX1310::setFramePeriod(double period, UInt32 hRes, UInt32 vRes)
 	double minPeriod = getMinMasterFramePeriod(hRes, vRes);
 	double maxPeriod = LUX1310_MAX_SLAVE_PERIOD / 100000000.0;
 
-	period = within(period, minPeriod, maxPeriod);
+	period = clamp(period, minPeriod, maxPeriod);
 	currentPeriod = period * 100000000.0;
 
 	setSlavePeriod(currentPeriod);
@@ -705,7 +705,7 @@ double LUX1310::getActualIntegrationTime(double intTime, double period, UInt32 h
 
 	double maxIntTime = (double)getMaxExposure(period * 100000000.0) / 100000000.0;
 	double minIntTime = LUX1310_MIN_INT_TIME;
-	return within(intTime, minIntTime, maxIntTime);
+	return clamp(intTime, minIntTime, maxIntTime);
 
 }
 
@@ -725,7 +725,7 @@ double LUX1310::setIntegrationTime(double intTime, UInt32 hRes, UInt32 vRes)
 	//Set integration time to within limits
 	double maxIntTime = (double)getMaxExposure(currentPeriod) / 100000000.0;
 	double minIntTime = LUX1310_MIN_INT_TIME;
-	intTime = within(intTime, minIntTime, maxIntTime);
+	intTime = clamp(intTime, minIntTime, maxIntTime);
 	currentExposure = intTime * 100000000.0;	
 	setSlaveExposure(currentExposure);
 	return intTime;
@@ -752,7 +752,7 @@ void LUX1310::setSlavePeriod(UInt32 period)
 void LUX1310::setSlaveExposure(UInt32 exposure)
 {
 	//hack to fix line issue. Not perfect, need to properly register this on the sensor clock.
-	double linePeriod = max((currentHRes / LUX1310_HRES_INCREMENT)+2, (wavetableSize + 3)) * 1.0/LUX1310_SENSOR_CLOCK;	//Line period in seconds
+	double linePeriod = std::max((currentHRes / LUX1310_HRES_INCREMENT)+2, (wavetableSize + 3)) * 1.0/LUX1310_SENSOR_CLOCK;	//Line period in seconds
 	UInt32 startDelay = (double)startDelaySensorClocks * TIMING_CLOCK_FREQ / LUX1310_SENSOR_CLOCK;
 	double targetExp = (double)exposure / 100000000.0;
 	UInt32 expLines = round(targetExp / linePeriod);

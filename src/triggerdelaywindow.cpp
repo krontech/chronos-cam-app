@@ -15,7 +15,7 @@ triggerDelayWindow::triggerDelayWindow(QWidget *parent, Camera * cameraInst, Ima
 
     period = (double)is->period / 100000000.0;
     recLenFrames = ((is->mode == RECORD_MODE_NORMAL || is->mode == RECORD_MODE_GATED_BURST) ? is->recRegionSizeFrames : is->recRegionSizeFrames / is->segments);
-    ui->horizontalSlider->setMaximum(max(recLenFrames, camera->io->getTriggerDelayFrames()));
+    ui->horizontalSlider->setMaximum(std::max(recLenFrames, camera->io->getTriggerDelayFrames()));
     ui->horizontalSlider->setHighlightRegion(0, recLenFrames);
     ui->spinPreFrames->setMaximum(recLenFrames);
     ui->spinPreSeconds->setMaximum((double)recLenFrames * period);
@@ -61,8 +61,8 @@ void triggerDelayWindow::on_cmdHundredPercent_clicked()
 
 void triggerDelayWindow::updateControls(UInt32 postTriggerFrames)
 {
-    UInt32 pretriggerFrames  = max((Int32)recLenFrames - (Int32)postTriggerFrames, 0);
-    UInt32 preRecFrames = max((Int32)postTriggerFrames - (Int32)recLenFrames, 0);
+    UInt32 pretriggerFrames  = std::max((Int32)recLenFrames - (Int32)postTriggerFrames, 0);
+    UInt32 preRecFrames = std::max((Int32)postTriggerFrames - (Int32)recLenFrames, 0);
 
     if(postTriggerFrames > ui->horizontalSlider->maximum())
         ui->horizontalSlider->setMaximum(postTriggerFrames);
@@ -108,7 +108,7 @@ void triggerDelayWindow::on_spinPostFrames_valueChanged(int arg1)
 
 void triggerDelayWindow::on_cmdResetPreRec_clicked()
 {
-    ui->horizontalSlider->setMaximum(max(ui->spinPostFrames->value(), recLenFrames));
+    ui->horizontalSlider->setMaximum(std::max(ui->spinPostFrames->value(), (int)recLenFrames));
 }
 
 void triggerDelayWindow::on_spinPreRecSeconds_valueChanged(double arg1)
@@ -126,5 +126,5 @@ void triggerDelayWindow::on_spinPreRecFrames_valueChanged(int arg1)
 void triggerDelayWindow::on_cmdResetToDefaults_clicked()
 {
     updateControls(0);
-    ui->horizontalSlider->setMaximum(max(ui->spinPostFrames->value(), recLenFrames));
+    ui->horizontalSlider->setMaximum(std::max(ui->spinPostFrames->value(), (int)recLenFrames));
 }

@@ -79,7 +79,7 @@ void dm8148PWM::setDuty(double pw)
 	if(0 == period)
 		return;
 
-	UInt32 duty = within(pw, 0.0, 1.0) * period;
+	UInt32 duty = clamp(pw, 0.0, 1.0) * period;
 
 
 	if(duty < 2)

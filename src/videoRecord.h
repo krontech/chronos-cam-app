@@ -95,9 +95,9 @@ root@dm814x-evm:~#
 
  **/
 
-#define ENCODER_MIN_H_RES		96	//Minimum resoluiton the TI encoder can run at
-#define ENCODER_MIN_V_RES		80
-#define ENCODER_H_RES_INC		16	//Horizontal resolution must be a multiple of 16
+#define ENCODER_MIN_H_RES		((UInt32) 96)	//Minimum resoluiton the TI encoder can run at
+#define ENCODER_MIN_V_RES		((UInt32) 80)
+#define ENCODER_H_RES_INC		((UInt32) 16)	//Horizontal resolution must be a multiple of 16
 /*
 typedef enum VideoRecordErrortype
 {

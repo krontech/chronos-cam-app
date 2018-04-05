@@ -29,17 +29,10 @@
 #define	Int64	long long
 
 
-#define max(a,b) \
-   ({ __typeof__ (a) _a = (a); \
-	   __typeof__ (b) _b = (b); \
-	 _a > _b ? _a : _b; })
 
-#define min(a,b) \
-   ({ __typeof__ (a) _a = (a); \
-	   __typeof__ (b) _b = (b); \
-	 _a < _b ? _a : _b; })
-
-#define within(x, mn, mx) \
+//The following functions don't belong in this file. We should move them to a more appropriate file.
+//This isn't defined in our version of std. We need the one for c++17.
+#define clamp(x, mn, mx) \
    ({ __typeof__ (mn) _mn = (mn); \
 	   __typeof__ (mx) _mx = (mx); \
 		__typeof__ (x) _x = (x); \

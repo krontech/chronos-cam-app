@@ -19,6 +19,8 @@
 
 #include <pthread.h>
 #include <semaphore.h>
+#include <algorithm>
+#include <array>
 
 #include "errorCodes.h"
 #include "defines.h"
@@ -33,6 +35,7 @@
 #include "string.h"
 #include "types.h"
 
+
 #define RECORD_DATA_LENGTH		2048		//Number of record data entries for the record sequencer data
 #define FPN_ADDRESS				0x0
 #define MAX_FRAME_LENGTH		0xF000
@@ -43,7 +46,7 @@
 #define REC_REGION_LEN			ramSize
 #define FRAME_ALIGN_WORDS		64			//Align to 256 byte boundaries (8 32-byte words)
 #define RECORD_LENGTH_MIN       1           //Minimum number of frames in the record region
-#define SEGMENT_COUNT_MAX       (32*1024)   //Maximum number of record segments in segmented mode
+#define SEGMENT_COUNT_MAX       ((UInt32)(32*1024))   //Maximum number of record segments in segmented mode
 
 #define MAX_FRAME_SIZE_H		1280
 #define MAX_FRAME_SIZE_V		1024
@@ -234,7 +237,10 @@ public:
 	Int32 getRawCorrectedFramesAveraged(UInt32 frame, UInt32 framesToAverage, UInt16 * frameBuffer);
 	Int32 takeWhiteReferences(void);
 	Int32 startSave(UInt32 startFrame, UInt32 length);
-	void setCCMatrix(double * wbMat);
+	void setCCMatrix(std::array<double, 3> whiteBalMatrix);
+private:
+	auto calculateFinalColorCorrectionMatrix (auto colorCal, auto defaultWhiteBal, auto userWhiteBal, auto gain);
+public:
 	int setWhiteBalance(UInt32 x, UInt32 y);
 	void setFocusAid(bool enable);
 	bool getFocusAid();
@@ -309,13 +315,25 @@ private:
 	bool isColor;
 
 	// camSPECS CCM calculation: CIECAM02 RGB to sRGB & white balance
-	double ccMatrix[9] = {
+	std::array<double, 9> defaultColorCalMatrix = {{
 		+1.2330, +0.6468, -0.7764,
 		-0.3219, +1.6901, -0.3811,
 		-0.0614, -0.6409, +1.5258,
-	};
-	double wbMatrix[3] = { 1.5150, 1, 1.1048 };
-	double wbMat[3];	//Actual white balance computed during runtime
+	}};
+	std::array<double, 3> defaultWhiteBalMatrix = {{ 1.5150, 1, 1.1048 }};
+
+	// no-op colour matrix for b&w cameras
+	std::array<double, 9> nullColorCalMatrix = {{
+		1, 0, 0,
+		0, 1, 0,
+		0, 0, 1,
+	}};
+	std::array<double, 3> nullWhiteBalMatrix = {{ 1, 1, 1 }};
+
+	//Actual colour calibration / white balance computed during runtime
+	std::array<double, 9> colorCalMatrix = {{ 0,0,0, 0,0,0, 0,0,0 }};
+	std::array<double, 3> whiteBalMatrix = {{ 0,0,0 }};
+
 	double imgGain;
 	bool focusPeakEnabled;
 	int focusPeakColorIndex;

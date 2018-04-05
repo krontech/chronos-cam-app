@@ -171,7 +171,7 @@ Int32 VideoRecord::start(UInt32 hSize, UInt32 vSize, UInt32 frames, save_mode_ty
 	switch(save_mode) {
 	case SAVE_MODE_H264:
 		strcat(path, ".mp4");
-        estFileSize = min(bitsPerPixel * imgXSize * imgYSize * framerate, min(60000000, (UInt32)(maxBitrate * 1000000.0)) * framerate / 60) / framerate * numFrames / 8;//bitsPerPixel * imgXSize * imgYSize * numFrames / 8;
+        estFileSize = std::min(bitsPerPixel * imgXSize * imgYSize * framerate, std::min(60000000, (Int32)(maxBitrate * 1000000.0)) * framerate / 60.0) / framerate * numFrames / 8.0;//bitsPerPixel * imgXSize * imgYSize * numFrames / 8;
 		break;
 	case SAVE_MODE_RAW16:
 	case SAVE_MODE_RAW16RJ:
@@ -270,7 +270,7 @@ Int32 VideoRecord::start(UInt32 hSize, UInt32 vSize, UInt32 frames, save_mode_ty
 	if (save_mode == SAVE_MODE_H264) {
 		GstElement *encoder, *queue, *parser, *mux;
 
-		bitrate = min(bitsPerPixel * imgXSize * imgYSize * framerate, min(60000000, (UInt32)(maxBitrate * 1000000.0)) * framerate / 60);	//Max of 60Mbps
+		bitrate = std::min(bitsPerPixel * imgXSize * imgYSize * framerate, std::min(60000000.0, maxBitrate * 1000000.0) * framerate / 60.0);	//Max of 60Mbps
 		qDebug() << "Starting save at bitrate " << bitrate << " framerate " << framerate;
 
 		encoder =	gst_element_factory_make ("omx_h264enc",	"h264-encoder");
@@ -571,12 +571,12 @@ bus_call (GstBus     *bus,
 
 UInt32 VideoRecord::getSafeHRes(UInt32 hRes)
 {
-	return max((hRes + 15) & 0xFFFFFFF0, ENCODER_MIN_H_RES);
+	return std::max((hRes + 15) & 0xFFFFFFF0, ENCODER_MIN_H_RES);
 }
 
 UInt32 VideoRecord::getSafeVRes(UInt32 vRes)
 {
-	return max(vRes, ENCODER_MIN_V_RES);
+	return std::max(vRes, ENCODER_MIN_V_RES);
 }
 
 double VideoRecord::getFramerate()

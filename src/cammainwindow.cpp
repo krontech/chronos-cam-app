@@ -506,9 +506,9 @@ void CamMainWindow::updateCurrentSettingsLabel()
 	UInt32 expPercent = camera->sensor->getCurrentExposureDouble() * 100 / camera->sensor->getCurrentFramePeriodDouble();
 
 	double battPercent = (flags & 4) ?	//If battery is charging
-						within(((double)battVoltageCam/1000.0 - 10.75) / (12.4 - 10.75) * 80, 0.0, 80.0) +
-							20 - 20*within(((double)battCurrentCam/1000.0 - 0.1) / (1.28 - 0.1), 0.0, 1.0) :	//Charging
-						within(((double)battVoltageCam/1000.0 - 9.75) / (11.8 - 9.75) * 100, 0.0, 100.0);		//Dicharging
+						clamp(((double)battVoltageCam/1000.0 - 10.75) / (12.4 - 10.75) * 80, 0.0, 80.0) +
+							20 - 20*clamp(((double)battCurrentCam/1000.0 - 0.1) / (1.28 - 0.1), 0.0, 1.0) :	//Charging
+						clamp(((double)battVoltageCam/1000.0 - 9.75) / (11.8 - 9.75) * 100, 0.0, 100.0);		//Dicharging
 	//charge 10.75 - 12.4 is 0-80%
 
 	if(flags & 1)	//If battery present

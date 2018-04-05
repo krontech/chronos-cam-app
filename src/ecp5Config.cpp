@@ -218,7 +218,7 @@ Int32 Ecp5Config::configure(const char * configFile)
 	UInt32 len;
 	while(pos < cfSize)
 	{
-		len = min(1024, cfSize - pos);
+		len = std::min((UInt32)1024, cfSize - pos);
 		spiWrite(bitstream + pos, len);
 		pos += len;
 

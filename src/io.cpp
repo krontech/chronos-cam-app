@@ -122,7 +122,7 @@ void IO::setThreshold(UInt32 io, double thresholdVolts, Int32 flags)
 	case 1:
 		if (flags & FLAG_USESAVED)
 			thresholdVolts = appSettings.value("io/thresh1", 2.5).toDouble();
-		io1Thresh = within(thresholdVolts, 0, IO_DAC_FS);
+		io1Thresh = clamp(thresholdVolts, 0, IO_DAC_FS);
 		if (!(flags & FLAG_TEMPORARY) && !(flags & FLAG_USESAVED))
 			appSettings.setValue("io/thresh1", io1Thresh);
 		io1DAC.setDuty(io1Thresh / IO_DAC_FS);
@@ -131,7 +131,7 @@ void IO::setThreshold(UInt32 io, double thresholdVolts, Int32 flags)
 	case 2:
 		if (flags & FLAG_USESAVED)
 			thresholdVolts = appSettings.value("io/thresh2", 2.5).toDouble();
-		io2Thresh = within(thresholdVolts, 0, IO_DAC_FS);
+		io2Thresh = clamp(thresholdVolts, 0, IO_DAC_FS);
 		if (!(flags & FLAG_TEMPORARY) && !(flags & FLAG_USESAVED))
 			appSettings.setValue("io/thresh2", io2Thresh);
 		io2DAC.setDuty(io2Thresh / IO_DAC_FS);

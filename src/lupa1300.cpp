@@ -392,7 +392,7 @@ double LUPA1300::getActualFramePeriod(double targetPeriod, UInt32 hRes, UInt32 v
 	if(targetPeriod < ((double)getMinFramePeriod(hRes, vRes) / 100000000.0))
 	{ //If frame rate is not achievable with master mode
 		//Compute the number of line periods required, round it, and ensure it's not below the minimum
-		UInt32 lines = max(round((targetPeriod * 63000000.0 - LUPA1300_FOT) / (hRes / LUPA1300_HRES_INCREMENT * 2 + LUPA1300_ROT)), vRes + 1);
+		UInt32 lines = std::max(round((targetPeriod * 63000000.0 - LUPA1300_FOT) / (hRes / LUPA1300_HRES_INCREMENT * 2 + LUPA1300_ROT)), vRes + 1.0);
 		return (double)(lines * (hRes / LUPA1300_HRES_INCREMENT * 2 + LUPA1300_ROT) + LUPA1300_FOT) / 63000000.0;
 	}
 	else	//Within capibilities of slave mode
@@ -400,7 +400,7 @@ double LUPA1300::getActualFramePeriod(double targetPeriod, UInt32 hRes, UInt32 v
 		double minPeriod = getMinMasterFramePeriod(hRes, vRes);
 		double maxPeriod = LUPA1300_MAX_SLAVE_PERIOD;
 
-		return within(targetPeriod, minPeriod, maxPeriod);
+		return clamp(targetPeriod, minPeriod, maxPeriod);
 	}
 	
 }
@@ -412,7 +412,7 @@ double LUPA1300::setFramePeriod(double period, UInt32 hRes, UInt32 vRes)
 
 	if(period < ((double)getMinFramePeriod(hRes, vRes) / 100000000.0))
 	{
-		UInt32 lines = max(round((period * 63000000.0 - LUPA1300_FOT) / (hRes / LUPA1300_HRES_INCREMENT * 2 + LUPA1300_ROT)), vRes + 1);
+		UInt32 lines = std::max(round((period * 63000000.0 - LUPA1300_FOT) / (hRes / LUPA1300_HRES_INCREMENT * 2 + LUPA1300_ROT)), vRes + 1.0);
 		masterModeTotalLines = lines;
 		setMasterMode(true);
 		setSeqIntTime(lines - 2);
@@ -425,7 +425,7 @@ double LUPA1300::setFramePeriod(double period, UInt32 hRes, UInt32 vRes)
 		double minPeriod = getMinMasterFramePeriod(hRes, vRes);
 		double maxPeriod = LUPA1300_MAX_SLAVE_PERIOD;
 
-		period = within(period, minPeriod, maxPeriod);
+		period = clamp(period, minPeriod, maxPeriod);
 		currentPeriod = period * 100000000.0;
 		setSlavePeriod(currentPeriod);
 		return period;
@@ -450,7 +450,7 @@ double LUPA1300::getMaxIntegrationTime(double period, UInt32 hRes, UInt32 vRes)
 
 	if(period < ((double)getMinFramePeriod(hRes, vRes) / 100000000.0))
 	{ //Master mode
-		UInt32 lines = max(round((period * 63000000.0 - LUPA1300_FOT) / (hRes / LUPA1300_HRES_INCREMENT * 2 + LUPA1300_ROT)), vRes + 1);
+		UInt32 lines = std::max(round((period * 63000000.0 - LUPA1300_FOT) / (hRes / LUPA1300_HRES_INCREMENT * 2 + LUPA1300_ROT)), vRes + 1.0);
 
 		return (lines - 2) * (double)(hRes / LUPA1300_HRES_INCREMENT * 2 + LUPA1300_ROT) / 63000000.0;
 	}
@@ -480,7 +480,7 @@ double LUPA1300::getActualIntegrationTime(double intTime, double period, UInt32 
 		//One over the exposure time of each line
 		double recipInc = 63000000.0 / (double)(hRes / LUPA1300_HRES_INCREMENT * 2 + LUPA1300_ROT);
 		//Round to the closest integration time
-		intTime = min(round(intTime * recipInc), 65535.0) / recipInc;
+		intTime = std::min(round(intTime * recipInc), 65535.0) / recipInc;
 
 		return intTime;
 	}
@@ -488,7 +488,7 @@ double LUPA1300::getActualIntegrationTime(double intTime, double period, UInt32 
 	{
 		double maxIntTime = (double)getMaxExposure(period * 100000000.0) / 100000000.0;
 		double minIntTime = LUPA1300_MIN_INT_TIME;
-		return within(intTime, minIntTime, maxIntTime);
+		return clamp(intTime, minIntTime, maxIntTime);
 	}
 }
 
@@ -510,8 +510,8 @@ double LUPA1300::setIntegrationTime(double intTime, UInt32 hRes, UInt32 vRes)
 		//One over the exposure time of each line
 		double recipInc = 63000000.0 / (hRes / LUPA1300_HRES_INCREMENT * 2 + LUPA1300_ROT);
 
-		UInt32 expLines = min(round(intTime * recipInc), 65535.0);
-		intTime = min(round(intTime * recipInc), 65535.0) / recipInc;
+		UInt32 expLines = std::min(round(intTime * recipInc), 65535.0);
+		intTime = std::min(round(intTime * recipInc), 65535.0) / recipInc;
 
 		setSeqIntTime(expLines);
 
@@ -523,7 +523,7 @@ double LUPA1300::setIntegrationTime(double intTime, UInt32 hRes, UInt32 vRes)
 		//Set integration time to within limits
 		double maxIntTime = (double)getMaxExposure(currentPeriod) / 100000000.0;
 		double minIntTime = LUPA1300_MIN_INT_TIME;
-		intTime = within(intTime, minIntTime, maxIntTime);
+		intTime = clamp(intTime, minIntTime, maxIntTime);
 		currentExposure = intTime * 100000000.0;
 		setSlaveExposure(currentExposure);
 		return intTime;
