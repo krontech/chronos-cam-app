@@ -2534,25 +2534,26 @@ Int32 Camera::setWhiteBalance(UInt32 x, UInt32 y)
 				readPixel12(quadStartY * imagerSettings.stride + quadStartX, FPN_ADDRESS * BYTES_PER_WORD);
 	double r =  rRaw-
 				readPixel12(quadStartY * imagerSettings.stride + quadStartX + 1, FPN_ADDRESS * BYTES_PER_WORD);
+	
 	qDebug() << "RGB values read:" << r << g << b;
+	
 	//Perform color correction
-	double rc =		clamp(
-			r * defaultColorCalMatrix[0] * defaultWhiteBalMatrix[0] +
-			g * defaultColorCalMatrix[1] * defaultWhiteBalMatrix[0] +
-			b * defaultColorCalMatrix[2] * defaultWhiteBalMatrix[0],
-			0.0, 4095.0);
-
-	double gc =		clamp(
-			r * defaultColorCalMatrix[3] * defaultWhiteBalMatrix[1] +
-			g * defaultColorCalMatrix[4] * defaultWhiteBalMatrix[1] +
-			b * defaultColorCalMatrix[5] * defaultWhiteBalMatrix[1],
-			0.0, 4095.0);
-
-	double bc =		clamp(
-			r * defaultColorCalMatrix[6] * defaultWhiteBalMatrix[2] +
-			g * defaultColorCalMatrix[7] * defaultWhiteBalMatrix[2] +
-			b * defaultColorCalMatrix[8] * defaultWhiteBalMatrix[2],
-			0.0, 4095.0);
+	double rc =	clamp(
+		r * colorCalMatrix[0] +
+		g * colorCalMatrix[1] +
+		b * colorCalMatrix[2],
+		0.0, 4095.0);
+	double gc =	clamp(
+		r * colorCalMatrix[3] +
+		g * colorCalMatrix[4] +
+		b * colorCalMatrix[5],
+		0.0, 4095.0);
+	double bc =	clamp(
+		r * colorCalMatrix[6] +
+		g * colorCalMatrix[7] +
+		b * colorCalMatrix[8],
+		0.0, 4095.0);
+	
 	qDebug() << "Corrected values:" << rc << gc << bc;
 
 	//Fail if the pixel values is clipped or too low
@@ -2564,11 +2565,10 @@ Int32 Camera::setWhiteBalance(UInt32 x, UInt32 y)
 
 
 	//Find the max value, generate white balance matrix that scales the other colors up to match the brightest color
-	double mx = std::max(rc, std::max(gc, bc));
-
-	whiteBalMatrix[0] = (double)mx / (double)rc;
-	whiteBalMatrix[1] = (double)mx / (double)gc;
-	whiteBalMatrix[2] = (double)mx / (double)bc;
+	double brightestColor = std::max(rc, std::max(gc, bc));
+	whiteBalMatrix[0] = brightestColor / rc;
+	whiteBalMatrix[1] = brightestColor / gc;
+	whiteBalMatrix[2] = brightestColor / bc;
 
 	qDebug() << "Setting WB matrix to " << whiteBalMatrix[0] << whiteBalMatrix[1] << whiteBalMatrix[2];
 
