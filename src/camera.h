@@ -315,20 +315,20 @@ private:
 	bool isColor;
 
 	// camSPECS CCM calculation: CIECAM02 RGB to sRGB & white balance
-	std::array<double, 9> defaultColorCalMatrix = {{
+	const std::array<double, 9> defaultColorCalMatrix = {{
 		+1.2330, +0.6468, -0.7764,
 		-0.3219, +1.6901, -0.3811,
 		-0.0614, -0.6409, +1.5258,
 	}};
-	std::array<double, 3> defaultWhiteBalMatrix = {{ 1.5150, 1, 1.1048 }};
+	const std::array<double, 3> defaultWhiteBalMatrix = {{ 1.5150, 1, 1.1048 }};
 
 	// no-op colour matrix for b&w cameras
-	std::array<double, 9> nullColorCalMatrix = {{
+	const std::array<double, 9> nullColorCalMatrix = {{
 		1, 0, 0,
 		0, 1, 0,
 		0, 0, 1,
 	}};
-	std::array<double, 3> nullWhiteBalMatrix = {{ 1, 1, 1 }};
+	const std::array<double, 3> nullWhiteBalMatrix = {{ 1, 1, 1 }};
 
 	//Actual colour calibration / white balance computed during runtime
 	std::array<double, 9> colorCalMatrix = {{ 0,0,0, 0,0,0, 0,0,0 }};

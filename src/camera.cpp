@@ -284,49 +284,14 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 	recorder->errorCallback = recordErrorCallback;
 	recorder->errorCallbackArg = (void *)this;
 
-	loadColGainFromFile("cal/dcgL.bin");
-
-	if(CAMERA_FILE_NOT_FOUND == loadFPNFromFile(FPN_FILENAME))
-		autoFPNCorrection(2, false, true);
-	/*
-	//If the FPN file exists, read it in
-	if( access( "fpn.raw", R_OK ) != -1 )
-	{
-		FILE * fp;
-		fp = fopen("fpn.raw", "rb");
-		UInt16 * buffer = new UInt16[MAX_STRIDE*MAX_FRAME_SIZE_V];
-		fread(buffer, sizeof(buffer[0]), MAX_STRIDE*MAX_FRAME_SIZE_V, fp);
-		fclose(fp);
-
-		UInt32 * packedBuf = new UInt32[FRAME_SIZE*BYTES_PER_WORD/4];
-		memset(packedBuf, 0, FRAME_SIZE*BYTES_PER_WORD);
-
-		//Generate packed buffer
-		for(int i = 0; i < MAX_STRIDE*MAX_FRAME_SIZE_V; i++)
-		{
-			//writePixel(i, 0, buffer[i]);
-			writePixelBuf12((UInt8 *)packedBuf, i, buffer[i]);
-		}
-
-		//Write packed buffer to RAM
-		writeAcqMem(packedBuf, FPN_ADDRESS, FRAME_SIZE);
-
-		delete buffer;
-		delete packedBuf;
-	}
-	else //if no file exists, zero out the FPN area
-	{
-	for(int i = 0; i < FRAME_SIZE; i = i + 4)
-		{
-			gpmc->writeRam32(i, 0);
-		}
-	}
-	*/
-
 	//For mono version, set color matrix to just pass straight through
 	colorCalMatrix = isColor ? defaultColorCalMatrix : nullColorCalMatrix;
 	whiteBalMatrix = isColor ? defaultWhiteBalMatrix : nullWhiteBalMatrix;
-	setCCMatrix();
+
+	loadColGainFromFile("cal/dcgL.bin");
+
+	if(CAMERA_FILE_NOT_FOUND == loadFPNFromFile(FPN_FILENAME)) //calls setCCMatrix, using colorCalMatrix and friends.
+		autoFPNCorrection(2, false, true);
 
 	setZebraEnable(appSettings.value("camera/zebra", true).toBool());;
 	setFocusPeakEnable(appSettings.value("camera/focusPeak", false).toBool());;
@@ -1380,7 +1345,7 @@ Int32 Camera::loadFPNFromFile(const char * filename)
 	UInt32 mx = getMaxFPNValue(buffer, pixelsPerFrame);
 	imgGain = 4096.0 / (double)(4096 - mx) * IMAGE_GAIN_FUDGE_FACTOR;
 	qDebug() << "imgGain set to" << imgGain << "Max FPN value found" << mx;
-	//Don't call setCCMatrix(whiteBalMatrix) here; some variables haven't been initialized yet.
+	setCCMatrix();
 
 	//zero the buffer
 	memset(packedBuf, 0, bytesPerFrame);
