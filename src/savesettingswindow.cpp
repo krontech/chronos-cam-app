@@ -394,3 +394,15 @@ void saveSettingsWindow::on_comboSaveFormat_currentIndexChanged(int index)
 	}
 	updateBitrate();
 }
+
+void saveSettingsWindow::setControlEnable(bool en){
+	ui->spinBitrate->setEnabled(en);
+	ui->spinFramerate->setEnabled(en);
+	ui->spinMaxBitrate->setEnabled(en);
+	ui->lineFilename->setEnabled(en);
+	ui->comboSaveFormat->setEnabled(en);
+	ui->comboDrive->setEnabled(en);
+	ui->cmdRefresh->setEnabled(en);
+	ui->cmdUMount->setEnabled(en);
+	ui->cmdClose->setEnabled(en);
+}

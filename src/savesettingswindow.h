@@ -38,6 +38,8 @@ public:
 	char filename[1000];
 	Camera * camera;
 
+public slots:
+	void setControlEnable(bool en);
 private slots:
 	void on_cmdClose_clicked();
 

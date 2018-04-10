@@ -89,6 +89,7 @@ private:
 
 signals:
 	void finishedSaving();
+	void enableSaveSettingsButtons(bool);
 };
 
 #endif // PLAYBACKWINDOW_H

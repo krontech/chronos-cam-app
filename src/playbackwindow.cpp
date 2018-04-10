@@ -224,6 +224,7 @@ void playbackWindow::on_cmdSave_clicked()
 			//both arguments should be markout because a new rectangle will be drawn, and it should not overlap the one that was just appended
 			markInFrameOld = markInFrame;
 			markInFrame = markOutFrame;
+			emit enableSaveSettingsButtons(false);
 		}
 		else
 		{
@@ -260,6 +261,7 @@ void playbackWindow::on_cmdSaveSettings_clicked()
 	ui->cmdSaveSettings->setEnabled(false);
 	ui->cmdClose->setEnabled(false);
 	connect(w, SIGNAL(destroyed()), this, SLOT(saveSettingsClosed()));
+	connect(this, SIGNAL(enableSaveSettingsButtons(bool)), w, SLOT(setControlEnable(bool)));
 }
 
 void playbackWindow::saveSettingsClosed(){
@@ -318,6 +320,7 @@ void playbackWindow::checkForSaveDone()
 		sw->close();
 		ui->cmdSave->setText("Save");
 		setControlEnable(true);
+		emit enableSaveSettingsButtons(true);
 		updatePlayRateLabel(playbackRate);
 
 		if(autoSaveFlag) {
