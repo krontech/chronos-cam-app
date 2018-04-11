@@ -57,6 +57,8 @@ private slots:
 
     void on_comboSaveFormat_currentIndexChanged(int index);
 
+    void on_lineFilename_textEdited(const QString &arg1);
+
 private:
 	void refreshDriveList();
 	void updateBitrate();
