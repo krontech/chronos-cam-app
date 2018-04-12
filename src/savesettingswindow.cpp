@@ -111,6 +111,7 @@ saveSettingsWindow::saveSettingsWindow(QWidget *parent, Camera * camInst) :
 	timer = new QTimer(this);
 	connect(timer, SIGNAL(timeout()), this, SLOT(updateDrives()));
 	timer->start(1000);
+	comboDriveStatus = 1;
 
 }
 
@@ -128,6 +129,15 @@ void saveSettingsWindow::on_cmdClose_clicked()
 	camera->recorder->profile = 1 << ui->comboProfile->currentIndex();
 	camera->recorder->level = 1 << ui->comboLevel->currentIndex();
 
+	saveFileDirectory();
+
+	settings.setValue("recorder/profile", camera->recorder->profile);
+	settings.setValue("recorder/level", camera->recorder->level);
+
+	close();
+}
+
+void saveSettingsWindow::saveFileDirectory(){
 	//Keep the beginning of the combo box text (the path)
 	char str[100];
 	const char * path;
@@ -143,12 +153,8 @@ void saveSettingsWindow::on_cmdClose_clicked()
 		path = "";
 
 	strcpy(camera->recorder->fileDirectory, path);
-
+	QSettings settings;
 	settings.setValue("recorder/fileDirectory", camera->recorder->fileDirectory);
-	settings.setValue("recorder/profile", camera->recorder->profile);
-	settings.setValue("recorder/level", camera->recorder->level);
-
-	close();
 }
 
 void saveSettingsWindow::on_cmdUMount_clicked()
@@ -411,4 +417,10 @@ void saveSettingsWindow::setControlEnable(bool en){
 	ui->cmdRefresh->setEnabled(en);
 	ui->cmdUMount->setEnabled(en);
 	ui->cmdClose->setEnabled(en);
+}
+
+void saveSettingsWindow::on_comboDrive_currentIndexChanged(const QString &arg1)
+{
+	if(comboDriveStatus == 2) saveFileDirectory();
+	if(comboDriveStatus == 1) comboDriveStatus = 2;//Hack to prevent crash when 2 storage devices (SD and usb drive) are connected while creating a new savesettingswindow for the first time.
 }

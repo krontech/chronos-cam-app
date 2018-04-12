@@ -59,13 +59,17 @@ private slots:
 
     void on_lineFilename_textEdited(const QString &arg1);
 
+    void on_comboDrive_currentIndexChanged(const QString &arg1);
+
 private:
 	void refreshDriveList();
 	void updateBitrate();
+	void saveFileDirectory();
 
 	Ui::saveSettingsWindow *ui;
 	QTimer * timer;
 	UInt32 driveCount;
+	unsigned short comboDriveStatus = 0;
 };
 
 #endif // SAVESETTINGSWINDOW_H
