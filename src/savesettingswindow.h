@@ -69,7 +69,7 @@ private:
 	Ui::saveSettingsWindow *ui;
 	QTimer * timer;
 	UInt32 driveCount;
-	unsigned short comboDriveStatus = 0;
+	bool comboDriveStatus = false;
 };
 
 #endif // SAVESETTINGSWINDOW_H

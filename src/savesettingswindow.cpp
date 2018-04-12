@@ -111,7 +111,6 @@ saveSettingsWindow::saveSettingsWindow(QWidget *parent, Camera * camInst) :
 	timer = new QTimer(this);
 	connect(timer, SIGNAL(timeout()), this, SLOT(updateDrives()));
 	timer->start(1000);
-	comboDriveStatus = 1;
 
 }
 
@@ -189,7 +188,7 @@ void saveSettingsWindow::refreshDriveList()
 	char drive[1024];		//Stores string to be placed in combo box
 	UInt32 len;
 
-	comboDriveStatus = 0;
+	comboDriveStatus = false;
 	ui->comboDrive->clear();
 
 	//ui->comboDrive->addItem("/");
@@ -288,7 +287,7 @@ void saveSettingsWindow::refreshDriveList()
 		ui->comboDrive->setEnabled(false);
 
 	}
-	comboDriveStatus = 2;
+	comboDriveStatus = true;
 }
 
 void saveSettingsWindow::on_cmdRefresh_clicked()
@@ -422,13 +421,5 @@ void saveSettingsWindow::setControlEnable(bool en){
 
 void saveSettingsWindow::on_comboDrive_currentIndexChanged(const QString &arg1)
 {
-	/*Hack to prevent crash when 2 storage devices (SD and usb drive) are connected while creating a new savesettingswindow for the first time.
-	meaning of comboDriveStatus values:
-	0: window init not complete, so don't do anything yet.
-	1: on_comboDrive_currentIndexChanged() is somehow called twice even after window init is complete.
-		Calling saveFileDirectory() in those cases can cause a crash.  Seems to be from the strcpy function trying to copy the string " " into camera->recorder->fileDirectory
-	2: OK to call saveFileDirectory() at this point
-	*/
-	if(comboDriveStatus == 2) saveFileDirectory();
-	if(comboDriveStatus == 1) comboDriveStatus = 2;
+	if(comboDriveStatus) saveFileDirectory();
 }
