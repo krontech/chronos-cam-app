@@ -189,6 +189,7 @@ void saveSettingsWindow::refreshDriveList()
 	char drive[1024];		//Stores string to be placed in combo box
 	UInt32 len;
 
+	comboDriveStatus = 0;
 	ui->comboDrive->clear();
 
 	//ui->comboDrive->addItem("/");
@@ -287,7 +288,7 @@ void saveSettingsWindow::refreshDriveList()
 		ui->comboDrive->setEnabled(false);
 
 	}
-
+	comboDriveStatus = 2;
 }
 
 void saveSettingsWindow::on_cmdRefresh_clicked()
