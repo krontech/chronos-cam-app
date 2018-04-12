@@ -52,7 +52,6 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	QDialog(parent),
 	ui(new Ui::CamMainWindow)
 {
-	QMessageBox msg;
 	QSettings appSettings;
 	CameraErrortype retVal;
 	ui->setupUi(this);
@@ -80,7 +79,7 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 
 	if(retVal != SUCCESS)
 	{
-
+		QMessageBox msg;
 		msg.setText(QString("Camera init failed, error") + QString::number((Int32)retVal));
 		msg.exec();
 	}

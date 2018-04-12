@@ -307,8 +307,14 @@ private:
 
 	ImagerSettings_t imagerSettings;
 	bool isColor;
-	double ccMatrix[9];
-	double wbMatrix[3];	//White balance multipliers computed by color matrix generator
+
+	// camSPECS CCM calculation: CIECAM02 RGB to sRGB & white balance
+	double ccMatrix[9] = {
+		+1.2330, +0.6468, -0.7764,
+		-0.3219, +1.6901, -0.3811,
+		-0.0614, -0.6409, +1.5258,
+	};
+	double wbMatrix[3] = { 1.5150, 1, 1.1048 };
 	double wbMat[3];	//Actual white balance computed during runtime
 	double imgGain;
 	bool focusPeakEnabled;

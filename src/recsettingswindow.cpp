@@ -73,6 +73,7 @@ RecSettingsWindow::RecSettingsWindow(QWidget *parent, Camera * cameraInst) :
 
     ui->spinHRes->setValue(is->stride);
     ui->spinVRes->setValue(is->vRes);
+    updateOffsetLimits();
     ui->spinHOffset->setValue(is->hOffset);
     ui->spinVOffset->setValue(is->vOffset);
 
