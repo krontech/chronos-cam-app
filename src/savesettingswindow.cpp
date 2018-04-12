@@ -421,6 +421,13 @@ void saveSettingsWindow::setControlEnable(bool en){
 
 void saveSettingsWindow::on_comboDrive_currentIndexChanged(const QString &arg1)
 {
+	/*Hack to prevent crash when 2 storage devices (SD and usb drive) are connected while creating a new savesettingswindow for the first time.
+	meaning of comboDriveStatus values:
+	0: window init not complete, so don't do anything yet.
+	1: on_comboDrive_currentIndexChanged() is somehow called twice even after window init is complete.
+		Calling saveFileDirectory() in those cases can cause a crash.  Seems to be from the strcpy function trying to copy the string " " into camera->recorder->fileDirectory
+	2: OK to call saveFileDirectory() at this point
+	*/
 	if(comboDriveStatus == 2) saveFileDirectory();
-	if(comboDriveStatus == 1) comboDriveStatus = 2;//Hack to prevent crash when 2 storage devices (SD and usb drive) are connected while creating a new savesettingswindow for the first time.
+	if(comboDriveStatus == 1) comboDriveStatus = 2;
 }
