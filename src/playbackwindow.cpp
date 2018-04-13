@@ -299,7 +299,7 @@ void playbackWindow::on_cmdMarkOut_clicked()
 void playbackWindow::updateStatusText()
 {
 	char text[100];
-	sprintf(text, "Frame %d/%d\r\nMark in %d\r\nMark out %d", camera->playFrame + 1, camera->recordingData.totalFrames, markInFrame, markOutFrame);
+	sprintf(text, "Frame %d/%d\r\nMark start %d\r\nMark end %d", camera->playFrame + 1, camera->recordingData.totalFrames, markInFrame, markOutFrame);
 	ui->lblInfo->setText(text);
 }
 
