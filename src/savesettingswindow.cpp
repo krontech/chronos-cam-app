@@ -188,7 +188,7 @@ void saveSettingsWindow::refreshDriveList()
 	char drive[1024];		//Stores string to be placed in combo box
 	UInt32 len;
 
-	comboDriveStatus = false;
+	okToSaveLocation = false;//prevent saving a new value while drive list is being updated
 	ui->comboDrive->clear();
 
 	//ui->comboDrive->addItem("/");
@@ -287,7 +287,7 @@ void saveSettingsWindow::refreshDriveList()
 		ui->comboDrive->setEnabled(false);
 
 	}
-	comboDriveStatus = true;
+	okToSaveLocation = true;
 }
 
 void saveSettingsWindow::on_cmdRefresh_clicked()
@@ -421,5 +421,5 @@ void saveSettingsWindow::setControlEnable(bool en){
 
 void saveSettingsWindow::on_comboDrive_currentIndexChanged(const QString &arg1)
 {
-	if(comboDriveStatus) saveFileDirectory();
+	if(okToSaveLocation) saveFileDirectory();
 }
