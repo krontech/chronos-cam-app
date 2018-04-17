@@ -38,15 +38,12 @@
 #include "camera.h"
 
 #include "video.h"
-#include "videoRecord.h"
 #include "types.h"
 extern "C" {
 #include "eeprom.h"
 }
 
 void endOfRecCallback(void * arg);
-
-VideoRecord record;
 
 MainWindow::MainWindow(QWidget *parent) :
 	QMainWindow(parent),
@@ -376,8 +373,6 @@ void MainWindow::on_cmdFrameNumbers_clicked()
 		camera->gpmc->writeRam32(i, camera->gpmc->readRam32(0x32A00*32+i));
 	}
 	return;
-
-	record.start(1280, 1024, 500);
 }
 
 

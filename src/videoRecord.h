@@ -14,7 +14,8 @@
  *  You should have received a copy of the GNU General Public License       *
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.   *
  ****************************************************************************/
-#ifndef VIDEORECORD_H
+/* Disabled - kept around for historical purposes. */
+#if 0
 #define VIDEORECORD_H
 
 #include <pthread.h>
@@ -23,14 +24,6 @@
 #include <gst/gst.h>
 #include "errorCodes.h"
 #include "types.h"
-
-typedef enum {
-	SAVE_MODE_H264 = 0,
-	SAVE_MODE_RAW16,
-	SAVE_MODE_RAW16RJ,
-	SAVE_MODE_RAW12,
-	SAVE_MODE_RAW16_PNG
-} save_mode_type;
 
 
 /*
@@ -158,12 +151,7 @@ public:
 	VideoRecord();
 	~VideoRecord();
 	int start(unsigned int hSize, unsigned int vSize, unsigned int frames, save_mode_type save_mode = SAVE_MODE_H264);
-	unsigned int stop();
-	unsigned int stop2();
-    bool flowReady();
-    void debug();
-	UInt32 getSafeHRes(UInt32 hRes);
-	UInt32 getSafeVRes(UInt32 vRes);
+	void debug();
 	double getFramerate();
 	bool endOfStream();
 	bool getRunning(void) {return running;}
@@ -175,10 +163,6 @@ public:
 	UInt32 i_period;
 	UInt32 force_idr_period;
 	UInt32 encodingPreset;
-	void (*eosCallback)(void *);
-	void * eosCallbackArg;
-	void (*errorCallback)(void *, char *);
-	void * errorCallbackArg;
 
 
 	volatile bool recordRunning;
@@ -204,7 +188,6 @@ private:
 	guint bus_watch_id;
 	bool eosFlag;
 	bool error;
-	pthread_t recordThreadID;
 	friend gboolean bus_call (GstBus *bus, GstMessage *msg, gpointer data);
 	friend gboolean buffer_probe(GstPad *pad, GstBuffer *buffer, gpointer data);
 };

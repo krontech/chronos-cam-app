@@ -29,7 +29,6 @@
 #include "gpmc.h"
 #include "gpmcRegs.h"
 #include "cameraRegisters.h"
-#include "videoRecord.h"
 #include "util.h"
 #include "types.h"
 #include "lux1310.h"
@@ -332,13 +331,11 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 
 	vinst->setRunning(true);
 
-	recorder = new VideoRecord();
+	vinst->eosCallback = recordEosCallback;
+	vinst->eosCallbackArg = (void *)this;
 
-    recorder->eosCallback = recordEosCallback;
-	recorder->eosCallbackArg = (void *)this;
-
-	recorder->errorCallback = recordErrorCallback;
-	recorder->errorCallbackArg = (void *)this;
+	vinst->errorCallback = recordErrorCallback;
+	vinst->errorCallbackArg = (void *)this;
 
 	loadColGainFromFile();
 	
@@ -534,18 +531,11 @@ UInt32 Camera::setDisplaySettings(bool encoderSafe, UInt32 maxFps)
 	if(!sensor->isValidResolution(imagerSettings.stride, imagerSettings.vRes, imagerSettings.hOffset, imagerSettings.vOffset))
 		return CAMERA_INVALID_IMAGER_SETTINGS;
 
-	//Stop live video if running
-	bool running = vinst->isRunning();
-	if(running)
-		vinst->setRunning(false);
-
     setLiveOutputTiming(imagerSettings.hRes, imagerSettings.vRes,
                         imagerSettings.hRes, imagerSettings.vRes,
                         maxFps);
 
-	//Restart live video if it was running
-	if(running)
-		vinst->setRunning(true);
+	vinst->reload();
 
 	return SUCCESS;
 }
@@ -2501,7 +2491,6 @@ Int16 getADCOffset(UInt8 channel);
 
 Int32 Camera::startSave(UInt32 startFrame, UInt32 length)
 {
-	Int32 retVal;
 	QSettings appSettings;
 	save_mode_type record_mode;
 
@@ -2513,50 +2502,15 @@ Int32 Camera::startSave(UInt32 startFrame, UInt32 length)
 	default: record_mode = SAVE_MODE_H264;
 	}
 
-	if(startFrame + length > recordingData.totalFrames)
-		return CAMERA_INVALID_SETTINGS;
-
-	vinst->setRunning(false);
-	delayms(100); //Gstreamer crashes with no delay here, OMX needs time to deinit stuff?
     setDisplaySettings(true, MAX_RECORD_FRAMERATE);	//Set to encoder safe mode, and increase the framerate.
 
-	//Set the start frame. This will advance by one before recording starts.
-	if(0 == startFrame)
-		playFrame = recordingData.totalFrames-1;	//Setting it to this will cause playback to advance to the first frame on record
-	else
-		playFrame = startFrame - 1;		//Will advance 1 frame before start of record
-
+#if 0
 	if (record_mode == SAVE_MODE_RAW12)   { gpmc->write16(DISPLAY_PIPELINE_ADDR, DISPLAY_PIPELINE_RAW_12BPP); }
 	if (record_mode == SAVE_MODE_RAW16)   { gpmc->write16(DISPLAY_PIPELINE_ADDR, DISPLAY_PIPELINE_RAW_16BPP); }
 	if (record_mode == SAVE_MODE_RAW16RJ) { gpmc->write16(DISPLAY_PIPELINE_ADDR, DISPLAY_PIPELINE_RAW_16BPP | DISPLAY_PIPELINE_RAW_RIGHT_JUSTIFY); }
-	
-	retVal = recorder->start((recordingData.is.hRes + 15) & 0xFFFFFFF0, recordingData.is.vRes, length+2, record_mode);
-	
-	if(retVal != SUCCESS)
-    {
-		vinst->setRunning(true);
-		if(RECORD_DIRECTORY_NOT_WRITABLE == retVal)
-			return RECORD_DIRECTORY_NOT_WRITABLE;
-		else if(RECORD_FILE_EXISTS == retVal)
-			return RECORD_FILE_EXISTS;
-        else if(RECORD_INSUFFICIENT_SPACE == retVal)
-            return RECORD_INSUFFICIENT_SPACE;
-		else
-			return RECORD_ERROR;
-	}
+#endif
 
-	delayms(100);	//A few frames are skipped without this delay
-
-    /* Start recording by playing the first frame. */
-	sem_wait(&playMutex);
-	setDisplayFrameAddress(playFrame);
-	sem_post(&playMutex);
-
-	fflush(stdout);
-
-	recordingData.hasBeenSaved = true;
-
-	return SUCCESS;
+	return vinst->startRecording((recordingData.is.hRes + 15) & 0xFFFFFFF0, recordingData.is.vRes, startFrame, length+2, record_mode);
 }
 
 #define COLOR_MATRIX_MAXVAL	((1 << SENSOR_DATA_WIDTH) * (1 << COLOR_MATRIX_INT_BITS))
@@ -3043,9 +2997,7 @@ void recordEosCallback(void * arg)
 {
 	Camera * camera = (Camera *)arg;
 	//camera->setPlaybackRate(0, true);
-	camera->recorder->stop();
-    camera->setDisplaySettings(false, MAX_LIVE_FRAMERATE);
-	camera->gpmc->write16(DISPLAY_PIPELINE_ADDR, 0x0000); // turn off raw/bipass modes, if they're set
+	camera->setDisplaySettings(false, MAX_LIVE_FRAMERATE);
 	camera->vinst->setRunning(true);
 	fflush(stdout);
 }
@@ -3055,8 +3007,7 @@ void recordErrorCallback(void * arg, char * message)
 	Camera * camera = (Camera *)arg;
 	(void)message; // get rid of the warning
 	//camera->setPlaybackRate(0, true);
-    camera->setDisplaySettings(false, MAX_LIVE_FRAMERATE);
-	camera->gpmc->write16(DISPLAY_PIPELINE_ADDR, 0x0000); // turn off raw/bipass modes, if they're set
+	camera->setDisplaySettings(false, MAX_LIVE_FRAMERATE);
 	// camera->vinst->setRunning(true);
 	fflush(stdout);
 }

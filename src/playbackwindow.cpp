@@ -15,9 +15,9 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.   *
  ****************************************************************************/
 #include <time.h>
+#include <sys/stat.h>
 #include <sys/statvfs.h>
 
-#include "videoRecord.h"
 #include "util.h"
 #include "camera.h"
 
@@ -122,20 +122,20 @@ void playbackWindow::on_cmdSave_clicked()
 	QSettings appSettings;
 	
 	//Build the parent path of the save directory, to determine if it's a mount point
-	strcpy(parentPath, camera->recorder->fileDirectory);
+	strcpy(parentPath, camera->vinst->fileDirectory);
 	strcat(parentPath, "/..");
 
-	if(!camera->recorder->getRunning())
+	if(!camera->vinst->getStatus(NULL) != VIDEO_STATE_RECORDING)
 	{
 		//If no directory set, complain to the user
-		if(strlen(camera->recorder->fileDirectory) == 0)
+		if(strlen(camera->vinst->fileDirectory) == 0)
 		{
 			msg.setText("No save location set! Set save location in Settings");
 			msg.exec();
 			return;
 		}
 
-		if (!statvfs(camera->recorder->fileDirectory, &statvfsBuf)) {
+		if (!statvfs(camera->vinst->fileDirectory, &statvfsBuf)) {
 			qDebug("===================================");
 			// calculated estimated size
 			estimatedSize = (markOutFrame - markInFrame + 1);
@@ -147,8 +147,8 @@ void playbackWindow::on_cmdSave_clicked()
 			switch(appSettings.value("recorder/saveFormat", 0).toUInt()) {
 			case SAVE_MODE_H264:
 				// the *1.2 part is fudge factor
-				estimatedSize = (uint64_t) ((double)estimatedSize * appSettings.value("recorder/bitsPerPixel", camera->recorder->bitsPerPixel).toDouble() * 1.2);
-				qDebug("Bits/pixel: %0.3f", appSettings.value("recorder/bitsPerPixel", camera->recorder->bitsPerPixel).toDouble());
+				estimatedSize = (uint64_t) ((double)estimatedSize * appSettings.value("recorder/bitsPerPixel", camera->vinst->bitsPerPixel).toDouble() * 1.2);
+				qDebug("Bits/pixel: %0.3f", appSettings.value("recorder/bitsPerPixel", camera->vinst->bitsPerPixel).toDouble());
 				break;
 			case SAVE_MODE_RAW16:
 			case SAVE_MODE_RAW16RJ:
@@ -184,30 +184,30 @@ void playbackWindow::on_cmdSave_clicked()
 		//Check that the path exists
 		struct stat sb;
 		struct stat sbP;
-		if (stat(camera->recorder->fileDirectory, &sb) == 0 && S_ISDIR(sb.st_mode) &&
+		if (stat(camera->vinst->fileDirectory, &sb) == 0 && S_ISDIR(sb.st_mode) &&
 				stat(parentPath, &sbP) == 0 && sb.st_dev != sbP.st_dev)		//If location is directory and is a mount point (device ID of parent is different from device ID of path)
 		{
 			ret = camera->startSave(markInFrame - 1, markOutFrame - markInFrame + 1);
 			if(RECORD_FILE_EXISTS == ret)
 			{
-				if(camera->recorder->errorCallback)
-					(*camera->recorder->errorCallback)(camera->recorder->errorCallbackArg, "file already exists");
+				if(camera->vinst->errorCallback)
+					(*camera->vinst->errorCallback)(camera->vinst->errorCallbackArg, "file already exists");
 				msg.setText("File already exists. Rename then try saving again.");
 				msg.exec();
 				return;
 			}
 			else if(RECORD_DIRECTORY_NOT_WRITABLE == ret)
 			{
-				if(camera->recorder->errorCallback)
-					(*camera->recorder->errorCallback)(camera->recorder->errorCallbackArg, "save directory is not writable");
+				if(camera->vinst->errorCallback)
+					(*camera->vinst->errorCallback)(camera->vinst->errorCallbackArg, "save directory is not writable");
 				msg.setText("Save directory is not writable.");
 				msg.exec();
 				return;
 			}
             else if(RECORD_INSUFFICIENT_SPACE == ret)
             {
-				if(camera->recorder->errorCallback)
-					(*camera->recorder->errorCallback)(camera->recorder->errorCallbackArg, "insufficient free space");
+				if(camera->vinst->errorCallback)
+					(*camera->vinst->errorCallback)(camera->vinst->errorCallbackArg, "insufficient free space");
                 msg.setText("Selected device does not have sufficient free space.");
                 msg.exec();
                 return;
@@ -223,16 +223,16 @@ void playbackWindow::on_cmdSave_clicked()
 		}
 		else
 		{
-			if(camera->recorder->errorCallback)
-				(*camera->recorder->errorCallback)(camera->recorder->errorCallbackArg, "location not found");
-			msg.setText(QString("Save location ") + QString(camera->recorder->fileDirectory) + " not found, set save location in Settings");
+			if(camera->vinst->errorCallback)
+				(*camera->vinst->errorCallback)(camera->vinst->errorCallbackArg, "location not found");
+			msg.setText(QString("Save location ") + QString(camera->vinst->fileDirectory) + " not found, set save location in Settings");
 			msg.exec();
 			return;
 		}
 	}
 	else
 	{
-		camera->recorder->stop2();
+		camera->vinst->stopRecording();
 	}
 
 }
@@ -311,7 +311,8 @@ void playbackWindow::updatePlayFrame()
 //Once save is done, re-enable the window
 void playbackWindow::checkForSaveDone()
 {
-	if(camera->recorder->endOfStream())
+	VideoStatus st;
+	if(camera->vinst->getStatus(&st) != VIDEO_STATE_RECORDING)
 	{
 		saveDoneTimer->stop();
 		delete saveDoneTimer;
@@ -327,7 +328,7 @@ void playbackWindow::checkForSaveDone()
 	}
 	else {
 		char tmp[64];
-		sprintf(tmp, "%.1ffps", camera->recorder->getFramerate());
+		sprintf(tmp, "%.1ffps", (float)st.framerate);
 		ui->lblFrameRate->setText(tmp);
 	}
 }

@@ -65,7 +65,6 @@ SOURCES += main.cpp\
     playbackwindow.cpp \
     cameraLowLevel.cpp \
     recsettingswindow.cpp \
-    videoRecord.cpp \
     gstLaunch.c \
     util.cpp \
     savesettingswindow.cpp \

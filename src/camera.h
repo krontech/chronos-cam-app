@@ -29,7 +29,6 @@
 #include "lux1310.h"
 #include "userInterface.h"
 #include "io.h"
-#include "videoRecord.h"
 #include "string.h"
 #include "types.h"
 
@@ -193,7 +192,6 @@ public:
 	Video * vinst;
 	LUX1310 * sensor;
 	UserInterface * ui;
-	VideoRecord * recorder;
 	IO * io;
 
 	UInt32 getPlayFrameAddr(UInt32 playFrame);

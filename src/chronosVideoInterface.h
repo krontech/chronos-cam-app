@@ -77,6 +77,12 @@ public Q_SLOTS: // METHODS
         return asyncCallWithArgumentList(QLatin1String("recordfile"), argumentList);
     }
 
+	inline QDBusPendingReply<QVariantMap> stop()
+	{
+		QList<QVariant> argumentList;
+		return asyncCallWithArgumentList(QLatin1String("stop"), argumentList);
+	}
+
     inline QDBusPendingReply<QVariantMap> status()
     {
         QList<QVariant> argumentList;
