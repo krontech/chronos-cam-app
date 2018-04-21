@@ -2877,7 +2877,7 @@ Int32 Camera::takeWhiteReferences(void)
 
 bool Camera::getButtonsOnLeft(void){
 	QSettings appSettings;
-	return (appSettings.value("camera/ButtonsOnLeft", ButtonsOnLeft).toBool());
+	return (appSettings.value("camera/ButtonsOnLeft", false).toBool());
 }
 
 void Camera::setButtonsOnLeft(bool en){
@@ -2888,7 +2888,7 @@ void Camera::setButtonsOnLeft(bool en){
 
 bool Camera::getUpsideDownDisplay(){
 	QSettings appSettings;
-	return (appSettings.value("camera/UpsideDownDisplay", 0).toBool());
+	return (appSettings.value("camera/UpsideDownDisplay", false).toBool());
 }
 
 void Camera::setUpsideDownDisplay(bool en){
@@ -2916,7 +2916,7 @@ void Camera::upsideDownTransform(int rotation){
 bool Camera::getFocusPeakEnable(void)
 {
 	QSettings appSettings;
-	return appSettings.value("camera/focusPeak", focusPeakEnabled).toBool();
+	return appSettings.value("camera/focusPeak", false).toBool();
 }
 void Camera::setFocusPeakEnable(bool en)
 {
@@ -2942,7 +2942,7 @@ void Camera::setFocusPeakColor(int value){
 bool Camera::getZebraEnable(void)
 {
 	QSettings appSettings;
-	return appSettings.value("camera/zebra", zebraEnabled).toBool();
+	return appSettings.value("camera/zebra", true).toBool();
 }
 void Camera::setZebraEnable(bool en)
 {
@@ -2974,7 +2974,7 @@ void Camera::set_autoSave(bool state) {
 
 bool Camera::get_autoSave() {
 	QSettings appSettings;
-	return appSettings.value("camera/autoSave", autoSave).toBool();
+	return appSettings.value("camera/autoSave", false).toBool();
 }
 
 
@@ -2986,7 +2986,7 @@ void Camera::set_autoRecord(bool state) {
 
 bool Camera::get_autoRecord() {
 	QSettings appSettings;
-	return appSettings.value("camera/autoRecord", autoRecord).toBool();
+	return appSettings.value("camera/autoRecord", false).toBool();
 }
 
 
