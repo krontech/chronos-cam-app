@@ -2832,8 +2832,8 @@ void Video::setDisplayWindowStartX(bool videoOnRight){
 	else
 		displayWindowStartX = displayWindowStartXOffset;
 
-	stopVideo();//Video must be stopped and started to be able to change its position
-	startVideo();
+	setRunning(false);
+	setRunning(true);
 }
 
 Video::~Video()
