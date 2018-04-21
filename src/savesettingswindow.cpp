@@ -124,16 +124,19 @@ saveSettingsWindow::~saveSettingsWindow()
 void saveSettingsWindow::on_cmdClose_clicked()
 {
 	QSettings settings;
-	camera->recorder->bitsPerPixel = ui->spinBitrate->value();
-	camera->recorder->maxBitrate = ui->spinMaxBitrate->value();
-	camera->recorder->framerate = ui->spinFramerate->value();
+
 	camera->recorder->profile = 1 << ui->comboProfile->currentIndex();
 	camera->recorder->level = 1 << ui->comboLevel->currentIndex();
 
-	settings.setValue("recorder/saveFormat", ui->comboSaveFormat->currentIndex());
-		
-	strcpy(camera->recorder->filename, ui->lineFilename->text().toStdString().c_str());
+	saveFileDirectory();
 
+	settings.setValue("recorder/profile", camera->recorder->profile);
+	settings.setValue("recorder/level", camera->recorder->level);
+
+	close();
+}
+
+void saveSettingsWindow::saveFileDirectory(){
 	//Keep the beginning of the combo box text (the path)
 	char str[100];
 	const char * path;
@@ -149,16 +152,8 @@ void saveSettingsWindow::on_cmdClose_clicked()
 		path = "";
 
 	strcpy(camera->recorder->fileDirectory, path);
-
-	settings.setValue("recorder/bitsPerPixel", camera->recorder->bitsPerPixel);
-	settings.setValue("recorder/maxBitrate", camera->recorder->maxBitrate);
-	settings.setValue("recorder/framerate", camera->recorder->framerate);
-	settings.setValue("recorder/filename", camera->recorder->filename);
+	QSettings settings;
 	settings.setValue("recorder/fileDirectory", camera->recorder->fileDirectory);
-	settings.setValue("recorder/profile", camera->recorder->profile);
-	settings.setValue("recorder/level", camera->recorder->level);
-
-	close();
 }
 
 void saveSettingsWindow::on_cmdUMount_clicked()
@@ -193,6 +188,7 @@ void saveSettingsWindow::refreshDriveList()
 	char drive[1024];		//Stores string to be placed in combo box
 	UInt32 len;
 
+	okToSaveLocation = false;//prevent saving a new value while drive list is being updated
 	ui->comboDrive->clear();
 
 	//ui->comboDrive->addItem("/");
@@ -291,7 +287,7 @@ void saveSettingsWindow::refreshDriveList()
 		ui->comboDrive->setEnabled(false);
 
 	}
-
+	okToSaveLocation = true;
 }
 
 void saveSettingsWindow::on_cmdRefresh_clicked()
@@ -331,11 +327,17 @@ void saveSettingsWindow::updateBitrate()
 void saveSettingsWindow::on_spinBitrate_valueChanged(double arg1)
 {
 	updateBitrate();
+	QSettings settings;
+	camera->recorder->bitsPerPixel = ui->spinBitrate->value();
+	settings.setValue("recorder/bitsPerPixel", camera->recorder->bitsPerPixel);
 }
 
 void saveSettingsWindow::on_spinFramerate_valueChanged(int arg1)
 {
 	updateBitrate();
+	QSettings settings;
+	camera->recorder->framerate = ui->spinFramerate->value();
+	settings.setValue("recorder/framerate", camera->recorder->framerate);
 }
 
 //When the number of drives connected changes, refresh the drive list
@@ -372,11 +374,19 @@ void saveSettingsWindow::updateDrives(void)
 
 }
 
-
+void saveSettingsWindow::on_lineFilename_textEdited(const QString &arg1)
+{
+	QSettings settings;
+	strcpy(camera->recorder->filename, ui->lineFilename->text().toStdString().c_str());
+	settings.setValue("recorder/filename", camera->recorder->filename);
+}
 
 void saveSettingsWindow::on_spinMaxBitrate_valueChanged(int arg1)
 {
 	updateBitrate();
+	QSettings settings;
+	camera->recorder->maxBitrate = ui->spinMaxBitrate->value();
+	settings.setValue("recorder/maxBitrate", camera->recorder->maxBitrate);
 }
 
 void saveSettingsWindow::on_comboSaveFormat_currentIndexChanged(int index)
@@ -393,4 +403,23 @@ void saveSettingsWindow::on_comboSaveFormat_currentIndexChanged(int index)
 		ui->spinMaxBitrate->setEnabled(false);
 	}
 	updateBitrate();
+	QSettings settings;
+	settings.setValue("recorder/saveFormat", ui->comboSaveFormat->currentIndex());
+}
+
+void saveSettingsWindow::setControlEnable(bool en){
+	ui->spinBitrate->setEnabled(en);
+	ui->spinFramerate->setEnabled(en);
+	ui->spinMaxBitrate->setEnabled(en);
+	ui->lineFilename->setEnabled(en);
+	ui->comboSaveFormat->setEnabled(en);
+	ui->comboDrive->setEnabled(en);
+	ui->cmdRefresh->setEnabled(en);
+	ui->cmdUMount->setEnabled(en);
+	ui->cmdClose->setEnabled(en);
+}
+
+void saveSettingsWindow::on_comboDrive_currentIndexChanged(const QString &arg1)
+{
+	if(okToSaveLocation) saveFileDirectory();
 }
