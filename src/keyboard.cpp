@@ -125,6 +125,7 @@ void keyboard::buttonClicked(QWidget *w)
 	{
 		shift = false;
 		ui->shift->setStyleSheet(QString(""));
+		setLowercase();
 	}
 }
 
@@ -134,11 +135,13 @@ void keyboard::on_caps_clicked()
 	{
 		capslock = false;
 		ui->caps->setStyleSheet(QString(""));
+		setLowercase();
 	}
 	else
 	{
 		capslock = true;
 		ui->caps->setStyleSheet(QString(KEYBOARD_BACKGROUND_BUTTON));
+		setUppercase();
 	}
 }
 
@@ -153,11 +156,70 @@ void keyboard::on_shift_clicked()
 	{
 		shift = false;
 		ui->shift->setStyleSheet(QString(""));
+		setLowercase();
 	}
 	else
 	{
 		shift = true;
 		ui->shift->setStyleSheet(QString(KEYBOARD_BACKGROUND_BUTTON));
+		setUppercase();
 	}
 }
 
+void keyboard::setUppercase(){
+	ui->Q->setText("Q");
+	ui->W->setText("W");
+	ui->E->setText("E");
+	ui->R->setText("R");
+	ui->T->setText("T");
+	ui->Y->setText("Y");
+	ui->U->setText("U");
+	ui->I->setText("I");
+	ui->O->setText("O");
+	ui->P->setText("P");
+	ui->A->setText("A");
+	ui->S->setText("S");
+	ui->D->setText("D");
+	ui->F->setText("F");
+	ui->G->setText("G");
+	ui->H->setText("H");
+	ui->J->setText("J");
+	ui->K->setText("K");
+	ui->L->setText("L");
+	ui->Z->setText("Z");
+	ui->X->setText("X");
+	ui->C->setText("C");
+	ui->V->setText("V");
+	ui->B->setText("B");
+	ui->N->setText("N");
+	ui->M->setText("M");
+}
+
+void keyboard::setLowercase(){
+	ui->Q->setText("q");
+	ui->W->setText("w");
+	ui->E->setText("e");
+	ui->R->setText("r");
+	ui->T->setText("t");
+	ui->Y->setText("y");
+	ui->U->setText("u");
+	ui->I->setText("i");
+	ui->O->setText("o");
+	ui->P->setText("p");
+	ui->A->setText("a");
+	ui->S->setText("s");
+	ui->D->setText("d");
+	ui->F->setText("f");
+	ui->G->setText("g");
+	ui->H->setText("h");
+	ui->J->setText("j");
+	ui->K->setText("k");
+	ui->L->setText("l");
+	ui->Z->setText("z");
+	ui->X->setText("x");
+	ui->C->setText("c");
+	ui->V->setText("v");
+	ui->B->setText("b");
+	ui->N->setText("n");
+	ui->M->setText("m");
+}
