@@ -23,6 +23,7 @@ keyboard::keyboard(QWidget *parent) :
 {
 	ui->setupUi(this);
 	capslock = shift = false;
+	setLowercase();
 
 	connect(qApp, SIGNAL(focusChanged(QWidget*,QWidget*)),
 			this, SLOT(saveFocusWidget(QWidget*,QWidget*)));
