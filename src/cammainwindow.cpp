@@ -282,7 +282,7 @@ void CamMainWindow::on_cmdFPNCal_clicked()//Black cal
 			if(QMessageBox::Yes != reply)
 				return;
 	}
-	sw->setText("Performing black calibration. Please wait.\r\nBeta Software: This will be much faster in a future software update");
+	sw->setText("Performing black calibration...");
 	sw->show();
 	QCoreApplication::processEvents();
 	camera->autoFPNCorrection(16, true);
