@@ -21,7 +21,7 @@
   </property>
   <property name="styleSheet">
    <string notr="true">
-    /* «begin clip from 'assets/whitelook-common.css' (35563587176a49b8380b5374d91c45c9)» */
+    /* «begin clip from 'assets/whitelook-common.css' (754a5c938491b9b25ee4da98364d39a4)» */
       /*
       === X General Styles for the CamApp ===
       
@@ -36,6 +36,10 @@
       the changes made to the clipped region will get overwritten.
       */
       
+      
+      * {
+        font: 6.75pt "DejaVu Sans";
+      }
       
       .QPushButton {
         border: 1px solid black;
@@ -119,7 +123,6 @@
       QSpinBox { 
         border: 1px solid black;
         padding-right: 40px;
-        font-size: 6pt;
         margin: 10px;
         padding-left: 10px;
       }

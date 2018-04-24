@@ -187,7 +187,7 @@
     <rect>
      <x>20</x>
      <y>20</y>
-     <width>131</width>
+     <width>111</width>
      <height>41</height>
     </rect>
    </property>
@@ -272,28 +272,6 @@
     <bool>true</bool>
    </property>
   </widget>
-  <widget class="QLabel" name="label_2">
-   <property name="geometry">
-    <rect>
-     <x>20</x>
-     <y>130</y>
-     <width>140</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <family>DejaVu Sans</family>
-     <pointsize>7</pointsize>
-     <weight>50</weight>
-     <italic>false</italic>
-     <bold>false</bold>
-    </font>
-   </property>
-   <property name="text">
-    <string>Offset</string>
-   </property>
-  </widget>
   <widget class="QPushButton" name="cmdMax">
    <property name="geometry">
     <rect>
@@ -321,7 +299,7 @@
     <rect>
      <x>20</x>
      <y>190</y>
-     <width>140</width>
+     <width>111</width>
      <height>41</height>
     </rect>
    </property>
@@ -649,7 +627,7 @@
     <rect>
      <x>20</x>
      <y>300</y>
-     <width>140</width>
+     <width>111</width>
      <height>41</height>
     </rect>
    </property>
@@ -671,7 +649,7 @@
     <rect>
      <x>20</x>
      <y>360</y>
-     <width>140</width>
+     <width>111</width>
      <height>41</height>
     </rect>
    </property>
@@ -877,6 +855,28 @@
      <set>Qt::AlignCenter</set>
     </property>
    </widget>
+   <widget class="QLabel" name="label_2">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>130</y>
+      <width>111</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>DejaVu Sans</family>
+      <pointsize>7</pointsize>
+      <weight>50</weight>
+      <italic>false</italic>
+      <bold>false</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Offset</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QWidget" name="widget_2" native="true">
    <property name="geometry">
@@ -974,11 +974,10 @@
     <string>990.00u</string>
    </property>
   </widget>
-  <zorder>label_2</zorder>
+  <zorder>widget</zorder>
   <zorder>widget_2</zorder>
   <zorder>widget_3</zorder>
   <zorder>widget_4</zorder>
-  <zorder>widget</zorder>
   <zorder>label</zorder>
   <zorder>comboRes</zorder>
   <zorder>spinVRes</zorder>

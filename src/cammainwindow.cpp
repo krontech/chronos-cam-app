@@ -587,7 +587,8 @@ void CamMainWindow::UtilWindow_closed(){
 
 void CamMainWindow::updateCamMainWindowPosition(){
 	//qDebug()<<"windowpos old " << this->x();
-	move(camera->ButtonsOnLeft? 0:600, 0);
+	//[gui2] move(camera->ButtonsOnLeft? 0:600, 0);
+	move(0,0);
 	//qDebug()<<"windowpos new " << this->x();
 }
 
