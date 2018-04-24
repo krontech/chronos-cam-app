@@ -123,9 +123,7 @@ void keyboard::buttonClicked(QWidget *w)
 	emit characterGenerated(capslock || shift ? chr : chr.toLower());
 	if(shift)
 	{
-		shift = false;
-		ui->shift->setStyleSheet(QString(""));
-		if(!capslock) setLowercase();
+		on_shift_clicked();
 	}
 }
 
@@ -136,12 +134,14 @@ void keyboard::on_caps_clicked()
 		capslock = false;
 		ui->caps->setStyleSheet(QString(""));
 		if(!shift) setLowercase();
+		else setUppercase();
 	}
 	else
 	{
 		capslock = true;
 		ui->caps->setStyleSheet(QString(KEYBOARD_BACKGROUND_BUTTON));
-		setUppercase();
+		if(shift)setLowercase();
+		else setUppercase();
 	}
 }
 
@@ -157,12 +157,14 @@ void keyboard::on_shift_clicked()
 		shift = false;
 		ui->shift->setStyleSheet(QString(""));
 		if(!capslock) setLowercase();
+		else setUppercase();
 	}
 	else
 	{
 		shift = true;
 		ui->shift->setStyleSheet(QString(KEYBOARD_BACKGROUND_BUTTON));
-		setUppercase();
+		if(capslock) setLowercase();
+		else setUppercase();
 	}
 }
 
