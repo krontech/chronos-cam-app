@@ -230,8 +230,6 @@ void playbackWindow::on_cmdSave_clicked()
 			ui->verticalSlider->appendRegionToList();
 			ui->verticalSlider->setHighlightRegion(markOutFrame, markOutFrame);
 			//both arguments should be markout because a new rectangle will be drawn, and it should not overlap the one that was just appended
-			markInFrameOld = markInFrame;
-			markInFrame = markOutFrame;
 			emit enableSaveSettingsButtons(false);
 		}
 		else
@@ -248,7 +246,6 @@ void playbackWindow::on_cmdSave_clicked()
 		//This block is executed when Abort is clicked
 		camera->recorder->stop2();
 		ui->verticalSlider->removeLastRegionFromList();
-		markInFrame = markInFrameOld;
 		ui->verticalSlider->setHighlightRegion(markInFrame, markOutFrame);
 	}
 
@@ -331,6 +328,7 @@ void playbackWindow::checkForSaveDone()
 		emit enableSaveSettingsButtons(true);
 		ui->cmdSave->setEnabled(true);
 		updatePlayRateLabel(playbackRate);
+		ui->verticalSlider->setHighlightRegion(markInFrame, markOutFrame);
 
 		if(autoSaveFlag) {
 			close();
