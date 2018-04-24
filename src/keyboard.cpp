@@ -125,7 +125,7 @@ void keyboard::buttonClicked(QWidget *w)
 	{
 		shift = false;
 		ui->shift->setStyleSheet(QString(""));
-		setLowercase();
+		if(!capslock) setLowercase();
 	}
 }
 
@@ -135,7 +135,7 @@ void keyboard::on_caps_clicked()
 	{
 		capslock = false;
 		ui->caps->setStyleSheet(QString(""));
-		setLowercase();
+		if(!shift) setLowercase();
 	}
 	else
 	{
@@ -156,7 +156,7 @@ void keyboard::on_shift_clicked()
 	{
 		shift = false;
 		ui->shift->setStyleSheet(QString(""));
-		setLowercase();
+		if(!capslock) setLowercase();
 	}
 	else
 	{
