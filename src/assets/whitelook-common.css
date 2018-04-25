@@ -66,7 +66,7 @@ QComboBox:on {
   padding-left: -1px;
 }
 .QComboBox::down-arrow {
-  image: url(assets/wedge-down-enabled.png);
+  image: url(assets/images/wedge-down-enabled.png);
 }
 
 QScrollBar, QScrollBar:vertical, QScrollBar:horizontal {
@@ -78,7 +78,7 @@ QScrollBar::handle:vertical {
   border-radius: 0;
   background: white;
   min-height: 72px;
-  image: url(assets/handle-bars.png);
+  image: url(assets/images/handle-bars.png);
   margin: -1px;
 }
 /* This remvoes the bottom button by setting the height to 0px */
@@ -108,18 +108,18 @@ QSpinBox:disabled {
 QSpinBox::up-button { 
   subcontrol-position: right; 
   right: 40px; 
-  image: url(assets/wedge-up-enabled.png);
+  image: url(assets/images/wedge-up-enabled.png);
 }
 QSpinBox::up-button:disabled { 
-  image: url(assets/wedge-up-disabled.png);
+  image: url(assets/images/wedge-up-disabled.png);
 }
 QSpinBox::down-button { 
   subcontrol-position: right; 
-  image: url(assets/wedge-down-enabled.png);
+  image: url(assets/images/wedge-down-enabled.png);
 }
 QSpinBox::down-button:disabled { 
   subcontrol-position: right; 
-  image: url(assets/wedge-down-disabled.png);
+  image: url(assets/images/wedge-down-disabled.png);
 }
 QSpinBox::up-button, QSpinBox::down-button {
   border: 0px solid black;

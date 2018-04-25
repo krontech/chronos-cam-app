@@ -112,7 +112,7 @@
   </property>
   <property name="styleSheet">
    <string notr="true">
-    /* «begin clip from 'assets/whitelook-common.css' (754a5c938491b9b25ee4da98364d39a4)» */
+    /* «begin clip from 'assets/whitelook-common.css' (8ec63cd0b29c0b698c3b91c44c6dfe89)» */
       /*
       === X General Styles for the CamApp ===
       
@@ -129,7 +129,7 @@
       
       
       * {
-        font: 6.75pt "DejaVu Sans";
+        font: 6.75pt &quot;DejaVu Sans&quot;;
       }
       
       .QPushButton {
@@ -181,7 +181,7 @@
         padding-left: -1px;
       }
       .QComboBox::down-arrow {
-        image: url(assets/wedge-down-enabled.png);
+        image: url(assets/images/wedge-down-enabled.png);
       }
       
       QScrollBar, QScrollBar:vertical, QScrollBar:horizontal {
@@ -193,7 +193,7 @@
         border-radius: 0;
         background: white;
         min-height: 72px;
-        image: url(assets/handle-bars.png);
+        image: url(assets/images/handle-bars.png);
         margin: -1px;
       }
       /* This remvoes the bottom button by setting the height to 0px */
@@ -223,18 +223,18 @@
       QSpinBox::up-button { 
         subcontrol-position: right; 
         right: 40px; 
-        image: url(assets/wedge-up-enabled.png);
+        image: url(assets/images/wedge-up-enabled.png);
       }
       QSpinBox::up-button:disabled { 
-        image: url(assets/wedge-up-disabled.png);
+        image: url(assets/images/wedge-up-disabled.png);
       }
       QSpinBox::down-button { 
         subcontrol-position: right; 
-        image: url(assets/wedge-down-enabled.png);
+        image: url(assets/images/wedge-down-enabled.png);
       }
       QSpinBox::down-button:disabled { 
         subcontrol-position: right; 
-        image: url(assets/wedge-down-disabled.png);
+        image: url(assets/images/wedge-down-disabled.png);
       }
       QSpinBox::up-button, QSpinBox::down-button {
         border: 0px solid black;
@@ -269,6 +269,7 @@
     
     #topBarBackground, #sideBarBackground {
       background: white;
+      border: 1px solid black;
     }
     
     #topBar &gt; .QPushButton {
@@ -279,9 +280,47 @@
       margin: 0 0 0 20px;
     }
     
-    #expSlider {
-      margin: 0 0 0 200px;
+    #sideBar &gt; #cmdPlay {
+      margin: 0 0 20px 20px;
     }
+    
+    #sideBar &gt; #cmdRec {
+      /*Draw red rec. button.*/
+      background: qradialgradient(cx:0.5, cy:0.5, fx:0.5, fy:0.5 radius:1,
+        stop:0.369 rgb(255,55,55), /*Recording Button Red*/
+        stop:0.380 rgb(20,20,20), /*.002 transition width gives a decently antialiased line.*/
+        stop:0.391 transparent,
+        stop:0.469 transparent,
+        stop:0.480 rgb(20,20,20),
+        stop:0.491 transparent ); /*Leave some room for antialiasing along the edges of the circle, especially around the axis.*/
+      border: 0px solid black; /*This doesn't work quite right, it's dashed around the shallow curves near the axis of the circle.*/
+      border-radius: 40%; /*I believe this is getting interpreted -- incorrectly -- as a px value, which also -- incorrectly -- can't be more than half the width/height of the button or it gets ignored.*/
+      margin: 10px;
+    }
+    
+    #expSlider {
+      margin: 0;
+    }
+    
+    QSlider::groove:vertical {
+      /*This slider has an extra-large hitbox, so it's easy to tap. This is done by giving it a very large, invisible margin. A small graphic, handle-bars.png, draws the visual slider for us. Note that the real area of the slider, and it's QWidget holders, must be as large as the hitbox.*/
+      border: 1px solid black;
+      width: 20px; /* the groove expands to the size of the slider by default. by giving it a height, it has a fixed size */
+      background: transparent;
+      margin: 20px;
+      border-radius: 10px;
+      padding: 0px;
+     } 
+    QSlider::handle:vertical {
+      background: rgba(128,128,128,0); /*Add some opacity to see the slider's actual hitbox.*/
+      image: url(assets/images/handle-bars.png);
+      border: 40px solid transparent;
+      border-left-width: 40px;
+      height: 90px;
+      margin: -60px; /* handle is placed by default on the contents rect of the groove. Expand outside the groove */
+      margin-left: -60px;
+      border-radius: 0px;
+     }
    </string>
   </property>
   <widget class="QPushButton" name="cmdClose">
@@ -310,36 +349,11 @@
     <string>Debug</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="cmdRec">
-   <property name="geometry">
-    <rect>
-     <x>680</x>
-     <y>360</y>
-     <width>101</width>
-     <height>101</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <family>DejaVu Sans</family>
-     <pointsize>7</pointsize>
-     <weight>50</weight>
-     <italic>false</italic>
-     <bold>false</bold>
-    </font>
-   </property>
-   <property name="autoFillBackground">
-    <bool>false</bool>
-   </property>
-   <property name="text">
-    <string>Record</string>
-   </property>
-  </widget>
   <widget class="QLabel" name="lblCurrent">
    <property name="geometry">
     <rect>
-     <x>0</x>
-     <y>410</y>
+     <x>410</x>
+     <y>400</y>
      <width>181</width>
      <height>71</height>
     </rect>
@@ -360,7 +374,7 @@
     <string>TextLabel</string>
    </property>
    <property name="alignment">
-    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+    <set>Qt::AlignBottom|Qt::AlignRight|Qt::AlignTrailing</set>
    </property>
   </widget>
   <widget class="QPushButton" name="cmdDPCButton">
@@ -470,27 +484,7 @@
      </font>
     </property>
     <property name="text">
-     <string>Record
-Settings</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="lblExp">
-    <property name="geometry">
-     <rect>
-      <x>600</x>
-      <y>40</y>
-      <width>61</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">color : rgb(255, 255, 255)</string>
-    </property>
-    <property name="text">
-     <string>Exp.</string>
-    </property>
-    <property name="alignment">
-     <set>Qt::AlignCenter</set>
+     <string>Record Settings</string>
     </property>
    </widget>
    <widget class="QWidget" name="topBarBackground" native="true">
@@ -524,56 +518,21 @@ Settings</string>
    <zorder>cmdIOSettings_2</zorder>
    <zorder>cmdUtil</zorder>
    <zorder>cmdRecSettings</zorder>
-   <zorder>lblExp</zorder>
    <zorder>label</zorder>
   </widget>
   <widget class="QWidget" name="sideBar" native="true">
    <property name="geometry">
     <rect>
-     <x>580</x>
+     <x>550</x>
      <y>40</y>
-     <width>221</width>
+     <width>251</width>
      <height>442</height>
     </rect>
    </property>
-   <widget class="QSlider" name="expSlider">
-    <property name="geometry">
-     <rect>
-      <x>-180</x>
-      <y>20</y>
-      <width>261</width>
-      <height>421</height>
-     </rect>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">QSlider::groove:vertical {
-     border: 1px solid #999999;
-     width: 48px; /* the groove expands to the size of the slider by default. by giving it a height, it has a fixed size */
-     background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #B1B1B1, stop:1 #c4c4c4);
-     margin: 2px 0;
- } 
-QSlider::handle:vertical {
-     background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #b4b4b4, stop:1 #8f8f8f);
-     border: 1px solid #5c5c5c;
-     height: 60px;
-     margin: -2px 0; /* handle is placed by default on the contents rect of the groove. Expand outside the groove */
-     border-radius: 3px;
- }</string>
-    </property>
-    <property name="singleStep">
-     <number>1</number>
-    </property>
-    <property name="value">
-     <number>0</number>
-    </property>
-    <property name="orientation">
-     <enum>Qt::Vertical</enum>
-    </property>
-   </widget>
    <widget class="QPushButton" name="cmdFPNCal">
     <property name="geometry">
      <rect>
-      <x>60</x>
+      <x>90</x>
       <y>0</y>
       <width>161</width>
       <height>61</height>
@@ -595,9 +554,9 @@ QSlider::handle:vertical {
    <widget class="QCheckBox" name="chkFocusAid">
     <property name="geometry">
      <rect>
-      <x>80</x>
+      <x>120</x>
       <y>60</y>
-      <width>141</width>
+      <width>131</width>
       <height>61</height>
      </rect>
     </property>
@@ -623,14 +582,13 @@ QSlider::handle:vertical {
 </string>
     </property>
     <property name="text">
-     <string>Focus
-Aid</string>
+     <string>Focus Aid</string>
     </property>
    </widget>
    <widget class="QPushButton" name="cmdWB_2">
     <property name="geometry">
      <rect>
-      <x>60</x>
+      <x>90</x>
       <y>120</y>
       <width>161</width>
       <height>61</height>
@@ -652,7 +610,7 @@ Aid</string>
    <widget class="QPushButton" name="cmdWB">
     <property name="geometry">
      <rect>
-      <x>60</x>
+      <x>90</x>
       <y>180</y>
       <width>161</width>
       <height>61</height>
@@ -678,10 +636,10 @@ Balance</string>
     </property>
     <property name="geometry">
      <rect>
-      <x>60</x>
+      <x>90</x>
       <y>240</y>
       <width>161</width>
-      <height>61</height>
+      <height>81</height>
      </rect>
     </property>
     <property name="font">
@@ -694,30 +652,101 @@ Balance</string>
      </font>
     </property>
     <property name="text">
-     <string>Save &amp;Play</string>
+     <string>Save &amp;&amp;
+Play</string>
     </property>
    </widget>
    <widget class="QWidget" name="sideBarBackground" native="true">
     <property name="geometry">
      <rect>
-      <x>20</x>
-      <y>1</y>
+      <x>51</x>
+      <y>0</y>
       <width>201</width>
-      <height>440</height>
+      <height>441</height>
      </rect>
+    </property>
+    <property name="layoutDirection">
+     <enum>Qt::RightToLeft</enum>
+    </property>
+   </widget>
+   <widget class="QLabel" name="lblExp">
+    <property name="geometry">
+     <rect>
+      <x>50</x>
+      <y>1</y>
+      <width>61</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Exp.</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="cmdRec">
+    <property name="geometry">
+     <rect>
+      <x>120</x>
+      <y>310</y>
+      <width>121</width>
+      <height>121</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>DejaVu Sans</family>
+      <pointsize>7</pointsize>
+      <weight>50</weight>
+      <italic>false</italic>
+      <bold>false</bold>
+     </font>
+    </property>
+    <property name="autoFillBackground">
+     <bool>false</bool>
+    </property>
+    <property name="text">
+     <string>Rec.</string>
+    </property>
+   </widget>
+   <widget class="QSlider" name="expSlider">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>30</y>
+      <width>143</width>
+      <height>411</height>
+     </rect>
+    </property>
+    <property name="sizePolicy">
+     <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
+      <horstretch>0</horstretch>
+      <verstretch>0</verstretch>
+     </sizepolicy>
+    </property>
+    <property name="singleStep">
+     <number>1</number>
+    </property>
+    <property name="value">
+     <number>0</number>
+    </property>
+    <property name="orientation">
+     <enum>Qt::Vertical</enum>
     </property>
    </widget>
    <zorder>sideBarBackground</zorder>
+   <zorder>expSlider</zorder>
+   <zorder>lblExp</zorder>
    <zorder>cmdFPNCal</zorder>
    <zorder>chkFocusAid</zorder>
    <zorder>cmdWB_2</zorder>
    <zorder>cmdWB</zorder>
    <zorder>cmdPlay</zorder>
-   <zorder>expSlider</zorder>
+   <zorder>cmdRec</zorder>
   </widget>
   <zorder>topBar</zorder>
   <zorder>sideBar</zorder>
-  <zorder>cmdRec</zorder>
   <zorder>lblCurrent</zorder>
   <zorder>cmdDPCButton</zorder>
   <zorder>cmdClose</zorder>
