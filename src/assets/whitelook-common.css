@@ -32,6 +32,11 @@ the changes made to the clipped region will get overwritten.
   background: rgb(240,240,240);
 }
 
+.QMessageBox .QPushButton {
+  margin: 0;
+  padding: 10px 60px;
+}
+
 .QComboBox {
   /*subcontrol-origin: padding; does nothing but mess up the drop-down button*/
   background: white;

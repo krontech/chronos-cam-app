@@ -188,6 +188,8 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 		camera->updateVideoPosition();
 	}
 
+	updateCamMainWindowPosition();
+
 	//record the number of widgets that are open before any other windows can be opened
 	QWidgetList qwl = QApplication::topLevelWidgets();
 	windowsAlwaysOpen = qwl.count();
@@ -317,7 +319,7 @@ void CamMainWindow::on_cmdFPNCal_clicked()//Black cal
 			//If there is unsaved video in RAM, prompt to start record
 			QMessageBox::StandardButton reply;
 			if(false == camera->recordingData.hasBeenSaved)	reply = QMessageBox::question(this, "Unsaved video in RAM", "Performing black calibration will erase the unsaved video in RAM. Continue?", QMessageBox::Yes|QMessageBox::No);
-			else											reply = QMessageBox::question(this, "Start black calibration?", "Will start black calibration. Continue?", QMessageBox::Yes|QMessageBox::No);
+			else											reply = QMessageBox::question(this, "Start black cal?", "This will start black calibration, which will take a few seconds. Continue?", QMessageBox::Yes|QMessageBox::No);
 
 			if(QMessageBox::Yes != reply)
 				return;

@@ -112,7 +112,7 @@
   </property>
   <property name="styleSheet">
    <string notr="true">
-    /* «begin clip from 'assets/whitelook-common.css' (8ec63cd0b29c0b698c3b91c44c6dfe89)» */
+    /* «begin clip from 'assets/whitelook-common.css' (559c0ae38be80d38eaed3d8d99678e7c)» */
       /*
       === X General Styles for the CamApp ===
       
@@ -129,7 +129,7 @@
       
       
       * {
-        font: 6.75pt &quot;DejaVu Sans&quot;;
+        font: 6.75pt "DejaVu Sans";
       }
       
       .QPushButton {
@@ -145,6 +145,16 @@
         border-top-color: black;
         border-left-color: black;
         background: rgb(240,240,240);
+      }
+      
+      .QMessageBox .QPushButton {
+        margin: 0;
+        padding: 10px 60px;
+      }
+      
+      .QMessageBox::title {
+        color: red;
+        font-size: 4px;
       }
       
       .QComboBox {
@@ -327,7 +337,7 @@
    <property name="geometry">
     <rect>
      <x>490</x>
-     <y>90</y>
+     <y>110</y>
      <width>111</width>
      <height>61</height>
     </rect>
@@ -340,7 +350,7 @@
    <property name="geometry">
     <rect>
      <x>490</x>
-     <y>140</y>
+     <y>160</y>
      <width>111</width>
      <height>61</height>
     </rect>
@@ -381,7 +391,7 @@
    <property name="geometry">
     <rect>
      <x>490</x>
-     <y>40</y>
+     <y>60</y>
      <width>111</width>
      <height>61</height>
     </rect>
@@ -396,7 +406,7 @@
      <x>0</x>
      <y>0</y>
      <width>801</width>
-     <height>61</height>
+     <height>71</height>
     </rect>
    </property>
    <widget class="QPushButton" name="cmdIOSettings">
@@ -405,7 +415,7 @@
       <x>0</x>
       <y>0</y>
       <width>181</width>
-      <height>61</height>
+      <height>71</height>
      </rect>
     </property>
     <property name="font">
@@ -427,7 +437,7 @@
       <x>180</x>
       <y>0</y>
       <width>181</width>
-      <height>61</height>
+      <height>71</height>
      </rect>
     </property>
     <property name="font">
@@ -449,7 +459,7 @@
       <x>360</x>
       <y>0</y>
       <width>181</width>
-      <height>61</height>
+      <height>71</height>
      </rect>
     </property>
     <property name="font">
@@ -471,7 +481,7 @@
       <x>540</x>
       <y>0</y>
       <width>181</width>
-      <height>61</height>
+      <height>71</height>
      </rect>
     </property>
     <property name="font">
@@ -493,7 +503,7 @@
       <x>0</x>
       <y>0</y>
       <width>801</width>
-      <height>41</height>
+      <height>51</height>
      </rect>
     </property>
    </widget>
@@ -503,7 +513,7 @@
       <x>722</x>
       <y>0</y>
       <width>81</width>
-      <height>41</height>
+      <height>51</height>
      </rect>
     </property>
     <property name="text">
@@ -524,9 +534,9 @@
    <property name="geometry">
     <rect>
      <x>550</x>
-     <y>40</y>
+     <y>50</y>
      <width>251</width>
-     <height>442</height>
+     <height>431</height>
     </rect>
    </property>
    <widget class="QPushButton" name="cmdFPNCal">
@@ -689,7 +699,7 @@ Play</string>
     <property name="geometry">
      <rect>
       <x>120</x>
-      <y>310</y>
+      <y>305</y>
       <width>121</width>
       <height>121</height>
      </rect>
@@ -716,7 +726,7 @@ Play</string>
       <x>10</x>
       <y>30</y>
       <width>143</width>
-      <height>411</height>
+      <height>401</height>
      </rect>
     </property>
     <property name="sizePolicy">
