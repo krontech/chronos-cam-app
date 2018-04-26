@@ -271,8 +271,15 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
     settings.segmentLengthFrames    = appSettings.value("camera/segmentLengthFrames", settings.recRegionSizeFrames).toInt();
     settings.segments               = appSettings.value("camera/segments", 1).toInt();
     settings.temporary              = 0;
+
 	setImagerSettings(settings);
     setDisplaySettings(false, MAX_LIVE_FRAMERATE);
+
+    io->setTriggerDelayFrames(0, FLAG_USESAVED);
+    setTriggerDelayValues((double) io->getTriggerDelayFrames() / settings.recRegionSizeFrames,
+			     io->getTriggerDelayFrames() * ((double)settings.period / 100000000),
+			     io->getTriggerDelayFrames());
+
 
 	vinst->setRunning(true);
 
@@ -285,6 +292,8 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 	recorder->errorCallbackArg = (void *)this;
 
 	loadColGainFromFile("cal/dcgL.bin");
+
+	maxPostFramesRatio = 1;
 
 	if(CAMERA_FILE_NOT_FOUND == loadFPNFromFile(FPN_FILENAME))
 		autoFPNCorrection(2, false, true);
@@ -454,6 +463,39 @@ UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 	}
 
 	return SUCCESS;
+}
+
+void Camera::updateTriggerValues(ImagerSettings_t settings){
+	if(getTriggerDelayConstant() == TRIGGERDELAY_TIME_RATIO){
+	   triggerPostFrames  = triggerTimeRatio * settings.recRegionSizeFrames;
+	   triggerPostSeconds = triggerPostFrames * ((double)settings.period / 100000000);
+     }
+     if(getTriggerDelayConstant() == TRIGGERDELAY_SECONDS){
+	   triggerTimeRatio  = settings.recRegionSizeFrames / ((double)settings.period / 100000000);
+	   triggerPostFrames = triggerPostSeconds / ((double)settings.period / 100000000);
+     }
+     if(getTriggerDelayConstant() == TRIGGERDELAY_FRAMES){
+	   triggerTimeRatio   = (double)triggerPostFrames / settings.recRegionSizeFrames;
+	   triggerPostSeconds = triggerPostFrames * ((double)settings.period / 100000000);
+     }
+     io->setTriggerDelayFrames(triggerPostFrames);
+}
+
+unsigned short Camera::getTriggerDelayConstant(){
+     QSettings appSettings;
+	//return appSettings.value("camera/triggerDelayConstant", TRIGGERDELAY_PRERECORDSECONDS).toUInt();
+	return TRIGGERDELAY_TIME_RATIO;//With comboBox removed, always use this choice instead.
+}
+
+void Camera::setTriggerDelayConstant(unsigned short value){
+     QSettings appSettings;
+     appSettings.setValue("camera/triggerDelayConstant", value);
+}
+
+void Camera::setTriggerDelayValues(double ratio, double seconds, UInt32 frames){
+	triggerTimeRatio = ratio;
+     triggerPostSeconds = seconds;
+     triggerPostFrames = frames;
 }
 
 UInt32 Camera::setIntegrationTime(double intTime, UInt32 hRes, UInt32 vRes, Int32 flags)

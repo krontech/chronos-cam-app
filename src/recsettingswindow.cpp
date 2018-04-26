@@ -205,6 +205,9 @@ void RecSettingsWindow::on_cmdOK_clicked()
     is->exposure = exp * 100000000.0 - 20;
 
     is->temporary = 0;
+
+    camera->updateTriggerValues(*is);
+
     camera->setImagerSettings(*is);
     camera->setDisplaySettings(false, MAX_LIVE_FRAMERATE);
 
@@ -788,7 +791,7 @@ void RecSettingsWindow::on_cmdDelaySettings_clicked()
     }
     else
     {
-        triggerDelayWindow *w = new triggerDelayWindow(NULL, camera, is);
+        triggerDelayWindow *w = new triggerDelayWindow(NULL, camera, is, siText2Double(ui->linePeriod->text().toAscii()));
         //w->camera = camera;
         w->setAttribute(Qt::WA_DeleteOnClose);
         w->show();

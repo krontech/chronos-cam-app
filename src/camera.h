@@ -69,6 +69,10 @@
 
 #define CAMERA_MAX_EXPOSURE_TARGET 3584
 
+#define TRIGGERDELAY_TIME_RATIO 0
+#define TRIGGERDELAY_SECONDS 1
+#define TRIGGERDELAY_FRAMES 2
+
 /*
 typedef enum CameraErrortype
 {
@@ -199,6 +203,17 @@ public:
 	UInt32 getPlayFrameAddr(UInt32 playFrame);
 	RecordSettings_t recordingData;
 	ImagerSettings_t getImagerSettings() { return imagerSettings; }
+
+	unsigned short getTriggerDelayConstant();
+	void setTriggerDelayConstant(unsigned short value);
+	void setTriggerDelayValues(double ratio, double seconds, UInt32 frames);
+	void updateTriggerValues(ImagerSettings_t settings);
+	unsigned short triggerDelayConstant;
+	double triggerTimeRatio;
+	double triggerPostSeconds;
+	UInt32 triggerPostFrames;
+	double maxPostFramesRatio;
+
 	UInt32 setImagerSettings(ImagerSettings_t settings);
 	UInt32 setIntegrationTime(double intTime, UInt32 hRes, UInt32 vRes, Int32 flags);
     UInt32 setDisplaySettings(bool encoderSafe, UInt32 maxFps);
