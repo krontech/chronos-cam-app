@@ -15,7 +15,7 @@
   </property>
   <property name="styleSheet">
    <string notr="true">
-    /* «begin clip from 'assets/whitelook-common.css' (559c0ae38be80d38eaed3d8d99678e7c)» */
+    /* «begin clip from 'assets/whitelook-common.css' (86975a5a81eabb8b665385eb557555ea)» */
       /*
       === X General Styles for the CamApp ===
       
@@ -53,11 +53,6 @@
       .QMessageBox .QPushButton {
         margin: 0;
         padding: 10px 60px;
-      }
-      
-      .QMessageBox::title {
-        color: red;
-        font-size: 4px;
       }
       
       .QComboBox {

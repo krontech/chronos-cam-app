@@ -1,3 +1,13 @@
 <RCC>
-    <qresource prefix="/new/prefix1"/>
+    <qresource prefix="/:">
+        <file>assets/images/handle-bars.png</file>
+        <file>assets/images/wedge-up-enabled.png</file>
+        <file>assets/images/wedge-down-disabled.png</file>
+        <file>assets/images/wedge-down-enabled.png</file>
+        <file>assets/images/wedge-left-disabled.png</file>
+        <file>assets/images/wedge-left-enabled.png</file>
+        <file>assets/images/wedge-right-disabled.png</file>
+        <file>assets/images/wedge-right-enabled.png</file>
+        <file>assets/images/wedge-up-disabled.png</file>
+    </qresource>
 </RCC>
