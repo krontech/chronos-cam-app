@@ -158,7 +158,7 @@ void playbackWindow::on_cmdSave_clicked()
 			case SAVE_MODE_RAW12:
 				qDebug("Bits/pixel: %d", 12);
 				estimatedSize *= 12;
-				estimatedSize += estimatedSize + (4096<<8);
+				estimatedSize += (4096<<8);
 				break;
 			default:
 				// unknown format
