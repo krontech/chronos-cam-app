@@ -408,9 +408,11 @@ void saveSettingsWindow::on_comboSaveFormat_currentIndexChanged(int index)
 }
 
 void saveSettingsWindow::setControlEnable(bool en){
-	ui->spinBitrate->setEnabled(en);
-	ui->spinFramerate->setEnabled(en);
-	ui->spinMaxBitrate->setEnabled(en);
+	//Only re-enable these 3 spinboxes if the save mode is not raw
+	bool H264SettingsEnabled = (en && (ui->comboSaveFormat->currentIndex() == SAVE_MODE_H264));
+	ui->spinBitrate->setEnabled(H264SettingsEnabled);
+	ui->spinFramerate->setEnabled(H264SettingsEnabled);
+	ui->spinMaxBitrate->setEnabled(H264SettingsEnabled);
 	ui->lineFilename->setEnabled(en);
 	ui->comboSaveFormat->setEnabled(en);
 	ui->comboDrive->setEnabled(en);
