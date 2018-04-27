@@ -148,6 +148,7 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	ui->cmdSetSN->setVisible(false);
 	ui->lineSerialNumber->setVisible(false);
 	ui->chkShowDebugControls->setVisible(false);
+	ui->cmdWorldPeace->setVisible(false);
 
 	ui->chkAutoSave->setChecked(camera->get_autoSave());
 	ui->chkAutoRecord->setChecked(camera->get_autoRecord());
@@ -739,6 +740,7 @@ void UtilWindow::on_linePassword_textEdited(const QString &arg1)
 		ui->cmdSetSN->setVisible(true);
 		ui->lineSerialNumber->setVisible(true);
 		ui->chkShowDebugControls->setVisible(true);
+		ui->cmdWorldPeace->setVisible(true);
 	}
 }
 

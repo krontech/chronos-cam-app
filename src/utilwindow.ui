@@ -992,6 +992,25 @@ calibration data
 (revert to factory)</string>
      </property>
     </widget>
+    <widget class="QPushButton" name="cmdWorldPeace">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>70</x>
+       <y>380</y>
+       <width>221</width>
+       <height>61</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>World Peace</string>
+     </property>
+     <property name="disabled-reason" stdset="0">
+      <string>Disabled for now. Having some trouble with the implementation.</string>
+     </property>
+    </widget>
    </widget>
   </widget>
  </widget>
