@@ -2,7 +2,7 @@
 #include "ui_triggerdelaywindow.h"
 #include "camera.h"
 #include <QDebug>
-triggerDelayWindow::triggerDelayWindow(QWidget *parent, Camera * cameraInst, ImagerSettings_t * imagerSettings) :
+triggerDelayWindow::triggerDelayWindow(QWidget *parent, Camera * cameraInst) :
     QWidget(parent),
     ui(new Ui::triggerDelayWindow)
 {
@@ -11,7 +11,12 @@ triggerDelayWindow::triggerDelayWindow(QWidget *parent, Camera * cameraInst, Ima
     this->move(0,0);
 
     camera = cameraInst;
-    is = imagerSettings;
+	is = new ImagerSettings_t;
+
+	camera = cameraInst;
+
+	ImagerSettings_t isTemp = camera->getImagerSettings();          //Using new and memcpy because passing the address of a class variable was causing segfaults among others in the trigger delay window.
+	memcpy((void *)is, (void *)(&isTemp), sizeof(ImagerSettings_t));
 
     period = (double)is->period / 100000000.0;
     recLenFrames = ((is->mode == RECORD_MODE_NORMAL || is->mode == RECORD_MODE_GATED_BURST) ? is->recRegionSizeFrames : is->recRegionSizeFrames / is->segments);

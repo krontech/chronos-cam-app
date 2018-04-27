@@ -32,6 +32,7 @@
 #include "cammainwindow.h"
 #include "ui_cammainwindow.h"
 #include "util.h"
+#include "triggerdelaywindow.h"
 
 extern "C" {
 #include "siText.h"
@@ -302,6 +303,35 @@ void CamMainWindow::on_cmdRecSettings_clicked()
 	  
 	  qDebug() << "deleting window";
 	  delete w;*/
+}
+
+void CamMainWindow::on_cmdDelaySettings_clicked()
+{
+	//[gui2] if(is->mode == RECORD_MODE_GATED_BURST)
+	if(false)
+	{
+		QMessageBox msg;
+		msg.setText("Record mode is set to Gated Burst. This mode has no adjustable trigger settings.");
+		msg.exec();
+		return;
+	}
+
+	else if(camera->getIsRecording()) {
+		QMessageBox::StandardButton reply;
+		reply = QMessageBox::question(this, "Stop recording?", "This action will stop recording; is this okay?", QMessageBox::Yes|QMessageBox::No);
+		if(QMessageBox::Yes != reply)
+			return;
+		autoSaveActive = false;
+		camera->stopRecording();
+	}
+
+	else
+	{
+		triggerDelayWindow *w = new triggerDelayWindow(NULL, camera);
+		//w->camera = camera;
+		w->setAttribute(Qt::WA_DeleteOnClose);
+		w->show();
+	}
 }
 
 

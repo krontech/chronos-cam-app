@@ -56,6 +56,8 @@ private slots:
 
 	void on_cmdRecSettings_clicked();
 
+	void on_cmdDelaySettings_clicked();
+
 	void on_cmdFPNCal_clicked();
 
 	void on_cmdWB_clicked();

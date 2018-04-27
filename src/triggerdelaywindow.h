@@ -13,7 +13,7 @@ class triggerDelayWindow : public QWidget
     Q_OBJECT
 
 public:
-    explicit triggerDelayWindow(QWidget *parent = 0, Camera * cameraInst = 0, ImagerSettings_t * imagerSettings = 0);
+    explicit triggerDelayWindow(QWidget *parent = 0, Camera * cameraInst = 0);
     ~triggerDelayWindow();
 
 private slots:

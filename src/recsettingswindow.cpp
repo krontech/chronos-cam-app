@@ -17,7 +17,6 @@
 #include "recsettingswindow.h"
 #include "ui_recsettingswindow.h"
 #include "recmodewindow.h"
-#include "triggerdelaywindow.h"
 #include <QMessageBox>
 #include <QResource>
 #include <QDir>
@@ -52,8 +51,7 @@ RecSettingsWindow::RecSettingsWindow(QWidget *parent, Camera * cameraInst) :
 	this->setWindowFlags(Qt::Dialog /*| Qt::WindowStaysOnTopHint*/ | Qt::FramelessWindowHint);
 	this->move(0,0);
 
-    is = new ImagerSettings_t;
-        //[gui2] connect(ui->cmdCancel, SIGNAL(clicked()), this, SLOT(close()));
+	is = new ImagerSettings_t;
 
 	camera = cameraInst;
 
@@ -813,24 +811,6 @@ void RecSettingsWindow::on_cmdRecMode_clicked()
     //w->camera = camera;
     w->setAttribute(Qt::WA_DeleteOnClose);
     w->show();
-}
-
-void RecSettingsWindow::on_cmdDelaySettings_clicked()
-{
-    if(is->mode == RECORD_MODE_GATED_BURST)
-    {
-        QMessageBox msg;
-        msg.setText("Record mode is set to Gated Burst. This mode has no adjustable trigger settings.");
-        msg.exec();
-        return;
-    }
-    else
-    {
-        triggerDelayWindow *w = new triggerDelayWindow(NULL, camera, is);
-        //w->camera = camera;
-        w->setAttribute(Qt::WA_DeleteOnClose);
-        w->show();
-    }
 }
 
 void RecSettingsWindow::moveTransparentWidget(){

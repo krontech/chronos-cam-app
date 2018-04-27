@@ -426,7 +426,7 @@
      <string>Trigger/IO</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="cmdIOSettings_2">
+   <widget class="QPushButton" name="cmdDelaySettings">
     <property name="geometry">
      <rect>
       <x>180</x>
@@ -520,7 +520,7 @@
    </widget>
    <zorder>topBarBackground</zorder>
    <zorder>cmdIOSettings</zorder>
-   <zorder>cmdIOSettings_2</zorder>
+   <zorder>cmdDelaySettings</zorder>
    <zorder>cmdUtil</zorder>
    <zorder>cmdRecSettings</zorder>
    <zorder>label</zorder>
