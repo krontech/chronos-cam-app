@@ -2502,15 +2502,15 @@ auto Camera::calculateFinalColorCorrectionMatrix (auto colorCal, auto whiteBal, 
 	std::array<double, 9> finalMatrix;
 	
 	finalMatrix[0] = colorCal[0] * whiteBal[0] * gain;
-	finalMatrix[1] = colorCal[1] * whiteBal[0] * gain;
-	finalMatrix[2] = colorCal[2] * whiteBal[0] * gain;
+	finalMatrix[1] = colorCal[1] * whiteBal[1] * gain;
+	finalMatrix[2] = colorCal[2] * whiteBal[2] * gain;
 
-	finalMatrix[3] = colorCal[3] * whiteBal[1] * gain;
+	finalMatrix[3] = colorCal[3] * whiteBal[0] * gain;
 	finalMatrix[4] = colorCal[4] * whiteBal[1] * gain;
-	finalMatrix[5] = colorCal[5] * whiteBal[1] * gain;
+	finalMatrix[5] = colorCal[5] * whiteBal[2] * gain;
 
-	finalMatrix[6] = colorCal[6] * whiteBal[2] * gain;
-	finalMatrix[7] = colorCal[7] * whiteBal[2] * gain;
+	finalMatrix[6] = colorCal[6] * whiteBal[0] * gain;
+	finalMatrix[7] = colorCal[7] * whiteBal[1] * gain;
 	finalMatrix[8] = colorCal[8] * whiteBal[2] * gain;
 	
 	return finalMatrix;
@@ -2537,38 +2537,23 @@ Int32 Camera::setWhiteBalance(UInt32 x, UInt32 y)
 	
 	qDebug() << "RGB values read:" << r << g << b;
 	
-	//Perform color correction
-	double rc =	clamp(
-		r * colorCalMatrix[0] +
-		g * colorCalMatrix[1] +
-		b * colorCalMatrix[2],
-		0.0, 4095.0);
-	double gc =	clamp(
-		r * colorCalMatrix[3] +
-		g * colorCalMatrix[4] +
-		b * colorCalMatrix[5],
-		0.0, 4095.0);
-	double bc =	clamp(
-		r * colorCalMatrix[6] +
-		g * colorCalMatrix[7] +
-		b * colorCalMatrix[8],
-		0.0, 4095.0);
-	
-	qDebug() << "Corrected values:" << rc << gc << bc;
-
 	//Fail if the pixel values is clipped or too low
-	if(rRaw == 4095 || gRaw == 4095 || bRaw == 4095 || rc >= 4094.0 || gc >= 4094.0 || bc >= 4094.0)
+	if(rRaw == 4095 || gRaw == 4095 || bRaw == 4095)
 		return CAMERA_CLIPPED_ERROR;
 
 	if(r < 384 || g < 384 || b < 384)
 		return CAMERA_LOW_SIGNAL_ERROR;
 
 
+	r *= defaultWhiteBalMatrix[0];
+	g *= defaultWhiteBalMatrix[1];
+	b *= defaultWhiteBalMatrix[2];
+
 	//Find the max value, generate white balance matrix that scales the other colors up to match the brightest color
-	double brightestColor = std::max(rc, std::max(gc, bc));
-	whiteBalMatrix[0] = brightestColor / rc;
-	whiteBalMatrix[1] = brightestColor / gc;
-	whiteBalMatrix[2] = brightestColor / bc;
+	double brightestColor = std::max(r, std::max(g, b));
+	whiteBalMatrix[0] = brightestColor / r;
+	whiteBalMatrix[1] = brightestColor / g;
+	whiteBalMatrix[2] = brightestColor / b;
 
 	qDebug() << "Setting WB matrix to " << whiteBalMatrix[0] << whiteBalMatrix[1] << whiteBalMatrix[2];
 

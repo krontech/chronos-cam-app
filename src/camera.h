@@ -320,7 +320,7 @@ private:
 		-0.3219, +1.6901, -0.3811,
 		-0.0614, -0.6409, +1.5258,
 	}};
-	const std::array<double, 3> defaultWhiteBalMatrix = {{ 1.5150, 1, 1.1048 }};
+	const std::array<double, 3> defaultWhiteBalMatrix = {{ 1.0, 1.1, 1.3 }};
 
 	// no-op colour matrix for b&w cameras
 	const std::array<double, 9> nullColorCalMatrix = {{
