@@ -286,7 +286,8 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 
 	//For mono version, set color matrix to just pass straight through
 	colorCalMatrix = isColor ? defaultColorCalMatrix : nullColorCalMatrix;
-	sceneWhiteBalMatrix = isColor ? cameraWhiteBalMatrix : nullWhiteBalMatrix;
+	if(isColor) sceneWhiteBalMatrix = {{ 1.23266, 1, 1.51712 }};//default values that are used in setCCMatrix before white bal is done.  These values work well in warm lighting.
+	else sceneWhiteBalMatrix = nullWhiteBalMatrix;
 
 	loadColGainFromFile("cal/dcgL.bin");
 
