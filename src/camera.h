@@ -320,7 +320,7 @@ private:
 		-0.3219, +1.6901, -0.3811,
 		-0.0614, -0.6409, +1.5258,
 	}};
-	const std::array<double, 3> defaultWhiteBalMatrix = {{ 1.0, 1.1, 1.3 }};
+	const std::array<double, 3> cameraWhiteBalMatrix = {{ 1.0, 1.1, 1.3 }};
 
 	// no-op colour matrix for b&w cameras
 	const std::array<double, 9> nullColorCalMatrix = {{
@@ -332,7 +332,7 @@ private:
 
 	//Actual colour calibration / white balance computed during runtime
 	std::array<double, 9> colorCalMatrix = {{ 0,0,0, 0,0,0, 0,0,0 }};
-	std::array<double, 3> whiteBalMatrix = {{ 0,0,0 }};
+	std::array<double, 3> sceneWhiteBalMatrix = {{ 0,0,0 }};
 
 	double imgGain;
 	bool focusPeakEnabled;

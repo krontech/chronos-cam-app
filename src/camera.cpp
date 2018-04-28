@@ -286,7 +286,7 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 
 	//For mono version, set color matrix to just pass straight through
 	colorCalMatrix = isColor ? defaultColorCalMatrix : nullColorCalMatrix;
-	whiteBalMatrix = isColor ? defaultWhiteBalMatrix : nullWhiteBalMatrix;
+	sceneWhiteBalMatrix = isColor ? cameraWhiteBalMatrix : nullWhiteBalMatrix;
 
 	loadColGainFromFile("cal/dcgL.bin");
 
@@ -2478,7 +2478,7 @@ void Camera::setCCMatrix()
 	
 	auto colorCorrectionMatrix = calculateFinalColorCorrectionMatrix(
 		colorCalMatrix,
-		whiteBalMatrix,
+		sceneWhiteBalMatrix,
 		imgGain
 	);
 	
@@ -2545,17 +2545,17 @@ Int32 Camera::setWhiteBalance(UInt32 x, UInt32 y)
 		return CAMERA_LOW_SIGNAL_ERROR;
 
 
-	r *= defaultWhiteBalMatrix[0];
-	g *= defaultWhiteBalMatrix[1];
-	b *= defaultWhiteBalMatrix[2];
+	r *= cameraWhiteBalMatrix[0];
+	g *= cameraWhiteBalMatrix[1];
+	b *= cameraWhiteBalMatrix[2];
 
 	//Find the max value, generate white balance matrix that scales the other colors up to match the brightest color
 	double brightestColor = std::max(r, std::max(g, b));
-	whiteBalMatrix[0] = brightestColor / r;
-	whiteBalMatrix[1] = brightestColor / g;
-	whiteBalMatrix[2] = brightestColor / b;
+	sceneWhiteBalMatrix[0] = brightestColor / r;
+	sceneWhiteBalMatrix[1] = brightestColor / g;
+	sceneWhiteBalMatrix[2] = brightestColor / b;
 
-	qDebug() << "Setting WB matrix to " << whiteBalMatrix[0] << whiteBalMatrix[1] << whiteBalMatrix[2];
+	qDebug() << "Setting WB matrix to " << sceneWhiteBalMatrix[0] << sceneWhiteBalMatrix[1] << sceneWhiteBalMatrix[2];
 
 	setCCMatrix();
 	return SUCCESS;
