@@ -2756,9 +2756,12 @@ CameraErrortype Video::setImagerResolution(UInt32 x, UInt32 y)
 	imgCropX = x;
 	imgCropY = y;
 
+	/* Video should be displayed along the left side if ButtonsOnLeft and Upside down have the same value. */
 	QSettings appSettings;
-	bool moveVideoBool = (appSettings.value("camera/ButtonsOnLeft", 0).toBool()) ^ (appSettings.value("camera/UpsideDownDisplay", 0).toBool());
-	UInt32 displayWindowStartXOffset = 200 * moveVideoBool;
+	UInt32 displayWindowStartXOffset = 0;
+	if (appSettings.value("camera/ButtonsOnLeft", false).toBool() != appSettings.value("camera/UpsideDownDisplay", false).toBool()) {
+		displayWindowStartXOffset = 200;
+	}
 
 	//Depending on aspect ratio, set the display window appropriately
 	if((y * MAX_FRAME_SIZE_H) > (x * MAX_FRAME_SIZE_V))	//If it's taller than the display aspect
@@ -2825,15 +2828,15 @@ Video::Video()
 }
 
 void Video::setDisplayWindowStartX(bool videoOnRight){
-	UInt32 displayWindowStartXOffset = 200 * videoOnRight;
+	UInt32 displayWindowStartXOffset = videoOnRight ? 200 : 0;
 
 	if(displayWindowXSize < 600)	//If it's taller than the display aspect
 		displayWindowStartX = (((600 - displayWindowXSize) / 2) + displayWindowStartXOffset) & 0xFFFFFFFE;	//Must be even.  Add the offset if the UI is set to be on the left
 	else
 		displayWindowStartX = displayWindowStartXOffset;
 
-	stopVideo();//Video must be stopped and started to be able to change its position
-	startVideo();
+	setRunning(false);
+	setRunning(true);
 }
 
 Video::~Video()

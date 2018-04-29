@@ -53,6 +53,8 @@ private:
 	Ui::keyboard *ui;
 	bool capslock;
 	bool shift;
+	void setUppercase();
+	void setLowercase();
 };
 
 #endif // KEYBOARD_H

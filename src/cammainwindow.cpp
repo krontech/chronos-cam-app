@@ -52,7 +52,6 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	QDialog(parent),
 	ui(new Ui::CamMainWindow)
 {
-	QMessageBox msg;
 	QSettings appSettings;
 	CameraErrortype retVal;
 	ui->setupUi(this);
@@ -80,7 +79,7 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 
 	if(retVal != SUCCESS)
 	{
-
+		QMessageBox msg;
 		msg.setText(QString("Camera init failed, error") + QString::number((Int32)retVal));
 		msg.exec();
 	}
@@ -90,7 +89,7 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	qDebug() << "camera->sensor->getMaxCurrentIntegrationTime() returned" << camera->sensor->getMaxCurrentIntegrationTime();
 
 	ui->expSlider->setMinimum(LUX1310_MIN_INT_TIME * 100000000.0);
-	ui->expSlider->setMaximum(camera->sensor->getMaxCurrentIntegrationTime() * 100000000.0);
+	ui->expSlider->setMaximum(camera->sensor->getMaxCurrentIntegrationTime() * 100000000.0 - 20);
 	ui->expSlider->setValue(camera->sensor->getIntegrationTime() * 100000000.0);
 	ui->cmdWB->setEnabled(camera->getIsColor());
 	ui->chkFocusAid->setChecked(camera->getFocusPeakEnable());
@@ -283,7 +282,7 @@ void CamMainWindow::on_cmdFPNCal_clicked()//Black cal
 			if(QMessageBox::Yes != reply)
 				return;
 	}
-	sw->setText("Performing black calibration. Please wait.\r\nBeta Software: This will be much faster in a future software update");
+	sw->setText("Performing black calibration...");
 	sw->show();
 	QCoreApplication::processEvents();
 	camera->autoFPNCorrection(16, true);
@@ -489,7 +488,7 @@ void CamMainWindow::on_expSlider_sliderMoved(int position)
 void CamMainWindow::recSettingsClosed()
 {
 	ui->expSlider->setMinimum(LUX1310_MIN_INT_TIME * 100000000.0);
-	ui->expSlider->setMaximum(camera->sensor->getMaxCurrentIntegrationTime() * 100000000.0);
+	ui->expSlider->setMaximum(camera->sensor->getMaxCurrentIntegrationTime() * 100000000.0 - 20);
 	ui->expSlider->setValue(camera->sensor->getIntegrationTime() * 100000000.0);
 	updateCurrentSettingsLabel();
 }
@@ -503,7 +502,8 @@ void CamMainWindow::updateCurrentSettingsLabel()
 	char expString[30];
 	sprintf(fpsString, QString::number(1 / camera->sensor->getCurrentFramePeriodDouble()).toAscii());
 	getSIText(expString, camera->sensor->getCurrentExposureDouble(), 4, DEF_SI_OPTS, 10);
-	UInt32 expPercent = camera->sensor->getCurrentExposureDouble() * 100 / camera->sensor->getCurrentFramePeriodDouble();
+	UInt32 expPercent = camera->sensor->getCurrentExposureDouble() * 100 / (camera->sensor->getMaxCurrentIntegrationTime());
+	expPercent = max(expPercent, 1);//to prevent 0% from showing on the label if the current exposure is less than 1% of the max exposure(happens on 1280x1024)
 
 	double battPercent = (flags & 4) ?	//If battery is charging
 						clamp(((double)battVoltageCam/1000.0 - 10.75) / (12.4 - 10.75) * 80, 0.0, 80.0) +

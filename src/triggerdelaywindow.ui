@@ -612,9 +612,9 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
   <widget class="QPushButton" name="cmdResetToDefaults">
    <property name="geometry">
     <rect>
-     <x>100</x>
+     <x>20</x>
      <y>360</y>
-     <width>200</width>
+     <width>151</width>
      <height>91</height>
     </rect>
    </property>
@@ -628,6 +628,67 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
    <property name="text">
     <string>Reset To
 Defaults</string>
+   </property>
+  </widget>
+  <widget class="QComboBox" name="comboKeepConstant">
+   <property name="geometry">
+    <rect>
+     <x>281</x>
+     <y>410</y>
+     <width>321</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>15</pointsize>
+     <weight>75</weight>
+     <italic>true</italic>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QComboBox QAbstractItemView::item {
+  padding: 10px;
+  margin: 5px;
+}</string>
+   </property>
+   <item>
+    <property name="text">
+     <string>Pre-record and pre-trigger seconds</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>Post-trigger seconds</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>Post-trigger frames</string>
+    </property>
+   </item>
+  </widget>
+  <widget class="QLabel" name="lblRes_21">
+   <property name="geometry">
+    <rect>
+     <x>280</x>
+     <y>355</y>
+     <width>281</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>16</pointsize>
+    </font>
+   </property>
+   <property name="text">
+    <string>Keep this constant when changing
+resolution or framerate:</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
    </property>
   </widget>
  </widget>

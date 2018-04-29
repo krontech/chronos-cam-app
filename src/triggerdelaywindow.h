@@ -13,7 +13,7 @@ class triggerDelayWindow : public QWidget
     Q_OBJECT
 
 public:
-    explicit triggerDelayWindow(QWidget *parent = 0, Camera * cameraInst = 0, ImagerSettings_t * imagerSettings = 0);
+    explicit triggerDelayWindow(QWidget *parent = 0, Camera * cameraInst = 0, ImagerSettings_t * imagerSettings = 0, double periodFromRecSettingsWindow = 0);
     ~triggerDelayWindow();
 
 private slots:
@@ -29,8 +29,6 @@ private slots:
 
     void on_cmdHundredPercent_clicked();
 
-    void on_cmdMax_clicked();
-
     void on_spinPreSeconds_valueChanged(double arg1);
 
     void on_spinPreFrames_valueChanged(int arg1);
@@ -38,8 +36,6 @@ private slots:
     void on_spinPostSeconds_valueChanged(double arg1);
 
     void on_spinPostFrames_valueChanged(int arg1);
-
-    void on_cmdResetPreRec_clicked();
 
     void on_spinPreRecSeconds_valueChanged(double arg1);
 
