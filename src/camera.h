@@ -309,7 +309,7 @@ private:
 	bool isColor;
 
 	// camSPECS CCM calculation: CIECAM02 RGB to sRGB & white balance
-	double ccMatrix[9] = {
+	double colorCalMatrix[9] = {
 		+1.2330, +0.6468, -0.7764,
 		-0.3219, +1.6901, -0.3811,
 		-0.0614, -0.6409, +1.5258,

@@ -326,9 +326,9 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 	//For mono version, set color matrix to just pass straight through
 	if(!isColor)
 	{
-		ccMatrix[0] = 1.0;	ccMatrix[1] = 0.0;	ccMatrix[2] = 0.0;
-		ccMatrix[3] = 0.0;	ccMatrix[4] = 1.0;	ccMatrix[5] = 0.0;
-		ccMatrix[6] = 0.0;	ccMatrix[7] = 0.0;	ccMatrix[8] = 1.0;
+		colorCalMatrix[0] = 1.0;	colorCalMatrix[1] = 0.0;	colorCalMatrix[2] = 0.0;
+		colorCalMatrix[3] = 0.0;	colorCalMatrix[4] = 1.0;	colorCalMatrix[5] = 0.0;
+		colorCalMatrix[6] = 0.0;	colorCalMatrix[7] = 0.0;	colorCalMatrix[8] = 1.0;
 		cameraWhiteBalMatrix[0] = 1.0;	cameraWhiteBalMatrix[1] = 1.0;	cameraWhiteBalMatrix[2] = 1.0;
 		sceneWhiteBalMatrix[0] = sceneWhiteBalMatrix[1] = sceneWhiteBalMatrix[2] = 1.0;
 	}
@@ -2526,21 +2526,21 @@ Int32 Camera::startSave(UInt32 startFrame, UInt32 length)
 
 void Camera::setCCMatrix()
 {
-	gpmc->write16(CCM_11_ADDR, within((int)(4096.0 * ccMatrix[0] * imgGain * sceneWhiteBalMatrix[0]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1));
-	gpmc->write16(CCM_12_ADDR, within((int)(4096.0 * ccMatrix[1] * imgGain * sceneWhiteBalMatrix[1]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1));
-	gpmc->write16(CCM_13_ADDR, within((int)(4096.0 * ccMatrix[2] * imgGain * sceneWhiteBalMatrix[2]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1));
+	gpmc->write16(CCM_11_ADDR, within((int)(4096.0 * colorCalMatrix[0] * imgGain * sceneWhiteBalMatrix[0]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1));
+	gpmc->write16(CCM_12_ADDR, within((int)(4096.0 * colorCalMatrix[1] * imgGain * sceneWhiteBalMatrix[1]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1));
+	gpmc->write16(CCM_13_ADDR, within((int)(4096.0 * colorCalMatrix[2] * imgGain * sceneWhiteBalMatrix[2]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1));
 
-	gpmc->write16(CCM_21_ADDR, within((int)(4096.0 * ccMatrix[3] * imgGain * sceneWhiteBalMatrix[0]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1));
-	gpmc->write16(CCM_22_ADDR, within((int)(4096.0 * ccMatrix[4] * imgGain * sceneWhiteBalMatrix[1]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1));
-	gpmc->write16(CCM_23_ADDR, within((int)(4096.0 * ccMatrix[5] * imgGain * sceneWhiteBalMatrix[2]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1));
+	gpmc->write16(CCM_21_ADDR, within((int)(4096.0 * colorCalMatrix[3] * imgGain * sceneWhiteBalMatrix[0]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1));
+	gpmc->write16(CCM_22_ADDR, within((int)(4096.0 * colorCalMatrix[4] * imgGain * sceneWhiteBalMatrix[1]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1));
+	gpmc->write16(CCM_23_ADDR, within((int)(4096.0 * colorCalMatrix[5] * imgGain * sceneWhiteBalMatrix[2]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1));
 
-	gpmc->write16(CCM_31_ADDR, within((int)(4096.0 * ccMatrix[6] * imgGain * sceneWhiteBalMatrix[0]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1));
-	gpmc->write16(CCM_32_ADDR, within((int)(4096.0 * ccMatrix[7] * imgGain * sceneWhiteBalMatrix[1]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1));
-	gpmc->write16(CCM_33_ADDR, within((int)(4096.0 * ccMatrix[8] * imgGain * sceneWhiteBalMatrix[2]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1));
+	gpmc->write16(CCM_31_ADDR, within((int)(4096.0 * colorCalMatrix[6] * imgGain * sceneWhiteBalMatrix[0]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1));
+	gpmc->write16(CCM_32_ADDR, within((int)(4096.0 * colorCalMatrix[7] * imgGain * sceneWhiteBalMatrix[1]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1));
+	gpmc->write16(CCM_33_ADDR, within((int)(4096.0 * colorCalMatrix[8] * imgGain * sceneWhiteBalMatrix[2]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1));
 
-	qDebug() << "Blue matrix" << within((int)(4096.0 * ccMatrix[6] * cameraWhiteBalMatrix[2] * sceneWhiteBalMatrix[2]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1)
-			<< within((int)(4096.0 * ccMatrix[7] * cameraWhiteBalMatrix[2] * sceneWhiteBalMatrix[2]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1)
-			<< within((int)(4096.0 * ccMatrix[8] * cameraWhiteBalMatrix[2] * sceneWhiteBalMatrix[2]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1);
+	qDebug() << "Blue matrix" << within((int)(4096.0 * colorCalMatrix[6] * cameraWhiteBalMatrix[2] * sceneWhiteBalMatrix[2]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1)
+			<< within((int)(4096.0 * colorCalMatrix[7] * cameraWhiteBalMatrix[2] * sceneWhiteBalMatrix[2]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1)
+			<< within((int)(4096.0 * colorCalMatrix[8] * cameraWhiteBalMatrix[2] * sceneWhiteBalMatrix[2]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1);
 }
 
 Int32 Camera::setWhiteBalance(UInt32 x, UInt32 y)
