@@ -249,7 +249,7 @@ public:
 	Int32 getRawCorrectedFramesAveraged(UInt32 frame, UInt32 framesToAverage, UInt16 * frameBuffer);
 	Int32 takeWhiteReferences(void);
 	Int32 startSave(UInt32 startFrame, UInt32 length);
-	void setCCMatrix(double * wbMat);
+	void setCCMatrix();
 	int setWhiteBalance(UInt32 x, UInt32 y);
 	void setFocusAid(bool enable);
 	bool getFocusAid();
@@ -324,13 +324,13 @@ private:
 	bool isColor;
 
 	// camSPECS CCM calculation: CIECAM02 RGB to sRGB & white balance
-	double ccMatrix[9] = {
+	double colorCalMatrix[9] = {
 		+1.2330, +0.6468, -0.7764,
 		-0.3219, +1.6901, -0.3811,
 		-0.0614, -0.6409, +1.5258,
 	};
-	double wbMatrix[3] = { 1.5150, 1, 1.1048 };
-	double wbMat[3];	//Actual white balance computed during runtime
+	double cameraWhiteBalMatrix[3] = { 1, 1.1, 1.3 };
+	double sceneWhiteBalMatrix[3];	//Actual white balance computed during runtime
 	double imgGain;
 	bool focusPeakEnabled;
 	int focusPeakColorIndex;
