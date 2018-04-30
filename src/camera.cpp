@@ -338,7 +338,7 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 
 
 	sceneWhiteBalMatrix[0] = sceneWhiteBalMatrix[1] = sceneWhiteBalMatrix[2] = 1.0;
-	setCCMatrix(sceneWhiteBalMatrix);
+	setCCMatrix();
 
 	qDebug() << gpmc->read16(CCM_11_ADDR) << gpmc->read16(CCM_12_ADDR) << gpmc->read16(CCM_13_ADDR);
 	qDebug() << gpmc->read16(CCM_21_ADDR) << gpmc->read16(CCM_22_ADDR) << gpmc->read16(CCM_23_ADDR);
@@ -1272,7 +1272,7 @@ void Camera::computeFPNCorrection2(UInt32 framesToAverage, bool writeToFile, boo
 
 	imgGain = 4096.0 / (double)(4096 - getMaxFPNValue(buffer, pixelsPerFrame)) * IMAGE_GAIN_FUDGE_FACTOR;
 	qDebug() << "imgGain set to" << imgGain;
-	setCCMatrix(sceneWhiteBalMatrix);
+	setCCMatrix();
 
 	qDebug() << "About to write file...";
 	if(writeToFile)
@@ -1396,7 +1396,7 @@ Int32 Camera::loadFPNFromFile(const char * filename)
 	UInt32 mx = getMaxFPNValue(buffer, pixelsPerFrame);
 	imgGain = 4096.0 / (double)(4096 - mx) * IMAGE_GAIN_FUDGE_FACTOR;
 	qDebug() << "imgGain set to" << imgGain << "Max FPN value found" << mx;
-	setCCMatrix(sceneWhiteBalMatrix);
+	setCCMatrix();
 
 	//zero the buffer
 	memset(packedBuf, 0, bytesPerFrame);
@@ -2519,23 +2519,23 @@ Int32 Camera::startSave(UInt32 startFrame, UInt32 length)
 
 #define COLOR_MATRIX_MAXVAL	((1 << SENSOR_DATA_WIDTH) * (1 << COLOR_MATRIX_INT_BITS))
 
-void Camera::setCCMatrix(double * wbMat)
+void Camera::setCCMatrix()
 {
-	gpmc->write16(CCM_11_ADDR, within((int)(4096.0 * ccMatrix[0] * cameraWhiteBalMatrix[0] * imgGain * wbMat[0]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1));
-	gpmc->write16(CCM_12_ADDR, within((int)(4096.0 * ccMatrix[1] * cameraWhiteBalMatrix[0] * imgGain * wbMat[0]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1));
-	gpmc->write16(CCM_13_ADDR, within((int)(4096.0 * ccMatrix[2] * cameraWhiteBalMatrix[0] * imgGain * wbMat[0]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1));
+	gpmc->write16(CCM_11_ADDR, within((int)(4096.0 * ccMatrix[0] * imgGain * sceneWhiteBalMatrix[0]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1));
+	gpmc->write16(CCM_12_ADDR, within((int)(4096.0 * ccMatrix[1] * imgGain * sceneWhiteBalMatrix[1]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1));
+	gpmc->write16(CCM_13_ADDR, within((int)(4096.0 * ccMatrix[2] * imgGain * sceneWhiteBalMatrix[2]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1));
 
-	gpmc->write16(CCM_21_ADDR, within((int)(4096.0 * ccMatrix[3] * cameraWhiteBalMatrix[1] * imgGain * wbMat[1]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1));
-	gpmc->write16(CCM_22_ADDR, within((int)(4096.0 * ccMatrix[4] * cameraWhiteBalMatrix[1] * imgGain * wbMat[1]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1));
-	gpmc->write16(CCM_23_ADDR, within((int)(4096.0 * ccMatrix[5] * cameraWhiteBalMatrix[1] * imgGain * wbMat[1]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1));
+	gpmc->write16(CCM_21_ADDR, within((int)(4096.0 * ccMatrix[3] * imgGain * sceneWhiteBalMatrix[0]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1));
+	gpmc->write16(CCM_22_ADDR, within((int)(4096.0 * ccMatrix[4] * imgGain * sceneWhiteBalMatrix[1]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1));
+	gpmc->write16(CCM_23_ADDR, within((int)(4096.0 * ccMatrix[5] * imgGain * sceneWhiteBalMatrix[2]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1));
 
-	gpmc->write16(CCM_31_ADDR, within((int)(4096.0 * ccMatrix[6] * cameraWhiteBalMatrix[2] * imgGain * wbMat[2]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1));
-	gpmc->write16(CCM_32_ADDR, within((int)(4096.0 * ccMatrix[7] * cameraWhiteBalMatrix[2] * imgGain * wbMat[2]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1));
-	gpmc->write16(CCM_33_ADDR, within((int)(4096.0 * ccMatrix[8] * cameraWhiteBalMatrix[2] * imgGain * wbMat[2]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1));
+	gpmc->write16(CCM_31_ADDR, within((int)(4096.0 * ccMatrix[6] * imgGain * sceneWhiteBalMatrix[0]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1));
+	gpmc->write16(CCM_32_ADDR, within((int)(4096.0 * ccMatrix[7] * imgGain * sceneWhiteBalMatrix[1]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1));
+	gpmc->write16(CCM_33_ADDR, within((int)(4096.0 * ccMatrix[8] * imgGain * sceneWhiteBalMatrix[2]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1));
 
-	qDebug() << "Blue matrix" << within((int)(4096.0 * ccMatrix[6] * cameraWhiteBalMatrix[2] * wbMat[2]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1)
-			<< within((int)(4096.0 * ccMatrix[7] * cameraWhiteBalMatrix[2] * wbMat[2]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1)
-			<< within((int)(4096.0 * ccMatrix[8] * cameraWhiteBalMatrix[2] * wbMat[2]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1);
+	qDebug() << "Blue matrix" << within((int)(4096.0 * ccMatrix[6] * cameraWhiteBalMatrix[2] * sceneWhiteBalMatrix[2]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1)
+			<< within((int)(4096.0 * ccMatrix[7] * cameraWhiteBalMatrix[2] * sceneWhiteBalMatrix[2]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1)
+			<< within((int)(4096.0 * ccMatrix[8] * cameraWhiteBalMatrix[2] * sceneWhiteBalMatrix[2]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1);
 }
 
 Int32 Camera::setWhiteBalance(UInt32 x, UInt32 y)
@@ -2557,28 +2557,13 @@ Int32 Camera::setWhiteBalance(UInt32 x, UInt32 y)
 	double r =  rRaw-
 				readPixel12(quadStartY * imagerSettings.stride + quadStartX + 1, FPN_ADDRESS * BYTES_PER_WORD);
 	qDebug() << "RGB values read:" << r << g << b;
-	//Perform color correction
-	double rc =		within(
-			r * ccMatrix[0] * cameraWhiteBalMatrix[0] +
-			g * ccMatrix[1] * cameraWhiteBalMatrix[0] +
-			b * ccMatrix[2] * cameraWhiteBalMatrix[0],
-			0.0, 4095.0);
 
-	double gc =		within(
-			r * ccMatrix[3] * cameraWhiteBalMatrix[1] +
-			g * ccMatrix[4] * cameraWhiteBalMatrix[1] +
-			b * ccMatrix[5] * cameraWhiteBalMatrix[1],
-			0.0, 4095.0);
-
-	double bc =		within(
-			r * ccMatrix[6] * cameraWhiteBalMatrix[2] +
-			g * ccMatrix[7] * cameraWhiteBalMatrix[2] +
-			b * ccMatrix[8] * cameraWhiteBalMatrix[2],
-			0.0, 4095.0);
-	qDebug() << "Corrected values:" << rc << gc << bc;
+	r *= cameraWhiteBalMatrix[0];
+	g *= cameraWhiteBalMatrix[1];
+	b *= cameraWhiteBalMatrix[2];
 
 	//Fail if the pixel values is clipped or too low
-	if(rRaw == 4095 || gRaw == 4095 || bRaw == 4095 || rc >= 4094.0 || gc >= 4094.0 || bc >= 4094.0)
+	if(rRaw == 4095 || gRaw == 4095 || bRaw == 4095)
 		return CAMERA_CLIPPED_ERROR;
 
 	if(r < 384 || g < 384 || b < 384)
@@ -2586,15 +2571,15 @@ Int32 Camera::setWhiteBalance(UInt32 x, UInt32 y)
 
 
 	//Find the max value, generate white balance matrix that scales the other colors up to match the brightest color
-	double mx = max(rc, max(gc, bc));
+	double mx = max(r, max(g, b));
 
-	sceneWhiteBalMatrix[0] = (double)mx / (double)rc;
-	sceneWhiteBalMatrix[1] = (double)mx / (double)gc;
-	sceneWhiteBalMatrix[2] = (double)mx / (double)bc;
+	sceneWhiteBalMatrix[0] = (double)mx / (double)r;
+	sceneWhiteBalMatrix[1] = (double)mx / (double)g;
+	sceneWhiteBalMatrix[2] = (double)mx / (double)b;
 
 	qDebug() << "Setting WB matrix to " << sceneWhiteBalMatrix[0] << sceneWhiteBalMatrix[1] << sceneWhiteBalMatrix[2];
 
-	setCCMatrix(sceneWhiteBalMatrix);
+	setCCMatrix();
 	return SUCCESS;
 
 }
