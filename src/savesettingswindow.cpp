@@ -48,7 +48,7 @@ saveSettingsWindow::saveSettingsWindow(QWidget *parent, Camera * camInst) :
 	this->setWindowFlags(Qt::Dialog /*| Qt::WindowStaysOnTopHint*/ | Qt::FramelessWindowHint);
 	camera = camInst;
 
-	
+
 	ui->spinBitrate->setValue(settings.value("recorder/bitsPerPixel", camera->recorder->bitsPerPixel).toDouble());
 	ui->spinMaxBitrate->setValue(settings.value("recorder/maxBitrate", camera->recorder->maxBitrate).toDouble());
 	ui->spinFramerate->setValue(settings.value("recorder/framerate", camera->recorder->framerate).toDouble());
@@ -61,6 +61,7 @@ saveSettingsWindow::saveSettingsWindow(QWidget *parent, Camera * camInst) :
 	if ( index != -1 ) { // -1 for not found
 		ui->comboDrive->setCurrentIndex(index);
 	}
+	saveFileDirectory();
 
 	ui->comboProfile->clear();
 	ui->comboProfile->addItem("Base");
@@ -104,9 +105,9 @@ saveSettingsWindow::saveSettingsWindow(QWidget *parent, Camera * camInst) :
 	ui->comboSaveFormat->addItem("Raw 16bit");        // SAVE_MODE_RAW16
 	ui->comboSaveFormat->addItem("Raw 16RJ");         // SAVE_MODE_RAW16RJ
 	ui->comboSaveFormat->addItem("Raw 12bit packed"); // SAVE_MODE_RAW12
-	
+
 	ui->comboSaveFormat->setCurrentIndex(settings.value("recorder/saveFormat", 0).toUInt());
-	
+
 	driveCount = 0;
 	timer = new QTimer(this);
 	connect(timer, SIGNAL(timeout()), this, SLOT(updateDrives()));
@@ -301,10 +302,10 @@ void saveSettingsWindow::updateBitrate()
 	UInt32 frameRate = ui->spinFramerate->value();
 	double bitsPerPixel;
 	char str[100];
-	
+
 	if (saveFormat == 0) {
 		UInt32 bitrate = min(ui->spinBitrate->value() * camera->recordingData.is.hRes * camera->recordingData.is.vRes * frameRate, min(60000000, (UInt32)(ui->spinMaxBitrate->value() * 1000000.0)) * frameRate / 60);	//Max of 60Mbps
-		
+
 		sprintf(str, "%4.2fMbps @\n%dx%d %dfps", (double)bitrate / 1000000.0, camera->recordingData.is.hRes, camera->recordingData.is.vRes, frameRate);
 		ui->lblBitrate->setText(str);
 	}
@@ -391,7 +392,7 @@ void saveSettingsWindow::on_spinMaxBitrate_valueChanged(int arg1)
 
 void saveSettingsWindow::on_comboSaveFormat_currentIndexChanged(int index)
 {
-	
+
 	if(index == 0) {
 		ui->spinBitrate->setEnabled(true);
 		ui->spinFramerate->setEnabled(true);
