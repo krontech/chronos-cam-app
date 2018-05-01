@@ -110,6 +110,17 @@ saveSettingsWindow::saveSettingsWindow(QWidget *parent, Camera * camInst) :
 
 	ui->comboSaveFormat->setEnabled(true);
 
+	if(ui->comboSaveFormat->currentIndex() == 0) {
+		ui->spinBitrate->setEnabled(true);
+		ui->spinFramerate->setEnabled(true);
+		ui->spinMaxBitrate->setEnabled(true);
+	}
+	else {
+		ui->spinBitrate->setEnabled(false);
+		ui->spinFramerate->setEnabled(false);
+		ui->spinMaxBitrate->setEnabled(false);
+	}
+
 	driveCount = 0;
 	timer = new QTimer(this);
 	connect(timer, SIGNAL(timeout()), this, SLOT(updateDrives()));
