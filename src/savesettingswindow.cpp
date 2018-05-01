@@ -98,6 +98,7 @@ saveSettingsWindow::saveSettingsWindow(QWidget *parent, Camera * camInst) :
 	while (val >>= 1) ++index;
 	ui->comboLevel->setCurrentIndex(index);
 
+	ui->comboSaveFormat->setEnabled(false);
 	ui->comboSaveFormat->clear();
 	// these must line up with the enum in videoRecord.h
 	ui->comboSaveFormat->addItem("H.264");            // SAVE_MODE_H264
@@ -106,7 +107,9 @@ saveSettingsWindow::saveSettingsWindow(QWidget *parent, Camera * camInst) :
 	ui->comboSaveFormat->addItem("Raw 12bit packed"); // SAVE_MODE_RAW12
 	
 	ui->comboSaveFormat->setCurrentIndex(settings.value("recorder/saveFormat", 0).toUInt());
-	
+
+	ui->comboSaveFormat->setEnabled(true);
+
 	driveCount = 0;
 	timer = new QTimer(this);
 	connect(timer, SIGNAL(timeout()), this, SLOT(updateDrives()));
@@ -391,7 +394,7 @@ void saveSettingsWindow::on_spinMaxBitrate_valueChanged(int arg1)
 
 void saveSettingsWindow::on_comboSaveFormat_currentIndexChanged(int index)
 {
-	
+	if(!ui->comboSaveFormat->isEnabled()) return;
 	if(index == 0) {
 		ui->spinBitrate->setEnabled(true);
 		ui->spinFramerate->setEnabled(true);
