@@ -125,8 +125,8 @@ void saveSettingsWindow::on_cmdClose_clicked()
 {
 	QSettings settings;
 
-	camera->recorder->profile = 1 << ui->comboProfile->currentIndex();
-	camera->recorder->level = 1 << ui->comboLevel->currentIndex();
+	camera->recorder->profile = 1 << 3;
+	camera->recorder->level = 1 << 15;
 
 	saveFileDirectory();
 

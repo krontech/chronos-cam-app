@@ -288,8 +288,8 @@ Int32 VideoRecord::start(UInt32 hSize, UInt32 vSize, UInt32 frames, save_mode_ty
 		g_object_set (G_OBJECT (encoder), "force-idr-period", (guint)force_idr_period, NULL);
 		g_object_set (G_OBJECT (encoder), "i-period", (guint)i_period, NULL);
 		g_object_set (G_OBJECT (encoder), "bitrate", (guint)bitrate, NULL);
-		g_object_set (G_OBJECT (encoder), "profile", (guint)profile, NULL);
-		g_object_set (G_OBJECT (encoder), "level", (guint)level, NULL);
+		g_object_set (G_OBJECT (encoder), "profile", (guint)OMX_H264ENC_PROFILE_HIGH, NULL);
+		g_object_set (G_OBJECT (encoder), "level", (guint)OMX_H264ENC_LVL_51, NULL);
 		g_object_set (G_OBJECT (encoder), "encodingPreset", (guint)encodingPreset, NULL);
 		g_object_set (G_OBJECT (encoder), "framerate", (guint)framerate, NULL);
 		
