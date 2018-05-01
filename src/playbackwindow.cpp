@@ -263,6 +263,7 @@ void playbackWindow::on_cmdSaveSettings_clicked()
 	w->show();
 	settingsWindowIsOpen = true;
 	if(camera->ButtonsOnLeft) w->move(230, 0);
+	ui->cmdSave->setEnabled(false);
 	ui->cmdSaveSettings->setEnabled(false);
 	ui->cmdClose->setEnabled(false);
 	connect(w, SIGNAL(destroyed()), this, SLOT(saveSettingsClosed()));
@@ -272,6 +273,7 @@ void playbackWindow::on_cmdSaveSettings_clicked()
 void playbackWindow::saveSettingsClosed(){
 	settingsWindowIsOpen = false;
 	if(!camera->recorder->getRunning()){//Only enable these buttons if the camera is not saving a video
+		ui->cmdSave->setEnabled(true);
 		ui->cmdSaveSettings->setEnabled(true);
 		ui->cmdClose->setEnabled(true);
 	}
