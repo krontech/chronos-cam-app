@@ -43,6 +43,8 @@ saveSettingsWindow::saveSettingsWindow(QWidget *parent, Camera * camInst) :
 	QWidget(parent),
 	ui(new Ui::saveSettingsWindow)
 {
+	windowInitComplete = false;
+
 	QSettings settings;
 	ui->setupUi(this);
 	this->setWindowFlags(Qt::Dialog /*| Qt::WindowStaysOnTopHint*/ | Qt::FramelessWindowHint);
@@ -127,6 +129,8 @@ saveSettingsWindow::saveSettingsWindow(QWidget *parent, Camera * camInst) :
 	connect(timer, SIGNAL(timeout()), this, SLOT(updateDrives()));
 	timer->start(1000);
 
+	windowInitComplete = true;
+	updateBitrate();
 }
 
 saveSettingsWindow::~saveSettingsWindow()
@@ -312,6 +316,7 @@ void saveSettingsWindow::on_cmdRefresh_clicked()
 
 void saveSettingsWindow::updateBitrate()
 {
+	if(!windowInitComplete) return;
 	int saveFormat = ui->comboSaveFormat->currentIndex();
 	UInt32 frameRate = ui->spinFramerate->value();
 	double bitsPerPixel;

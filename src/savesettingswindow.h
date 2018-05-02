@@ -70,6 +70,7 @@ private:
 	QTimer * timer;
 	UInt32 driveCount;
 	bool okToSaveLocation = false;
+	bool windowInitComplete;
 };
 
 #endif // SAVESETTINGSWINDOW_H
