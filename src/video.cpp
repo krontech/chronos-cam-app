@@ -104,7 +104,7 @@ VideoState Video::getStatus(VideoStatus *st)
 		st->state = state;
 		st->totalFrames = map["totalFrames"].toUInt();
 		st->position = map["position"].toUInt();
-		st->framerate = map["framerate"].toUInt();
+		st->framerate = map["framerate"].toDouble();
 	}
 	return state;
 }

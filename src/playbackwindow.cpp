@@ -328,7 +328,7 @@ void playbackWindow::checkForSaveDone()
 	}
 	else {
 		char tmp[64];
-		sprintf(tmp, "%.1ffps", (float)st.framerate);
+		sprintf(tmp, "%.1ffps", st.framerate);
 		ui->lblFrameRate->setText(tmp);
 	}
 }

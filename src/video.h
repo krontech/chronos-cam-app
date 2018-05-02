@@ -81,7 +81,7 @@ struct VideoStatus {
 	VideoState	state;
 	UInt32 totalFrames;
 	UInt32 position;
-	UInt32 framerate;
+	double framerate;
 };
 
 class Video : public QObject {
