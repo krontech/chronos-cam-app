@@ -61,6 +61,7 @@ saveSettingsWindow::saveSettingsWindow(QWidget *parent, Camera * camInst) :
 	if ( index != -1 ) { // -1 for not found
 		ui->comboDrive->setCurrentIndex(index);
 	}
+	saveFileDirectory();
 
 	ui->comboProfile->clear();
 	ui->comboProfile->addItem("Base");
