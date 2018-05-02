@@ -18,4 +18,8 @@ Chronos 1.4 Testing Proceedures
 | Raw Recording Tests               |           |
 | Abort Recording Tests             |           |
 | Video Throughput Tests            |           |
+| Filesystem Limits                 |           |
+| Free Space Check                  |           |
+| Ext3 Filesystem Support           |           |
+| Check for Mounted Filesystem      |           |
 | Storage Media Tests               |           |

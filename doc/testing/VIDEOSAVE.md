@@ -119,13 +119,93 @@ and save the file to a fast storage medium using H.264 encoding.
 and save the file to a fast storage medium using H.264 encoding.
     * The play rate should average close to 60fps while saving the video file.
 
+Filesystem Limits
+----------------
+TODO: Instructions to open the vide file in a raw editing program.
+
+1. Ensure that the SD card has been formatted as FAT32 and at least 8GB of free space before starting this test.
+2. Record a scene at a resolution of 1280x1024, capturing at least 2000 frames. Select a region of 1700 frames
+using the Mark Start and Mark End buttons.
+2. Tap the 'Settings' button to open the Save settings window. Select "Raw 16bit" as the save format and tap
+the close button to exit the save settings window. This should yeild a file size of approximately 4.15GiB, which
+will exceed the FAT32 file size limitation.
+3. Tap the 'Save' button to try and save the file.
+    * A dialog box should pop up warning the user that the file size is bigger than 4GB.
+4. Tap the "No" button to close the pop up warning.
+    * The camera should not attempt to save the vide file.
+5. Tap the 'Settings' button to open the Save settings window. Select "Raw 12bit packed" as the save format and
+tap the close button to exit the save settings window. This should yeild a file size of approximately 3.11GiB,
+which should be supported by FAT32.
+6. Tap the 'Save' button to try and save the file.
+    * The camera should beging recording the file to the SD card. Depending on the performance of the card, the
+    camera should average around 4-5fps while saving the video file.
+7. Wait for the video to complete saving, and then select a new video region of approximately 1600 frames in
+length using the Mark Start and Mark End buttons.
+8. Tap the 'Settings' button to open the Save settings window. Select "Raw 16bit" as the save format and
+tap the close button to exit the save settings window. This should yeild a file size of approximately 3.9GiB,
+which should be supported by FAT32.
+9. Tap the 'Save' button to try and save the file.
+    * The camera should begin recording the file to the SD card. Depending on the perofrmance of the card, the
+    camera should average around 3-4fps while saving the video file.
+10. Wait for the video to complete saving, remove the SD card and insert it into a laptop for review.
+    * The 12-bit packed raw file should be approximately 3.11GiB in size.
+    * The 16-bit raw file should be approximately 3.90GiB in size.
+
 ---
 
-Storage Media Tests
--------------------
+Free Space Check
+----------------
+1. Ensure that the SD card has been formatted as FAT32 and has less than 4GB of free space before starting this test.
+2. Log into the camera via SSH and calculate the free space on the SD card using the command 'df /media/mmcblk1p1/'.
+This will list the available space on the SD card in 1kiB blocks. Take this number and compute the maximum file size
+in frames from the formula `frames = blocks / 2560`
+3. Record a scene at a resolution of 1280x1024, capturing at least 2000 frames, and use the Mark Start and Mark End
+buttons to select a region equal to the calculated number of frames plus one. For example, if the available 1kiB
+blocks were 1000000, we would select a Mark Start position of 1, and a Mark End of 391.
+4. Tap the 'Settings' button to open the Save settings window. Select "Raw 16bit" as the save format and tap
+the close button to exit the save settings window. This should yeild a file size that just barely exceeds the free
+space left on the filesystem.
+5. Tap the 'Save' button to try and save the file.
+    * The camera should display a pop up warning the user that the file size is bigger than the free space available.
+6. Tap the "No" button to close the pop up warning.
+7. Decrease the mark out position by two frames and tap the 'Mark End' button. This should now give a file size that
+is just slightly smaller than the available space on the SD card.
+8. Tap the 'Save' button to try and save the file.
+    * The camera should begin recording the file to the SD card. Depending on the perofrmance of the card, the
+    camera should average around 3-4fps while saving the video file.
+9. Wait for the video to complete saving, remove the SD card and insert it into a laptop for review.
+    * There should be less than 2MB of free space remaining on the SD card.
+
+---
+
+Ext3 Filesystem Support
+-------------------------
+1. Using a Linux PC, format the SD card with an ext3 filesystem using the command `sudo mkfs.ext3 -L test-ext3 device`
+2. Record a scene at a resolution of 1280x1024, capturing at least 2000 frames, and use the Mark Start and Mark End
+buttons to select a region of 1700 frames.
+3. Tap the 'Settings' button to open the Save settings window. Select "Raw 16bit" as the save format and tap
+the close button to exit the save settings window.
+4. Tap the 'Save' button to try and save the file.
+    * The camera should begin recording the file to the SD card. Depending on the performance of the card, the
+    camera should average around 3-4fps while saving the video file.
+5. Wait for the video to complete saving, remove the SD card and insert it into a laptop for review.
+    * The expected raw video file should have a size of 4.15GiB
+    * The file should be saved with an owner and group of root:root, and permissions set to 644 (-rw-r--r--)
+
+---
+
+Check For Mounted Filesystem
+----------------------------
+1. Record some footage, and select a region of interest to be saved using the Mark Start and Mark End buttons.
+2. Tap the 'Settings' button to open the Save settings window. Select the SD card as the save location and tap
+the close button to exit the save settings window.
+3. Remove the SD card from the camera, and tap the 'Save' button to try and record the video file.
+    * The camera should display a pop up warning that the save location is not found.
+4. Tap 'OK' to close the pop up warning.
+    * The camera should not save the video file.
+
+---
+
+eSATA Interface
+---------------
 TODO: Placeholder for mode advanced storage tests
-* eSATA
-* ext3 and ext4 filesystems
-* file sizes in excess of 4GB.
-* check for free space
-* check for mounted filesystems.
