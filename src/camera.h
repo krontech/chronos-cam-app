@@ -68,6 +68,10 @@
 
 #define CAMERA_MAX_EXPOSURE_TARGET 3584
 
+#define TRIGGERDELAY_TIME_RATIO 0
+#define TRIGGERDELAY_SECONDS 1
+#define TRIGGERDELAY_FRAMES 2
+
 /*
 typedef enum CameraErrortype
 {
@@ -197,6 +201,17 @@ public:
 	UInt32 getPlayFrameAddr(UInt32 playFrame);
 	RecordSettings_t recordingData;
 	ImagerSettings_t getImagerSettings() { return imagerSettings; }
+
+	unsigned short getTriggerDelayConstant();
+	void setTriggerDelayConstant(unsigned short value);
+	void setTriggerDelayValues(double ratio, double seconds, UInt32 frames);
+	void updateTriggerValues(ImagerSettings_t settings);
+	unsigned short triggerDelayConstant;
+	double triggerTimeRatio;
+	double triggerPostSeconds;
+	UInt32 triggerPostFrames;
+	double maxPostFramesRatio;
+
 	UInt32 setImagerSettings(ImagerSettings_t settings);
 	UInt32 setIntegrationTime(double intTime, UInt32 hRes, UInt32 vRes, Int32 flags);
     UInt32 setDisplaySettings(bool encoderSafe, UInt32 maxFps);
@@ -231,7 +246,7 @@ public:
 	Int32 getRawCorrectedFramesAveraged(UInt32 frame, UInt32 framesToAverage, UInt16 * frameBuffer);
 	Int32 takeWhiteReferences(void);
 	Int32 startSave(UInt32 startFrame, UInt32 length);
-	void setCCMatrix(double * wbMat);
+	void setCCMatrix();
 	int setWhiteBalance(UInt32 x, UInt32 y);
 	void setFocusAid(bool enable);
 	bool getFocusAid();
@@ -243,6 +258,8 @@ public:
 	void setFocusPeakEnable(bool en);
 	bool getZebraEnable(void);
 	void setZebraEnable(bool en);
+	int getUnsavedWarnEnable(void);
+	void setUnsavedWarnEnable(int newSetting);
 	char * getSerialNumber(void) {return serialNumber;}
 	void setSerialNumber(const char * sn) {strcpy(serialNumber, sn);}
 	bool getIsColor() {return isColor;}
@@ -250,8 +267,8 @@ public:
 private:
     void setDisplayFrameSource(bool liveDisplaySource);
 private:
-    void setDisplayFrameAddress(UInt32 address);
-    void setLiveOutputTiming(UInt32 hRes, UInt32 vRes, UInt32 hOutRes, UInt32 vOutRes, UInt32 maxFps);
+	void setDisplayFrameAddress(UInt32 address);
+	void setLiveOutputTiming(UInt32 hRes, UInt32 vRes, UInt32 hOutRes, UInt32 vOutRes, UInt32 maxFps);
 	bool getRecDataFifoIsEmpty(void);
 	UInt32 readRecDataFifo(void);
 	bool getRecording(void);
@@ -268,15 +285,21 @@ private:
 	void writeDGCMem(double gain, UInt32 column);
 	bool readIsColor(void);
 public:
-	UInt8 getFocusPeakColor(void);
-	void setFocusPeakColor(UInt8 color);
-	void setFocusPeakThreshold(UInt32 thresh);
-	UInt32 getFocusPeakThreshold(void);
-    Int32 getRamSizeGB(UInt32 * stick0SizeGB, UInt32 * stick1SizeGB);
+	bool getFocusPeakEnableLL(void);
+	void setFocusPeakEnableLL(bool en);
+	UInt8 getFocusPeakColorLL(void);
+	void setFocusPeakColorLL(UInt8 color);
+	bool getZebraEnableLL(void);
+	void setZebraEnableLL(bool en);
+	void setFocusPeakThresholdLL(UInt32 thresh);
+	UInt32 getFocusPeakThresholdLL(void);
+	Int32 getRamSizeGB(UInt32 * stick0SizeGB, UInt32 * stick1SizeGB);
 	Int32 readSerialNumber(char * dest);
 	Int32 writeSerialNumber(char * src);
 	UInt16 getFPGAVersion(void);
 	UInt16 getFPGASubVersion(void);
+	bool ButtonsOnLeft;
+	bool UpsideDownDisplay;
 private:
 	void endOfRec(void);
 	UInt32 getNumFrames(UInt32 start, UInt32 end);
@@ -290,15 +313,24 @@ private:
 
 	ImagerSettings_t imagerSettings;
 	bool isColor;
-	double ccMatrix[9];
-	double wbMatrix[3];	//White balance multipliers computed by color matrix generator
-	double wbMat[3];	//Actual white balance computed during runtime
+
+	// camSPECS CCM calculation: CIECAM02 RGB to sRGB & white balance
+	double colorCalMatrix[9] = {
+		+1.2330, +0.6468, -0.7764,
+		-0.3219, +1.6901, -0.3811,
+		-0.0614, -0.6409, +1.5258,
+	};
+	double cameraWhiteBalMatrix[3] = { 1, 1.1, 1.3 };
+	double sceneWhiteBalMatrix[3];	//Actual white balance computed during runtime
 	double imgGain;
 	bool focusPeakEnabled;
+	int focusPeakColorIndex;
 	bool zebraEnabled;
 	char serialNumber[SERIAL_NUMBER_MAX_LEN+1];
 
 public:
+	int unsavedWarnEnabled;
+	bool videoHasBeenReviewed;
 	bool autoSave;
 	void set_autoSave(bool state);
 	bool get_autoSave();
@@ -306,7 +338,15 @@ public:
 	bool autoRecord;
 	void set_autoRecord(bool state);
 	bool get_autoRecord();
-
+	bool getButtonsOnLeft();
+	void setButtonsOnLeft(bool en);
+	bool getUpsideDownDisplay();
+	void setUpsideDownDisplay(bool en);
+	bool RotationArgumentIsSet();
+	void upsideDownTransform(int rotation);
+	void updateVideoPosition();
+	int getFocusPeakColor();
+	void setFocusPeakColor(int value);
 private:
 	bool lastRecording;
 	bool terminateRecDataThread;

@@ -68,6 +68,8 @@ private slots:
 	void on_cmdRateDn_clicked();
 
 	void keyPressEvent(QKeyEvent *ev);
+	void on_cmdClose_clicked();
+	void saveSettingsClosed();
 
 private:
 	Ui::playbackWindow *ui;
@@ -78,14 +80,18 @@ private:
 	void setControlEnable(bool en);
 
 	UInt32 markInFrame, markOutFrame;
+	UInt32 markInFrameOld;
+	UInt32 lastPlayframe;
 	QTimer * timer;
 	QTimer * saveDoneTimer;
 	Int32 playbackExponent;
 	UInt32 playFrame;
 	bool autoSaveFlag;
+	bool settingsWindowIsOpen;
 
 signals:
 	void finishedSaving();
+	void enableSaveSettingsButtons(bool);
 };
 
 #endif // PLAYBACKWINDOW_H

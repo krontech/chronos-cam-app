@@ -37,9 +37,10 @@ playbackWindow::playbackWindow(QWidget *parent, Camera * cameraInst, bool autosa
 {
 	ui->setupUi(this);
 	this->setWindowFlags(Qt::Dialog /*| Qt::WindowStaysOnTopHint*/ | Qt::FramelessWindowHint);
-	this->move(600,0);
+
 	camera = cameraInst;
 	autoSaveFlag = autosave;
+	this->move(camera->ButtonsOnLeft? 0:600, 0);
 
 	sw = new StatusWindow;
 
@@ -50,6 +51,7 @@ playbackWindow::playbackWindow(QWidget *parent, Camera * cameraInst, bool autosa
 	ui->verticalSlider->setValue(camera->playFrame);
 	markInFrame = 1;
 	markOutFrame = camera->recordingData.totalFrames;
+	ui->verticalSlider->setHighlightRegion(markInFrame, markOutFrame);
 
 	camera->setPlayMode(true);
 	camera->vinst->setPosition(0, 0);
@@ -63,7 +65,7 @@ playbackWindow::playbackWindow(QWidget *parent, Camera * cameraInst, bool autosa
 
 	updateStatusText();
 
-	setFocusPolicy(Qt::StrongFocus);
+	settingsWindowIsOpen = false;
 
 	if(autoSaveFlag) {
 		on_cmdSave_clicked();
@@ -120,7 +122,7 @@ void playbackWindow::on_cmdSave_clicked()
 	struct statvfs statvfsBuf;
 	uint64_t estimatedSize;
 	QSettings appSettings;
-	
+
 	//Build the parent path of the save directory, to determine if it's a mount point
 	strcpy(parentPath, camera->vinst->fileDirectory);
 	strcat(parentPath, "/..");
@@ -152,18 +154,18 @@ void playbackWindow::on_cmdSave_clicked()
 				break;
 			case SAVE_MODE_RAW16:
 			case SAVE_MODE_RAW16RJ:
- 				qDebug("Bits/pixel: %d", 16);
+				qDebug("Bits/pixel: %d", 16);
 				estimatedSize *= 16;
 				estimatedSize += (4096<<8);
 				break;
 			case SAVE_MODE_RAW12:
- 				qDebug("Bits/pixel: %d", 12);
+				qDebug("Bits/pixel: %d", 12);
 				estimatedSize *= 12;
-				estimatedSize += estimatedSize + (4096<<8);
+				estimatedSize += (4096<<8);
 				break;
 			default:
 				// unknown format
- 				qDebug("Bits/pixel: unknown - default: %d", 16);
+				qDebug("Bits/pixel: unknown - default: %d", 16);
 				estimatedSize *= 16;
 			}
 			// convert to bytes
@@ -176,11 +178,11 @@ void playbackWindow::on_cmdSave_clicked()
 			if (estimatedSize > (statvfsBuf.f_bsize * (uint64_t)statvfsBuf.f_bfree) || estimatedSize > 4294967296) {
 				QMessageBox::StandardButton reply;
 				reply = QMessageBox::question(this, "Estimated file size too large", "Estimated file size is larger than room on media/4GB. Attempt to save?", QMessageBox::Yes|QMessageBox::No);
-				if(QMessageBox::Yes != reply) 
+				if(QMessageBox::Yes != reply)
 					return;
 			}
 		}
-		
+
 		//Check that the path exists
 		struct stat sb;
 		struct stat sbP;
@@ -204,22 +206,34 @@ void playbackWindow::on_cmdSave_clicked()
 				msg.exec();
 				return;
 			}
-            else if(RECORD_INSUFFICIENT_SPACE == ret)
-            {
+			else if(RECORD_INSUFFICIENT_SPACE == ret)
+			{
 				if(camera->vinst->errorCallback)
 					(*camera->vinst->errorCallback)(camera->vinst->errorCallbackArg, "insufficient free space");
-                msg.setText("Selected device does not have sufficient free space.");
-                msg.exec();
-                return;
-            }
+				msg.setText("Selected device does not have sufficient free space.");
+				msg.exec();
+				return;
+			}
 
 			ui->cmdSave->setText("Abort\nSave");
 			setControlEnable(false);
 			sw->setText("Saving...");
 			sw->show();
+
 			saveDoneTimer = new QTimer(this);
 			connect(saveDoneTimer, SIGNAL(timeout()), this, SLOT(checkForSaveDone()));
 			saveDoneTimer->start(100);
+
+			/* Prevent the user from pressing the abort/save button just after the last frame,
+			 * as that can make the camera try to save a 2nd video too soon, crashing the camapp.
+			 * It is also disabled in checkForSaveDone(), but if the video is very short,
+			 * that might not be called at all before the end of the video, so just disable the button right away.*/
+			if(markOutFrame - markInFrame < 25) ui->cmdSave->setEnabled(false);
+
+			ui->verticalSlider->appendRegionToList();
+			ui->verticalSlider->setHighlightRegion(markOutFrame, markOutFrame);
+			//both arguments should be markout because a new rectangle will be drawn, and it should not overlap the one that was just appended
+			emit enableSaveSettingsButtons(false);
 		}
 		else
 		{
@@ -233,6 +247,8 @@ void playbackWindow::on_cmdSave_clicked()
 	else
 	{
 		camera->vinst->stopRecording();
+		ui->verticalSlider->removeLastRegionFromList();
+		ui->verticalSlider->setHighlightRegion(markInFrame, markOutFrame);
 	}
 
 }
@@ -247,6 +263,21 @@ void playbackWindow::on_cmdSaveSettings_clicked()
 	saveSettingsWindow *w = new saveSettingsWindow(NULL, camera);
 	w->setAttribute(Qt::WA_DeleteOnClose);
 	w->show();
+	settingsWindowIsOpen = true;
+	if(camera->ButtonsOnLeft) w->move(230, 0);
+	ui->cmdSaveSettings->setEnabled(false);
+	ui->cmdClose->setEnabled(false);
+	connect(w, SIGNAL(destroyed()), this, SLOT(saveSettingsClosed()));
+	connect(this, SIGNAL(enableSaveSettingsButtons(bool)), w, SLOT(setControlEnable(bool)));
+}
+
+void playbackWindow::saveSettingsClosed(){
+	settingsWindowIsOpen = false;
+	if(!camera->vinst->getStatus(NULL) != VIDEO_STATE_RECORDING) {
+		/* Only enable these buttons if the camera is not saving a video */
+		ui->cmdSaveSettings->setEnabled(true);
+		ui->cmdClose->setEnabled(true);
+	}
 }
 
 void playbackWindow::on_cmdMarkIn_clicked()
@@ -254,6 +285,7 @@ void playbackWindow::on_cmdMarkIn_clicked()
 	markInFrame = camera->playFrame + 1;
 	if(markOutFrame < markInFrame)
 		markOutFrame = markInFrame;
+	ui->verticalSlider->setHighlightRegion(markInFrame, markOutFrame);
 	updateStatusText();
 }
 
@@ -262,6 +294,7 @@ void playbackWindow::on_cmdMarkOut_clicked()
 	markOutFrame = camera->playFrame + 1;
 	if(markInFrame > markOutFrame)
 		markInFrame = markOutFrame;
+	ui->verticalSlider->setHighlightRegion(markInFrame, markOutFrame);
 	updateStatusText();
 }
 
@@ -296,7 +329,7 @@ void playbackWindow::keyPressEvent(QKeyEvent *ev)
 void playbackWindow::updateStatusText()
 {
 	char text[100];
-	sprintf(text, "Frame %d/%d\r\nMark in %d\r\nMark out %d", camera->playFrame + 1, camera->recordingData.totalFrames, markInFrame, markOutFrame);
+	sprintf(text, "Frame %d/%d\r\nMark start %d\r\nMark end %d", camera->playFrame + 1, camera->recordingData.totalFrames, markInFrame, markOutFrame);
 	ui->lblInfo->setText(text);
 }
 
@@ -321,6 +354,9 @@ void playbackWindow::checkForSaveDone()
 		ui->cmdSave->setText("Save");
 		setControlEnable(true);
 		updatePlayRateLabel(playbackExponent);
+		emit enableSaveSettingsButtons(true);
+		ui->cmdSave->setEnabled(true);
+		ui->verticalSlider->setHighlightRegion(markInFrame, markOutFrame);
 
 		if(autoSaveFlag) {
 			close();
@@ -330,6 +366,12 @@ void playbackWindow::checkForSaveDone()
 		char tmp[64];
 		sprintf(tmp, "%.1ffps", st.framerate);
 		ui->lblFrameRate->setText(tmp);
+		setControlEnable(false);
+
+		/* Prevent the user from pressing the abort/save button just after the last frame,
+		 * as that can make the camera try to save a 2nd video too soon, crashing the camapp.*/
+		if(camera->playFrame >= markOutFrame - 25)
+			ui->cmdSave->setEnabled(false);
 	}
 }
 
@@ -362,14 +404,20 @@ void playbackWindow::updatePlayRateLabel(Int32 playbackRate)
 
 void playbackWindow::setControlEnable(bool en)
 {
-	ui->cmdClose->setEnabled(en);
+	if(!settingsWindowIsOpen){//While settings window is open, don't let the user close the playback window or open another settings window.
+		ui->cmdClose->setEnabled(en);
+		ui->cmdSaveSettings->setEnabled(en);
+	}
 	ui->cmdMarkIn->setEnabled(en);
 	ui->cmdMarkOut->setEnabled(en);
 	ui->cmdPlayForward->setEnabled(en);
 	ui->cmdPlayReverse->setEnabled(en);
 	ui->cmdRateDn->setEnabled(en);
 	ui->cmdRateUp->setEnabled(en);
-	ui->cmdSaveSettings->setEnabled(en);
 	ui->verticalSlider->setEnabled(en);
+}
 
+void playbackWindow::on_cmdClose_clicked()
+{
+    camera->videoHasBeenReviewed = true;
 }

@@ -30,7 +30,7 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>14</pointsize>
+     <pointsize>20</pointsize>
      <weight>75</weight>
      <italic>false</italic>
      <bold>true</bold>
@@ -51,7 +51,7 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>14</pointsize>
+     <pointsize>28</pointsize>
      <weight>75</weight>
      <italic>false</italic>
      <bold>true</bold>
@@ -72,7 +72,7 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>14</pointsize>
+     <pointsize>28</pointsize>
      <weight>75</weight>
      <italic>false</italic>
      <bold>true</bold>
@@ -93,7 +93,7 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>14</pointsize>
+     <pointsize>28</pointsize>
      <weight>75</weight>
      <italic>false</italic>
      <bold>true</bold>
@@ -114,7 +114,7 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>14</pointsize>
+     <pointsize>20</pointsize>
      <weight>75</weight>
      <italic>false</italic>
      <bold>true</bold>
@@ -135,7 +135,7 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>14</pointsize>
+     <pointsize>28</pointsize>
      <weight>75</weight>
      <italic>false</italic>
      <bold>true</bold>
@@ -156,7 +156,7 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>14</pointsize>
+     <pointsize>28</pointsize>
      <weight>75</weight>
      <italic>false</italic>
      <bold>true</bold>
@@ -177,7 +177,7 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>14</pointsize>
+     <pointsize>20</pointsize>
      <weight>75</weight>
      <italic>false</italic>
      <bold>true</bold>
@@ -201,7 +201,7 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>14</pointsize>
+     <pointsize>28</pointsize>
      <weight>75</weight>
      <italic>false</italic>
      <bold>true</bold>
@@ -222,7 +222,7 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>14</pointsize>
+     <pointsize>28</pointsize>
      <weight>75</weight>
      <italic>false</italic>
      <bold>true</bold>
@@ -243,7 +243,7 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>14</pointsize>
+     <pointsize>28</pointsize>
      <weight>75</weight>
      <italic>false</italic>
      <bold>true</bold>
@@ -285,7 +285,7 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>14</pointsize>
+     <pointsize>28</pointsize>
      <weight>75</weight>
      <italic>false</italic>
      <bold>true</bold>
@@ -306,7 +306,7 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>14</pointsize>
+     <pointsize>28</pointsize>
      <weight>75</weight>
      <italic>false</italic>
      <bold>true</bold>
@@ -327,7 +327,7 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>14</pointsize>
+     <pointsize>28</pointsize>
      <weight>75</weight>
      <italic>false</italic>
      <bold>true</bold>
@@ -348,7 +348,7 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>14</pointsize>
+     <pointsize>28</pointsize>
      <weight>75</weight>
      <italic>false</italic>
      <bold>true</bold>
@@ -369,7 +369,7 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>14</pointsize>
+     <pointsize>28</pointsize>
      <weight>75</weight>
      <italic>false</italic>
      <bold>true</bold>
@@ -390,7 +390,7 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>14</pointsize>
+     <pointsize>28</pointsize>
      <weight>75</weight>
      <italic>false</italic>
      <bold>true</bold>
@@ -411,7 +411,7 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>14</pointsize>
+     <pointsize>28</pointsize>
      <weight>75</weight>
      <italic>false</italic>
      <bold>true</bold>
@@ -432,7 +432,7 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>14</pointsize>
+     <pointsize>28</pointsize>
      <weight>75</weight>
      <italic>false</italic>
      <bold>true</bold>
@@ -453,7 +453,7 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>14</pointsize>
+     <pointsize>28</pointsize>
      <weight>75</weight>
      <italic>false</italic>
      <bold>true</bold>
@@ -474,7 +474,7 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>14</pointsize>
+     <pointsize>28</pointsize>
      <weight>75</weight>
      <italic>false</italic>
      <bold>true</bold>
@@ -495,7 +495,7 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>14</pointsize>
+     <pointsize>28</pointsize>
      <weight>75</weight>
      <italic>false</italic>
      <bold>true</bold>
@@ -516,7 +516,7 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>14</pointsize>
+     <pointsize>28</pointsize>
      <weight>75</weight>
      <italic>false</italic>
      <bold>true</bold>
@@ -537,7 +537,7 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>14</pointsize>
+     <pointsize>20</pointsize>
      <weight>75</weight>
      <italic>false</italic>
      <bold>true</bold>
@@ -558,7 +558,7 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>14</pointsize>
+     <pointsize>28</pointsize>
      <weight>75</weight>
      <italic>false</italic>
      <bold>true</bold>
@@ -579,14 +579,14 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>14</pointsize>
+     <pointsize>20</pointsize>
      <weight>75</weight>
      <italic>false</italic>
      <bold>true</bold>
     </font>
    </property>
    <property name="text">
-    <string>Enter</string>
+    <string>Apply</string>
    </property>
   </widget>
   <widget class="QPushButton" name="num0">
@@ -600,7 +600,7 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>14</pointsize>
+     <pointsize>28</pointsize>
      <weight>75</weight>
      <italic>false</italic>
      <bold>true</bold>
@@ -621,7 +621,7 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>14</pointsize>
+     <pointsize>28</pointsize>
      <weight>75</weight>
      <italic>false</italic>
      <bold>true</bold>
@@ -642,7 +642,7 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>14</pointsize>
+     <pointsize>28</pointsize>
      <weight>75</weight>
      <italic>false</italic>
      <bold>true</bold>
@@ -663,7 +663,7 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>14</pointsize>
+     <pointsize>28</pointsize>
      <weight>75</weight>
      <italic>false</italic>
      <bold>true</bold>
@@ -684,7 +684,7 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>14</pointsize>
+     <pointsize>28</pointsize>
      <weight>75</weight>
      <italic>false</italic>
      <bold>true</bold>
@@ -705,7 +705,7 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>14</pointsize>
+     <pointsize>28</pointsize>
      <weight>75</weight>
      <italic>false</italic>
      <bold>true</bold>
@@ -726,7 +726,7 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>14</pointsize>
+     <pointsize>28</pointsize>
      <weight>75</weight>
      <italic>false</italic>
      <bold>true</bold>
@@ -747,7 +747,7 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>14</pointsize>
+     <pointsize>28</pointsize>
      <weight>75</weight>
      <italic>false</italic>
      <bold>true</bold>
@@ -768,7 +768,7 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>14</pointsize>
+     <pointsize>28</pointsize>
      <weight>75</weight>
      <italic>false</italic>
      <bold>true</bold>
@@ -789,14 +789,14 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>14</pointsize>
+     <pointsize>28</pointsize>
      <weight>75</weight>
      <italic>false</italic>
      <bold>true</bold>
     </font>
    </property>
    <property name="text">
-    <string>&lt;-</string>
+    <string>←</string>
    </property>
   </widget>
   <widget class="QPushButton" name="P">
@@ -810,7 +810,7 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>14</pointsize>
+     <pointsize>28</pointsize>
      <weight>75</weight>
      <italic>false</italic>
      <bold>true</bold>
@@ -831,7 +831,7 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>14</pointsize>
+     <pointsize>28</pointsize>
      <weight>75</weight>
      <italic>false</italic>
      <bold>true</bold>
@@ -852,7 +852,7 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>14</pointsize>
+     <pointsize>28</pointsize>
      <weight>75</weight>
      <italic>false</italic>
      <bold>true</bold>
@@ -873,7 +873,7 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>14</pointsize>
+     <pointsize>28</pointsize>
      <weight>75</weight>
      <italic>false</italic>
      <bold>true</bold>
@@ -894,7 +894,7 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>14</pointsize>
+     <pointsize>28</pointsize>
      <weight>75</weight>
      <italic>false</italic>
      <bold>true</bold>
@@ -936,7 +936,7 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>14</pointsize>
+     <pointsize>28</pointsize>
      <weight>75</weight>
      <italic>false</italic>
      <bold>true</bold>
@@ -957,7 +957,7 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>14</pointsize>
+     <pointsize>28</pointsize>
      <weight>75</weight>
      <italic>false</italic>
      <bold>true</bold>
@@ -978,7 +978,7 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>14</pointsize>
+     <pointsize>20</pointsize>
      <weight>75</weight>
      <italic>false</italic>
      <bold>true</bold>
@@ -999,7 +999,7 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>14</pointsize>
+     <pointsize>28</pointsize>
      <weight>75</weight>
      <italic>false</italic>
      <bold>true</bold>

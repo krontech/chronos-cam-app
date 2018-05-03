@@ -89,29 +89,6 @@ QSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}<
     <string>OK</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="cmdMax">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>360</y>
-     <width>81</width>
-     <height>91</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>14</pointsize>
-     <weight>75</weight>
-     <bold>true</bold>
-    </font>
-   </property>
-   <property name="text">
-    <string>More
-◀
-Pre-rec
-Time</string>
-   </property>
-  </widget>
   <widget class="TriggerSlider" name="horizontalSlider">
    <property name="geometry">
     <rect>
@@ -132,7 +109,7 @@ Time</string>
 QSlider::handle:horizontal {
     background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #b4b4b4, stop:1 #8f8f8f);
     border: 1px solid #5c5c5c;
-    width: 32px;
+    width: 60px;
     margin: -20px 0; /* handle is placed by default on the contents rect of the groove. Expand outside the groove */
     border-radius: 3px;
 }</string>
@@ -632,26 +609,86 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
     <string>Time  ▶</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="cmdResetPreRec">
+  <widget class="QPushButton" name="cmdResetToDefaults">
    <property name="geometry">
     <rect>
-     <x>120</x>
+     <x>20</x>
      <y>360</y>
-     <width>81</width>
+     <width>151</width>
      <height>91</height>
     </rect>
    </property>
    <property name="font">
     <font>
-     <pointsize>14</pointsize>
+     <pointsize>19</pointsize>
      <weight>75</weight>
      <bold>true</bold>
     </font>
    </property>
    <property name="text">
-    <string>Reset
-Pre-rec
-Time</string>
+    <string>Reset To
+Defaults</string>
+   </property>
+  </widget>
+  <widget class="QComboBox" name="comboKeepConstant">
+   <property name="geometry">
+    <rect>
+     <x>281</x>
+     <y>410</y>
+     <width>321</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>15</pointsize>
+     <weight>75</weight>
+     <italic>true</italic>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QComboBox QAbstractItemView::item {
+  padding: 10px;
+  margin: 5px;
+}</string>
+   </property>
+   <item>
+    <property name="text">
+     <string>Pre-record and pre-trigger seconds</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>Post-trigger seconds</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>Post-trigger frames</string>
+    </property>
+   </item>
+  </widget>
+  <widget class="QLabel" name="lblRes_21">
+   <property name="geometry">
+    <rect>
+     <x>280</x>
+     <y>355</y>
+     <width>281</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>16</pointsize>
+    </font>
+   </property>
+   <property name="text">
+    <string>Keep this constant when changing
+resolution or framerate:</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
    </property>
   </widget>
  </widget>

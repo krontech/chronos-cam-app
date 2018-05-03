@@ -14,27 +14,33 @@
  *  You should have received a copy of the GNU General Public License       *
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.   *
  ****************************************************************************/
-#ifndef CAMLINEEDIT_H
-#define CAMLINEEDIT_H
+#ifndef PLAYBACKSLIDER
+#define PLAYBACKSLIDER
 
-#include <QLineEdit>
 
-class CamLineEdit : public QLineEdit
+#include <QSlider>
+
+class PlaybackSlider : public QSlider
 {
 	Q_OBJECT
 public:
-	explicit CamLineEdit(QWidget * parent = 0);
-
-    void selectText();
-    bool getHasUnits();
-    void setHasUnits(bool value);
+	PlaybackSlider(QWidget * parent = 0);
+	~PlaybackSlider();
+	void setHighlightRegion(int start, int end);
+	void appendRegionToList();
+	void removeLastRegionFromList();
 protected:
-  virtual void focusInEvent(QFocusEvent *e);
-  virtual void focusOutEvent(QFocusEvent *e);
-	void mouseReleaseEvent(QMouseEvent *);
+	void paintEvent(QPaintEvent *ev);
 
 private:
-	bool hasUnits;
+	int highlightRegionStartFrame = 0;
+	int highlightRegionEndFrame = 0;
+	QList<QRect> previouslySavedRegions;
+	QRect newSaveRegion;
+	unsigned int currentColorIndex;
+	QColor colorArray[9];
 };
 
-#endif // CAMLINEEDIT_H
+
+#endif // PlaybackSlider
+

@@ -61,6 +61,7 @@ saveSettingsWindow::saveSettingsWindow(QWidget *parent, Camera * camInst) :
 	if ( index != -1 ) { // -1 for not found
 		ui->comboDrive->setCurrentIndex(index);
 	}
+	saveFileDirectory();
 
 	ui->comboProfile->clear();
 	ui->comboProfile->addItem("Base");
@@ -98,6 +99,7 @@ saveSettingsWindow::saveSettingsWindow(QWidget *parent, Camera * camInst) :
 	while (val >>= 1) ++index;
 	ui->comboLevel->setCurrentIndex(index);
 
+	ui->comboSaveFormat->setEnabled(false);
 	ui->comboSaveFormat->clear();
 	// these must line up with the enum in video.h
 	ui->comboSaveFormat->addItem("H.264");            // SAVE_MODE_H264
@@ -106,7 +108,20 @@ saveSettingsWindow::saveSettingsWindow(QWidget *parent, Camera * camInst) :
 	ui->comboSaveFormat->addItem("Raw 12bit packed"); // SAVE_MODE_RAW12
 	
 	ui->comboSaveFormat->setCurrentIndex(settings.value("recorder/saveFormat", 0).toUInt());
-	
+
+	ui->comboSaveFormat->setEnabled(true);
+
+	if(ui->comboSaveFormat->currentIndex() == 0) {
+		ui->spinBitrate->setEnabled(true);
+		ui->spinFramerate->setEnabled(true);
+		ui->spinMaxBitrate->setEnabled(true);
+	}
+	else {
+		ui->spinBitrate->setEnabled(false);
+		ui->spinFramerate->setEnabled(false);
+		ui->spinMaxBitrate->setEnabled(false);
+	}
+
 	driveCount = 0;
 	timer = new QTimer(this);
 	connect(timer, SIGNAL(timeout()), this, SLOT(updateDrives()));
@@ -124,16 +139,19 @@ saveSettingsWindow::~saveSettingsWindow()
 void saveSettingsWindow::on_cmdClose_clicked()
 {
 	QSettings settings;
-	camera->vinst->bitsPerPixel = ui->spinBitrate->value();
-	camera->vinst->maxBitrate = ui->spinMaxBitrate->value();
-	camera->vinst->framerate = ui->spinFramerate->value();
-	camera->vinst->profile = 1 << ui->comboProfile->currentIndex();
-	camera->vinst->level = 1 << ui->comboLevel->currentIndex();
 
-	settings.setValue("recorder/saveFormat", ui->comboSaveFormat->currentIndex());
-		
-	strcpy(camera->vinst->filename, ui->lineFilename->text().toStdString().c_str());
+	camera->vinst->profile = OMX_H264ENC_PROFILE_HIGH;
+	camera->vinst->level = OMX_H264ENC_LVL_51;
 
+	saveFileDirectory();
+
+	settings.setValue("recorder/profile", camera->vinst->profile);
+	settings.setValue("recorder/level", camera->vinst->level);
+
+	close();
+}
+
+void saveSettingsWindow::saveFileDirectory(){
 	//Keep the beginning of the combo box text (the path)
 	char str[100];
 	const char * path;
@@ -149,16 +167,8 @@ void saveSettingsWindow::on_cmdClose_clicked()
 		path = "";
 
 	strcpy(camera->vinst->fileDirectory, path);
-
-	settings.setValue("recorder/bitsPerPixel", camera->vinst->bitsPerPixel);
-	settings.setValue("recorder/maxBitrate", camera->vinst->maxBitrate);
-	settings.setValue("recorder/framerate", camera->vinst->framerate);
-	settings.setValue("recorder/filename", camera->vinst->filename);
+	QSettings settings;
 	settings.setValue("recorder/fileDirectory", camera->vinst->fileDirectory);
-	settings.setValue("recorder/profile", camera->vinst->profile);
-	settings.setValue("recorder/level", camera->vinst->level);
-
-	close();
 }
 
 void saveSettingsWindow::on_cmdUMount_clicked()
@@ -193,6 +203,7 @@ void saveSettingsWindow::refreshDriveList()
 	char drive[1024];		//Stores string to be placed in combo box
 	UInt32 len;
 
+	okToSaveLocation = false;//prevent saving a new value while drive list is being updated
 	ui->comboDrive->clear();
 
 	//ui->comboDrive->addItem("/");
@@ -291,7 +302,7 @@ void saveSettingsWindow::refreshDriveList()
 		ui->comboDrive->setEnabled(false);
 
 	}
-
+	okToSaveLocation = true;
 }
 
 void saveSettingsWindow::on_cmdRefresh_clicked()
@@ -331,11 +342,17 @@ void saveSettingsWindow::updateBitrate()
 void saveSettingsWindow::on_spinBitrate_valueChanged(double arg1)
 {
 	updateBitrate();
+	QSettings settings;
+	camera->vinst->bitsPerPixel = ui->spinBitrate->value();
+	settings.setValue("recorder/bitsPerPixel", camera->vinst->bitsPerPixel);
 }
 
 void saveSettingsWindow::on_spinFramerate_valueChanged(int arg1)
 {
 	updateBitrate();
+	QSettings settings;
+	camera->vinst->framerate = ui->spinFramerate->value();
+	settings.setValue("recorder/framerate", camera->vinst->framerate);
 }
 
 //When the number of drives connected changes, refresh the drive list
@@ -372,16 +389,24 @@ void saveSettingsWindow::updateDrives(void)
 
 }
 
-
+void saveSettingsWindow::on_lineFilename_textEdited(const QString &arg1)
+{
+	QSettings settings;
+	strcpy(camera->vinst->filename, ui->lineFilename->text().toStdString().c_str());
+	settings.setValue("recorder/filename", camera->vinst->filename);
+}
 
 void saveSettingsWindow::on_spinMaxBitrate_valueChanged(int arg1)
 {
 	updateBitrate();
+	QSettings settings;
+	camera->vinst->maxBitrate = ui->spinMaxBitrate->value();
+	settings.setValue("recorder/maxBitrate", camera->vinst->maxBitrate);
 }
 
 void saveSettingsWindow::on_comboSaveFormat_currentIndexChanged(int index)
 {
-	
+	if(!ui->comboSaveFormat->isEnabled()) return;
 	if(index == 0) {
 		ui->spinBitrate->setEnabled(true);
 		ui->spinFramerate->setEnabled(true);
@@ -393,4 +418,25 @@ void saveSettingsWindow::on_comboSaveFormat_currentIndexChanged(int index)
 		ui->spinMaxBitrate->setEnabled(false);
 	}
 	updateBitrate();
+	QSettings settings;
+	settings.setValue("recorder/saveFormat", ui->comboSaveFormat->currentIndex());
+}
+
+void saveSettingsWindow::setControlEnable(bool en){
+	//Only re-enable these 3 spinboxes if the save mode is not raw
+	bool H264SettingsEnabled = (en && (ui->comboSaveFormat->currentIndex() == SAVE_MODE_H264));
+	ui->spinBitrate->setEnabled(H264SettingsEnabled);
+	ui->spinFramerate->setEnabled(H264SettingsEnabled);
+	ui->spinMaxBitrate->setEnabled(H264SettingsEnabled);
+	ui->lineFilename->setEnabled(en);
+	ui->comboSaveFormat->setEnabled(en);
+	ui->comboDrive->setEnabled(en);
+	ui->cmdRefresh->setEnabled(en);
+	ui->cmdUMount->setEnabled(en);
+	ui->cmdClose->setEnabled(en);
+}
+
+void saveSettingsWindow::on_comboDrive_currentIndexChanged(const QString &arg1)
+{
+	if(okToSaveLocation) saveFileDirectory();
 }

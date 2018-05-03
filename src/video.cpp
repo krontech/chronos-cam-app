@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <QDebug>
 #include <memory.h>
 #include <getopt.h>
 #include <string.h>
@@ -418,3 +419,4 @@ Video::~Video()
 	setRunning(false);
 	pthread_mutex_destroy(&mutex);
 }
+

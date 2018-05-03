@@ -43,12 +43,19 @@
 #include "myinputpanelcontext.h"
 #include "keyboard.h"
 
+#include <algorithm>
+
 MyInputPanelContext::MyInputPanelContext()
 {
-	inputPanel = new keyboard();
+	inputPanelAlphabetic = new keyboard();
+	inputPanelNumeric = new keyboardNumeric();
+	inputPanel = inputPanelAlphabetic;//default
 
-    connect(inputPanel, SIGNAL(characterGenerated(QChar)), SLOT(sendCharacter(QChar)));
-	connect(inputPanel, SIGNAL(codeGenerated(int)), SLOT(sendCode(int)));
+    connect(inputPanelAlphabetic, SIGNAL(characterGenerated(QChar)), SLOT(sendCharacter(QChar)));
+	connect(inputPanelAlphabetic, SIGNAL(codeGenerated(int)), SLOT(sendCode(int)));
+
+	connect(inputPanelNumeric, SIGNAL(characterGenerated(QChar)), SLOT(sendCharacter(QChar)));
+	connect(inputPanelNumeric, SIGNAL(codeGenerated(int)), SLOT(sendCode(int)));
 
 	keyboardActive = false;
 }
@@ -81,6 +88,12 @@ bool MyInputPanelContext::filterEvent(const QEvent* event)
 			originalPos = window->pos();
 		}
 
+		QString className = widget->metaObject()->className();
+		if(className.contains("spinbox", Qt::CaseInsensitive))
+			inputPanel = inputPanelNumeric;
+		else
+			inputPanel = inputPanelAlphabetic;
+
 		qDebug() << "inputPanel Show";
 		inputPanel->show();
 
@@ -88,31 +101,14 @@ bool MyInputPanelContext::filterEvent(const QEvent* event)
 		if(widget->mapToGlobal(QPoint(0,0)).y() + widget->size().height() > QApplication::desktop()->screenGeometry().height() - inputPanel->height())
 		{
 			window->move(window->pos().x(),
+					   std::max(
 						 (QApplication::desktop()->screenGeometry().height() - inputPanel->height()) / 2 - //Center of visible screen above keyboard
-						  widget->mapToGlobal(QPoint(0,0)).y() - widget->size().height() / 2); //Focused widget center
+						   widget->mapToGlobal(QPoint(0,0)).y() - widget->size().height() / 2 //Focused widget center
+						   , //max value of these two to prevent the window from moving up too far if a widget that is very close to the bottom of the screen requests a keyboard.
+						   -inputPanel->height()));
 		}
 
 		keyboardActive = true;
-
-
-
-		//Select all the text in the widget if it's a text or line edit
-		//QWidget *widget = focusWidget();
-		QString text;
-		QString senderClass = widget->metaObject()->className();
-		qDebug() << senderClass;
-		if (senderClass == "CamTextEdit") {
-			QTextEdit *textEdit = qobject_cast<QTextEdit*>(widget);
-			textEdit->selectAll();
-		} else if (senderClass == "CamLineEdit") {
-			QLineEdit *lineEdit = qobject_cast<QLineEdit*>(widget);
-			lineEdit->selectAll();
-		} else if (senderClass == "CamSpinBox") {
-			QSpinBox *spinBox = qobject_cast<QSpinBox*>(widget);
-			spinBox->selectAll();
-			//QTimer::singleShot( 250, spinBox, SLOT( selectAll() ) );
-		}
-
 
         return true;
 	}

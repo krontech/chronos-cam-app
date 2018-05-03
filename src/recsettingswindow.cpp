@@ -21,6 +21,7 @@
 #include <QMessageBox>
 #include <QResource>
 #include <QDir>
+#include "camLineEdit.h"
 
 #include <QDebug>
 #include <cstdio>
@@ -76,6 +77,7 @@ RecSettingsWindow::RecSettingsWindow(QWidget *parent, Camera * cameraInst) :
 
     ui->spinHRes->setValue(is->stride);
     ui->spinVRes->setValue(is->vRes);
+    updateOffsetLimits();
     ui->spinHOffset->setValue(is->hOffset);
     ui->spinVOffset->setValue(is->vOffset);
 
@@ -146,16 +148,19 @@ RecSettingsWindow::RecSettingsWindow(QWidget *parent, Camera * cameraInst) :
     double framePeriod = (double)is->period / 100000000.0;
 	getSIText(str, framePeriod, 10, DEF_SI_OPTS, 8);
 	ui->linePeriod->setText(str);
+	ui->linePeriod->setHasUnits(true);
 
 	//Set the frame rate
 	double frameRate = 1.0 / framePeriod;
 	getSIText(str, frameRate, ceil(log10(framePeriod*100000000.0)+1), DEF_SI_OPTS, 1000);
 	ui->lineRate->setText(str);
+	ui->lineRate->setHasUnits(true);
 
 	//Set the exposure
-    double exposure = (double)is->exposure / 100000000.0;
+	double exposure = (camera->sensor->getIntegrationTime());
 	getSIText(str, exposure, 10, DEF_SI_OPTS, 8);
 	ui->lineExp->setText(str);
+	ui->lineExp->setHasUnits(true);
 
 
 	ui->frameImage->setGeometry(QRect(ui->spinHOffset->value()/4, ui->spinVOffset->value()/4, ui->spinHRes->value()/4, ui->spinVRes->value()/4));
@@ -203,9 +208,12 @@ void RecSettingsWindow::on_cmdOK_clicked()
 														  ui->spinVRes->value());
 
 
-    is->exposure = exp * 100000000.0;
+    is->exposure = exp * 100000000.0 - 20;
 
     is->temporary = 0;
+
+    camera->updateTriggerValues(*is);
+
     camera->setImagerSettings(*is);
     camera->setDisplaySettings(false, MAX_LIVE_FRAMERATE);
 
@@ -784,7 +792,7 @@ void RecSettingsWindow::on_cmdDelaySettings_clicked()
     }
     else
     {
-        triggerDelayWindow *w = new triggerDelayWindow(NULL, camera, is);
+        triggerDelayWindow *w = new triggerDelayWindow(NULL, camera, is, siText2Double(ui->linePeriod->text().toAscii()));
         //w->camera = camera;
         w->setAttribute(Qt::WA_DeleteOnClose);
         w->show();

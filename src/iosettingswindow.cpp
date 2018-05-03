@@ -32,11 +32,9 @@ IOSettingsWindow::IOSettingsWindow(QWidget *parent, Camera * cameraInst) :
 
 	char str[100];
 
-	sprintf(str, "%4.2f", camera->io->getThreshold(1));
-	ui->lineIO1Thresh->setText(str);
+	ui->spinIO1Thresh->setValue(camera->io->getThreshold(1));
 
-	sprintf(str, "%4.2f", camera->io->getThreshold(2));
-	ui->lineIO2Thresh->setText(str);
+	ui->spinIO2Thresh->setValue(camera->io->getThreshold(2));
 
 	ui->radioIO1None->setChecked(true);
 	ui->radioIO2None->setChecked(true);
@@ -119,8 +117,8 @@ void IOSettingsWindow::on_cmdApply_clicked()
 	camera->io->setOutInvert(ui->chkIO2InvertOut->isChecked() << 2 | ui->chkIO1InvertOut->isChecked() << 1 | ui->chkIO1InvertOut->isChecked());
 
 
-	camera->io->setThreshold(1, ui->lineIO1Thresh->text().toDouble());
-	camera->io->setThreshold(2, ui->lineIO2Thresh->text().toDouble());
+	camera->io->setThreshold(1, ui->spinIO1Thresh->value());
+	camera->io->setThreshold(2, ui->spinIO2Thresh->value());
 
 	camera->io->setTriggeredExpEnable(ui->radioIO2TriggeredShutter->isChecked() || ui->radioIO1TriggeredShutter->isChecked());
 	camera->io->setExtShutterSrcEn(	((ui->radioIO2TriggeredShutter->isChecked() || ui->radioIO2ShutterGating->isChecked()) << 1) |

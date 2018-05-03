@@ -32,6 +32,9 @@ class UtilWindow : public QWidget
 public:
 	explicit UtilWindow(QWidget *parent, Camera * cameraInst);
 	~UtilWindow();
+
+signals:
+	void moveCamMainWindow();
 	
 private slots:
 	void on_cmdSWUpdate_clicked();
@@ -91,8 +94,7 @@ private slots:
 
     void on_cmdRevertCalData_pressed();
 
-    //void rxDBus_get_camera_data(QList<QVariant> &response);
-    //void errDBus_get_camera_data(const QDBusError &error);
+    	void on_comboDisableUnsavedWarning_currentIndexChanged(int index);
 
 private:
 	Ui::UtilWindow *ui;
@@ -100,8 +102,7 @@ private:
 	QTimer * timer;
 	bool settingClock;
 
-	//QDBusConnection *dbusControl;
-	//QDBusConnection *dbusVideo;
+	void statErrorMessage();
 };
 
 #endif // UTILWINDOW_H

@@ -38,6 +38,8 @@ public:
 	char filename[1000];
 	Camera * camera;
 
+public slots:
+	void setControlEnable(bool en);
 private slots:
 	void on_cmdClose_clicked();
 
@@ -55,13 +57,19 @@ private slots:
 
     void on_comboSaveFormat_currentIndexChanged(int index);
 
+    void on_lineFilename_textEdited(const QString &arg1);
+
+    void on_comboDrive_currentIndexChanged(const QString &arg1);
+
 private:
 	void refreshDriveList();
 	void updateBitrate();
+	void saveFileDirectory();
 
 	Ui::saveSettingsWindow *ui;
 	QTimer * timer;
 	UInt32 driveCount;
+	bool okToSaveLocation = false;
 };
 
 #endif // SAVESETTINGSWINDOW_H

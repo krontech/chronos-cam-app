@@ -18,11 +18,12 @@
 #include "ui_keyboard.h"
 
 keyboard::keyboard(QWidget *parent) :
-	QDialog(parent),
+	keyboardBase(parent),//QDialog(parent),
 	ui(new Ui::keyboard)
 {
 	ui->setupUi(this);
-	capslock = false;
+	capslock = shift = false;
+	setLowercase();
 
 	connect(qApp, SIGNAL(focusChanged(QWidget*,QWidget*)),
 			this, SLOT(saveFocusWidget(QWidget*,QWidget*)));
@@ -115,49 +116,6 @@ keyboard::~keyboard()
 }
 
 
-void keyboard::show()
-{
-	//QDesktopWidget * qdw = QApplication::desktop();
-
-	this->setWindowFlags(Qt::Dialog | Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
-	QWidget::show();
-	//Moving after showing because window height isn't set until show()
-	this->move(0,QApplication::desktop()->screenGeometry().height() - height());
-
-
-}
-
-
-
-bool keyboard::event(QEvent *e)
-{
-	switch (e->type()) {
-
-	case QEvent::WindowActivate:
-		if (lastFocusedWidget)
-		{
-			lastFocusedWidget->activateWindow();
-			qDebug() << "keyboard::event lastFocusedWidget activated" << lastFocusedWidget;
-		}
-		break;
-	default:
-		break;
-	}
-
-	return QWidget::event(e);
-}
-
-
-
-void keyboard::saveFocusWidget(QWidget * /*oldFocus*/, QWidget *newFocus)
-{
-	if (newFocus != 0 && !this->isAncestorOf(newFocus)) {
-		lastFocusedWidget = newFocus;
-		qDebug() << "keyboard::saveFocusWidget lastFocusedWidget set to" << newFocus;
-	}
-}
-
-
 
 void keyboard::buttonClicked(QWidget *w)
 {
@@ -166,8 +124,7 @@ void keyboard::buttonClicked(QWidget *w)
 	emit characterGenerated(capslock || shift ? chr : chr.toLower());
 	if(shift)
 	{
-		shift = false;
-		ui->shift->setStyleSheet(QString(""));
+		on_shift_clicked();
 	}
 }
 
@@ -177,17 +134,16 @@ void keyboard::on_caps_clicked()
 	{
 		capslock = false;
 		ui->caps->setStyleSheet(QString(""));
+		if(!shift) setLowercase();
+		else setUppercase();
 	}
 	else
 	{
 		capslock = true;
 		ui->caps->setStyleSheet(QString(KEYBOARD_BACKGROUND_BUTTON));
+		if(shift)setLowercase();
+		else setUppercase();
 	}
-}
-
-void keyboard::on_back_clicked()
-{
-	emit codeGenerated(KC_BACKSPACE);
 }
 
 void keyboard::on_space_clicked()
@@ -201,40 +157,72 @@ void keyboard::on_shift_clicked()
 	{
 		shift = false;
 		ui->shift->setStyleSheet(QString(""));
+		if(!capslock) setLowercase();
+		else setUppercase();
 	}
 	else
 	{
 		shift = true;
 		ui->shift->setStyleSheet(QString(KEYBOARD_BACKGROUND_BUTTON));
+		if(capslock) setLowercase();
+		else setUppercase();
 	}
 }
 
-void keyboard::on_up_clicked()
-{
-	emit codeGenerated(KC_UP);
+void keyboard::setUppercase(){
+	ui->Q->setText("Q");
+	ui->W->setText("W");
+	ui->E->setText("E");
+	ui->R->setText("R");
+	ui->T->setText("T");
+	ui->Y->setText("Y");
+	ui->U->setText("U");
+	ui->I->setText("I");
+	ui->O->setText("O");
+	ui->P->setText("P");
+	ui->A->setText("A");
+	ui->S->setText("S");
+	ui->D->setText("D");
+	ui->F->setText("F");
+	ui->G->setText("G");
+	ui->H->setText("H");
+	ui->J->setText("J");
+	ui->K->setText("K");
+	ui->L->setText("L");
+	ui->Z->setText("Z");
+	ui->X->setText("X");
+	ui->C->setText("C");
+	ui->V->setText("V");
+	ui->B->setText("B");
+	ui->N->setText("N");
+	ui->M->setText("M");
 }
 
-void keyboard::on_down_clicked()
-{
-	emit codeGenerated(KC_DOWN);
-}
-
-void keyboard::on_left_clicked()
-{
-	emit codeGenerated(KC_LEFT);
-}
-
-void keyboard::on_right_clicked()
-{
-	emit codeGenerated(KC_RIGHT);
-}
-
-void keyboard::on_enter_clicked()
-{
-	emit codeGenerated(KC_ENTER);
-}
-
-void keyboard::on_close_clicked()
-{
-	emit codeGenerated(KC_CLOSE);
+void keyboard::setLowercase(){
+	ui->Q->setText("q");
+	ui->W->setText("w");
+	ui->E->setText("e");
+	ui->R->setText("r");
+	ui->T->setText("t");
+	ui->Y->setText("y");
+	ui->U->setText("u");
+	ui->I->setText("i");
+	ui->O->setText("o");
+	ui->P->setText("p");
+	ui->A->setText("a");
+	ui->S->setText("s");
+	ui->D->setText("d");
+	ui->F->setText("f");
+	ui->G->setText("g");
+	ui->H->setText("h");
+	ui->J->setText("j");
+	ui->K->setText("k");
+	ui->L->setText("l");
+	ui->Z->setText("z");
+	ui->X->setText("x");
+	ui->C->setText("c");
+	ui->V->setText("v");
+	ui->B->setText("b");
+	ui->N->setText("n");
+	ui->M->setText("m");
 }

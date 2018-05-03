@@ -23,6 +23,7 @@
 #include <QResource>
 #include <QDir>
 #include <QIODevice>
+#include <QApplication>
 
 #include "font.h"
 #include "camera.h"
@@ -34,6 +35,7 @@
 #include "lux1310.h"
 #include "ecp5Config.h"
 #include "defines.h"
+#include <QWSDisplay>
 
 void* recDataThread(void *arg);
 void recordEosCallback(void * arg);
@@ -43,7 +45,7 @@ void recordErrorCallback(void * arg, char * message);
 Camera::Camera()
 {
 	QSettings appSettings;
-	
+
 	recDataPos = 0;
 	terminateRecDataThread = false;
 	lastRecording = false;
@@ -52,78 +54,14 @@ Camera::Camera()
 	endOfRecCallback = NULL;
 	imgGain = 1.0;
 	recordingData.hasBeenSaved = true;		//Nothing in RAM at power up so there's nothing to lose
+	unsavedWarnEnabled = getUnsavedWarnEnable();
 	autoSave = appSettings.value("camera/autoSave", 0).toBool();
 	autoRecord = appSettings.value("camera/autoRecord", 0).toBool();
+	ButtonsOnLeft = getButtonsOnLeft();
+	UpsideDownDisplay = getUpsideDownDisplay();
 	strcpy(serialNumber, "Not_Set");
 
-/*
-		//WPPLS
-		ccMatrix[0] = 1.7701;	ccMatrix[1] = -0.3927;	ccMatrix[2] = -0.1725;
-		ccMatrix[3] = -0.3323;	ccMatrix[4] = 1.4063;	ccMatrix[5] = -0.1257;
-		ccMatrix[6] = -0.1747;	ccMatrix[7] = 0.2080;	ccMatrix[8] = 0.8756;
-
-		//LS
-		ccMatrix[0] = 1.7356;	ccMatrix[1] = -0.3398;	ccMatrix[2] = -0.1910;
-		ccMatrix[3] = -0.3422;	ccMatrix[4] = 1.4605;	ccMatrix[5] = -0.1701;
-		ccMatrix[6] = -0.1165;	ccMatrix[7] = -0.0475;	ccMatrix[8] = 1.0728;
-
-		wbMatrix[0] = 1.0309;	wbMatrix[1] = 1.0;	wbMatrix[2] = 1.4406;
-
-		//LED3000K
-		ccMatrix[0] = 1.4689;	ccMatrix[1] = -0.1712;	ccMatrix[2] = -0.0926;
-		ccMatrix[3] = -0.3208;	ccMatrix[4] = 1.3082;	ccMatrix[5] = -0.0392;
-		ccMatrix[6] = -0.0395;	ccMatrix[7] = -0.1952;	ccMatrix[8] = 1.1435;
-
-		wbMatrix[0] = 0.7424;	wbMatrix[1] = 1.0;	wbMatrix[2] = 2.2724;
-
-*/
-
-/*
- *LUX1310 response
- *
- *		D50
-		//WPPLS
-		ccMatrix[0] = 1.4996;	ccMatrix[1] = 0.5791;	ccMatrix[2] = -0.8738;
-		ccMatrix[3] = -0.4962;	ccMatrix[4] = 1.3805;	ccMatrix[5] = 0.0640;
-		ccMatrix[6] = -0.0610;	ccMatrix[7] = -0.6490;	ccMatrix[8] = 1.6188;
-
-		//LS
-		ccMatrix[0] = 1.5584;	ccMatrix[1] = 0.4102;	ccMatrix[2] = -0.7083;
-		ccMatrix[3] = -0.5440;	ccMatrix[4] = 1.5178;	ccMatrix[5] = -0.0706;
-		ccMatrix[6] = -0.0130;	ccMatrix[7] = -0.7868;	ccMatrix[8] = 1.7540;
-
-		//CIECAM02
-		ccMatrix[0] = 1.6410;	ccMatrix[1] = -0.0255;	ccMatrix[2] = -0.4398;
-		ccMatrix[3] = -0.3992;	ccMatrix[4] = 1.4600;	ccMatrix[5] = -0.0851;
-		ccMatrix[6] = -0.0338;	ccMatrix[7] = -0.6913;	ccMatrix[8] = 1.4470;
-
-		wbMatrix[0] = 1.1405;	wbMatrix[1] = 1.0;	wbMatrix[2] = 1.1563;
-		*/
-		//LED3000K LS
-//		ccMatrix[0] = 1.4444;	ccMatrix[1] = 0.7958;	ccMatrix[2] = -1.1809;
-//		ccMatrix[3] = -0.5068;	ccMatrix[4] = 1.4137;	ccMatrix[5] = 0.0310;
-//		ccMatrix[6] = -0.0675;	ccMatrix[7] = -0.6846;	ccMatrix[8] = 1.7197;
-
-
-		//LED3000K WPPLS
-		ccMatrix[0] = 1.4508;	ccMatrix[1] = 0.6010;	ccMatrix[2] = -0.8470;
-		ccMatrix[3] = -0.5063;	ccMatrix[4] = 1.3998;	ccMatrix[5] = 0.0549;
-		ccMatrix[6] = -0.0701;	ccMatrix[7] = -0.6060;	ccMatrix[8] = 1.5849;
-
-		wbMatrix[0] = 0.8748;	wbMatrix[1] = 1.0;	wbMatrix[2] = 1.6607;
-
-/*
-		//LED3000K WPPLS without white balancing
-		ccMatrix[0] = 1.9103;	ccMatrix[1] = 1.0115;	ccMatrix[2] = -1.7170;
-		ccMatrix[3] = -0.6258;	ccMatrix[4] = 1.3750;	ccMatrix[5] = 0.1991;
-		ccMatrix[6] = -0.3871;	ccMatrix[7] = -0.9426;	ccMatrix[8] = 2.2385;
-
-		wbMatrix[0] = 1.0;	wbMatrix[1] = 1.0;	wbMatrix[2] = 1.0;
-
-		*/
-
-
-		sem_init(&playMutex, 0, 1);
+	sem_init(&playMutex, 0, 1);
 
 }
 
@@ -256,8 +194,8 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 */
 
     if (ramSizeGBSlot1 != 0) {
-        if      (ramSizeGBSlot0 == 0)                         { gpmc->write16(MMU_CONFIG_ADDR, MMU_INVERT_CS);      qDebug("--- memory --- invert CS remap"); }  
-        else if (ramSizeGBSlot0 == 8 && ramSizeGBSlot1 == 16) { gpmc->write16(MMU_CONFIG_ADDR, MMU_INVERT_CS);		qDebug("--- memory --- invert CS remap"); }
+	if      (ramSizeGBSlot0 == 0)                         { gpmc->write16(MMU_CONFIG_ADDR, MMU_INVERT_CS);      qDebug("--- memory --- invert CS remap"); }
+	else if (ramSizeGBSlot0 == 8 && ramSizeGBSlot1 == 16) { gpmc->write16(MMU_CONFIG_ADDR, MMU_INVERT_CS);		qDebug("--- memory --- invert CS remap"); }
 		else if (ramSizeGBSlot0 == 8 && ramSizeGBSlot1 == 8)  { gpmc->write16(MMU_CONFIG_ADDR, MMU_SWITCH_STUFFED); qDebug("--- memory --- switch stuffed remap"); }
 		else {
 			qDebug("--- memory --- no remap");
@@ -326,8 +264,15 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
     settings.segmentLengthFrames    = appSettings.value("camera/segmentLengthFrames", settings.recRegionSizeFrames).toInt();
     settings.segments               = appSettings.value("camera/segments", 1).toInt();
     settings.temporary              = 0;
+
 	setImagerSettings(settings);
     setDisplaySettings(false, MAX_LIVE_FRAMERATE);
+
+    io->setTriggerDelayFrames(0, FLAG_USESAVED);
+    setTriggerDelayValues((double) io->getTriggerDelayFrames() / settings.recRegionSizeFrames,
+			     io->getTriggerDelayFrames() * ((double)settings.period / 100000000),
+			     io->getTriggerDelayFrames());
+
 
 	vinst->setRunning(true);
 
@@ -338,7 +283,9 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 	vinst->errorCallbackArg = (void *)this;
 
 	loadColGainFromFile();
-	
+
+	maxPostFramesRatio = 1;
+
 	if(CAMERA_FILE_NOT_FOUND == loadFPNFromFile())
 		autoFPNCorrection(2, false, true);
 	/*
@@ -379,10 +326,16 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 	//For mono version, set color matrix to just pass straight through
 	if(!isColor)
 	{
-		ccMatrix[0] = 1.0;	ccMatrix[1] = 0.0;	ccMatrix[2] = 0.0;
-		ccMatrix[3] = 0.0;	ccMatrix[4] = 1.0;	ccMatrix[5] = 0.0;
-		ccMatrix[6] = 0.0;	ccMatrix[7] = 0.0;	ccMatrix[8] = 1.0;
-		wbMatrix[0] = 1.0;	wbMatrix[1] = 1.0;	wbMatrix[2] = 1.0;
+		colorCalMatrix[0] = 1.0;	colorCalMatrix[1] = 0.0;	colorCalMatrix[2] = 0.0;
+		colorCalMatrix[3] = 0.0;	colorCalMatrix[4] = 1.0;	colorCalMatrix[5] = 0.0;
+		colorCalMatrix[6] = 0.0;	colorCalMatrix[7] = 0.0;	colorCalMatrix[8] = 1.0;
+		cameraWhiteBalMatrix[0] = 1.0;	cameraWhiteBalMatrix[1] = 1.0;	cameraWhiteBalMatrix[2] = 1.0;
+		sceneWhiteBalMatrix[0] = sceneWhiteBalMatrix[1] = sceneWhiteBalMatrix[2] = 1.0;
+	}
+	else{
+		sceneWhiteBalMatrix[0] = 1.21266;
+		sceneWhiteBalMatrix[1] = 1.0;
+		sceneWhiteBalMatrix[2] = 1.51712;
 	}
 
 	qDebug() << gpmc->read16(CCM_11_ADDR) << gpmc->read16(CCM_12_ADDR) << gpmc->read16(CCM_13_ADDR);
@@ -390,8 +343,7 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 	qDebug() << gpmc->read16(CCM_31_ADDR) << gpmc->read16(CCM_32_ADDR) << gpmc->read16(CCM_33_ADDR);
 
 
-	wbMat[0] = wbMat[1] = wbMat[2] = 1.0;
-	setCCMatrix(wbMat);
+	setCCMatrix();
 
 	qDebug() << gpmc->read16(CCM_11_ADDR) << gpmc->read16(CCM_12_ADDR) << gpmc->read16(CCM_13_ADDR);
 	qDebug() << gpmc->read16(CCM_21_ADDR) << gpmc->read16(CCM_22_ADDR) << gpmc->read16(CCM_23_ADDR);
@@ -401,17 +353,19 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 	setFocusPeakEnable(appSettings.value("camera/focusPeak", false).toBool());
 	vinst->setDisplayOptions(getZebraEnable(), getFocusPeakEnable());
 	vinst->liveDisplay();
+	setFocusPeakColorLL(getFocusPeakColor());
+	setFocusPeakThresholdLL(appSettings.value("camera/focusPeakThreshold", 25).toUInt());
 
 	printf("Video init done\n");
 
 
 	//Set trigger for normally open switch on IO1
-    //io->setTriggerInvert(1);
-    //io->setTriggerEnable(1);
-    //io->setTriggerDebounceEn(1);
-    //io->setOutLevel((1 << 1));	//Enable strong pullup
+	//io->setTriggerInvert(1);
+	//io->setTriggerEnable(1);
+	//io->setTriggerDebounceEn(1);
+	//io->setOutLevel((1 << 1));	//Enable strong pullup
 
-	
+
 	return SUCCESS;
 
 }
@@ -420,8 +374,8 @@ UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 {
 	QSettings appSettings;
     if(!sensor->isValidResolution(settings.stride, settings.vRes, settings.hOffset, settings.vOffset) ||
-            settings.recRegionSizeFrames < RECORD_LENGTH_MIN ||
-            settings.segments > settings.recRegionSizeFrames)
+	    settings.recRegionSizeFrames < RECORD_LENGTH_MIN ||
+	    settings.segments > settings.recRegionSizeFrames)
 		return CAMERA_INVALID_IMAGER_SETTINGS;
 
 	//sensor->setSlaveExposure(0);	//Disable integration
@@ -447,28 +401,29 @@ UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 	imagerSettings.period = settings.period;
 	imagerSettings.exposure = settings.exposure;
 	imagerSettings.gain = settings.gain;
-    imagerSettings.disableRingBuffer = settings.disableRingBuffer;
-    imagerSettings.mode = settings.mode;
-    imagerSettings.prerecordFrames = settings.prerecordFrames;
-    imagerSettings.segmentLengthFrames = settings.segmentLengthFrames;
-    imagerSettings.segments = settings.segments;
+	imagerSettings.disableRingBuffer = settings.disableRingBuffer;
+	imagerSettings.mode = settings.mode;
+	imagerSettings.prerecordFrames = settings.prerecordFrames;
+	imagerSettings.segmentLengthFrames = settings.segmentLengthFrames;
+	imagerSettings.segments = settings.segments;
 
     //Zero trigger delay for Gated Burst
     if(settings.mode == RECORD_MODE_GATED_BURST)
-        io->setTriggerDelayFrames(0, FLAG_TEMPORARY);
+	io->setTriggerDelayFrames(0, FLAG_TEMPORARY);
 
 	imagerSettings.frameSizeWords = ROUND_UP_MULT((settings.stride * (settings.vRes+0) * 12 / 8 + (BYTES_PER_WORD - 1)) / BYTES_PER_WORD, FRAME_ALIGN_WORDS);	//Enough words to fit the frame, but make it even
 
     UInt32 maxRecRegionSize = getMaxRecordRegionSizeFrames(imagerSettings.hRes, imagerSettings.vRes);  //(ramSize - REC_REGION_START) / imagerSettings.frameSizeWords;
 
     if(settings.recRegionSizeFrames > maxRecRegionSize)
-        imagerSettings.recRegionSizeFrames = maxRecRegionSize;
+	imagerSettings.recRegionSizeFrames = maxRecRegionSize;
     else
-        imagerSettings.recRegionSizeFrames = settings.recRegionSizeFrames;
+	imagerSettings.recRegionSizeFrames = settings.recRegionSizeFrames;
 
     setFrameSizeWords(imagerSettings.frameSizeWords);
 
-	qDebug() << "About to sensor->loadADCOffsetsFromFile"; sensor->loadADCOffsetsFromFile();
+	qDebug() << "About to sensor->loadADCOffsetsFromFile";
+	sensor->loadADCOffsetsFromFile();
 
 	loadColGainFromFile();
 
@@ -487,23 +442,56 @@ UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 	}
 	else {
 		qDebug() << "--- settings --- saving";
-        appSettings.setValue("camera/hRes",                 imagerSettings.hRes);
-        appSettings.setValue("camera/vRes",                 imagerSettings.vRes);
-        appSettings.setValue("camera/stride",               imagerSettings.stride);
-        appSettings.setValue("camera/hOffset",              imagerSettings.hOffset);
-        appSettings.setValue("camera/vOffset",              imagerSettings.vOffset);
-        appSettings.setValue("camera/gain",                 imagerSettings.gain);
-        appSettings.setValue("camera/period",               imagerSettings.period);
-        appSettings.setValue("camera/exposure",             imagerSettings.exposure);
-        appSettings.setValue("camera/recRegionSizeFrames",  imagerSettings.recRegionSizeFrames);
-        appSettings.setValue("camera/disableRingBuffer",    imagerSettings.disableRingBuffer);
-        appSettings.setValue("camera/mode",                 imagerSettings.mode);
-        appSettings.setValue("camera/prerecordFrames",      imagerSettings.prerecordFrames);
-        appSettings.setValue("camera/segmentLengthFrames",  imagerSettings.segmentLengthFrames);
-        appSettings.setValue("camera/segments",             imagerSettings.segments);
+	appSettings.setValue("camera/hRes",                 imagerSettings.hRes);
+	appSettings.setValue("camera/vRes",                 imagerSettings.vRes);
+	appSettings.setValue("camera/stride",               imagerSettings.stride);
+	appSettings.setValue("camera/hOffset",              imagerSettings.hOffset);
+	appSettings.setValue("camera/vOffset",              imagerSettings.vOffset);
+	appSettings.setValue("camera/gain",                 imagerSettings.gain);
+	appSettings.setValue("camera/period",               imagerSettings.period);
+	appSettings.setValue("camera/exposure",             imagerSettings.exposure);
+	appSettings.setValue("camera/recRegionSizeFrames",  imagerSettings.recRegionSizeFrames);
+	appSettings.setValue("camera/disableRingBuffer",    imagerSettings.disableRingBuffer);
+	appSettings.setValue("camera/mode",                 imagerSettings.mode);
+	appSettings.setValue("camera/prerecordFrames",      imagerSettings.prerecordFrames);
+	appSettings.setValue("camera/segmentLengthFrames",  imagerSettings.segmentLengthFrames);
+	appSettings.setValue("camera/segments",             imagerSettings.segments);
 	}
-	
+
 	return SUCCESS;
+}
+
+void Camera::updateTriggerValues(ImagerSettings_t settings){
+	if(getTriggerDelayConstant() == TRIGGERDELAY_TIME_RATIO){
+	   triggerPostFrames  = triggerTimeRatio * settings.recRegionSizeFrames;
+	   triggerPostSeconds = triggerPostFrames * ((double)settings.period / 100000000);
+     }
+     if(getTriggerDelayConstant() == TRIGGERDELAY_SECONDS){
+	   triggerTimeRatio  = settings.recRegionSizeFrames / ((double)settings.period / 100000000);
+	   triggerPostFrames = triggerPostSeconds / ((double)settings.period / 100000000);
+     }
+     if(getTriggerDelayConstant() == TRIGGERDELAY_FRAMES){
+	   triggerTimeRatio   = (double)triggerPostFrames / settings.recRegionSizeFrames;
+	   triggerPostSeconds = triggerPostFrames * ((double)settings.period / 100000000);
+     }
+     io->setTriggerDelayFrames(triggerPostFrames);
+}
+
+unsigned short Camera::getTriggerDelayConstant(){
+     QSettings appSettings;
+	//return appSettings.value("camera/triggerDelayConstant", TRIGGERDELAY_PRERECORDSECONDS).toUInt();
+	return TRIGGERDELAY_TIME_RATIO;//With comboBox removed, always use this choice instead.
+}
+
+void Camera::setTriggerDelayConstant(unsigned short value){
+     QSettings appSettings;
+     appSettings.setValue("camera/triggerDelayConstant", value);
+}
+
+void Camera::setTriggerDelayValues(double ratio, double seconds, UInt32 frames){
+	triggerTimeRatio = ratio;
+     triggerPostSeconds = seconds;
+     triggerPostFrames = frames;
 }
 
 UInt32 Camera::setIntegrationTime(double intTime, UInt32 hRes, UInt32 vRes, Int32 flags)
@@ -518,7 +506,7 @@ UInt32 Camera::setIntegrationTime(double intTime, UInt32 hRes, UInt32 vRes, Int3
 	else {
 		validTime = (UInt32) (sensor->setIntegrationTime(intTime, hRes, vRes) * 100000000.0);
 	}
-	
+
 	if (!(flags & SETTING_FLAG_TEMPORARY)) {
 		qDebug("--- Saving settings --- Exposure time: %d", validTime);
 		appSettings.setValue("camera/exposure", validTime);
@@ -532,12 +520,17 @@ UInt32 Camera::setDisplaySettings(bool encoderSafe, UInt32 maxFps)
 		return CAMERA_INVALID_IMAGER_SETTINGS;
 
     setLiveOutputTiming(imagerSettings.hRes, imagerSettings.vRes,
-                        imagerSettings.hRes, imagerSettings.vRes,
-                        maxFps);
+			imagerSettings.hRes, imagerSettings.vRes,
+			maxFps);
 
 	vinst->reload();
 
 	return SUCCESS;
+}
+
+void Camera::updateVideoPosition(){
+	//vinst->setDisplayWindowStartX(ButtonsOnLeft ^ UpsideDownDisplay); //if both of these are true, the video position should actually be 0
+	//qDebug()<< "updateVideoPosition() called. ButtonsOnLeft value:  " << ButtonsOnLeft;
 }
 
 
@@ -550,18 +543,18 @@ Int32 Camera::startRecording(void)
 
     switch(imagerSettings.mode)
     {
-        case RECORD_MODE_NORMAL:
-        case RECORD_MODE_SEGMENTED:
-            setRecSequencerModeNormal();
-        break;
+	case RECORD_MODE_NORMAL:
+	case RECORD_MODE_SEGMENTED:
+	    setRecSequencerModeNormal();
+	break;
 
-        case RECORD_MODE_GATED_BURST:
-            setRecSequencerModeGatedBurst(imagerSettings.prerecordFrames);
-        break;
+	case RECORD_MODE_GATED_BURST:
+	    setRecSequencerModeGatedBurst(imagerSettings.prerecordFrames);
+	break;
 
-        case RECORD_MODE_FPN:
-            //setRecSequencerModeSingleBlock(17);   //Don't set this here, leave blank so the existing sequencer mode setting for FPN still works
-        break;
+	case RECORD_MODE_FPN:
+	    //setRecSequencerModeSingleBlock(17);   //Don't set this here, leave blank so the existing sequencer mode setting for FPN still works
+	break;
 
     }
 
@@ -575,6 +568,8 @@ Int32 Camera::startRecording(void)
 	ui->setRecLEDFront(true);
 	ui->setRecLEDBack(true);
 	recording = true;
+	videoHasBeenReviewed = false;
+
 
 	return SUCCESS;
 }
@@ -601,12 +596,12 @@ Int32 Camera::setRecSequencerModeNormal()
 	pgmWord.settings.termBlkRising = 1;
 	pgmWord.settings.next = 0;
     pgmWord.settings.blkSize = (imagerSettings.mode == RECORD_MODE_NORMAL ?
-                                    imagerSettings.recRegionSizeFrames :
-                                    imagerSettings.recRegionSizeFrames / imagerSettings.segments) - 1; //Set to number of frames desired minus one
+				    imagerSettings.recRegionSizeFrames :
+				    imagerSettings.recRegionSizeFrames / imagerSettings.segments) - 1; //Set to number of frames desired minus one
 	pgmWord.settings.pad = 0;
 
     qDebug() << "Setting record sequencer mode to" << (imagerSettings.mode == RECORD_MODE_NORMAL ? "normal" : "segmented") << ", disableRingBuffer =" << imagerSettings.disableRingBuffer << "segments ="
-             << imagerSettings.segments << "blkSize =" << pgmWord.settings.blkSize;
+	     << imagerSettings.segments << "blkSize =" << pgmWord.settings.blkSize;
 	writeSeqPgmMem(pgmWord, 0);
 
 	setFrameSizeWords(imagerSettings.frameSizeWords);
@@ -619,9 +614,9 @@ Int32 Camera::setRecSequencerModeGatedBurst(UInt32 prerecord)
     SeqPgmMemWord pgmWord;
 
     if(recording)
-        return CAMERA_ALREADY_RECORDING;
+	return CAMERA_ALREADY_RECORDING;
     if(playbackMode)
-        return CAMERA_IN_PLAYBACK_MODE;
+	return CAMERA_IN_PLAYBACK_MODE;
 
     //Set to one plus the last valid address in the record region
     setRecRegionEndWords(REC_REGION_START + imagerSettings.recRegionSizeFrames * imagerSettings.frameSizeWords);
@@ -743,8 +738,8 @@ void Camera::endOfRec(void)
 
 			numBlocks++;
 
-            qDebug() << "--- Sequencer --- Found block, size:" << blockFrames << ", location:" << lastRecDataPos << ", total frames:" << frames
-                     << ", total blocks:" << numBlocks << "Start addr:" << recData[lastRecDataPos].blockStart << ", End addr:" << recData[lastRecDataPos].blockEnd;
+	    qDebug() << "--- Sequencer --- Found block, size:" << blockFrames << ", location:" << lastRecDataPos << ", total frames:" << frames
+		     << ", total blocks:" << numBlocks << "Start addr:" << recData[lastRecDataPos].blockStart << ", End addr:" << recData[lastRecDataPos].blockEnd;
 
 			if(0 == lastRecDataPos)
 				lastRecDataPos = RECORD_DATA_LENGTH - 1;
@@ -757,15 +752,15 @@ void Camera::endOfRec(void)
 		{
 			frames -= blockFrames;	//total valid frames
 			numBlocks--;
-            lastRecDataPos = (lastRecDataPos + 1) % RECORD_DATA_LENGTH;
+	    lastRecDataPos = (lastRecDataPos + 1) % RECORD_DATA_LENGTH;
 
-            qDebug() << "--- Sequencer --- Earliest block is partially overwritten, discarding. Total frames:" << frames << ", total blocks:" << numBlocks;
+	    qDebug() << "--- Sequencer --- Earliest block is partially overwritten, discarding. Total frames:" << frames << ", total blocks:" << numBlocks;
 		}
 
 		//We've now iterated through all the valid blocks and are now on the first invalid one
 		firstBlock = (lastRecDataPos + 1) % RECORD_DATA_LENGTH;
 
-        qDebug() << "--- Sequencer --- Earliest block is at:" << firstBlock;
+	qDebug() << "--- Sequencer --- Earliest block is at:" << firstBlock;
 
 		//Copy the data for valid blocks into the record data structure
 		for(UInt32 i = 0; i < numBlocks; i++)
@@ -882,14 +877,14 @@ UInt32 Camera::setPlayMode(bool playMode)
 	if(!recordingData.valid)
 		return CAMERA_NO_RECORDING_PRESENT;
 
-    playbackMode = playMode;
+	playbackMode = playMode;
 
-    if(playMode)
+	if(playMode)
 	{
 		vinst->setPosition(0, 0);
 	}
 	else
-    {
+	{
 		vinst->liveDisplay();
 	}
 	return SUCCESS;
@@ -1196,7 +1191,7 @@ void Camera::computeFPNCorrection2(UInt32 framesToAverage, bool writeToFile, boo
 
 	// turn off the sensor
 	sensor->seqOnOff(true);
-	
+
 	//Zero buffer
 	for(int i = 0; i < pixelsPerFrame; i++)
 	{
@@ -1229,10 +1224,10 @@ void Camera::computeFPNCorrection2(UInt32 framesToAverage, bool writeToFile, boo
 
 	// restart the sensor
 	setIntegrationTime(0.0, imagerSettings.hRes, imagerSettings.vRes, SETTING_FLAG_USESAVED);
-	
+
 	imgGain = 4096.0 / (double)(4096 - getMaxFPNValue(buffer, pixelsPerFrame)) * IMAGE_GAIN_FUDGE_FACTOR;
 	qDebug() << "imgGain set to" << imgGain;
-	setCCMatrix(wbMat);
+	setCCMatrix();
 
 	qDebug() << "About to write file...";
 	if(writeToFile)
@@ -1275,7 +1270,7 @@ UInt32 Camera::autoFPNCorrection(UInt32 framesToAverage, bool writeToFile, bool 
 
     retVal = setRecSequencerModeSingleBlock(framesToAverage+1);
     if(SUCCESS != retVal)
-        return retVal;
+	return retVal;
 
 	retVal = startRecording();
 	if(SUCCESS != retVal)
@@ -1362,8 +1357,8 @@ Int32 Camera::loadFPNFromFile(void)
 	
 	mx = getMaxFPNValue(buffer, pixelsPerFrame);
 	imgGain = 4096.0 / (double)(4096 - mx) * IMAGE_GAIN_FUDGE_FACTOR;
-	qDebug("imgGain set to %f Max FPN value found %d", imgGain, mx);
-	setCCMatrix(wbMat);
+	qDebug() << "imgGain set to" << imgGain << "Max FPN value found" << mx;
+	setCCMatrix();
 
 	//zero the buffer
 	memset(packedBuf, 0, bytesPerFrame);
@@ -1598,7 +1593,7 @@ Int32 Camera::loadColGainFromFile(void)
 
 /*===============================================================
  * checkForDeadPixels
- * 
+ *
  * This records a set of frames at full resolution over a few
  * exposure levels then averages them to find the per-pixel
  * deviation.
@@ -1674,7 +1669,7 @@ Int32 Camera::checkForDeadPixels(int* resultCount, int* resultMax) {
 	UInt32* rawBuffer32 = new UInt32[(bytesPerFrame+3) >> 2];
 	UInt8* rawBuffer = (UInt8*)rawBuffer32;
 
-	
+
 	memset(fpnBuffer, 0, sizeof(fpnBuffer));
 	//Read the FPN frame into a buffer
 	readAcqMem(rawBuffer32,
@@ -1693,19 +1688,19 @@ Int32 Camera::checkForDeadPixels(int* resultCount, int* resultMax) {
 	}
 
 	nomExp = imagerSettings.exposure;
-	
+
 	//For each exposure value
 	for(exposureSet = 0; exposureSet < (sizeof(exposures)/sizeof(exposures[0])); exposureSet++) {
 		//Set exposure
 		_is.exposure = (UInt32)((double)nomExp * exposures[exposureSet]);
 		averageOffset = 0;
-		
+
 		retVal = setImagerSettings(_is);
 		if(SUCCESS != retVal) {
 			qDebug("error during setImagerSettings");
 			goto checkForDeadPixelsCleanup;
 		}
-		
+
 		qDebug("Recording frames for exposure 1/%ds", 100000000 / _is.exposure);
 		//Record frames
 		retVal = recordFrames(16);
@@ -1713,19 +1708,19 @@ Int32 Camera::checkForDeadPixels(int* resultCount, int* resultMax) {
 			qDebug("error during recordFrames");
 			goto checkForDeadPixelsCleanup;
 		}
-		
+
 		//Zero buffer
 		memset(buffer, 0, sizeof(buffer));
 
-		
-		
+
+
 		// Average pixels across frame
 		for(frame = 0; frame < 16; frame++) {
 			//Get one frame into the raw buffer
 			readAcqMem(rawBuffer32,
 					   REC_REGION_START + frame * recordingData.is.frameSizeWords,
 					   bytesPerFrame);
-			
+
 			//Retrieve pixels from the raw buffer and sum them
 			for(i = 0; i < pixelsPerFrame; i++) {
 				buffer[i] += readPixelBuf12(rawBuffer, i) - fpnBuffer[i];
@@ -1756,7 +1751,7 @@ Int32 Camera::checkForDeadPixels(int* resultCount, int* resultMax) {
 		// note that the average isn't actually used after this point - the variables are reused later
 
 		//dividerValue = (1<<16) / (((BAD_PIXEL_RING_SIZE*2) * (BAD_PIXEL_RING_SIZE*2))/2);
-		
+
 		// Check if pixel is valid
 		for (y = 0; y < recordingData.is.vRes-2; y += 2) {
 			for (x = 0; x < recordingData.is.hRes-2; x += 2) {
@@ -1771,7 +1766,7 @@ Int32 Camera::checkForDeadPixels(int* resultCount, int* resultMax) {
 						yOffset = endY * _is.stride;
 					else
 						yOffset = y * _is.stride;
-					
+
 					for (lx = -BAD_PIXEL_RING_SIZE; lx <= BAD_PIXEL_RING_SIZE+1; lx+=2) {
 						endX = x + lx;
 						if (endX >= 0 && endX < recordingData.is.hRes-2) {
@@ -1785,16 +1780,16 @@ Int32 Camera::checkForDeadPixels(int* resultCount, int* resultMax) {
 				}
 				dividerValue = (1<<16) / dividerValue;
 				// now divide the outcome by the number of pixels
-				//   
+				//
 				averageQuad[0] = (averageQuad[0] * dividerValue);
 				averageQuad[0] >>= 16;
-				
+
 				averageQuad[1] = (averageQuad[1] * dividerValue);
 				averageQuad[1] >>= 16;
-				
+
 				averageQuad[2] = (averageQuad[2] * dividerValue);
 				averageQuad[2] >>= 16;
-				
+
 				averageQuad[3] = (averageQuad[3] * dividerValue);
 				averageQuad[3] >>= 16;
 
@@ -1816,26 +1811,26 @@ Int32 Camera::checkForDeadPixels(int* resultCount, int* resultMax) {
 
 				pixelsInFrame++;
 				averageOffset += quad[0] + quad[1] + quad[2] + quad[3];
-			
+
 				if (quad[0] > DEAD_PIXEL_THRESHHOLD || quad[0] < -DEAD_PIXEL_THRESHHOLD) {
 					//qDebug("Bad pixel found: %dx%d (0x%04X vs 0x%04X in the local area)", x  , y  , buffer[x      + yOffset       ], averageQuad[0]);
 					totalFailedPixels++;
-				}					
+				}
 				if (quad[1] > DEAD_PIXEL_THRESHHOLD || quad[1] < -DEAD_PIXEL_THRESHHOLD) {
 					//qDebug("Bad pixel found: %dx%d (0x%04X vs 0x%04X in the local area)", x+1, y  , buffer[x   +1 + yOffset       ], averageQuad[1]);
 					totalFailedPixels++;
-				}					
+				}
 				if (quad[2] > DEAD_PIXEL_THRESHHOLD || quad[2] < -DEAD_PIXEL_THRESHHOLD) {
 					//qDebug("Bad pixel found: %dx%d (0x%04X vs 0x%04X in the local area)", x  , y+1, buffer[x      + yOffset+stride], averageQuad[2]);
 					totalFailedPixels++;
-				}					
+				}
 				if (quad[3] > DEAD_PIXEL_THRESHHOLD || quad[3] < -DEAD_PIXEL_THRESHHOLD) {
 					//qDebug("Bad pixel found: %dx%d (0x%04X vs 0x%04X in the local area)", x+1, y+1, buffer[x   +1 + yOffset+stride], averageQuad[3]);
 					totalFailedPixels++;
 				}
 			}
 		}
-		
+
 		averageOffset /= pixelsInFrame;
 		qDebug("===========================================================================");
 		qDebug("Average offset for exposure 1/%ds: %d", 100000000 / _is.exposure, averageOffset);
@@ -1849,7 +1844,7 @@ Int32 Camera::checkForDeadPixels(int* resultCount, int* resultMax) {
 		goto checkForDeadPixelsCleanup;
 	}
 	retVal = SUCCESS;
-	
+
 checkForDeadPixelsCleanup:
 	delete buffer;
 	delete fpnBuffer;
@@ -2046,11 +2041,9 @@ Int32 Camera::autoColGainCorrection(void)
 		return retVal;
 	}
 
-    retVal = computeColGainCorrection(1, true);
-    if(SUCCESS != retVal) {
-		qDebug("autoColGainCorrection: Error during computeColGainCorrection %d", retVal);
-        return retVal;
-	}
+	retVal = computeColGainCorrection(1, true);
+	if(SUCCESS != retVal)
+		return retVal;
 
 	_is.gain = LUX1310_GAIN_4;
 	retVal = setImagerSettings(_is);
@@ -2065,11 +2058,9 @@ Int32 Camera::autoColGainCorrection(void)
 		return retVal;
 	}
 
-    retVal = computeColGainCorrection(1, true);
-    if(SUCCESS != retVal) {
-		qDebug("autoColGainCorrection: Error during computeColGainCorrection(2) %d", retVal);
-        return retVal;
-	}
+	retVal = computeColGainCorrection(1, true);
+	if(SUCCESS != retVal)
+		return retVal;
 
 	return SUCCESS;
 }
@@ -2180,7 +2171,7 @@ Int32 Camera::recordFrames(UInt32 numframes)
 
 	return SUCCESS;
 }
-	
+
 UInt32 Camera::getMiddlePixelValue(bool includeFPNCorrection)
 {
 	//gpmc->write32(GPMC_PAGE_OFFSET_ADDR, REC_REGION_START);	//Read from the beginning of the record region
@@ -2324,9 +2315,9 @@ Int32 Camera::getRawCorrectedFramesAveraged(UInt32 frame, UInt32 framesToAverage
 {
 	Int32 retVal;
 	double gainCorrection[16];
-	
+
 	UInt32 pixelsPerFrame = recordingData.is.stride * recordingData.is.vRes;
-	
+
 
 	retVal = readDCG(gainCorrection);
 	if(SUCCESS != retVal)
@@ -2515,23 +2506,23 @@ Int32 Camera::startSave(UInt32 startFrame, UInt32 length)
 
 #define COLOR_MATRIX_MAXVAL	((1 << SENSOR_DATA_WIDTH) * (1 << COLOR_MATRIX_INT_BITS))
 
-void Camera::setCCMatrix(double * wbMat)
+void Camera::setCCMatrix()
 {
-	gpmc->write16(CCM_11_ADDR, within((int)(4096.0 * ccMatrix[0] * wbMatrix[0] * imgGain * wbMat[0]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1));
-	gpmc->write16(CCM_12_ADDR, within((int)(4096.0 * ccMatrix[1] * wbMatrix[0] * imgGain * wbMat[0]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1));
-	gpmc->write16(CCM_13_ADDR, within((int)(4096.0 * ccMatrix[2] * wbMatrix[0] * imgGain * wbMat[0]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1));
+	gpmc->write16(CCM_11_ADDR, within((int)(4096.0 * colorCalMatrix[0] * imgGain * sceneWhiteBalMatrix[0]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1));
+	gpmc->write16(CCM_12_ADDR, within((int)(4096.0 * colorCalMatrix[1] * imgGain * sceneWhiteBalMatrix[1]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1));
+	gpmc->write16(CCM_13_ADDR, within((int)(4096.0 * colorCalMatrix[2] * imgGain * sceneWhiteBalMatrix[2]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1));
 
-	gpmc->write16(CCM_21_ADDR, within((int)(4096.0 * ccMatrix[3] * wbMatrix[1] * imgGain * wbMat[1]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1));
-	gpmc->write16(CCM_22_ADDR, within((int)(4096.0 * ccMatrix[4] * wbMatrix[1] * imgGain * wbMat[1]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1));
-	gpmc->write16(CCM_23_ADDR, within((int)(4096.0 * ccMatrix[5] * wbMatrix[1] * imgGain * wbMat[1]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1));
+	gpmc->write16(CCM_21_ADDR, within((int)(4096.0 * colorCalMatrix[3] * imgGain * sceneWhiteBalMatrix[0]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1));
+	gpmc->write16(CCM_22_ADDR, within((int)(4096.0 * colorCalMatrix[4] * imgGain * sceneWhiteBalMatrix[1]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1));
+	gpmc->write16(CCM_23_ADDR, within((int)(4096.0 * colorCalMatrix[5] * imgGain * sceneWhiteBalMatrix[2]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1));
 
-	gpmc->write16(CCM_31_ADDR, within((int)(4096.0 * ccMatrix[6] * wbMatrix[2] * imgGain * wbMat[2]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1));
-	gpmc->write16(CCM_32_ADDR, within((int)(4096.0 * ccMatrix[7] * wbMatrix[2] * imgGain * wbMat[2]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1));
-	gpmc->write16(CCM_33_ADDR, within((int)(4096.0 * ccMatrix[8] * wbMatrix[2] * imgGain * wbMat[2]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1));
+	gpmc->write16(CCM_31_ADDR, within((int)(4096.0 * colorCalMatrix[6] * imgGain * sceneWhiteBalMatrix[0]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1));
+	gpmc->write16(CCM_32_ADDR, within((int)(4096.0 * colorCalMatrix[7] * imgGain * sceneWhiteBalMatrix[1]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1));
+	gpmc->write16(CCM_33_ADDR, within((int)(4096.0 * colorCalMatrix[8] * imgGain * sceneWhiteBalMatrix[2]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1));
 
-	qDebug() << "Blue matrix" << within((int)(4096.0 * ccMatrix[6] * wbMatrix[2] * wbMat[2]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1)
-			<< within((int)(4096.0 * ccMatrix[7] * wbMatrix[2] * wbMat[2]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1)
-			<< within((int)(4096.0 * ccMatrix[8] * wbMatrix[2] * wbMat[2]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1);
+	qDebug() << "Blue matrix" << within((int)(4096.0 * colorCalMatrix[6] * cameraWhiteBalMatrix[2] * sceneWhiteBalMatrix[2]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1)
+			<< within((int)(4096.0 * colorCalMatrix[7] * cameraWhiteBalMatrix[2] * sceneWhiteBalMatrix[2]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1)
+			<< within((int)(4096.0 * colorCalMatrix[8] * cameraWhiteBalMatrix[2] * sceneWhiteBalMatrix[2]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1);
 }
 
 Int32 Camera::setWhiteBalance(UInt32 x, UInt32 y)
@@ -2553,28 +2544,13 @@ Int32 Camera::setWhiteBalance(UInt32 x, UInt32 y)
 	double r =  rRaw-
 				readPixel12(quadStartY * imagerSettings.stride + quadStartX + 1, FPN_ADDRESS * BYTES_PER_WORD);
 	qDebug() << "RGB values read:" << r << g << b;
-	//Perform color correction
-	double rc =		within(
-			r * ccMatrix[0] * wbMatrix[0] +
-			g * ccMatrix[1] * wbMatrix[0] +
-			b * ccMatrix[2] * wbMatrix[0],
-			0.0, 4095.0);
 
-	double gc =		within(
-			r * ccMatrix[3] * wbMatrix[1] +
-			g * ccMatrix[4] * wbMatrix[1] +
-			b * ccMatrix[5] * wbMatrix[1],
-			0.0, 4095.0);
-
-	double bc =		within(
-			r * ccMatrix[6] * wbMatrix[2] +
-			g * ccMatrix[7] * wbMatrix[2] +
-			b * ccMatrix[8] * wbMatrix[2],
-			0.0, 4095.0);
-	qDebug() << "Corrected values:" << rc << gc << bc;
+	r *= cameraWhiteBalMatrix[0];
+	g *= cameraWhiteBalMatrix[1];
+	b *= cameraWhiteBalMatrix[2];
 
 	//Fail if the pixel values is clipped or too low
-	if(rRaw == 4095 || gRaw == 4095 || bRaw == 4095 || rc >= 4094.0 || gc >= 4094.0 || bc >= 4094.0)
+	if(rRaw == 4095 || gRaw == 4095 || bRaw == 4095)
 		return CAMERA_CLIPPED_ERROR;
 
 	if(r < 384 || g < 384 || b < 384)
@@ -2582,15 +2558,15 @@ Int32 Camera::setWhiteBalance(UInt32 x, UInt32 y)
 
 
 	//Find the max value, generate white balance matrix that scales the other colors up to match the brightest color
-	double mx = max(rc, max(gc, bc));
+	double mx = max(r, max(g, b));
 
-	wbMat[0] = (double)mx / (double)rc;
-	wbMat[1] = (double)mx / (double)gc;
-	wbMat[2] = (double)mx / (double)bc;
+	sceneWhiteBalMatrix[0] = (double)mx / (double)r;
+	sceneWhiteBalMatrix[1] = (double)mx / (double)g;
+	sceneWhiteBalMatrix[2] = (double)mx / (double)b;
 
-	qDebug() << "Setting WB matrix to " << wbMat[0] << wbMat[1] << wbMat[2];
+	qDebug() << "Setting WB matrix to " << sceneWhiteBalMatrix[0] << sceneWhiteBalMatrix[1] << sceneWhiteBalMatrix[2];
 
-	setCCMatrix(wbMat);
+	setCCMatrix();
 	return SUCCESS;
 
 }
@@ -2642,6 +2618,14 @@ bool Camera::getFocusAid()
 	return false;
 }
 
+/* Nearest multiple rounding */
+static inline UInt32
+round(UInt32  x, UInt32 mult)
+{
+	UInt32 offset = (x) % (mult);
+	return (offset >= mult/2) ? x - offset + mult : x - offset;
+}
+
 Int32 Camera::blackCalAllStdRes(bool factory)
 {
 	ImagerSettings_t settings;
@@ -2686,23 +2670,22 @@ Int32 Camera::blackCalAllStdRes(bool factory)
 			//Get the resolution and compute the maximum frame rate to be appended after the resolution
 			int hRes, vRes;
 
-			sscanf(line.constData(), "%dx%d", &hRes, &vRes);
-
+			sscanf(line, "%dx%d", &hRes, &vRes);
 			settings.hRes = hRes;		//pixels
 			settings.vRes = vRes;		//pixels
 			settings.stride = hRes;		//Number of pixels per line (allows for dark pixels in the last column), always multiple of 16
-			settings.hOffset = ((sensor->getMaxHRes() - hRes) / 2) & 0xFFFFFFF0;	//Active area offset from left
-			settings.vOffset = ((sensor->getMaxVRes() - vRes) / 2) & 0xFFFFFFF0;		//Active area offset from top
+			settings.hOffset = round((sensor->getMaxHRes() - hRes) / 2, sensor->getHResIncrement());
+			settings.vOffset = round((sensor->getMaxVRes() - vRes) / 2, sensor->getVResIncrement());
 			settings.gain = g;
-            settings.recRegionSizeFrames = getMaxRecordRegionSizeFrames(settings.hRes, settings.vRes);
+			settings.recRegionSizeFrames = getMaxRecordRegionSizeFrames(settings.hRes, settings.vRes);
 			settings.period = sensor->getMinFramePeriod(hRes, vRes);
 			settings.exposure = sensor->getMaxExposure(settings.period);
-            settings.disableRingBuffer = 0;
-            settings.mode = RECORD_MODE_NORMAL;
-            settings.prerecordFrames = 1;
-            settings.segmentLengthFrames = imagerSettings.recRegionSizeFrames;
-            settings.segments = 1;
-            settings.temporary = 0;
+			settings.disableRingBuffer = 0;
+			settings.mode = RECORD_MODE_NORMAL;
+			settings.prerecordFrames = 1;
+			settings.segmentLengthFrames = imagerSettings.recRegionSizeFrames;
+			settings.segments = 1;
+			settings.temporary = 0;
 
 			retVal = setImagerSettings(settings);
 			if(SUCCESS != retVal)
@@ -2726,7 +2709,7 @@ Int32 Camera::blackCalAllStdRes(bool factory)
 	settings.hOffset = 0;	//Active area offset from left
 	settings.vOffset = 0;		//Active area offset from top
 	settings.gain = LUX1310_GAIN_1;
-    settings.recRegionSizeFrames = getMaxRecordRegionSizeFrames(settings.hRes, settings.vRes);
+	settings.recRegionSizeFrames = getMaxRecordRegionSizeFrames(settings.hRes, settings.vRes);
 	settings.period = sensor->getMinFramePeriod(LUX1310_MAX_H_RES, LUX1310_MAX_V_RES);
 	settings.exposure = sensor->getMaxExposure(settings.period);
 
@@ -2736,7 +2719,7 @@ Int32 Camera::blackCalAllStdRes(bool factory)
 		return retVal;
 	}
 
-    retVal = setDisplaySettings(false, MAX_LIVE_FRAMERATE);
+	retVal = setDisplaySettings(false, MAX_LIVE_FRAMERATE);
 	if(SUCCESS != retVal) {
 		qDebug("blackCalAllStdRes: Error during setDisplaySettings %d", retVal);
 		return retVal;
@@ -2785,13 +2768,13 @@ Int32 Camera::takeWhiteReferences(void)
 	_is.vOffset = 0;		//Active area offset from top
 	_is.exposure = 400000;	//10ns increments
 	_is.period = 500000;		//Frame period in 10ns increments
-    _is.recRegionSizeFrames = getMaxRecordRegionSizeFrames(_is.hRes, _is.vRes);
-    _is.disableRingBuffer = 0;
-    _is.mode = RECORD_MODE_NORMAL;
-    _is.prerecordFrames = 1;
-    _is.segmentLengthFrames = imagerSettings.recRegionSizeFrames;
-    _is.segments = 1;
-    _is.temporary = 0;
+	_is.recRegionSizeFrames = getMaxRecordRegionSizeFrames(_is.hRes, _is.vRes);
+	_is.disableRingBuffer = 0;
+	_is.mode = RECORD_MODE_NORMAL;
+	_is.prerecordFrames = 1;
+	_is.segmentLengthFrames = imagerSettings.recRegionSizeFrames;
+	_is.segments = 1;
+	_is.temporary = 0;
 
 	UInt32 pixelsPerFrame = _is.stride * _is.vRes;
 
@@ -2888,10 +2871,48 @@ cleanupTakeWhiteReferences:
 	return retVal;
 }
 
+bool Camera::getButtonsOnLeft(void){
+	QSettings appSettings;
+	return (appSettings.value("camera/ButtonsOnLeft", false).toBool());
+}
+
+void Camera::setButtonsOnLeft(bool en){
+	QSettings appSettings;
+	ButtonsOnLeft = en;
+	appSettings.setValue("camera/ButtonsOnLeft", en);
+}
+
+bool Camera::getUpsideDownDisplay(){
+	QSettings appSettings;
+	return (appSettings.value("camera/UpsideDownDisplay", false).toBool());
+}
+
+void Camera::setUpsideDownDisplay(bool en){
+	QSettings appSettings;
+	UpsideDownDisplay = en;
+	appSettings.setValue("camera/UpsideDownDisplay", en);
+}
+
+bool Camera::RotationArgumentIsSet(){
+	QString appArguments;
+	for(int argumentIndex = 0; argumentIndex < 5 ; argumentIndex++){
+		appArguments.append(QApplication::argv()[argumentIndex]);
+	}
+
+	if(appArguments.contains("display") && appArguments.contains("transformed:rot0"))
+		return true;
+	else	return false;
+}
+
+
+void Camera::upsideDownTransform(int rotation){
+	QWSDisplay::setTransformation(rotation);
+}
+
 bool Camera::getFocusPeakEnable(void)
 {
 	QSettings appSettings;
-	return appSettings.value("camera/focusPeak", focusPeakEnabled).toBool();
+	return appSettings.value("camera/focusPeak", false).toBool();
 }
 void Camera::setFocusPeakEnable(bool en)
 {
@@ -2900,10 +2921,24 @@ void Camera::setFocusPeakEnable(bool en)
 	appSettings.setValue("camera/focusPeak", en);
 	vinst->setDisplayOptions(zebraEnabled, focusPeakEnabled);
 }
+
+int Camera::getFocusPeakColor(){
+	QSettings appSettings;
+	return appSettings.value("camera/focusPeakColorIndex", 2).toInt();//default setting of 3 is cyan
+}
+
+void Camera::setFocusPeakColor(int value){
+	QSettings appSettings;
+	setFocusPeakColorLL(value);
+	focusPeakColorIndex = value;
+	appSettings.setValue("camera/focusPeakColorIndex", value);
+}
+
+
 bool Camera::getZebraEnable(void)
 {
 	QSettings appSettings;
-	return appSettings.value("camera/zebra", zebraEnabled).toBool();
+	return appSettings.value("camera/zebra", true).toBool();
 }
 void Camera::setZebraEnable(bool en)
 {
@@ -2913,6 +2948,20 @@ void Camera::setZebraEnable(bool en)
 	vinst->setDisplayOptions(zebraEnabled, focusPeakEnabled);
 }
 
+
+int Camera::getUnsavedWarnEnable(void){
+	QSettings appSettings;
+	return appSettings.value("camera/unsavedWarn", 1).toInt();
+	//If there is unsaved video in RAM, prompt to start record.  2=always, 1=if not reviewed, 0=never
+}
+
+void Camera::setUnsavedWarnEnable(int newSetting){
+	QSettings appSettings;
+	unsavedWarnEnabled = newSetting;
+	appSettings.setValue("camera/unsavedWarn", newSetting);
+}
+
+
 void Camera::set_autoSave(bool state) {
 	QSettings appSettings;
 	autoSave = state;
@@ -2921,8 +2970,9 @@ void Camera::set_autoSave(bool state) {
 
 bool Camera::get_autoSave() {
 	QSettings appSettings;
-	return appSettings.value("camera/autoSave", autoSave).toBool();
+	return appSettings.value("camera/autoSave", false).toBool();
 }
+
 
 void Camera::set_autoRecord(bool state) {
 	QSettings appSettings;
@@ -2932,7 +2982,7 @@ void Camera::set_autoRecord(bool state) {
 
 bool Camera::get_autoRecord() {
 	QSettings appSettings;
-	return appSettings.value("camera/autoRecord", autoRecord).toBool();
+	return appSettings.value("camera/autoRecord", false).toBool();
 }
 
 
