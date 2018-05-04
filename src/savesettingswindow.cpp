@@ -58,13 +58,6 @@ saveSettingsWindow::saveSettingsWindow(QWidget *parent, Camera * camInst) :
 
 	refreshDriveList();
 
-	//Select the entry corresponding to the last selected path
-	Int32 index = ui->comboDrive->findText(settings.value("recorder/fileDirectory", camera->recorder->fileDirectory).toString());
-	if ( index != -1 ) { // -1 for not found
-		ui->comboDrive->setCurrentIndex(index);
-	}
-	saveFileDirectory();
-
 	ui->comboProfile->clear();
 	ui->comboProfile->addItem("Base");
 	ui->comboProfile->addItem("Main");
@@ -73,7 +66,7 @@ saveSettingsWindow::saveSettingsWindow(QWidget *parent, Camera * camInst) :
 
 	UInt32 val = settings.value("recorder/profile", camera->recorder->profile).toUInt();
 	//Compute base 2 logarithm to get index
-	index = 0;
+	Int32 index = 0;
 	while (val >>= 1) ++index;
 	ui->comboProfile->setCurrentIndex(index);
 
@@ -307,6 +300,16 @@ void saveSettingsWindow::refreshDriveList()
 
 	}
 	okToSaveLocation = true;
+
+	//Select the entry corresponding to the last selected path
+	QSettings settings;
+	Int32 index = ui->comboDrive->findText(settings.value("recorder/fileDirectory", camera->recorder->fileDirectory).toString());
+	if ( index != -1 ) { // -1 for not found
+		ui->comboDrive->setCurrentIndex(index);
+	}
+	//Only save the location if it has changed
+	if(strcmp(camera->recorder->fileDirectory, ui->comboDrive->currentText().toAscii()))
+		saveFileDirectory();
 }
 
 void saveSettingsWindow::on_cmdRefresh_clicked()
