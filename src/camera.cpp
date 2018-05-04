@@ -2603,17 +2603,18 @@ Int32 Camera::setWhiteBalance(UInt32 x, UInt32 y)
 				readPixel12(quadStartY * imagerSettings.stride + quadStartX, FPN_ADDRESS * BYTES_PER_WORD);
 	double r =  rRaw-
 				readPixel12(quadStartY * imagerSettings.stride + quadStartX + 1, FPN_ADDRESS * BYTES_PER_WORD);
-	qDebug() << "RGB values read:" << r << g << b;
 
 	r *= cameraWhiteBalMatrix[0];
 	g *= cameraWhiteBalMatrix[1];
 	b *= cameraWhiteBalMatrix[2];
 
-	//Fail if the pixel values is clipped or too low
+    qDebug() << "RGB values read:" << r << g << b;
+
+    //Fail if the pixel values is clipped or too low
 	if(rRaw == 4095 || gRaw == 4095 || bRaw == 4095)
 		return CAMERA_CLIPPED_ERROR;
 
-	if(r < 384 || g < 384 || b < 384)
+    if(r < 100 || g < 100 || b < 100)
 		return CAMERA_LOW_SIGNAL_ERROR;
 
 
