@@ -135,3 +135,9 @@ void triggerDelayWindow::on_cmdResetToDefaults_clicked()
     updateControls(0);
     ui->horizontalSlider->setMaximum(max(ui->spinPostFrames->value(), recLenFrames));
 }
+
+void triggerDelayWindow::on_cmdMorePreRecTime_clicked()
+{
+	ui->horizontalSlider->setMaximum(ui->horizontalSlider->maximum() * 2);
+	ui->horizontalSlider->setHighlightRegion(0, recLenFrames);
+}

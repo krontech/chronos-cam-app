@@ -43,6 +43,8 @@ private slots:
 
     void on_cmdResetToDefaults_clicked();
 
+    void on_cmdMorePreRecTime_clicked();
+
 private:
     void updateControls(UInt32 postTriggerFrames);
     Ui::triggerDelayWindow *ui;
