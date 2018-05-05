@@ -219,7 +219,13 @@ void CamMainWindow::on_cmdPlay_clicked()
 			return;
 		autoSaveActive = false;
 		camera->stopRecording();
+		QTimer::singleShot(100, this, SLOT(createNewPlaybackWindow()));
+		return;
 	}
+	createNewPlaybackWindow();
+}
+
+void CamMainWindow::createNewPlaybackWindow(){
 	playbackWindow *w = new playbackWindow(NULL, camera);
 	//w->camera = camera;
 	w->setAttribute(Qt::WA_DeleteOnClose);

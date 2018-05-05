@@ -78,6 +78,7 @@ private slots:
 
     void on_cmdDPCButton_clicked();
 
+    void createNewPlaybackWindow();
 private:
 	void updateRecordingState(bool recording);
 	void updateCurrentSettingsLabel(void);
