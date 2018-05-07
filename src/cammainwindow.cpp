@@ -277,6 +277,7 @@ void CamMainWindow::on_cmdFPNCal_clicked()//Black cal
 			return;
 		autoSaveActive = false;
 		camera->stopRecording();
+		delayms(100);
 	}
 	else {
 			//If there is unsaved video in RAM, prompt to start record
