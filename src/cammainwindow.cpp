@@ -219,8 +219,7 @@ void CamMainWindow::on_cmdPlay_clicked()
 			return;
 		autoSaveActive = false;
 		camera->stopRecording();
-		QTimer::singleShot(100, this, SLOT(createNewPlaybackWindow()));
-		return;
+		delayms(100);
 	}
 	createNewPlaybackWindow();
 }
