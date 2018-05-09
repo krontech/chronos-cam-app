@@ -331,6 +331,15 @@ private:
 	};
 	double cameraWhiteBalMatrix[3] = { 1, 1.1, 1.3 };
 	double sceneWhiteBalMatrix[3];	//Actual white balance computed during runtime
+	UInt8  WBIndex;
+	double preComputedWhiteBalMatrix[6][3] = {//[6][3] instead of [5][3] to allow extra space for custom white balance
+										 {1.25, 1.0, 1.50},//manual white balance set by user
+										 {1.0, 1.0, 1.0},
+										 {1.0, 1.0, 1.0},
+										 {1.0, 1.0, 1.0},
+										 {1.0, 1.0, 1.0},
+										 {1.21266, 1.0, 1.51712}//domestic lighting
+									 };//Pre-computed white balance options
 	double imgGain;
 	bool focusPeakEnabled;
 	int focusPeakColorIndex;

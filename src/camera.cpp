@@ -342,9 +342,10 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 		sceneWhiteBalMatrix[0] = sceneWhiteBalMatrix[1] = sceneWhiteBalMatrix[2] = 1.0;
 	}
 	else{
-		sceneWhiteBalMatrix[0] = 1.21266;
-		sceneWhiteBalMatrix[1] = 1.0;
-		sceneWhiteBalMatrix[2] = 1.51712;
+		WBIndex = 4;
+		sceneWhiteBalMatrix[0] = preComputedWhiteBalMatrix[WBIndex][0];
+		sceneWhiteBalMatrix[1] = preComputedWhiteBalMatrix[WBIndex][1];
+		sceneWhiteBalMatrix[2] = preComputedWhiteBalMatrix[WBIndex][2];
 	}
 
 	qDebug() << gpmc->read16(CCM_11_ADDR) << gpmc->read16(CCM_12_ADDR) << gpmc->read16(CCM_13_ADDR);
