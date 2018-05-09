@@ -92,7 +92,8 @@ SOURCES += main.cpp\
     triggerslider.cpp \
     playbackslider.cpp \
     keyboardbase.cpp \
-    keyboardnumeric.cpp
+    keyboardnumeric.cpp \
+    whitebalancedialog.cpp
 
 ## Generate version.cpp on every build
 versionTarget.target = version.cpp
@@ -149,7 +150,8 @@ HEADERS  += mainwindow.h \
     triggerslider.h \
     playbackslider.h \
     keyboardbase.h \
-    keyboardnumeric.h
+    keyboardnumeric.h \
+    whitebalancedialog.h
 
 
 
@@ -167,7 +169,8 @@ FORMS    += mainwindow.ui \
     statuswindow.ui \
     recmodewindow.ui \
     triggerdelaywindow.ui \
-    keyboardnumeric.ui
+    keyboardnumeric.ui \
+    whitebalancedialog.ui
 
 RESOURCES += \
     Images.qrc

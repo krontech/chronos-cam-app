@@ -30,6 +30,7 @@
 #include "utilwindow.h"
 //#include "statuswindow.h"
 #include "cammainwindow.h"
+#include "whitebalancedialog.h"
 #include "ui_cammainwindow.h"
 #include "util.h"
 
