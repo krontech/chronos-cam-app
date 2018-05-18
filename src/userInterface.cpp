@@ -135,6 +135,7 @@ bool UserInterface::getEncoderSwitch()
 void UserInterface::encoderCB(void)
 {
 	int delta = 0;
+	int lowres = 0;
 
 	if(encAVal && !encALast)	//rising edge
 	{
@@ -152,31 +153,37 @@ void UserInterface::encoderCB(void)
 	}
 	if(encBVal && !encBLast)	//rising edge
 	{
-		if(encAVal)
+		if(encAVal) {
 			delta++;
-		else
+		} else {
 			delta--;
+			lowres--;
+		}
 	}
 	else if(!encBVal && encBLast)	//falling edge
 	{
-		if(encAVal)
+		if(encAVal) {
 			delta--;
-		else
+		} else {
 			delta++;
+			lowres++;
+		}
 	}
 	encALast = encAVal;
 	encBLast = encBVal;
 
-	if (delta > 0) {
-		Qt::Key key = getEncoderSwitch() ? Qt::Key_PageUp : Qt::Key_Up;
+	if (getEncoderSwitch()) {
+		if (delta == 0) return;
+		Qt::Key key = (delta > 0) ? Qt::Key_PageUp : Qt::Key_PageDown;
 		QWidget *w = QApplication::focusWidget();
-		QKeyEvent *ev = new QKeyEvent(QKeyEvent::KeyPress, key, Qt::NoModifier, "encoder", false, 0);
+		QKeyEvent *ev = new QKeyEvent(QKeyEvent::KeyPress, key, Qt::NoModifier, "", false, 0);
 		QApplication::postEvent(w, ev);
 	}
-	if (delta < 0) {
-		Qt::Key key = getEncoderSwitch() ? Qt::Key_PageDown : Qt::Key_Down;
+	else {
+		if (delta == 0) return;
+		Qt::Key key = (delta > 0) ? Qt::Key_Up : Qt::Key_Down;
 		QWidget *w = QApplication::focusWidget();
-		QKeyEvent *ev = new QKeyEvent(QKeyEvent::KeyPress, key, Qt::NoModifier, "encoder", false, 0);
+		QKeyEvent *ev = new QKeyEvent(QKeyEvent::KeyPress, key, Qt::NoModifier, "", false, 0);
 		QApplication::postEvent(w, ev);
 	}
 }
@@ -186,9 +193,9 @@ void *encoderThread(void *arg)
 	pthread_t this_thread = pthread_self();
 	UserInterface * uiInst = (UserInterface *)arg;
 	struct pollfd fds[] = {
-		{ .fd = uiInst->encAgpioFD, .events = POLLPRI | POLLERR },
-		{ .fd = uiInst->encBgpioFD, .events = POLLPRI | POLLERR },
-		{ .fd = uiInst->encSwgpioFD, .events = POLLPRI | POLLERR },
+		{ .fd = uiInst->encAgpioFD, .events = POLLPRI | POLLERR, .revents = 0 },
+		{ .fd = uiInst->encBgpioFD, .events = POLLPRI | POLLERR, .revents = 0 },
+		{ .fd = uiInst->encSwgpioFD, .events = POLLPRI | POLLERR, .revents = 0 },
 	};
 	char buf[2];
 	int ret;
