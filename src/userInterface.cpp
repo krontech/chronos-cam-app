@@ -180,8 +180,8 @@ void UserInterface::encoderCB(void)
 		QApplication::postEvent(w, ev);
 	}
 	else {
-		if (delta == 0) return;
-		Qt::Key key = (delta > 0) ? Qt::Key_Up : Qt::Key_Down;
+		if (lowres == 0) return;
+		Qt::Key key = (lowres > 0) ? Qt::Key_Up : Qt::Key_Down;
 		QWidget *w = QApplication::focusWidget();
 		QKeyEvent *ev = new QKeyEvent(QKeyEvent::KeyPress, key, Qt::NoModifier, "", false, 0);
 		QApplication::postEvent(w, ev);

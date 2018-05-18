@@ -301,6 +301,7 @@ void playbackWindow::on_cmdMarkOut_clicked()
 void playbackWindow::keyPressEvent(QKeyEvent *ev)
 {
 	unsigned int skip = 1;
+	unsigned int nextFrame;
 	switch (ev->key()) {
 	case Qt::Key_PageUp:
 		skip = 10;
@@ -308,7 +309,8 @@ void playbackWindow::keyPressEvent(QKeyEvent *ev)
 			skip <<= playbackExponent;
 		}
 	case Qt::Key_Up:
-		camera->vinst->setPosition((camera->playFrame + skip) % camera->recordingData.totalFrames, 0);
+		camera->playFrame = (camera->playFrame + skip) % camera->recordingData.totalFrames;
+		camera->vinst->setPosition(camera->playFrame, 0);
 		break;
 
 	case Qt::Key_PageDown:
@@ -318,10 +320,11 @@ void playbackWindow::keyPressEvent(QKeyEvent *ev)
 		}
 	case Qt::Key_Down:
 		if (camera->playFrame >= skip) {
-			camera->vinst->setPosition(camera->playFrame - skip, 0);
+			camera->playFrame = camera->playFrame - skip;
 		} else {
-			camera->vinst->setPosition(camera->playFrame + camera->recordingData.totalFrames - skip, 0);
+			camera->playFrame = camera->playFrame + camera->recordingData.totalFrames - skip;
 		}
+		camera->vinst->setPosition(camera->playFrame, 0);
 		break;
 	}
 }
