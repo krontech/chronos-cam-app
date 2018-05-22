@@ -1,7 +1,7 @@
 #include "whitebalancedialog.h"
 #include "ui_whitebalancedialog.h"
 
-whiteBalanceDialog::whiteBalanceDialog(QWidget *parent) :
+whiteBalanceDialog::whiteBalanceDialog(QWidget *parent, Camera * cameraInst) :
 	QDialog(parent),
 	ui(new Ui::whiteBalanceDialog)
 {

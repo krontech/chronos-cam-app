@@ -33,6 +33,7 @@
 #include "whitebalancedialog.h"
 #include "ui_cammainwindow.h"
 #include "util.h"
+#include "whitebalancedialog.h"
 
 extern "C" {
 #include "siText.h"
@@ -299,6 +300,7 @@ void CamMainWindow::on_cmdFPNCal_clicked()//Black cal
 void CamMainWindow::on_cmdWB_clicked()
 {
 
+	/*
 		QMessageBox::StandardButton reply;
 		if(camera->getIsRecording()) reply = QMessageBox::question(this, "Stop recording?", "This action will stop recording and erase the video; is this okay?", QMessageBox::Yes|QMessageBox::No);
 		else						 reply = QMessageBox::question(this, "Set white balance?", "Will set white balance. Continue?", QMessageBox::Yes|QMessageBox::No);
@@ -307,7 +309,6 @@ void CamMainWindow::on_cmdWB_clicked()
 			return;
 		autoSaveActive = false;
 		camera->stopRecording();
-
 	Int32 ret = camera->setWhiteBalance(camera->getImagerSettings().hRes / 2 & 0xFFFFFFFE,
 							camera->getImagerSettings().vRes / 2 & 0xFFFFFFFE);	//Sample from middle but make sure position is a multiple of 2
 	if(ret == CAMERA_CLIPPED_ERROR)
@@ -321,7 +322,8 @@ void CamMainWindow::on_cmdWB_clicked()
 		sw->setText("Too dark. Increase exposure and try white balance again");
 		sw->setTimeout(3000);
 		sw->show();
-	}
+	}*/
+		whiteBalanceDialog *whiteBalWindow = new whiteBalanceDialog(NULL, camera);
 }
 
 void CamMainWindow::on_cmdIOSettings_clicked()
