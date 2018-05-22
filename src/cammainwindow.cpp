@@ -324,6 +324,9 @@ void CamMainWindow::on_cmdWB_clicked()
 		sw->show();
 	}*/
 		whiteBalanceDialog *whiteBalWindow = new whiteBalanceDialog(NULL, camera);
+		whiteBalWindow->setAttribute(Qt::WA_DeleteOnClose);
+		whiteBalWindow->show();
+		whiteBalWindow->setModal(true);
 }
 
 void CamMainWindow::on_cmdIOSettings_clicked()

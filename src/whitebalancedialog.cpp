@@ -6,6 +6,9 @@ whiteBalanceDialog::whiteBalanceDialog(QWidget *parent, Camera * cameraInst) :
 	ui(new Ui::whiteBalanceDialog)
 {
 	ui->setupUi(this);
+	camera = cameraInst;
+	this->setWindowFlags(Qt::Dialog /*| Qt::WindowStaysOnTopHint*/ | Qt::FramelessWindowHint);
+	this->move(camera->ButtonsOnLeft? 0:600, 0);
 }
 
 whiteBalanceDialog::~whiteBalanceDialog()

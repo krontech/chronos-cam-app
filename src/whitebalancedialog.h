@@ -18,6 +18,7 @@ public:
 
 private:
 	Ui::whiteBalanceDialog *ui;
+	Camera * camera;
 };
 
 #endif // WHITEBALANCEDIALOG_H
