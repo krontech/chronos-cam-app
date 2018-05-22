@@ -329,7 +329,7 @@ private:
 		-0.3219, +1.6901, -0.3811,
 		-0.0614, -0.6409, +1.5258,
 	};
-	double cameraWhiteBalMatrix[3] = { 1, 1.1, 1.3 };
+	double cameraWhiteBalMatrix[3] = { 1.15177, 1.09279, 1.0 };
 	double sceneWhiteBalMatrix[3];	//Actual white balance computed during runtime
 	UInt8  WBIndex;
 	double preComputedWhiteBalMatrix[6][3] = {//[6][3] instead of [5][3] to allow extra space for custom white balance
