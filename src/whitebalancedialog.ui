@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>whiteBalanceDialog</class>
  <widget class="QDialog" name="whiteBalanceDialog">
@@ -6,12 +7,87 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>300</height>
+    <height>101</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
+  <widget class="QPushButton" name="cmdClose">
+   <property name="geometry">
+    <rect>
+     <x>225</x>
+     <y>65</y>
+     <width>116</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Close</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="pushButton">
+   <property name="geometry">
+    <rect>
+     <x>225</x>
+     <y>10</y>
+     <width>116</width>
+     <height>50</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Set Custom
+White Balance</string>
+   </property>
+  </widget>
+  <widget class="QComboBox" name="comboWB">
+   <property name="geometry">
+    <rect>
+     <x>15</x>
+     <y>15</y>
+     <width>171</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>16</pointsize>
+     <weight>75</weight>
+     <italic>true</italic>
+     <bold>true</bold>
+    </font>
+   </property>
+   <item>
+    <property name="text">
+     <string>Custom</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>Cloudy Sky</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>Noon Sunlight</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>Electronic Flash</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>Flourescent</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>Domesetic Lighting</string>
+    </property>
+   </item>
+  </widget>
  </widget>
  <resources/>
  <connections/>
