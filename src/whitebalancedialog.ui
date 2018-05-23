@@ -26,7 +26,7 @@
     <string>Close</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="pushButton">
+  <widget class="QPushButton" name="cmdSetCustomWB">
    <property name="geometry">
     <rect>
      <x>25</x>

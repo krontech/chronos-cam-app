@@ -299,34 +299,23 @@ void CamMainWindow::on_cmdFPNCal_clicked()//Black cal
 
 void CamMainWindow::on_cmdWB_clicked()
 {
-
-	/*
+	if(camera->getIsRecording()) {
 		QMessageBox::StandardButton reply;
-		if(camera->getIsRecording()) reply = QMessageBox::question(this, "Stop recording?", "This action will stop recording and erase the video; is this okay?", QMessageBox::Yes|QMessageBox::No);
-		else						 reply = QMessageBox::question(this, "Set white balance?", "Will set white balance. Continue?", QMessageBox::Yes|QMessageBox::No);
-
+		reply = QMessageBox::question(this, "Stop recording?", "This action will stop recording and erase the video; is this okay?", QMessageBox::Yes|QMessageBox::No);
 		if(QMessageBox::Yes != reply)
 			return;
 		autoSaveActive = false;
 		camera->stopRecording();
-	Int32 ret = camera->setWhiteBalance(camera->getImagerSettings().hRes / 2 & 0xFFFFFFFE,
-							camera->getImagerSettings().vRes / 2 & 0xFFFFFFFE);	//Sample from middle but make sure position is a multiple of 2
-	if(ret == CAMERA_CLIPPED_ERROR)
-	{
-		sw->setText("Clipping. Reduce exposure and try white balance again");
-		sw->setTimeout(3000);
-		sw->show();
+		delayms(100);
 	}
-	else if(ret == CAMERA_LOW_SIGNAL_ERROR)
-	{
-		sw->setText("Too dark. Increase exposure and try white balance again");
-		sw->setTimeout(3000);
-		sw->show();
-	}*/
-		whiteBalanceDialog *whiteBalWindow = new whiteBalanceDialog(NULL, camera);
-		whiteBalWindow->setAttribute(Qt::WA_DeleteOnClose);
-		whiteBalWindow->show();
-		whiteBalWindow->setModal(true);
+	autoSaveActive = false;
+	camera->stopRecording();
+
+	whiteBalanceDialog *whiteBalWindow = new whiteBalanceDialog(NULL, camera);
+	whiteBalWindow->setAttribute(Qt::WA_DeleteOnClose);
+	whiteBalWindow->show();
+	whiteBalWindow->setModal(true);
+	//whiteBalWindow->move(camera->ButtonsOnLeft? 0:600, 0);
 }
 
 void CamMainWindow::on_cmdIOSettings_clicked()
