@@ -1,6 +1,7 @@
 #include "whitebalancedialog.h"
 #include "ui_whitebalancedialog.h"
 #include <QMessageBox>
+#include <QSettings>
 
 whiteBalanceDialog::whiteBalanceDialog(QWidget *parent, Camera * cameraInst) :
 	QDialog(parent),
@@ -13,6 +14,7 @@ whiteBalanceDialog::whiteBalanceDialog(QWidget *parent, Camera * cameraInst) :
 	this->move(camera->ButtonsOnLeft? 0:600, 0);
 	connect(ui->cmdClose, SIGNAL(clicked(bool)), this, SLOT(close()));
 	sw = new StatusWindow;
+	ui->comboWB->setCurrentIndex(camera->getWBIndex());
 	windowInitComplete = true;
 }
 
@@ -23,8 +25,8 @@ whiteBalanceDialog::~whiteBalanceDialog()
 
 void whiteBalanceDialog::on_comboWB_currentIndexChanged(int index)
 {
-    if(!windowInitComplete) return;
-
+	if(!windowInitComplete) return;
+	camera->setWBIndex(index);
 }
 
 void whiteBalanceDialog::on_cmdSetCustomWB_clicked()

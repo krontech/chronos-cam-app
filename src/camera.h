@@ -347,6 +347,8 @@ private:
 	char serialNumber[SERIAL_NUMBER_MAX_LEN+1];
 
 public:
+	UInt8 getWBIndex();
+	void  setWBIndex(UInt8 index);
 	int unsavedWarnEnabled;
 	bool videoHasBeenReviewed;
 	bool autoSave;

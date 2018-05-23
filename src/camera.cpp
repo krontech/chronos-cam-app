@@ -342,7 +342,7 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 		sceneWhiteBalMatrix[0] = sceneWhiteBalMatrix[1] = sceneWhiteBalMatrix[2] = 1.0;
 	}
 	else{
-		WBIndex = 4;
+		WBIndex = getWBIndex();
 		sceneWhiteBalMatrix[0] = preComputedWhiteBalMatrix[WBIndex][0];
 		sceneWhiteBalMatrix[1] = preComputedWhiteBalMatrix[WBIndex][1];
 		sceneWhiteBalMatrix[2] = preComputedWhiteBalMatrix[WBIndex][2];
@@ -2632,6 +2632,18 @@ Int32 Camera::setWhiteBalance(UInt32 x, UInt32 y)
 	return SUCCESS;
 
 }
+
+UInt8 Camera::getWBIndex(){
+	QSettings appsettings;
+	return appsettings.value("camera/WBIndex", 2).toUInt();
+}
+
+void Camera::setWBIndex(UInt8 index){
+	QSettings appsettings;
+	WBIndex = index;
+	appsettings.setValue("camera/WBIndex", index);
+}
+
 
 void Camera::setFocusAid(bool enable)
 {
