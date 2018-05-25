@@ -342,9 +342,9 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 		sceneWhiteBalMatrix[0] = sceneWhiteBalMatrix[1] = sceneWhiteBalMatrix[2] = 1.0;
 	}
 	else{
-		sceneWhiteBalMatrix[0] = appSettings.value("whiteBalance/currentR", 1.0).toDouble();
-		sceneWhiteBalMatrix[1] = appSettings.value("whiteBalance/currentG", 1.0).toDouble();
-		sceneWhiteBalMatrix[2] = appSettings.value("whiteBalance/currentB", 1.0).toDouble();
+		sceneWhiteBalMatrix[0] = appSettings.value("whiteBalance/currentR", 1.35).toDouble();//Use the values for average daylight by default.  See whitebalancedialog.cpp for the other presets.
+		sceneWhiteBalMatrix[1] = appSettings.value("whiteBalance/currentG", 1.00).toDouble();
+		sceneWhiteBalMatrix[2] = appSettings.value("whiteBalance/currentB", 1.584).toDouble();
 	}
 
 	qDebug() << gpmc->read16(CCM_11_ADDR) << gpmc->read16(CCM_12_ADDR) << gpmc->read16(CCM_13_ADDR);
@@ -2634,7 +2634,7 @@ Int32 Camera::setWhiteBalance(UInt32 x, UInt32 y)
 
 UInt8 Camera::getWBIndex(){
 	QSettings appsettings;
-	return appsettings.value("camera/WBIndex", 2).toUInt();
+	return appsettings.value("camera/WBIndex", 3).toUInt();
 }
 
 void Camera::setWBIndex(UInt8 index){
