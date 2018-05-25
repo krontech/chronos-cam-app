@@ -16,11 +16,16 @@
   <widget class="QPushButton" name="cmdClose">
    <property name="geometry">
     <rect>
-     <x>25</x>
-     <y>115</y>
+     <x>85</x>
+     <y>415</y>
      <width>116</width>
-     <height>25</height>
+     <height>66</height>
     </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>19</pointsize>
+    </font>
    </property>
    <property name="text">
     <string>Close</string>
@@ -29,11 +34,16 @@
   <widget class="QPushButton" name="cmdSetCustomWB">
    <property name="geometry">
     <rect>
-     <x>25</x>
-     <y>60</y>
-     <width>116</width>
-     <height>50</height>
+     <x>10</x>
+     <y>15</y>
+     <width>181</width>
+     <height>111</height>
     </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>19</pointsize>
+    </font>
    </property>
    <property name="text">
     <string>Set Custom
@@ -43,10 +53,10 @@ White Balance</string>
   <widget class="QComboBox" name="comboWB">
    <property name="geometry">
     <rect>
-     <x>15</x>
-     <y>15</y>
-     <width>171</width>
-     <height>41</height>
+     <x>10</x>
+     <y>140</y>
+     <width>181</width>
+     <height>51</height>
     </rect>
    </property>
    <property name="font">
