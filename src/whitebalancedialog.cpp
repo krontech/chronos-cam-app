@@ -25,11 +25,11 @@ whiteBalanceDialog::whiteBalanceDialog(QWidget *parent, Camera * cameraInst) :
 			appSettings.value("whiteBalance/customG", 1.0).toDouble(),
 			appSettings.value("whiteBalance/customB", 1.0).toDouble(),
 			"Custom");
-	addPreset(1.53, 1.00, 1.35, "8000k - Cloudy Sky");
-	addPreset(1.42, 1.00, 1.46, "6500k - Noon Sunlight");
-	addPreset(1.35, 1.00, 1.584,"5600k - Average Daylight");
-	addPreset(1.30, 1.00, 1.61, "5250k - Electronic Flash");
-	addPreset(1.22, 1.00, 1.74, "4600k - Flourescent");
+	addPreset(1.53, 1.00, 1.35, "8000K(Cloudy Sky)");
+	addPreset(1.42, 1.00, 1.46, "6500K(Noon Daylight)");
+	addPreset(1.35, 1.00, 1.584,"5600K(Avg Daylight)");
+	addPreset(1.30, 1.00, 1.61, "5250K(Flash)");
+	addPreset(1.22, 1.00, 1.74, "4600K(Flourescent)");
 	windowInitComplete = true;
 	ui->comboWB->setCurrentIndex(camera->getWBIndex());
 }
