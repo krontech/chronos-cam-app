@@ -65,6 +65,8 @@ void whiteBalanceDialog::on_cmdSetCustomWB_clicked()
 	if(QMessageBox::Yes != reply)
 		return;
 
+	ui->comboWB->setCurrentIndex(0);
+
 	Int32 ret = camera->setWhiteBalance(camera->getImagerSettings().hRes / 2 & 0xFFFFFFFE,
 								 camera->getImagerSettings().vRes / 2 & 0xFFFFFFFE);	//Sample from middle but make sure position is a multiple of 2
 	if(ret == CAMERA_CLIPPED_ERROR)
@@ -81,6 +83,12 @@ void whiteBalanceDialog::on_cmdSetCustomWB_clicked()
 		sw->show();
 		return;
 	}
-	ui->comboWB->setCurrentIndex(0);
 	camera->setCCMatrix();
+	QSettings appSettings;
+	appSettings.setValue("whiteBalance/customR", RED);
+	appSettings.setValue("whiteBalance/customG", GREEN);
+	appSettings.setValue("whiteBalance/customB", BLUE);
+	sceneWhiteBalPresets[0][0] = RED;
+	sceneWhiteBalPresets[0][1] = GREEN;
+	sceneWhiteBalPresets[0][2] = BLUE;
 }
