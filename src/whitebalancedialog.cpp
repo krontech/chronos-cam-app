@@ -54,6 +54,10 @@ void whiteBalanceDialog::on_comboWB_currentIndexChanged(int index)
 	RED =   sceneWhiteBalPresets[index][0];
 	GREEN = sceneWhiteBalPresets[index][1];
 	BLUE =  sceneWhiteBalPresets[index][2];
+	QSettings appSettings;
+	appSettings.setValue("whiteBalance/currentR", RED);
+	appSettings.setValue("whiteBalance/currentG", GREEN);
+	appSettings.setValue("whiteBalance/currentB", BLUE);
 	qDebug() <<" colors: " << RED << GREEN << BLUE;
 	camera->setCCMatrix();
 }

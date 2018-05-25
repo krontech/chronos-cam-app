@@ -343,9 +343,9 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 	}
 	else{
 		WBIndex = getWBIndex();
-		sceneWhiteBalMatrix[0] = preComputedWhiteBalMatrix[WBIndex][0];
-		sceneWhiteBalMatrix[1] = preComputedWhiteBalMatrix[WBIndex][1];
-		sceneWhiteBalMatrix[2] = preComputedWhiteBalMatrix[WBIndex][2];
+		sceneWhiteBalMatrix[0] = appSettings.value("whiteBalance/currentR", 1.0).toDouble();
+		sceneWhiteBalMatrix[1] = appSettings.value("whiteBalance/currentG", 1.0).toDouble();
+		sceneWhiteBalMatrix[2] = appSettings.value("whiteBalance/currentB", 1.0).toDouble();
 	}
 
 	qDebug() << gpmc->read16(CCM_11_ADDR) << gpmc->read16(CCM_12_ADDR) << gpmc->read16(CCM_13_ADDR);
