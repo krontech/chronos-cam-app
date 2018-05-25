@@ -53,15 +53,15 @@ White Balance</string>
   <widget class="QComboBox" name="comboWB">
    <property name="geometry">
     <rect>
-     <x>0</x>
+     <x>10</x>
      <y>195</y>
-     <width>201</width>
+     <width>181</width>
      <height>51</height>
     </rect>
    </property>
    <property name="font">
     <font>
-     <pointsize>15</pointsize>
+     <pointsize>13</pointsize>
      <weight>75</weight>
      <italic>true</italic>
      <bold>true</bold>
