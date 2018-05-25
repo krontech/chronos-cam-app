@@ -17,7 +17,6 @@ whiteBalanceDialog::whiteBalanceDialog(QWidget *parent, Camera * cameraInst) :
 	camera = cameraInst;
 	this->setWindowFlags(Qt::Dialog /*| Qt::WindowStaysOnTopHint*/ | Qt::FramelessWindowHint);
 	this->move(camera->ButtonsOnLeft? 0:600, 0);
-	connect(ui->cmdClose, SIGNAL(clicked(bool)), this, SLOT(close()));
 	sw = new StatusWindow;
 
 	QSettings appSettings;
@@ -95,4 +94,10 @@ void whiteBalanceDialog::on_cmdSetCustomWB_clicked()
 	sceneWhiteBalPresets[0][0] = RED;
 	sceneWhiteBalPresets[0][1] = GREEN;
 	sceneWhiteBalPresets[0][2] = BLUE;
+}
+
+void whiteBalanceDialog::on_cmdClose_clicked()
+{
+	delete sw;
+	this->close();
 }

@@ -22,6 +22,8 @@ private slots:
 
 	void on_cmdSetCustomWB_clicked();
 
+	void on_cmdClose_clicked();
+	
 private:
 	Ui::whiteBalanceDialog *ui;
 	Camera * camera;
