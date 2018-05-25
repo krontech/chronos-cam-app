@@ -24,6 +24,9 @@ whiteBalanceDialog::whiteBalanceDialog(QWidget *parent, Camera * cameraInst) :
 			appSettings.value("whiteBalance/customG", 1.0).toDouble(),
 			appSettings.value("whiteBalance/customB", 1.0).toDouble(),
 			"Custom");
+	customWhiteBalOld[0] = sceneWhiteBalPresets[0][0];
+	customWhiteBalOld[1] = sceneWhiteBalPresets[0][1];
+	customWhiteBalOld[2] = sceneWhiteBalPresets[0][2];
 	addPreset(1.53, 1.00, 1.35, "8000K(Cloudy Sky)");
 	addPreset(1.42, 1.00, 1.46, "6500K(Noon Daylight)");
 	addPreset(1.35, 1.00, 1.584,"5600K(Avg Daylight)");
@@ -69,6 +72,7 @@ void whiteBalanceDialog::on_cmdSetCustomWB_clicked()
 		return;
 
 	ui->comboWB->setCurrentIndex(0);
+	ui->cmdResetCustomWB->setEnabled(true);
 
 	Int32 ret = camera->setWhiteBalance(camera->getImagerSettings().hRes / 2 & 0xFFFFFFFE,
 								 camera->getImagerSettings().vRes / 2 & 0xFFFFFFFE);	//Sample from middle but make sure position is a multiple of 2
@@ -100,4 +104,17 @@ void whiteBalanceDialog::on_cmdClose_clicked()
 {
 	delete sw;
 	this->close();
+}
+
+void whiteBalanceDialog::on_cmdResetCustomWB_clicked()
+{
+    RED   = sceneWhiteBalPresets[0][0] = customWhiteBalOld[0];
+    GREEN = sceneWhiteBalPresets[0][1] = customWhiteBalOld[1];
+    BLUE  = sceneWhiteBalPresets[0][2] = customWhiteBalOld[2];
+    QSettings appSettings;
+    appSettings.setValue("whiteBalance/currentR", RED);
+    appSettings.setValue("whiteBalance/currentG", GREEN);
+    appSettings.setValue("whiteBalance/currentB", BLUE);
+    if(ui->comboWB->currentIndex() == 0)	camera->setCCMatrix();
+    qDebug() <<" colors: " << RED << GREEN << BLUE;
 }

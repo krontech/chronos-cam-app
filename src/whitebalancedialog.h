@@ -24,12 +24,15 @@ private slots:
 
 	void on_cmdClose_clicked();
 	
+	void on_cmdResetCustomWB_clicked();
+	
 private:
 	Ui::whiteBalanceDialog *ui;
 	Camera * camera;
 	bool windowInitComplete;
 	StatusWindow * sw;
 	double sceneWhiteBalPresets[6][3];
+	double customWhiteBalOld[3] = {1.0, 1.0, 1.0};
 	void addPreset(double r, double b, double g, QString s);
 };
 

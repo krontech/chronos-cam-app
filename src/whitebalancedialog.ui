@@ -87,6 +87,28 @@ White Balance</string>
 White Balance:</string>
    </property>
   </widget>
+  <widget class="QPushButton" name="cmdResetCustomWB">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>305</y>
+     <width>181</width>
+     <height>76</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>19</pointsize>
+    </font>
+   </property>
+   <property name="text">
+    <string>Reset Custom
+White Balance</string>
+   </property>
+  </widget>
  </widget>
  <resources/>
  <connections/>
