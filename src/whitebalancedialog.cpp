@@ -24,7 +24,7 @@ whiteBalanceDialog::whiteBalanceDialog(QWidget *parent, Camera * cameraInst) :
 	addPreset(appSettings.value("whiteBalance/customR", 1.0).toDouble(),
 			appSettings.value("whiteBalance/customG", 1.0).toDouble(),
 			appSettings.value("whiteBalance/customB", 1.0).toDouble(),
-			"Custom");//add preset for custom here
+			"Custom");
 	addPreset(1.53, 1.00, 1.35, "8000k - Cloudy Sky");
 	addPreset(1.42, 1.00, 1.46, "6500k - Noon Sunlight");
 	addPreset(1.35, 1.00, 1.584,"5600k - Average Daylight");
@@ -41,10 +41,10 @@ whiteBalanceDialog::~whiteBalanceDialog()
 
 void whiteBalanceDialog::addPreset(double r, double g, double b, QString s){
 	ui->comboWB->addItem(s);
-	qDebug() << "setCurrentIndex" << ui->comboWB->count()-1;
-	sceneWhiteBalPresets[ui->comboWB->count()-1][0] = r;
-	sceneWhiteBalPresets[ui->comboWB->count()-1][1] = g;
-	sceneWhiteBalPresets[ui->comboWB->count()-1][2] = b;
+	UInt8 workingPreset = ui->comboWB->count()-1;
+	sceneWhiteBalPresets[workingPreset][0] = r;
+	sceneWhiteBalPresets[workingPreset][1] = g;
+	sceneWhiteBalPresets[workingPreset][2] = b;
 }
 
 void whiteBalanceDialog::on_comboWB_currentIndexChanged(int index)

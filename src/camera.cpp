@@ -342,7 +342,6 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 		sceneWhiteBalMatrix[0] = sceneWhiteBalMatrix[1] = sceneWhiteBalMatrix[2] = 1.0;
 	}
 	else{
-		WBIndex = getWBIndex();
 		sceneWhiteBalMatrix[0] = appSettings.value("whiteBalance/currentR", 1.0).toDouble();
 		sceneWhiteBalMatrix[1] = appSettings.value("whiteBalance/currentG", 1.0).toDouble();
 		sceneWhiteBalMatrix[2] = appSettings.value("whiteBalance/currentB", 1.0).toDouble();
@@ -2640,7 +2639,6 @@ UInt8 Camera::getWBIndex(){
 
 void Camera::setWBIndex(UInt8 index){
 	QSettings appsettings;
-	WBIndex = index;
 	appsettings.setValue("camera/WBIndex", index);
 }
 
