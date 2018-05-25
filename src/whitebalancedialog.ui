@@ -54,7 +54,7 @@ White Balance</string>
    <property name="geometry">
     <rect>
      <x>0</x>
-     <y>140</y>
+     <y>195</y>
      <width>201</width>
      <height>51</height>
     </rect>
@@ -66,6 +66,25 @@ White Balance</string>
      <italic>true</italic>
      <bold>true</bold>
     </font>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>145</y>
+     <width>181</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>19</pointsize>
+    </font>
+   </property>
+   <property name="text">
+    <string>Selected
+White Balance:</string>
    </property>
   </widget>
  </widget>
