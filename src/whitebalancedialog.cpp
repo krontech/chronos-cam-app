@@ -2,6 +2,11 @@
 #include "ui_whitebalancedialog.h"
 #include <QMessageBox>
 #include <QSettings>
+#include <QDebug>
+
+#define RED   camera->sceneWhiteBalMatrix[0]
+#define GREEN camera->sceneWhiteBalMatrix[1]
+#define BLUE  camera->sceneWhiteBalMatrix[2]
 
 whiteBalanceDialog::whiteBalanceDialog(QWidget *parent, Camera * cameraInst) :
 	QDialog(parent),
@@ -14,8 +19,19 @@ whiteBalanceDialog::whiteBalanceDialog(QWidget *parent, Camera * cameraInst) :
 	this->move(camera->ButtonsOnLeft? 0:600, 0);
 	connect(ui->cmdClose, SIGNAL(clicked(bool)), this, SLOT(close()));
 	sw = new StatusWindow;
-	ui->comboWB->setCurrentIndex(camera->getWBIndex());
+
+	QSettings appSettings;
+	addPreset(appSettings.value("whiteBalance/customR", 1.0).toDouble(),
+			appSettings.value("whiteBalance/customG", 1.0).toDouble(),
+			appSettings.value("whiteBalance/customB", 1.0).toDouble(),
+			"Custom");//add preset for custom here
+	addPreset(1.53, 1.00, 1.35, "8000k - Cloudy Sky");
+	addPreset(1.42, 1.00, 1.46, "6500k - Noon Sunlight");
+	addPreset(1.35, 1.00, 1.584,"5600k - Average Daylight");
+	addPreset(1.30, 1.00, 1.61, "5250k - Electronic Flash");
+	addPreset(1.22, 1.00, 1.74, "4600k - Flourescent");
 	windowInitComplete = true;
+	ui->comboWB->setCurrentIndex(camera->getWBIndex());
 }
 
 whiteBalanceDialog::~whiteBalanceDialog()
@@ -23,10 +39,23 @@ whiteBalanceDialog::~whiteBalanceDialog()
 	delete ui;
 }
 
+void whiteBalanceDialog::addPreset(double r, double g, double b, QString s){
+	ui->comboWB->addItem(s);
+	qDebug() << "setCurrentIndex" << ui->comboWB->count()-1;
+	sceneWhiteBalPresets[ui->comboWB->count()-1][0] = r;
+	sceneWhiteBalPresets[ui->comboWB->count()-1][1] = g;
+	sceneWhiteBalPresets[ui->comboWB->count()-1][2] = b;
+}
+
 void whiteBalanceDialog::on_comboWB_currentIndexChanged(int index)
 {
 	if(!windowInitComplete) return;
 	camera->setWBIndex(index);
+	RED =   sceneWhiteBalPresets[index][0];
+	GREEN = sceneWhiteBalPresets[index][1];
+	BLUE =  sceneWhiteBalPresets[index][2];
+	qDebug() <<" colors: " << RED << GREEN << BLUE;
+	camera->setCCMatrix();
 }
 
 void whiteBalanceDialog::on_cmdSetCustomWB_clicked()
@@ -53,4 +82,5 @@ void whiteBalanceDialog::on_cmdSetCustomWB_clicked()
 		return;
 	}
 	ui->comboWB->setCurrentIndex(0);
+	camera->setCCMatrix();
 }

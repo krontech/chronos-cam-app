@@ -57,36 +57,6 @@ White Balance</string>
      <bold>true</bold>
     </font>
    </property>
-   <item>
-    <property name="text">
-     <string>Custom</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>Cloudy Sky</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>Noon Sunlight</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>Electronic Flash</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>Flourescent</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>Domesetic Lighting</string>
-    </property>
-   </item>
   </widget>
  </widget>
  <resources/>

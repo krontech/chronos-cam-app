@@ -27,6 +27,8 @@ private:
 	Camera * camera;
 	bool windowInitComplete;
 	StatusWindow * sw;
+	double sceneWhiteBalPresets[6][3];
+	void addPreset(double r, double b, double g, QString s);
 };
 
 #endif // WHITEBALANCEDIALOG_H

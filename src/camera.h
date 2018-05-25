@@ -330,7 +330,6 @@ private:
 		-0.0614, -0.6409, +1.5258,
 	};
 	double cameraWhiteBalMatrix[3] = { 1.15177, 1.09279, 1.0 };
-	double sceneWhiteBalMatrix[3];	//Actual white balance computed during runtime
 	UInt8  WBIndex;
 	double preComputedWhiteBalMatrix[6][3] = {//[6][3] instead of [5][3] to allow extra space for custom white balance
 										 {1.25, 1.0, 1.50},//manual white balance set by user
@@ -347,6 +346,7 @@ private:
 	char serialNumber[SERIAL_NUMBER_MAX_LEN+1];
 
 public:
+	double sceneWhiteBalMatrix[3];	//Actual white balance computed during runtime
 	UInt8 getWBIndex();
 	void  setWBIndex(UInt8 index);
 	int unsavedWarnEnabled;
