@@ -16,6 +16,7 @@
  ****************************************************************************/
 #include <time.h>
 #include <sys/statvfs.h>
+#include <sys/vfs.h>
 
 #include "videoRecord.h"
 #include "util.h"
@@ -117,6 +118,7 @@ void playbackWindow::on_cmdSave_clicked()
 	QMessageBox msg;
 	char parentPath[1000];
 	struct statvfs statvfsBuf;
+	struct statfs fileSystemInfoBuf;
 	uint64_t estimatedSize;
 	QSettings appSettings;
 
@@ -172,12 +174,15 @@ void playbackWindow::on_cmdSave_clicked()
 			qDebug("Estimated file size: %llu", estimatedSize);
 			qDebug("===================================");
 
-			if (estimatedSize > 4294967296) {
+			statfs(camera->recorder->fileDirectory, &fileSystemInfoBuf);
+			
+			if (estimatedSize > 4294967296 && fileSystemInfoBuf.f_type == 0x4d44) {//If file size is over 4GB and file system is FAT32
 				QMessageBox::StandardButton reply;
 				reply = QMessageBox::question(this, "File size over 4GB", "Estimated file size is larger than 4GB, which FAT32 partitions will not accept. Attempt to save?", QMessageBox::Yes|QMessageBox::No);
 				if(QMessageBox::Yes != reply)
 					return;
 			}
+			
 			if (estimatedSize > (statvfsBuf.f_bsize * (uint64_t)statvfsBuf.f_bfree)) {
 				QMessageBox::StandardButton reply;
 				reply = QMessageBox::question(this, "Estimated file size too large", "Estimated file size is larger than free space on media. Attempt to save?", QMessageBox::Yes|QMessageBox::No);
