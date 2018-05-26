@@ -178,7 +178,7 @@ void playbackWindow::on_cmdSave_clicked()
 			
 			if (estimatedSize > 4294967296 && fileSystemInfoBuf.f_type == 0x4d44) {//If file size is over 4GB and file system is FAT32
 				QMessageBox::StandardButton reply;
-				reply = QMessageBox::question(this, "File size over 4GB", "Estimated file size is larger than 4GB, which FAT32 partitions will not accept. Attempt to save?", QMessageBox::Yes|QMessageBox::No);
+				reply = QMessageBox::question(this, "File size over 4GB", "Estimated file size is larger than the 4GB limit for the the filesystem.\nAttempt to save anyway?", QMessageBox::Yes|QMessageBox::No);
 				if(QMessageBox::Yes != reply)
 					return;
 			}
