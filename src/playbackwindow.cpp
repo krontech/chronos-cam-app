@@ -172,9 +172,15 @@ void playbackWindow::on_cmdSave_clicked()
 			qDebug("Estimated file size: %llu", estimatedSize);
 			qDebug("===================================");
 
-			if (estimatedSize > (statvfsBuf.f_bsize * (uint64_t)statvfsBuf.f_bfree) || estimatedSize > 4294967296) {
+			if (estimatedSize > 4294967296) {
 				QMessageBox::StandardButton reply;
-				reply = QMessageBox::question(this, "Estimated file size too large", "Estimated file size is larger than room on media/4GB. Attempt to save?", QMessageBox::Yes|QMessageBox::No);
+				reply = QMessageBox::question(this, "File size over 4GB", "Estimated file size is larger than 4GB, which FAT32 partitions will not accept. Attempt to save?", QMessageBox::Yes|QMessageBox::No);
+				if(QMessageBox::Yes != reply)
+					return;
+			}
+			if (estimatedSize > (statvfsBuf.f_bsize * (uint64_t)statvfsBuf.f_bfree)) {
+				QMessageBox::StandardButton reply;
+				reply = QMessageBox::question(this, "Estimated file size too large", "Estimated file size is larger than free space on media. Attempt to save?", QMessageBox::Yes|QMessageBox::No);
 				if(QMessageBox::Yes != reply)
 					return;
 			}
