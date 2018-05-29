@@ -19,11 +19,7 @@ whiteBalanceDialog::whiteBalanceDialog(QWidget *parent, Camera * cameraInst) :
 	this->move(camera->ButtonsOnLeft? 0:600, 0);
 	sw = new StatusWindow;
 
-	QSettings appSettings;
-	addPreset(appSettings.value("whiteBalance/customR", 1.0).toDouble(),
-			appSettings.value("whiteBalance/customG", 1.0).toDouble(),
-			appSettings.value("whiteBalance/customB", 1.0).toDouble(),
-			"Custom");
+	addCustomPreset();
 	customWhiteBalOld[0] = sceneWhiteBalPresets[0][0];
 	customWhiteBalOld[1] = sceneWhiteBalPresets[0][1];
 	customWhiteBalOld[2] = sceneWhiteBalPresets[0][2];
@@ -47,6 +43,14 @@ void whiteBalanceDialog::addPreset(double r, double g, double b, QString s){
 	sceneWhiteBalPresets[workingPreset][0] = r;
 	sceneWhiteBalPresets[workingPreset][1] = g;
 	sceneWhiteBalPresets[workingPreset][2] = b;
+}
+
+void whiteBalanceDialog::addCustomPreset(){
+	QSettings appSettings;
+	addPreset(appSettings.value("whiteBalance/customR", 1.0).toDouble(),
+			appSettings.value("whiteBalance/customG", 1.0).toDouble(),
+			appSettings.value("whiteBalance/customB", 1.0).toDouble(),
+			"Custom");
 }
 
 void whiteBalanceDialog::on_comboWB_currentIndexChanged(int index)

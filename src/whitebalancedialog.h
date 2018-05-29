@@ -34,6 +34,7 @@ private:
 	double sceneWhiteBalPresets[6][3];
 	double customWhiteBalOld[3] = {1.0, 1.0, 1.0};
 	void addPreset(double r, double b, double g, QString s);
+	void addCustomPreset();
 };
 
 #endif // WHITEBALANCEDIALOG_H
