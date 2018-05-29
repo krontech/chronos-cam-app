@@ -16,6 +16,7 @@
  ****************************************************************************/
 #include <time.h>
 #include <sys/statvfs.h>
+#include <sys/vfs.h>
 
 #include "videoRecord.h"
 #include "util.h"
@@ -117,6 +118,7 @@ void playbackWindow::on_cmdSave_clicked()
 	QMessageBox msg;
 	char parentPath[1000];
 	struct statvfs statvfsBuf;
+	struct statfs fileSystemInfoBuf;
 	uint64_t estimatedSize;
 	QSettings appSettings;
 
@@ -172,9 +174,26 @@ void playbackWindow::on_cmdSave_clicked()
 			qDebug("Estimated file size: %llu", estimatedSize);
 			qDebug("===================================");
 
-			if (estimatedSize > (statvfsBuf.f_bsize * (uint64_t)statvfsBuf.f_bfree) || estimatedSize > 4294967296) {
+			statfs(camera->recorder->fileDirectory, &fileSystemInfoBuf);
+			bool fileOverMaxSize = (estimatedSize > 4294967296 && fileSystemInfoBuf.f_type == 0x4d44);//If file size is over 4GB and file system is FAT32
+			bool insufficientFreeSpace = (estimatedSize > (statvfsBuf.f_bsize * (uint64_t)statvfsBuf.f_bfree));
+			
+			if (fileOverMaxSize && !insufficientFreeSpace) {//If file size is over 4GB and file system is FAT32
 				QMessageBox::StandardButton reply;
-				reply = QMessageBox::question(this, "Estimated file size too large", "Estimated file size is larger than room on media/4GB. Attempt to save?", QMessageBox::Yes|QMessageBox::No);
+				reply = QMessageBox::warning(this, "Warning - File size over limit", "Estimated file size is larger than the 4GB limit for the the filesystem.\nAttempt to save anyway?", QMessageBox::Yes|QMessageBox::No);
+				if(QMessageBox::Yes != reply)
+					return;
+			}
+			
+			if (insufficientFreeSpace && !fileOverMaxSize) {
+				QMessageBox::StandardButton reply;
+				reply = QMessageBox::warning(this, "Warning - Insufficient free space", "Estimated file size is larger than free space on drive.\nAttempt to save anyway?", QMessageBox::Yes|QMessageBox::No);
+				if(QMessageBox::Yes != reply)
+					return;
+			}
+			if (fileOverMaxSize && insufficientFreeSpace){
+				QMessageBox::StandardButton reply;
+				reply = QMessageBox::warning(this, "Warning - File size over limits", "Estimated file size is larger than free space on drive.\nEstimated file size is larger than the 4GB limit for the the filesystem.\nAttempt to save anyway?", QMessageBox::Yes|QMessageBox::No);
 				if(QMessageBox::Yes != reply)
 					return;
 			}
