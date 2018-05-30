@@ -7,6 +7,7 @@
 #define RED   camera->sceneWhiteBalMatrix[0]
 #define GREEN camera->sceneWhiteBalMatrix[1]
 #define BLUE  camera->sceneWhiteBalMatrix[2]
+#define COMBO_MAX_INDEX ui->comboWB->count()-1
 
 whiteBalanceDialog::whiteBalanceDialog(QWidget *parent, Camera * cameraInst) :
 	QDialog(parent),
@@ -18,19 +19,22 @@ whiteBalanceDialog::whiteBalanceDialog(QWidget *parent, Camera * cameraInst) :
 	this->setWindowFlags(Qt::Dialog /*| Qt::WindowStaysOnTopHint*/ | Qt::FramelessWindowHint);
 	this->move(camera->ButtonsOnLeft? 0:600, 0);
 	sw = new StatusWindow;
-
 	QSettings appSettings;	
+	
 	customWhiteBalOld[0] = sceneWhiteBalPresets[0][0];
 	customWhiteBalOld[1] = sceneWhiteBalPresets[0][1];
 	customWhiteBalOld[2] = sceneWhiteBalPresets[0][2];
+	
 	addPreset(1.53, 1.00, 1.35, "8000K(Cloudy Sky)");
 	addPreset(1.42, 1.00, 1.46, "6500K(Noon Daylight)");
 	addPreset(1.35, 1.00, 1.584,"5600K(Avg Daylight)");
 	addPreset(1.30, 1.00, 1.61, "5250K(Flash)");
 	addPreset(1.22, 1.00, 1.74, "4600K(Flourescent)");
+	
 	if(appSettings.value("whiteBalance/customR", 0.0).toDouble() != 0.0){//Only add Custom if the values have been set
 		addCustomPreset();
 	}
+	
 	windowInitComplete = true;
 	ui->comboWB->setCurrentIndex(camera->getWBIndex());
 }
@@ -42,7 +46,7 @@ whiteBalanceDialog::~whiteBalanceDialog()
 
 void whiteBalanceDialog::addPreset(double r, double g, double b, QString s){
 	ui->comboWB->addItem(s);
-	UInt8 workingPreset = ui->comboWB->count()-1;
+	UInt8 workingPreset = COMBO_MAX_INDEX;
 	sceneWhiteBalPresets[workingPreset][0] = r;
 	sceneWhiteBalPresets[workingPreset][1] = g;
 	sceneWhiteBalPresets[workingPreset][2] = b;
@@ -60,20 +64,16 @@ void whiteBalanceDialog::on_comboWB_currentIndexChanged(int index)
 {
 	if(!windowInitComplete) return;
 	QSettings appSettings;
-	/*
-	if(appSettings.value("whiteBalance/customR", 0.0).toDouble() == 0.0){
-		//if custom NOT set, increment index to assign correct values
-		index++;
-	qDebug("custom not set.  index incremented.");}*/
-	qDebug("index is decremented to %d", index);
 	camera->setWBIndex(index);
+	
 	RED =   sceneWhiteBalPresets[index][0];
 	GREEN = sceneWhiteBalPresets[index][1];
 	BLUE =  sceneWhiteBalPresets[index][2];
+	
 	appSettings.setValue("whiteBalance/currentR", RED);
 	appSettings.setValue("whiteBalance/currentG", GREEN);
 	appSettings.setValue("whiteBalance/currentB", BLUE);
-	qDebug() <<" colors: " << RED << GREEN << BLUE;
+	//qDebug() <<" colors: " << RED << GREEN << BLUE;
 	camera->setCCMatrix();
 }
 
@@ -103,16 +103,19 @@ void whiteBalanceDialog::on_cmdSetCustomWB_clicked()
 		sw->show();
 		return;
 	}
+	
 	camera->setCCMatrix();
+	
 	QSettings appSettings;
 	if(appSettings.value("whiteBalance/customR", 0.0).toDouble() == 0.0)
 		ui->comboWB->addItem("Custom"); //Only add "Custom" if the values have not been set
 	appSettings.setValue("whiteBalance/customR", RED);
 	appSettings.setValue("whiteBalance/customG", GREEN);
 	appSettings.setValue("whiteBalance/customB", BLUE);
-	sceneWhiteBalPresets[ui->comboWB->count()-1][0] = RED;
-	sceneWhiteBalPresets[ui->comboWB->count()-1][1] = GREEN;
-	sceneWhiteBalPresets[ui->comboWB->count()-1][2] = BLUE;
+	
+	sceneWhiteBalPresets[COMBO_MAX_INDEX][0] = RED;
+	sceneWhiteBalPresets[COMBO_MAX_INDEX][1] = GREEN;
+	sceneWhiteBalPresets[COMBO_MAX_INDEX][2] = BLUE;
 }
 
 void whiteBalanceDialog::on_cmdClose_clicked()
@@ -123,13 +126,15 @@ void whiteBalanceDialog::on_cmdClose_clicked()
 
 void whiteBalanceDialog::on_cmdResetCustomWB_clicked()
 {
-    RED   = sceneWhiteBalPresets[ui->comboWB->count()-1][0] = customWhiteBalOld[0];
-    GREEN = sceneWhiteBalPresets[ui->comboWB->count()-1][1] = customWhiteBalOld[1];
-    BLUE  = sceneWhiteBalPresets[ui->comboWB->count()-1][2] = customWhiteBalOld[2];
+    RED   = sceneWhiteBalPresets[COMBO_MAX_INDEX][0] = customWhiteBalOld[0];
+    GREEN = sceneWhiteBalPresets[COMBO_MAX_INDEX][1] = customWhiteBalOld[1];
+    BLUE  = sceneWhiteBalPresets[COMBO_MAX_INDEX][2] = customWhiteBalOld[2];
+    
     QSettings appSettings;
     appSettings.setValue("whiteBalance/currentR", RED);
     appSettings.setValue("whiteBalance/currentG", GREEN);
     appSettings.setValue("whiteBalance/currentB", BLUE);
+    
     if(ui->comboWB->currentIndex() == 0)	camera->setCCMatrix();
-    qDebug() <<" colors: " << RED << GREEN << BLUE;
+    //qDebug() <<" colors: " << RED << GREEN << BLUE;
 }
