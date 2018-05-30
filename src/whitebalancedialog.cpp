@@ -101,9 +101,6 @@ void whiteBalanceDialog::on_cmdSetCustomWB_clicked()
 		return;
 	}
 	
-	ui->comboWB->setCurrentIndex(0);
-	ui->cmdResetCustomWB->setEnabled(true);
-
 	camera->setCCMatrix();
 	
 	QSettings appSettings;
@@ -116,6 +113,10 @@ void whiteBalanceDialog::on_cmdSetCustomWB_clicked()
 	sceneWhiteBalPresets[COMBO_MAX_INDEX][0] = RED;
 	sceneWhiteBalPresets[COMBO_MAX_INDEX][1] = GREEN;
 	sceneWhiteBalPresets[COMBO_MAX_INDEX][2] = BLUE;
+	
+	ui->comboWB->setCurrentIndex(COMBO_MAX_INDEX);
+	ui->cmdResetCustomWB->setEnabled(true);
+	qDebug("COMBO_COUNT = %d", COMBO_MAX_INDEX);
 }
 
 void whiteBalanceDialog::on_cmdClose_clicked()
@@ -135,6 +136,6 @@ void whiteBalanceDialog::on_cmdResetCustomWB_clicked()
     appSettings.setValue("whiteBalance/currentG", GREEN);
     appSettings.setValue("whiteBalance/currentB", BLUE);
     
-    if(ui->comboWB->currentIndex() == 0)	camera->setCCMatrix();
+    if(ui->comboWB->currentIndex() == COMBO_MAX_INDEX)	camera->setCCMatrix();
     //qDebug() <<" colors: " << RED << GREEN << BLUE;
 }
