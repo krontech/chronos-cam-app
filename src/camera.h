@@ -330,7 +330,6 @@ private:
 		-0.0614, -0.6409, +1.5258,
 	};
 	double cameraWhiteBalMatrix[3] = { 1.15177, 1.09279, 1.0 };
-	double sceneWhiteBalMatrix[3];	//Actual white balance computed during runtime
 	double imgGain;
 	bool focusPeakEnabled;
 	int focusPeakColorIndex;
@@ -338,6 +337,9 @@ private:
 	char serialNumber[SERIAL_NUMBER_MAX_LEN+1];
 
 public:
+	double sceneWhiteBalMatrix[3];	//Actual white balance computed during runtime
+	UInt8 getWBIndex();
+	void  setWBIndex(UInt8 index);
 	int unsavedWarnEnabled;
 	bool videoHasBeenReviewed;
 	bool autoSave;
