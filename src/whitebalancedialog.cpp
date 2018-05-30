@@ -19,7 +19,7 @@ whiteBalanceDialog::whiteBalanceDialog(QWidget *parent, Camera * cameraInst) :
 	this->move(camera->ButtonsOnLeft? 0:600, 0);
 	sw = new StatusWindow;
 
-	addCustomPreset();
+	QSettings appSettings;	
 	customWhiteBalOld[0] = sceneWhiteBalPresets[0][0];
 	customWhiteBalOld[1] = sceneWhiteBalPresets[0][1];
 	customWhiteBalOld[2] = sceneWhiteBalPresets[0][2];
@@ -28,6 +28,9 @@ whiteBalanceDialog::whiteBalanceDialog(QWidget *parent, Camera * cameraInst) :
 	addPreset(1.35, 1.00, 1.584,"5600K(Avg Daylight)");
 	addPreset(1.30, 1.00, 1.61, "5250K(Flash)");
 	addPreset(1.22, 1.00, 1.74, "4600K(Flourescent)");
+	if(appSettings.value("whiteBalance/customR", 0.0).toDouble() != 0.0){//Only add Custom if the values have been set
+		addCustomPreset();
+	}
 	windowInitComplete = true;
 	ui->comboWB->setCurrentIndex(camera->getWBIndex());
 }
@@ -56,11 +59,17 @@ void whiteBalanceDialog::addCustomPreset(){
 void whiteBalanceDialog::on_comboWB_currentIndexChanged(int index)
 {
 	if(!windowInitComplete) return;
+	QSettings appSettings;
+	/*
+	if(appSettings.value("whiteBalance/customR", 0.0).toDouble() == 0.0){
+		//if custom NOT set, increment index to assign correct values
+		index++;
+	qDebug("custom not set.  index incremented.");}*/
+	qDebug("index is decremented to %d", index);
 	camera->setWBIndex(index);
 	RED =   sceneWhiteBalPresets[index][0];
 	GREEN = sceneWhiteBalPresets[index][1];
 	BLUE =  sceneWhiteBalPresets[index][2];
-	QSettings appSettings;
 	appSettings.setValue("whiteBalance/currentR", RED);
 	appSettings.setValue("whiteBalance/currentG", GREEN);
 	appSettings.setValue("whiteBalance/currentB", BLUE);
@@ -96,12 +105,14 @@ void whiteBalanceDialog::on_cmdSetCustomWB_clicked()
 	}
 	camera->setCCMatrix();
 	QSettings appSettings;
+	if(appSettings.value("whiteBalance/customR", 0.0).toDouble() == 0.0)
+		ui->comboWB->addItem("Custom"); //Only add "Custom" if the values have not been set
 	appSettings.setValue("whiteBalance/customR", RED);
 	appSettings.setValue("whiteBalance/customG", GREEN);
 	appSettings.setValue("whiteBalance/customB", BLUE);
-	sceneWhiteBalPresets[0][0] = RED;
-	sceneWhiteBalPresets[0][1] = GREEN;
-	sceneWhiteBalPresets[0][2] = BLUE;
+	sceneWhiteBalPresets[ui->comboWB->count()-1][0] = RED;
+	sceneWhiteBalPresets[ui->comboWB->count()-1][1] = GREEN;
+	sceneWhiteBalPresets[ui->comboWB->count()-1][2] = BLUE;
 }
 
 void whiteBalanceDialog::on_cmdClose_clicked()
@@ -112,9 +123,9 @@ void whiteBalanceDialog::on_cmdClose_clicked()
 
 void whiteBalanceDialog::on_cmdResetCustomWB_clicked()
 {
-    RED   = sceneWhiteBalPresets[0][0] = customWhiteBalOld[0];
-    GREEN = sceneWhiteBalPresets[0][1] = customWhiteBalOld[1];
-    BLUE  = sceneWhiteBalPresets[0][2] = customWhiteBalOld[2];
+    RED   = sceneWhiteBalPresets[ui->comboWB->count()-1][0] = customWhiteBalOld[0];
+    GREEN = sceneWhiteBalPresets[ui->comboWB->count()-1][1] = customWhiteBalOld[1];
+    BLUE  = sceneWhiteBalPresets[ui->comboWB->count()-1][2] = customWhiteBalOld[2];
     QSettings appSettings;
     appSettings.setValue("whiteBalance/currentR", RED);
     appSettings.setValue("whiteBalance/currentG", GREEN);
