@@ -24,6 +24,9 @@ whiteBalanceDialog::whiteBalanceDialog(QWidget *parent, Camera * cameraInst) :
 	addPreset(1.53, 1.00, 1.35, "8000K(Cloudy Sky)");
 	addPreset(1.42, 1.00, 1.46, "6500K(Noon Daylight)");
 	addPreset(1.35, 1.00, 1.584,"5600K(Avg Daylight)");
+	/* Since "Avg Daylight" is chosen by default if this is the user's first time entering the WB dialog,
+	these the default values set near the end of Camera::init() on boot should match up with this,
+	or else the white balance will change from the original values to this upon opening the dialog. */
 	addPreset(1.30, 1.00, 1.61, "5250K(Flash)");
 	addPreset(1.22, 1.00, 1.74, "4600K(Flourescent)");
 	
@@ -35,7 +38,7 @@ whiteBalanceDialog::whiteBalanceDialog(QWidget *parent, Camera * cameraInst) :
 		customWhiteBalOld[0] = sceneWhiteBalPresets[COMBO_MAX_INDEX][0];
 		customWhiteBalOld[1] = sceneWhiteBalPresets[COMBO_MAX_INDEX][1];
 		customWhiteBalOld[2] = sceneWhiteBalPresets[COMBO_MAX_INDEX][2];
-	} else customWhiteBalOld[0] = -1.0;
+	} else customWhiteBalOld[0] = -1.0;// so that on_cmdSetCustomWB_clicked() knows not to enable the "Reset Custom WB" button
 	
 	windowInitComplete = true;
 	ui->comboWB->setCurrentIndex(camera->getWBIndex());
@@ -75,7 +78,7 @@ void whiteBalanceDialog::on_comboWB_currentIndexChanged(int index)
 	appSettings.setValue("whiteBalance/currentR", RED);
 	appSettings.setValue("whiteBalance/currentG", GREEN);
 	appSettings.setValue("whiteBalance/currentB", BLUE);
-	qDebug() <<" colors: " << RED << GREEN << BLUE;
+	//qDebug() <<" colors: " << RED << GREEN << BLUE;
 	camera->setCCMatrix();
 }
 
@@ -107,7 +110,7 @@ void whiteBalanceDialog::on_cmdSetCustomWB_clicked()
 	
 	QSettings appSettings;
 	if(appSettings.value("whiteBalance/customR", 0.0).toDouble() == 0.0)
-		ui->comboWB->addItem("Custom"); //Only add "Custom" if the values have not been set
+		ui->comboWB->addItem("Custom"); //Only add "Custom" if the values have not already been set
 	appSettings.setValue("whiteBalance/customR", RED);
 	appSettings.setValue("whiteBalance/customG", GREEN);
 	appSettings.setValue("whiteBalance/customB", BLUE);
@@ -118,7 +121,7 @@ void whiteBalanceDialog::on_cmdSetCustomWB_clicked()
 	
 	ui->comboWB->setCurrentIndex(COMBO_MAX_INDEX);
 	if(customWhiteBalOld[0] > 0.0) ui->cmdResetCustomWB->setEnabled(true);
-	qDebug("COMBO_COUNT = %d", COMBO_MAX_INDEX);
+	//qDebug("COMBO_COUNT = %d", COMBO_MAX_INDEX);
 }
 
 void whiteBalanceDialog::on_cmdClose_clicked()
@@ -139,6 +142,6 @@ void whiteBalanceDialog::on_cmdResetCustomWB_clicked()
     appSettings.setValue("whiteBalance/currentB", BLUE);
     
     if(ui->comboWB->currentIndex() == COMBO_MAX_INDEX)	camera->setCCMatrix();
-    qDebug() <<" colors: " << RED << GREEN << BLUE;
-    qDebug()<<"sceneWhiteBalPresets: " <<customWhiteBalOld[0] << customWhiteBalOld[1] << customWhiteBalOld[2];
+    //qDebug() <<" colors: " << RED << GREEN << BLUE;
+    //qDebug()<<"sceneWhiteBalPresets: " <<customWhiteBalOld[0] << customWhiteBalOld[1] << customWhiteBalOld[2];
 }
