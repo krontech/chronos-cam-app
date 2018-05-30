@@ -2634,7 +2634,7 @@ Int32 Camera::setWhiteBalance(UInt32 x, UInt32 y)
 
 UInt8 Camera::getWBIndex(){
 	QSettings appsettings;
-	return appsettings.value("camera/WBIndex", 3).toUInt();
+	return appsettings.value("camera/WBIndex", 2).toUInt();
 }
 
 void Camera::setWBIndex(UInt8 index){
