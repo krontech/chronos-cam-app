@@ -151,6 +151,7 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 
 	ui->chkAutoSave->setChecked(camera->get_autoSave());
 	ui->chkAutoRecord->setChecked(camera->get_autoRecord());
+	ui->chkDemoMode->setChecked(camera->get_demoMode());
 	ui->chkUiOnLeft->setChecked(camera->getButtonsOnLeft());
 	ui->comboDisableUnsavedWarning->setCurrentIndex(camera->getUnsavedWarnEnable());
 
@@ -790,6 +791,11 @@ void UtilWindow::on_chkAutoSave_stateChanged(int arg1)
 void UtilWindow::on_chkAutoRecord_stateChanged(int arg1)
 {
 	camera->set_autoRecord(ui->chkAutoRecord->isChecked());
+}
+
+void UtilWindow::on_chkDemoMode_stateChanged(int arg1)
+{
+	camera->set_demoMode(ui->chkDemoMode->isChecked());
 }
 
 void UtilWindow::on_cmdDefaults_clicked()

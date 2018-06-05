@@ -338,6 +338,11 @@ public:
 	bool autoRecord;
 	void set_autoRecord(bool state);
 	bool get_autoRecord();
+
+	bool demoMode;
+	void set_demoMode(bool state);
+	bool get_demoMode();
+
 	bool getButtonsOnLeft();
 	void setButtonsOnLeft(bool en);
 	bool getUpsideDownDisplay();

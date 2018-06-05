@@ -71,6 +71,8 @@ private slots:
 	void on_cmdClose_clicked();
 	void saveSettingsClosed();
 
+	void on_cmdLoop_clicked();
+
 private:
 	Ui::playbackWindow *ui;
 	Camera * camera;

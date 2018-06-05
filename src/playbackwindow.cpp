@@ -35,6 +35,7 @@ playbackWindow::playbackWindow(QWidget *parent, Camera * cameraInst, bool autosa
 	QWidget(parent),
 	ui(new Ui::playbackWindow)
 {
+	QSettings appSettings;
 	ui->setupUi(this);
 	this->setWindowFlags(Qt::Dialog /*| Qt::WindowStaysOnTopHint*/ | Qt::FramelessWindowHint);
 
@@ -49,6 +50,7 @@ playbackWindow::playbackWindow(QWidget *parent, Camera * cameraInst, bool autosa
 	ui->verticalSlider->setMinimum(0);
 	ui->verticalSlider->setMaximum(camera->recordingData.totalFrames - 1);
 	ui->verticalSlider->setValue(camera->playFrame);
+	ui->cmdLoop->setVisible(appSettings.value("camera/demoMode", false).toBool());
 	markInFrame = 1;
 	markOutFrame = camera->recordingData.totalFrames;
 	ui->verticalSlider->setHighlightRegion(markInFrame, markOutFrame);
@@ -423,4 +425,11 @@ void playbackWindow::setControlEnable(bool en)
 void playbackWindow::on_cmdClose_clicked()
 {
     camera->videoHasBeenReviewed = true;
+}
+
+void playbackWindow::on_cmdLoop_clicked()
+{
+	int fps = (playbackExponent >= 0) ? (60 << playbackExponent) : 60 / (1 - playbackExponent);
+	unsigned int count = (markOutFrame - markInFrame + 1);
+	camera->vinst->loopPlayback(markInFrame, count, fps);
 }

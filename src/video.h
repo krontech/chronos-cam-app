@@ -95,6 +95,7 @@ public:
 	UInt32 getPosition(void);
 	void setPosition(unsigned int position, int rate);
 	void setPlayback(int rate);
+	void loopPlayback(unsigned int start, unsigned int length, int rate);
 	void setDisplayOptions(bool zebra, bool peaking);
 	void liveDisplay(void);
 	VideoState getStatus(VideoStatus *st);

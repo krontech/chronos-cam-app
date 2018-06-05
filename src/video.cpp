@@ -161,6 +161,25 @@ void Video::setPlayback(int rate)
 	}
 }
 
+void Video::loopPlayback(unsigned int start, unsigned int length, int rate)
+{
+	QVariantMap args;
+	QDBusPendingReply<QVariantMap> reply;
+	args.insert("framerate", QVariant(rate));
+	args.insert("position", QVariant(start));
+	args.insert("loopcount", QVariant(length));
+
+	pthread_mutex_lock(&mutex);
+	reply = iface.playback(args);
+	reply.waitForFinished();
+	pthread_mutex_unlock(&mutex);
+
+	if (reply.isError()) {
+		QDBusError err = reply.error();
+		fprintf(stderr, "Failed to start playback loop: %s - %s\n", err.name().data(), err.message().toAscii().data());
+	}
+}
+
 void Video::setDisplayOptions(bool zebra, bool peaking)
 {
 	QVariantMap args;

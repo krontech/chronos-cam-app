@@ -2986,6 +2986,18 @@ bool Camera::get_autoRecord() {
 }
 
 
+void Camera::set_demoMode(bool state) {
+	QSettings appSettings;
+	demoMode = state;
+	appSettings.setValue("camera/demoMode", state);
+}
+
+bool Camera::get_demoMode() {
+	QSettings appSettings;
+	return appSettings.value("camera/demoMode", false).toBool();
+}
+
+
 void* recDataThread(void *arg)
 {
     Camera * cInst = (Camera *)arg;

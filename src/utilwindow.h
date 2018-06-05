@@ -82,19 +82,21 @@ private slots:
 
 	void on_chkAutoSave_stateChanged(int arg1);
 
-    void on_chkAutoRecord_stateChanged(int arg1);
+	void on_chkAutoRecord_stateChanged(int arg1);
 
-    void on_cmdDefaults_clicked();
+	void on_chkDemoMode_stateChanged(int arg1);
 
-    void on_cmdRestoreSettings_clicked();
+	void on_cmdDefaults_clicked();
 
-    void on_cmdBackupSettings_clicked();
+	void on_cmdRestoreSettings_clicked();
 
-    void on_chkShowDebugControls_toggled(bool checked);
+	void on_cmdBackupSettings_clicked();
 
-    void on_cmdRevertCalData_pressed();
+	void on_chkShowDebugControls_toggled(bool checked);
 
-    	void on_comboDisableUnsavedWarning_currentIndexChanged(int index);
+	void on_cmdRevertCalData_pressed();
+
+	void on_comboDisableUnsavedWarning_currentIndexChanged(int index);
 
 private:
 	Ui::UtilWindow *ui;
