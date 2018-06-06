@@ -26,6 +26,7 @@
 
 #include "videoRecord.h"
 #include "camera.h"
+#include "util.h"
 
 gboolean
 buffer_probe(GstPad *pad, GstBuffer *buffer, gpointer data)
@@ -61,22 +62,6 @@ Int32 VideoRecord::init(void)
 
 }
 
-static int path_is_mounted(const char *path)
-{
-	char tmp[PATH_MAX];
-	struct stat st;
-	struct stat parent;
-
-	/* Get the stats for the given path and check that it's a directory. */
-	if ((stat(path, &st) != 0) || !S_ISDIR(st.st_mode)) {
-		return FALSE;
-	}
-
-	/* Ensure that the parent directly is mounted on a different device. */
-	snprintf(tmp, sizeof(tmp), "%s/..", path);
-	return (stat(tmp, &parent) == 0) && (parent.st_dev != st.st_dev);
-}
-
 VideoRecord::VideoRecord()
 {
 	profile = OMX_H264ENC_PROFILE_HIGH;
@@ -94,17 +79,8 @@ VideoRecord::VideoRecord()
 
     recordRunning = false;
 
-    //bitsPerPixel, maxBitrate, framerate, and filename are set in Camera::init(), just after VideoRecord() is called
-
-	/* Set the default file path, or fall back to the MMC card. */
-	int i;
-	for (i = 1; i <= 3; i++) {
-		sprintf(fileDirectory, "/media/sda%d", i);
-		if (path_is_mounted(fileDirectory)) {
-			return;
-		}
-	}
-	strcpy(fileDirectory, "/media/mmcblk1p1");
+    //bitsPerPixel, maxBitrate, framerate, file directory and filename
+    //are set in Camera::init(), just after VideoRecord() is called
 }
 
 VideoRecord::~VideoRecord()

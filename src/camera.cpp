@@ -289,7 +289,22 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 	recorder->framerate           = appSettings.value("recorder/framerate", 60).toUInt();
 	strcpy(recorder->filename,      appSettings.value("recorder/filename", "").toString().toAscii());
 	strcpy(recorder->fileDirectory, appSettings.value("recorder/fileDirectory", "").toString().toAscii());
+	if(strlen(recorder->fileDirectory) == 0){
+		/* Set the default file path, or fall back to the MMC card. */
+		int i;
+		bool fileDirFoundOnUSB = false;
+		for (i = 1; i <= 3; i++) {
+			sprintf(recorder->fileDirectory, "/media/sda%d", i);
+			if (path_is_mounted(recorder->fileDirectory)) {
+				fileDirFoundOnUSB = true;
+				break;
+			}
+		}
+		if(!fileDirFoundOnUSB) strcpy(recorder->fileDirectory, "/media/mmcblk1p1");
+	}
 
+	
+	
     recorder->eosCallback = recordEosCallback;
 	recorder->eosCallbackArg = (void *)this;
 

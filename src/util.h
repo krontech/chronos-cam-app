@@ -29,5 +29,7 @@ void delayms_events(int ms);
 
 bool checkAndCreateDir(const char * dir);
 
+int path_is_mounted(const char *path);
+
 
 #endif // UTIL_H
