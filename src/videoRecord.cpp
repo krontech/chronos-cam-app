@@ -94,10 +94,7 @@ VideoRecord::VideoRecord()
 
     recordRunning = false;
 
-	bitsPerPixel = 0.7;
-	maxBitrate = 40.0;
-	framerate = 60;
-	strcpy(filename, "");
+    //bitsPerPixel, maxBitrate, framerate, and filename are set in Camera::init(), just after VideoRecord() is called
 
 	/* Set the default file path, or fall back to the MMC card. */
 	int i;

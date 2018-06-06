@@ -284,6 +284,11 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 	vinst->setRunning(true);
 
 	recorder = new VideoRecord();
+	recorder->bitsPerPixel        = appSettings.value("recorder/bitsPerPixel", 0.7).toDouble();
+	recorder->maxBitrate          = appSettings.value("recorder/maxBitrate", 40.0).toDouble();
+	recorder->framerate           = appSettings.value("recorder/framerate", 60).toUInt();
+	strcpy(recorder->filename,      appSettings.value("recorder/filename", "").toString().toAscii());
+	strcpy(recorder->fileDirectory, appSettings.value("recorder/fileDirectory", "").toString().toAscii());
 
     recorder->eosCallback = recordEosCallback;
 	recorder->eosCallbackArg = (void *)this;
