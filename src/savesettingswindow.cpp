@@ -53,7 +53,7 @@ saveSettingsWindow::saveSettingsWindow(QWidget *parent, Camera * camInst) :
 	
 	ui->spinBitrate->setValue(settings.value("recorder/bitsPerPixel", camera->recorder->bitsPerPixel).toDouble());
 	ui->spinMaxBitrate->setValue(settings.value("recorder/maxBitrate", camera->recorder->maxBitrate).toDouble());
-	ui->spinFramerate->setValue(settings.value("recorder/framerate", camera->recorder->framerate).toDouble());
+	ui->spinFramerate->setValue(settings.value("recorder/framerate", camera->recorder->framerate).toUInt());
 	ui->lineFilename->setText(settings.value("recorder/filename", camera->recorder->filename).toString());
 
 	refreshDriveList();
