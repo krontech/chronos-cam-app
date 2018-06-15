@@ -112,7 +112,7 @@
 }</string>
     </property>
     <property name="text">
-     <string>Exposure trigger</string>
+     <string>Exposure Trigger</string>
     </property>
    </widget>
    <widget class="QCheckBox" name="chkIO1InvertIn">
@@ -556,7 +556,7 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
 }</string>
     </property>
     <property name="text">
-     <string>Exposure trigger</string>
+     <string>Exposure Trigger</string>
     </property>
    </widget>
    <widget class="QRadioButton" name="radioIO2ShutterGating">
