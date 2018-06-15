@@ -30,6 +30,7 @@
 #include <QMessageBox>
 #include <QSettings>
 
+#define MIN_FREE_SPACE 10000000
 
 playbackWindow::playbackWindow(QWidget *parent, Camera * cameraInst, bool autosave) :
 	QWidget(parent),
@@ -362,7 +363,7 @@ void playbackWindow::checkForSaveDone()
 		struct statvfs statvfsBuf;
 		statvfs(camera->recorder->fileDirectory, &statvfsBuf);
 		qDebug("Free space: %llu  (%lu * %lu)", statvfsBuf.f_bsize * (uint64_t)statvfsBuf.f_bfree, statvfsBuf.f_bsize, statvfsBuf.f_bfree);
-		bool insufficientFreeSpace = (10000000 > statvfsBuf.f_bsize * (uint64_t)statvfsBuf.f_bfree);
+		bool insufficientFreeSpace = (MIN_FREE_SPACE > statvfsBuf.f_bsize * (uint64_t)statvfsBuf.f_bfree);
 		if(insufficientFreeSpace) on_cmdSave_clicked();//Abort the save if insufficient free space
 		
 		/* Prevent the user from pressing the abort/save button just after the last frame,
