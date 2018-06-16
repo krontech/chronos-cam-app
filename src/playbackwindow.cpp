@@ -42,6 +42,8 @@ playbackWindow::playbackWindow(QWidget *parent, Camera * cameraInst, bool autosa
 	camera = cameraInst;
 	autoSaveFlag = autosave;
 	this->move(camera->ButtonsOnLeft? 0:600, 0);
+	saveAborted = false;
+	
 
 	sw = new StatusWindow;
 
@@ -267,6 +269,8 @@ void playbackWindow::on_cmdSave_clicked()
 		camera->recorder->stop2();
 		ui->verticalSlider->removeLastRegionFromList();
 		ui->verticalSlider->setHighlightRegion(markInFrame, markOutFrame);
+		saveAborted = true;
+		//qDebug()<<"Aborting...";
 	}
 
 }
@@ -347,6 +351,7 @@ void playbackWindow::checkForSaveDone()
 		setControlEnable(true);
 		emit enableSaveSettingsButtons(true);
 		ui->cmdSave->setEnabled(true);
+		saveAborted = false;
 		updatePlayRateLabel(playbackRate);
 		ui->verticalSlider->setHighlightRegion(markInFrame, markOutFrame);
 
@@ -364,7 +369,7 @@ void playbackWindow::checkForSaveDone()
 		statvfs(camera->recorder->fileDirectory, &statvfsBuf);
 		qDebug("Free space: %llu  (%lu * %lu)", statvfsBuf.f_bsize * (uint64_t)statvfsBuf.f_bfree, statvfsBuf.f_bsize, statvfsBuf.f_bfree);
 		bool insufficientFreeSpace = (MIN_FREE_SPACE > statvfsBuf.f_bsize * (uint64_t)statvfsBuf.f_bfree);
-		if(insufficientFreeSpace) on_cmdSave_clicked();//Abort the save if insufficient free space
+		if(insufficientFreeSpace && !saveAborted) on_cmdSave_clicked();//Abort the save if insufficient free space
 		
 		/* Prevent the user from pressing the abort/save button just after the last frame,
 		 * as that can make the camera try to save a 2nd video too soon, crashing the camapp.*/

@@ -86,6 +86,7 @@ private:
 	Int32 playbackRate;
 	bool autoSaveFlag;
 	bool settingsWindowIsOpen;
+	bool saveAborted;
 
 signals:
 	void finishedSaving();
