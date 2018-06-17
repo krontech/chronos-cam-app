@@ -106,6 +106,7 @@ saveSettingsWindow::saveSettingsWindow(QWidget *parent, Camera * camInst) :
 	ui->comboSaveFormat->addItem("Raw 16bit");        // SAVE_MODE_RAW16
 	ui->comboSaveFormat->addItem("Raw 16RJ");         // SAVE_MODE_RAW16RJ
 	ui->comboSaveFormat->addItem("Raw 12bit packed"); // SAVE_MODE_RAW12
+	ui->comboSaveFormat->addItem("CinemaDNG");        // SAVE_MODE_DNG
 	
 	ui->comboSaveFormat->setCurrentIndex(settings.value("recorder/saveFormat", 0).toUInt());
 

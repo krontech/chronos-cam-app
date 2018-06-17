@@ -286,10 +286,7 @@ int Video::mkfilename(char *path, save_mode_type save_mode)
 	case SAVE_MODE_RAW12:
 		strcat(path, ".raw");
 		break;
-	case SAVE_MODE_RAW16_PNG:
-		strcpy(sequencePath, path);
-		strcat(sequencePath, "-\%05d.png");
-		strcat(path, "-00000.png");
+	case SAVE_MODE_DNG:
 		break;
 	}
 
@@ -333,15 +330,22 @@ CameraErrortype Video::startRecording(UInt32 sizeX, UInt32 sizeY, UInt32 start, 
 		map.insert("bitrate", QVariant((uint)maxBitrate));
 		break;
 	case SAVE_MODE_RAW16:
+		estFileSize = 16 * sizeX * sizeY * length / 8;
+		map.insert("format", QVariant("y16"));
+		break;
 	case SAVE_MODE_RAW16RJ:
+		estFileSize = 16 * sizeX * sizeY * length / 8;
+		map.insert("format", QVariant("y12"));
+		break;
 	case SAVE_MODE_RAW12:
 		estFileSize = 12 * sizeX * sizeY * length / 8;
-		map.insert("format", QVariant("raw"));
+		map.insert("format", QVariant("y12b"));
 		break;
-	case SAVE_MODE_RAW16_PNG:
-		/* TODO: Implement Me! */
+	case SAVE_MODE_DNG:
 		estFileSize = 16 * sizeX * sizeY * length / 8;
-		return RECORD_ERROR;
+		estFileSize += (4096 * length);
+		map.insert("format", QVariant("dng"));
+		break;
 	}
 	qDebug() << "---- Video Record ---- Estimated file size:" << estFileSize << "bytes, free space:" << freeSpace << "bytes.";
 	printf("Saving video to %s\r\n", path);

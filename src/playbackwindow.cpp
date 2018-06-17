@@ -154,6 +154,7 @@ void playbackWindow::on_cmdSave_clicked()
 				estimatedSize = (uint64_t) ((double)estimatedSize * appSettings.value("recorder/bitsPerPixel", camera->vinst->bitsPerPixel).toDouble() * 1.2);
 				qDebug("Bits/pixel: %0.3f", appSettings.value("recorder/bitsPerPixel", camera->vinst->bitsPerPixel).toDouble());
 				break;
+			case SAVE_MODE_DNG:
 			case SAVE_MODE_RAW16:
 			case SAVE_MODE_RAW16RJ:
 				qDebug("Bits/pixel: %d", 16);
@@ -165,6 +166,7 @@ void playbackWindow::on_cmdSave_clicked()
 				estimatedSize *= 12;
 				estimatedSize += (4096<<8);
 				break;
+
 			default:
 				// unknown format
 				qDebug("Bits/pixel: unknown - default: %d", 16);

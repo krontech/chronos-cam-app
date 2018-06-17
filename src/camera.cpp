@@ -2490,16 +2490,11 @@ Int32 Camera::startSave(UInt32 startFrame, UInt32 length)
 	case 1:  record_mode = SAVE_MODE_RAW16; break;
 	case 2:  record_mode = SAVE_MODE_RAW16RJ; break;
 	case 3:  record_mode = SAVE_MODE_RAW12; break;
+	case 4:  record_mode = SAVE_MODE_DNG; break;
 	default: record_mode = SAVE_MODE_H264;
 	}
 
     setDisplaySettings(true, MAX_RECORD_FRAMERATE);	//Set to encoder safe mode, and increase the framerate.
-
-#if 0
-	if (record_mode == SAVE_MODE_RAW12)   { gpmc->write16(DISPLAY_PIPELINE_ADDR, DISPLAY_PIPELINE_RAW_12BPP); }
-	if (record_mode == SAVE_MODE_RAW16)   { gpmc->write16(DISPLAY_PIPELINE_ADDR, DISPLAY_PIPELINE_RAW_16BPP); }
-	if (record_mode == SAVE_MODE_RAW16RJ) { gpmc->write16(DISPLAY_PIPELINE_ADDR, DISPLAY_PIPELINE_RAW_16BPP | DISPLAY_PIPELINE_RAW_RIGHT_JUSTIFY); }
-#endif
 
 	return vinst->startRecording((recordingData.is.hRes + 15) & 0xFFFFFFF0, recordingData.is.vRes, startFrame, length+2, record_mode);
 }
