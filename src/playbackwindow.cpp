@@ -368,8 +368,13 @@ void playbackWindow::checkForSaveDone()
 		struct statvfs statvfsBuf;
 		statvfs(camera->recorder->fileDirectory, &statvfsBuf);
 		qDebug("Free space: %llu  (%lu * %lu)", statvfsBuf.f_bsize * (uint64_t)statvfsBuf.f_bfree, statvfsBuf.f_bsize, statvfsBuf.f_bfree);
+		
+		/*Abort the save if insufficient free space,
+		but not if the save has already been aborted,
+		or if the save button is not enabled(unsafe to abort at that time)(except if save mode is RAW)*/
+		QSettings appSettings;
 		bool insufficientFreeSpace = (MIN_FREE_SPACE > statvfsBuf.f_bsize * (uint64_t)statvfsBuf.f_bfree);
-		if(insufficientFreeSpace && !saveAborted) on_cmdSave_clicked();//Abort the save if insufficient free space
+		if(insufficientFreeSpace && !saveAborted && (ui->cmdSave->isEnabled() || appSettings.value("recorder/saveFormat", 0).toUInt() != SAVE_MODE_H264)) on_cmdSave_clicked();
 		
 		/* Prevent the user from pressing the abort/save button just after the last frame,
 		 * as that can make the camera try to save a 2nd video too soon, crashing the camapp.*/
