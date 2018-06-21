@@ -181,6 +181,12 @@ void playbackWindow::on_cmdSave_clicked()
 			bool fileOverMaxSize = (estimatedSize > 4294967296 && fileSystemInfoBuf.f_type == 0x4d44);//If file size is over 4GB and file system is FAT32
 			insufficientFreeSpace_estimate = (estimatedSize > (statvfsBuf.f_bsize * (uint64_t)statvfsBuf.f_bfree));
 			
+			//If amount of free space is below both 10MB and below the estimated size of the video, do not allow the save to start
+			if(insufficientFreeSpace_estimate && MIN_FREE_SPACE > (statvfsBuf.f_bsize * (uint64_t)statvfsBuf.f_bfree)){
+				QMessageBox::warning(this, "Warning - Insufficient free space", "Cannot save a video because of insufficient free space", QMessageBox::Ok);
+				return;
+			}
+			
 			if (fileOverMaxSize && !insufficientFreeSpace_estimate) {//If file size is over 4GB and file system is FAT32
 				QMessageBox::StandardButton reply;
 				reply = QMessageBox::warning(this, "Warning - File size over limit", "Estimated file size is larger than the 4GB limit for the the filesystem.\nAttempt to save anyway?", QMessageBox::Yes|QMessageBox::No);
