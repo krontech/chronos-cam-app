@@ -179,22 +179,22 @@ void playbackWindow::on_cmdSave_clicked()
 
 			statfs(camera->recorder->fileDirectory, &fileSystemInfoBuf);
 			bool fileOverMaxSize = (estimatedSize > 4294967296 && fileSystemInfoBuf.f_type == 0x4d44);//If file size is over 4GB and file system is FAT32
-			bool insufficientFreeSpace = (estimatedSize > (statvfsBuf.f_bsize * (uint64_t)statvfsBuf.f_bfree));
+			insufficientFreeSpace_estimate = (estimatedSize > (statvfsBuf.f_bsize * (uint64_t)statvfsBuf.f_bfree));
 			
-			if (fileOverMaxSize && !insufficientFreeSpace) {//If file size is over 4GB and file system is FAT32
+			if (fileOverMaxSize && !insufficientFreeSpace_estimate) {//If file size is over 4GB and file system is FAT32
 				QMessageBox::StandardButton reply;
 				reply = QMessageBox::warning(this, "Warning - File size over limit", "Estimated file size is larger than the 4GB limit for the the filesystem.\nAttempt to save anyway?", QMessageBox::Yes|QMessageBox::No);
 				if(QMessageBox::Yes != reply)
 					return;
 			}
 			
-			if (insufficientFreeSpace && !fileOverMaxSize) {
+			if (insufficientFreeSpace_estimate && !fileOverMaxSize) {
 				QMessageBox::StandardButton reply;
 				reply = QMessageBox::warning(this, "Warning - Insufficient free space", "Estimated file size is larger than free space on drive.\nAttempt to save anyway?", QMessageBox::Yes|QMessageBox::No);
 				if(QMessageBox::Yes != reply)
 					return;
 			}
-			if (fileOverMaxSize && insufficientFreeSpace){
+			if (fileOverMaxSize && insufficientFreeSpace_estimate){
 				QMessageBox::StandardButton reply;
 				reply = QMessageBox::warning(this, "Warning - File size over limits", "Estimated file size is larger than free space on drive.\nEstimated file size is larger than the 4GB limit for the the filesystem.\nAttempt to save anyway?", QMessageBox::Yes|QMessageBox::No);
 				if(QMessageBox::Yes != reply)
@@ -378,8 +378,13 @@ void playbackWindow::checkForSaveDone()
 		but not if the save has already been aborted,
 		or if the save button is not enabled(unsafe to abort at that time)(except if save mode is RAW)*/
 		QSettings appSettings;
-		bool insufficientFreeSpace = (MIN_FREE_SPACE > statvfsBuf.f_bsize * (uint64_t)statvfsBuf.f_bfree);
-		if(insufficientFreeSpace && !saveAborted && (ui->cmdSave->isEnabled() || appSettings.value("recorder/saveFormat", 0).toUInt() != SAVE_MODE_H264)) on_cmdSave_clicked();
+		bool insufficientFreeSpace_current = (MIN_FREE_SPACE > statvfsBuf.f_bsize * (uint64_t)statvfsBuf.f_bfree);
+		if(insufficientFreeSpace_current && !saveAborted && (ui->cmdSave->isEnabled() || appSettings.value("recorder/saveFormat", 0).toUInt() != SAVE_MODE_H264)) on_cmdSave_clicked();
+		
+		/* Prevent the user from pressing the abort/save button just after the last frame,
+		 * as that can make the camera try to save a 2nd video too soon, crashing the camapp.*/
+		if(camera->playFrame >= markOutFrame - 25)
+			ui->cmdSave->setEnabled(false);
 	}
 }
 
