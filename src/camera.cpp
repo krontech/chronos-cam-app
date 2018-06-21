@@ -2569,7 +2569,7 @@ Int32 Camera::startSave(UInt32 startFrame, UInt32 length)
 			return RECORD_ERROR;
 	}
 
-	delayms(100);	//A few frames are skipped without this delay
+    //delayms(100);	//A few frames are skipped without this delay
 
     /* Start recording by playing the first frame. */
 	sem_wait(&playMutex);
