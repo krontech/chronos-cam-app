@@ -262,7 +262,8 @@ void playbackWindow::on_cmdSave_clicked()
 
 			ui->verticalSlider->appendRegionToList();
 			ui->verticalSlider->setHighlightRegion(markOutFrame, markOutFrame);
-			//both arguments should be markout because a new rectangle will be drawn, and it should not overlap the one that was just appended
+			//both arguments should be markout because a new rectangle will be drawn,
+			//and it should not overlap the one that was just appended
 			emit enableSaveSettingsButtons(false);
 		}
 		else
@@ -391,7 +392,11 @@ void playbackWindow::checkForSaveDone()
 		or if the save button is not enabled(unsafe to abort at that time)(except if save mode is RAW)*/
 		QSettings appSettings;
 		bool insufficientFreeSpace_current = (MIN_FREE_SPACE > statvfsBuf.f_bsize * (uint64_t)statvfsBuf.f_bfree);
-		if(insufficientFreeSpace_current && !saveAborted && (ui->cmdSave->isEnabled() || appSettings.value("recorder/saveFormat", 0).toUInt() != SAVE_MODE_H264)) on_cmdSave_clicked();
+		if(insufficientFreeSpace_current &&
+		   !saveAborted &&
+				(ui->cmdSave->isEnabled() ||
+				appSettings.value("recorder/saveFormat", 0).toUInt() != SAVE_MODE_H264)
+		   ) on_cmdSave_clicked();
 		
 		/* Prevent the user from pressing the abort/save button just after the last frame,
 		 * as that can make the camera try to save a 2nd video too soon, crashing the camapp.*/
@@ -433,7 +438,9 @@ void playbackWindow::updatePlayRateLabel(Int32 playbackRate)
 
 void playbackWindow::setControlEnable(bool en)
 {
-	if(!settingsWindowIsOpen){//While settings window is open, don't let the user close the playback window or open another settings window.
+	//While settings window is open, don't let the user
+	//close the playback window or open another settings window.
+	if(!settingsWindowIsOpen){
 		ui->cmdClose->setEnabled(en);
 		ui->cmdSaveSettings->setEnabled(en);
 	}
