@@ -140,7 +140,9 @@ void playbackWindow::on_cmdSave_clicked()
 		}
 
 		if (!statvfs(camera->recorder->fileDirectory, &statvfsBuf)) {
+			
 			qDebug("===================================");
+			
 			// calculated estimated size
 			estimatedSize = (markOutFrame - markInFrame + 1);
 			qDebug("Number of frames: %llu", estimatedSize);
@@ -175,6 +177,7 @@ void playbackWindow::on_cmdSave_clicked()
 
 			qDebug("Free space: %llu  (%lu * %lu)", statvfsBuf.f_bsize * (uint64_t)statvfsBuf.f_bfree, statvfsBuf.f_bsize, statvfsBuf.f_bfree);
 			qDebug("Estimated file size: %llu", estimatedSize);
+			
 			qDebug("===================================");
 
 			statfs(camera->recorder->fileDirectory, &fileSystemInfoBuf);
@@ -200,6 +203,7 @@ void playbackWindow::on_cmdSave_clicked()
 				if(QMessageBox::Yes != reply)
 					return;
 			}
+			
 			if (fileOverMaxSize && insufficientFreeSpace_estimate){
 				QMessageBox::StandardButton reply;
 				reply = QMessageBox::warning(this, "Warning - File size over limits", "Estimated file size is larger than free space on drive.\nEstimated file size is larger than the 4GB limit for the the filesystem.\nAttempt to save anyway?", QMessageBox::Yes|QMessageBox::No);
@@ -211,6 +215,7 @@ void playbackWindow::on_cmdSave_clicked()
 		//Check that the path exists
 		struct stat sb;
 		struct stat sbP;
+		
 		if (stat(camera->recorder->fileDirectory, &sb) == 0 && S_ISDIR(sb.st_mode) &&
 				stat(parentPath, &sbP) == 0 && sb.st_dev != sbP.st_dev)		//If location is directory and is a mount point (device ID of parent is different from device ID of path)
 		{
@@ -231,14 +236,14 @@ void playbackWindow::on_cmdSave_clicked()
 				msg.exec();
 				return;
 			}
-	    else if(RECORD_INSUFFICIENT_SPACE == ret)
-	    {
+			else if(RECORD_INSUFFICIENT_SPACE == ret)
+			{
 				if(camera->recorder->errorCallback)
 					(*camera->recorder->errorCallback)(camera->recorder->errorCallbackArg, "insufficient free space");
-		msg.setText("Selected device does not have sufficient free space.");
-		msg.exec();
-		return;
-	    }
+				msg.setText("Selected device does not have sufficient free space.");
+				msg.exec();
+				return;
+			}
 
 			ui->cmdSave->setText("Abort\nSave");
 			setControlEnable(false);
@@ -291,6 +296,7 @@ void playbackWindow::on_cmdSaveSettings_clicked()
 	saveSettingsWindow *w = new saveSettingsWindow(NULL, camera);
 	w->setAttribute(Qt::WA_DeleteOnClose);
 	w->show();
+	
 	settingsWindowIsOpen = true;
 	if(camera->ButtonsOnLeft) w->move(230, 0);
 	ui->cmdSaveSettings->setEnabled(false);
