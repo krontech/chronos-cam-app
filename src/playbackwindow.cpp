@@ -282,6 +282,7 @@ void playbackWindow::on_cmdSave_clicked()
 		ui->verticalSlider->removeLastRegionFromList();
 		ui->verticalSlider->setHighlightRegion(markInFrame, markOutFrame);
 		saveAborted = true;
+		sw->setText("Aborting...");
 		//qDebug()<<"Aborting...";
 	}
 
@@ -396,7 +397,11 @@ void playbackWindow::checkForSaveDone()
 		   !saveAborted &&
 				(ui->cmdSave->isEnabled() ||
 				appSettings.value("recorder/saveFormat", 0).toUInt() != SAVE_MODE_H264)
-		   ) on_cmdSave_clicked();
+		   ) {
+			on_cmdSave_clicked();
+			sw->setText("Storage is now full; Aborting...");			
+		}
+			
 		
 		/* Prevent the user from pressing the abort/save button just after the last frame,
 		 * as that can make the camera try to save a 2nd video too soon, crashing the camapp.*/
