@@ -402,12 +402,6 @@ void playbackWindow::checkForSaveDone()
 			on_cmdSave_clicked();
 			sw->setText("Storage is now full; Aborting...");			
 		}
-			
-		
-		/* Prevent the user from pressing the abort/save button just after the last frame,
-		 * as that can make the camera try to save a 2nd video too soon, crashing the camapp.*/
-		if(camera->playFrame >= markOutFrame - 25)
-			ui->cmdSave->setEnabled(false);
 	}
 }
 
