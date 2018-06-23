@@ -30,7 +30,7 @@
 #include <QMessageBox>
 #include <QSettings>
 
-#define MIN_FREE_SPACE 10000000
+#define MIN_FREE_SPACE 20000000
 
 playbackWindow::playbackWindow(QWidget *parent, Camera * cameraInst, bool autosave) :
 	QWidget(parent),
