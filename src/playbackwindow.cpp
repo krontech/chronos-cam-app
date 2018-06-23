@@ -278,6 +278,7 @@ void playbackWindow::on_cmdSave_clicked()
 	else
 	{
 		//This block is executed when Abort is clicked
+		//or when save is automatically aborted due to full storage
 		camera->recorder->stop2();
 		ui->verticalSlider->removeLastRegionFromList();
 		ui->verticalSlider->setHighlightRegion(markInFrame, markOutFrame);
