@@ -87,7 +87,7 @@ private:
 	bool autoSaveFlag;
 	bool settingsWindowIsOpen;
 	bool saveAborted;
-	bool insufficientFreeSpace_estimate;
+	bool insufficientFreeSpaceEstimate;
 	
 signals:
 	void finishedSaving();

@@ -182,29 +182,29 @@ void playbackWindow::on_cmdSave_clicked()
 
 			statfs(camera->recorder->fileDirectory, &fileSystemInfoBuf);
 			bool fileOverMaxSize = (estimatedSize > 4294967296 && fileSystemInfoBuf.f_type == 0x4d44);//If file size is over 4GB and file system is FAT32
-			insufficientFreeSpace_estimate = (estimatedSize > (statvfsBuf.f_bsize * (uint64_t)statvfsBuf.f_bfree));
+			insufficientFreeSpaceEstimate = (estimatedSize > (statvfsBuf.f_bsize * (uint64_t)statvfsBuf.f_bfree));
 			
 			//If amount of free space is below both 10MB and below the estimated size of the video, do not allow the save to start
-			if(insufficientFreeSpace_estimate && MIN_FREE_SPACE > (statvfsBuf.f_bsize * (uint64_t)statvfsBuf.f_bfree)){
+			if(insufficientFreeSpaceEstimate && MIN_FREE_SPACE > (statvfsBuf.f_bsize * (uint64_t)statvfsBuf.f_bfree)){
 				QMessageBox::warning(this, "Warning - Insufficient free space", "Cannot save a video because of insufficient free space", QMessageBox::Ok);
 				return;
 			}
 			
-			if (fileOverMaxSize && !insufficientFreeSpace_estimate) {//If file size is over 4GB and file system is FAT32
+			if (fileOverMaxSize && !insufficientFreeSpaceEstimate) {//If file size is over 4GB and file system is FAT32
 				QMessageBox::StandardButton reply;
 				reply = QMessageBox::warning(this, "Warning - File size over limit", "Estimated file size is larger than the 4GB limit for the the filesystem.\nAttempt to save anyway?", QMessageBox::Yes|QMessageBox::No);
 				if(QMessageBox::Yes != reply)
 					return;
 			}
 			
-			if (insufficientFreeSpace_estimate && !fileOverMaxSize) {
+			if (insufficientFreeSpaceEstimate && !fileOverMaxSize) {
 				QMessageBox::StandardButton reply;
 				reply = QMessageBox::warning(this, "Warning - Insufficient free space", "Estimated file size is larger than free space on drive.\nAttempt to save anyway?", QMessageBox::Yes|QMessageBox::No);
 				if(QMessageBox::Yes != reply)
 					return;
 			}
 			
-			if (fileOverMaxSize && insufficientFreeSpace_estimate){
+			if (fileOverMaxSize && insufficientFreeSpaceEstimate){
 				QMessageBox::StandardButton reply;
 				reply = QMessageBox::warning(this, "Warning - File size over limits", "Estimated file size is larger than free space on drive.\nEstimated file size is larger than the 4GB limit for the the filesystem.\nAttempt to save anyway?", QMessageBox::Yes|QMessageBox::No);
 				if(QMessageBox::Yes != reply)
@@ -393,8 +393,8 @@ void playbackWindow::checkForSaveDone()
 		but not if the save has already been aborted,
 		or if the save button is not enabled(unsafe to abort at that time)(except if save mode is RAW)*/
 		QSettings appSettings;
-		bool insufficientFreeSpace_current = (MIN_FREE_SPACE > statvfsBuf.f_bsize * (uint64_t)statvfsBuf.f_bfree);
-		if(insufficientFreeSpace_current &&
+		bool insufficientFreeSpaceCurrent = (MIN_FREE_SPACE > statvfsBuf.f_bsize * (uint64_t)statvfsBuf.f_bfree);
+		if(insufficientFreeSpaceCurrent &&
 		   !saveAborted &&
 				(ui->cmdSave->isEnabled() ||
 				appSettings.value("recorder/saveFormat", 0).toUInt() != SAVE_MODE_H264)
