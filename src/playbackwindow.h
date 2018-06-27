@@ -89,6 +89,7 @@ private:
 	bool saveAborted;
 	bool insufficientFreeSpaceEstimate;
 	
+	unsigned int getSaveFormat();
 signals:
 	void finishedSaving();
 	void enableSaveSettingsButtons(bool);

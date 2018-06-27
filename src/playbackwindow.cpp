@@ -150,7 +150,7 @@ void playbackWindow::on_cmdSave_clicked()
 			estimatedSize *= appSettings.value("camera/vRes", MAX_FRAME_SIZE_V).toInt();
 			qDebug("Resolution: %d x %d", appSettings.value("camera/hRes", MAX_FRAME_SIZE_H).toInt(), appSettings.value("camera/vRes", MAX_FRAME_SIZE_V).toInt());
 			// multiply by bits per pixel
-			switch(appSettings.value("recorder/saveFormat", 0).toUInt()) {
+			switch(getSaveFormat()) {
 			case SAVE_MODE_H264:
 				// the *1.2 part is fudge factor
 				estimatedSize = (uint64_t) ((double)estimatedSize * appSettings.value("recorder/bitsPerPixel", camera->recorder->bitsPerPixel).toDouble() * 1.2);
@@ -392,12 +392,11 @@ void playbackWindow::checkForSaveDone()
 		/*Abort the save if insufficient free space,
 		but not if the save has already been aborted,
 		or if the save button is not enabled(unsafe to abort at that time)(except if save mode is RAW)*/
-		QSettings appSettings;
 		bool insufficientFreeSpaceCurrent = (MIN_FREE_SPACE > statvfsBuf.f_bsize * (uint64_t)statvfsBuf.f_bfree);
 		if(insufficientFreeSpaceCurrent &&
 		   !saveAborted &&
 				(ui->cmdSave->isEnabled() ||
-				appSettings.value("recorder/saveFormat", 0).toUInt() != SAVE_MODE_H264)
+				getSaveFormat() != SAVE_MODE_H264)
 		   ) {
 			on_cmdSave_clicked();
 			sw->setText("Storage is now full; Aborting...");			
@@ -456,4 +455,9 @@ void playbackWindow::setControlEnable(bool en)
 void playbackWindow::on_cmdClose_clicked()
 {
     camera->videoHasBeenReviewed = true;
+}
+
+UInt32 playbackWindow::getSaveFormat(){
+	QSettings appSettings;
+	return appSettings.value("recorder/saveFormat", 0).toUInt();
 }
