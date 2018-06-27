@@ -30,6 +30,7 @@
 #include <QMessageBox>
 #include <QSettings>
 
+#define MIN_FREE_SPACE 20000000
 
 playbackWindow::playbackWindow(QWidget *parent, Camera * cameraInst, bool autosave) :
 	QWidget(parent),
@@ -41,6 +42,8 @@ playbackWindow::playbackWindow(QWidget *parent, Camera * cameraInst, bool autosa
 	camera = cameraInst;
 	autoSaveFlag = autosave;
 	this->move(camera->ButtonsOnLeft? 0:600, 0);
+	saveAborted = false;
+	
 
 	sw = new StatusWindow;
 
@@ -137,7 +140,9 @@ void playbackWindow::on_cmdSave_clicked()
 		}
 
 		if (!statvfs(camera->recorder->fileDirectory, &statvfsBuf)) {
+			
 			qDebug("===================================");
+			
 			// calculated estimated size
 			estimatedSize = (markOutFrame - markInFrame + 1);
 			qDebug("Number of frames: %llu", estimatedSize);
@@ -145,7 +150,7 @@ void playbackWindow::on_cmdSave_clicked()
 			estimatedSize *= appSettings.value("camera/vRes", MAX_FRAME_SIZE_V).toInt();
 			qDebug("Resolution: %d x %d", appSettings.value("camera/hRes", MAX_FRAME_SIZE_H).toInt(), appSettings.value("camera/vRes", MAX_FRAME_SIZE_V).toInt());
 			// multiply by bits per pixel
-			switch(appSettings.value("recorder/saveFormat", 0).toUInt()) {
+			switch(getSaveFormat()) {
 			case SAVE_MODE_H264:
 				// the *1.2 part is fudge factor
 				estimatedSize = (uint64_t) ((double)estimatedSize * appSettings.value("recorder/bitsPerPixel", camera->recorder->bitsPerPixel).toDouble() * 1.2);
@@ -172,26 +177,34 @@ void playbackWindow::on_cmdSave_clicked()
 
 			qDebug("Free space: %llu  (%lu * %lu)", statvfsBuf.f_bsize * (uint64_t)statvfsBuf.f_bfree, statvfsBuf.f_bsize, statvfsBuf.f_bfree);
 			qDebug("Estimated file size: %llu", estimatedSize);
+			
 			qDebug("===================================");
 
 			statfs(camera->recorder->fileDirectory, &fileSystemInfoBuf);
 			bool fileOverMaxSize = (estimatedSize > 4294967296 && fileSystemInfoBuf.f_type == 0x4d44);//If file size is over 4GB and file system is FAT32
-			bool insufficientFreeSpace = (estimatedSize > (statvfsBuf.f_bsize * (uint64_t)statvfsBuf.f_bfree));
+			insufficientFreeSpaceEstimate = (estimatedSize > (statvfsBuf.f_bsize * (uint64_t)statvfsBuf.f_bfree));
 			
-			if (fileOverMaxSize && !insufficientFreeSpace) {//If file size is over 4GB and file system is FAT32
+			//If amount of free space is below both 10MB and below the estimated size of the video, do not allow the save to start
+			if(insufficientFreeSpaceEstimate && MIN_FREE_SPACE > (statvfsBuf.f_bsize * (uint64_t)statvfsBuf.f_bfree)){
+				QMessageBox::warning(this, "Warning - Insufficient free space", "Cannot save a video because of insufficient free space", QMessageBox::Ok);
+				return;
+			}
+			
+			if (fileOverMaxSize && !insufficientFreeSpaceEstimate) {//If file size is over 4GB and file system is FAT32
 				QMessageBox::StandardButton reply;
 				reply = QMessageBox::warning(this, "Warning - File size over limit", "Estimated file size is larger than the 4GB limit for the the filesystem.\nAttempt to save anyway?", QMessageBox::Yes|QMessageBox::No);
 				if(QMessageBox::Yes != reply)
 					return;
 			}
 			
-			if (insufficientFreeSpace && !fileOverMaxSize) {
+			if (insufficientFreeSpaceEstimate && !fileOverMaxSize) {
 				QMessageBox::StandardButton reply;
 				reply = QMessageBox::warning(this, "Warning - Insufficient free space", "Estimated file size is larger than free space on drive.\nAttempt to save anyway?", QMessageBox::Yes|QMessageBox::No);
 				if(QMessageBox::Yes != reply)
 					return;
 			}
-			if (fileOverMaxSize && insufficientFreeSpace){
+			
+			if (fileOverMaxSize && insufficientFreeSpaceEstimate){
 				QMessageBox::StandardButton reply;
 				reply = QMessageBox::warning(this, "Warning - File size over limits", "Estimated file size is larger than free space on drive.\nEstimated file size is larger than the 4GB limit for the the filesystem.\nAttempt to save anyway?", QMessageBox::Yes|QMessageBox::No);
 				if(QMessageBox::Yes != reply)
@@ -202,6 +215,7 @@ void playbackWindow::on_cmdSave_clicked()
 		//Check that the path exists
 		struct stat sb;
 		struct stat sbP;
+		
 		if (stat(camera->recorder->fileDirectory, &sb) == 0 && S_ISDIR(sb.st_mode) &&
 				stat(parentPath, &sbP) == 0 && sb.st_dev != sbP.st_dev)		//If location is directory and is a mount point (device ID of parent is different from device ID of path)
 		{
@@ -222,14 +236,14 @@ void playbackWindow::on_cmdSave_clicked()
 				msg.exec();
 				return;
 			}
-	    else if(RECORD_INSUFFICIENT_SPACE == ret)
-	    {
+			else if(RECORD_INSUFFICIENT_SPACE == ret)
+			{
 				if(camera->recorder->errorCallback)
 					(*camera->recorder->errorCallback)(camera->recorder->errorCallbackArg, "insufficient free space");
-		msg.setText("Selected device does not have sufficient free space.");
-		msg.exec();
-		return;
-	    }
+				msg.setText("Selected device does not have sufficient free space.");
+				msg.exec();
+				return;
+			}
 
 			ui->cmdSave->setText("Abort\nSave");
 			setControlEnable(false);
@@ -248,7 +262,8 @@ void playbackWindow::on_cmdSave_clicked()
 
 			ui->verticalSlider->appendRegionToList();
 			ui->verticalSlider->setHighlightRegion(markOutFrame, markOutFrame);
-			//both arguments should be markout because a new rectangle will be drawn, and it should not overlap the one that was just appended
+			//both arguments should be markout because a new rectangle will be drawn,
+			//and it should not overlap the one that was just appended
 			emit enableSaveSettingsButtons(false);
 		}
 		else
@@ -263,9 +278,13 @@ void playbackWindow::on_cmdSave_clicked()
 	else
 	{
 		//This block is executed when Abort is clicked
+		//or when save is automatically aborted due to full storage
 		camera->recorder->stop2();
 		ui->verticalSlider->removeLastRegionFromList();
 		ui->verticalSlider->setHighlightRegion(markInFrame, markOutFrame);
+		saveAborted = true;
+		sw->setText("Aborting...");
+		//qDebug()<<"Aborting...";
 	}
 
 }
@@ -280,6 +299,7 @@ void playbackWindow::on_cmdSaveSettings_clicked()
 	saveSettingsWindow *w = new saveSettingsWindow(NULL, camera);
 	w->setAttribute(Qt::WA_DeleteOnClose);
 	w->show();
+	
 	settingsWindowIsOpen = true;
 	if(camera->ButtonsOnLeft) w->move(230, 0);
 	ui->cmdSaveSettings->setEnabled(false);
@@ -346,6 +366,7 @@ void playbackWindow::checkForSaveDone()
 		setControlEnable(true);
 		emit enableSaveSettingsButtons(true);
 		ui->cmdSave->setEnabled(true);
+		saveAborted = false;
 		updatePlayRateLabel(playbackRate);
 		ui->verticalSlider->setHighlightRegion(markInFrame, markOutFrame);
 
@@ -359,10 +380,27 @@ void playbackWindow::checkForSaveDone()
 		ui->lblFrameRate->setText(tmp);
 		setControlEnable(false);
 
+		struct statvfs statvfsBuf;
+		statvfs(camera->recorder->fileDirectory, &statvfsBuf);
+		qDebug("Free space: %llu  (%lu * %lu)", statvfsBuf.f_bsize * (uint64_t)statvfsBuf.f_bfree, statvfsBuf.f_bsize, statvfsBuf.f_bfree);
+		
 		/* Prevent the user from pressing the abort/save button just after the last frame,
 		 * as that can make the camera try to save a 2nd video too soon, crashing the camapp.*/
 		if(camera->playFrame >= markOutFrame - 25)
 			ui->cmdSave->setEnabled(false);
+		
+		/*Abort the save if insufficient free space,
+		but not if the save has already been aborted,
+		or if the save button is not enabled(unsafe to abort at that time)(except if save mode is RAW)*/
+		bool insufficientFreeSpaceCurrent = (MIN_FREE_SPACE > statvfsBuf.f_bsize * (uint64_t)statvfsBuf.f_bfree);
+		if(insufficientFreeSpaceCurrent &&
+		   !saveAborted &&
+				(ui->cmdSave->isEnabled() ||
+				getSaveFormat() != SAVE_MODE_H264)
+		   ) {
+			on_cmdSave_clicked();
+			sw->setText("Storage is now full; Aborting...");			
+		}
 	}
 }
 
@@ -399,7 +437,9 @@ void playbackWindow::updatePlayRateLabel(Int32 playbackRate)
 
 void playbackWindow::setControlEnable(bool en)
 {
-	if(!settingsWindowIsOpen){//While settings window is open, don't let the user close the playback window or open another settings window.
+	//While settings window is open, don't let the user
+	//close the playback window or open another settings window.
+	if(!settingsWindowIsOpen){
 		ui->cmdClose->setEnabled(en);
 		ui->cmdSaveSettings->setEnabled(en);
 	}
@@ -415,4 +455,9 @@ void playbackWindow::setControlEnable(bool en)
 void playbackWindow::on_cmdClose_clicked()
 {
     camera->videoHasBeenReviewed = true;
+}
+
+UInt32 playbackWindow::getSaveFormat(){
+	QSettings appSettings;
+	return appSettings.value("recorder/saveFormat", 0).toUInt();
 }

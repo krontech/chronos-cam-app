@@ -86,7 +86,10 @@ private:
 	Int32 playbackRate;
 	bool autoSaveFlag;
 	bool settingsWindowIsOpen;
-
+	bool saveAborted;
+	bool insufficientFreeSpaceEstimate;
+	
+	unsigned int getSaveFormat();
 signals:
 	void finishedSaving();
 	void enableSaveSettingsButtons(bool);
