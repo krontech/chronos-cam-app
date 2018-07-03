@@ -23,6 +23,7 @@ CamLineEdit::CamLineEdit(QWidget *parent) :
 {
 	//qDebug() << "CamLineEdit Consturcted";
     hasUnits = false;
+    textIsSelected = false;
 }
 
 void CamLineEdit::focusInEvent(QFocusEvent *e)
@@ -33,6 +34,7 @@ void CamLineEdit::focusInEvent(QFocusEvent *e)
 void CamLineEdit::focusOutEvent(QFocusEvent *e)
 {
 	QLineEdit::focusOutEvent(e);
+	textIsSelected = false;
 }
 
 void CamLineEdit::mouseReleaseEvent(QMouseEvent *)
@@ -42,6 +44,8 @@ void CamLineEdit::mouseReleaseEvent(QMouseEvent *)
 }
 
 void CamLineEdit::selectText(){
+	if(textIsSelected) return;
+	textIsSelected = true;
 	int length = text().length();
 	if(length == 0) return;
 	if(text()[length - 1].isLetter() && this->hasUnits && length > 1){

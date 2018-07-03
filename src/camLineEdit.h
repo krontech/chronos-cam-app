@@ -35,6 +35,7 @@ protected:
 
 private:
 	bool hasUnits;
+	bool textIsSelected;
 };
 
 #endif // CAMLINEEDIT_H
