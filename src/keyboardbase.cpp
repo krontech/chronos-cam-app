@@ -1,5 +1,6 @@
 #include "keyboardbase.h"
 #include "camLineEdit.h"
+#include "camspinbox.h"
 
 keyboardBase::keyboardBase(QWidget *parent) :
 	QWidget(parent)
@@ -52,7 +53,7 @@ void keyboardBase::selectAllInFocusedWidget(){
 	{
 		QAbstractSpinBox *spinBox = qobject_cast<QAbstractSpinBox*>(lastFocusedWidget);
 		emit characterGenerated(QChar('a')); //insert arbitrary char to have selectAll() have any effect
-		spinBox->selectAll();
+		((CamSpinBox*)(spinBox))->selectText();
 		//spinBoxes and doubleSpinBoxes both inherit from QAbstractSpinBox
 		//these will not accept alphabetic chars, so a backspace is not needed in that case
 	}

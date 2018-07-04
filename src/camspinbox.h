@@ -25,6 +25,7 @@ class CamSpinBox : public QSpinBox
 public:
 	CamSpinBox(QWidget * parent = 0);
 	~CamSpinBox();
+	void selectText();
 protected:
 	virtual void focusInEvent(QFocusEvent *e);
 	virtual void focusOutEvent(QFocusEvent *e);

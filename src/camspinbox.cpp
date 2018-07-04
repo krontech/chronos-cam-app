@@ -45,3 +45,8 @@ void CamSpinBox::mouseReleaseEvent(QMouseEvent * e)
 {
 	QSpinBox::mouseReleaseEvent(e);
 }
+
+void CamSpinBox::selectText(){
+	CamLineEdit * le = qobject_cast<CamLineEdit*>(this->lineEdit());
+	le->selectText();
+}
