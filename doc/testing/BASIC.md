@@ -87,6 +87,7 @@ Verify Default Utility Settings
     * The Auto record and Auto save checkboxes should be unselected.
     * The Enable Zebras checkbox should be selected.
     * The UI on Left Side checkbox should be unselected.
+    * The Upside-down Displa should be unselected. 
     * Focus Peaking should be disabled, and the default colour should be green, and the threshold set to "Med"
     * The clock should be within 10 minutes of the current time, and should be counting up in realtime.
 3. Select the about tab, and verify the camera configuration.
@@ -149,7 +150,7 @@ Simple Recording Test
 
 ---
 
-Simple Payback Test
+Simple Playback Test
 -------------------
 This test should immediately proceed after a recording test. For the all of these steps, whenever the
 playback window is open, the video should appear smooth and glitch free. If the footage was recorded with
