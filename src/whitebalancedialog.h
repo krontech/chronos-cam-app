@@ -31,7 +31,7 @@ private:
 	Camera * camera;
 	bool windowInitComplete;
 	StatusWindow * sw;
-	double sceneWhiteBalPresets[6][3];
+	double sceneWhiteBalPresets[7][3];
 	double customWhiteBalOld[3] = {1.0, 1.0, 1.0};
 	void addPreset(double r, double b, double g, QString s);
 	void addCustomPreset();

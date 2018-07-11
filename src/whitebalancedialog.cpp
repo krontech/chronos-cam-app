@@ -29,6 +29,7 @@ whiteBalanceDialog::whiteBalanceDialog(QWidget *parent, Camera * cameraInst) :
 	or else the white balance will change from the original values to this upon opening the dialog. */
 	addPreset(1.30, 1.00, 1.61, "5250K(Flash)");
 	addPreset(1.22, 1.00, 1.74, "4600K(Flourescent)");
+	addPreset(1.02, 1.00, 1.91, "3200K(Tungsten)");
 	
 	if(appSettings.value("whiteBalance/customR", 0.0).toDouble() != 0.0){
 		//Only if custom values have been loaded, add "Custom" to the list and store old WB values
