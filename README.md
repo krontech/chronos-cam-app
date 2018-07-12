@@ -21,7 +21,7 @@ You will also need a MicroSD card reader, to copy some files off the MicroSD car
 # Building and Installing QT
 The Chronos camera application is built using QT version 4.8, and must
 be cross compiled for a Cortex-A8 target. To do this, the generic ARM linux targets
-need to be modified. First, grab the [QT4.8 source](https://download.qt.io/official_releases/qt/4.8/4.8.7/qt-everywhere-opensource-src-4.8.7.tar.gz) and extract it. I put the resulting folder in `~/Work/`, but you can put it anywhere you like. (Just remember to use your path when I reference my `~/Work` folder.) Next, in `~/Work/`, we'll create a
+need to be modified. First, grab the [QT4.8 source](https://download.qt.io/archive/qt/4.8/4.8.7/qt-everywhere-opensource-src-4.8.7.tar.gz) and extract it. I put the resulting folder in `~/Work/`, but you can put it anywhere you like. (Just remember to use your path when I reference my `~/Work` folder.) Next, in `~/Work/`, we'll create a
 new linux-omap2-g++ target by running the following script:
 
 ```bash
