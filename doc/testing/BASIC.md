@@ -95,8 +95,8 @@ Verify Default Utility Settings
     * The Serial number should match the value etched onto the bottom of the case.
     * The Camera application version should list 0.3.0, with an optional suffix denoting the release status (alpha/beta/debug)
     * The Build should show a SHA hash and should *NOT* display a dirty suffix.
-    * FPGA version should display 3.0
-4. Select the kickstarter tab, and review the contents of the text box for annomalies.
+    * FPGA version should display 3.6
+4. Select the kickstarter tab, and review the contents of the text box for anomalies. The text should not be selectable, and the keyboard should not pop up when the box is touched.
 5. Select the factory tab and review that the factory options are hidden.
     * The tab should only display a service password menu and a "remove user calibration button"
 6. Type in the factory password and verify that the factory buttons appear:
@@ -115,7 +115,7 @@ Verify Default Utility Settings
 
 Simple Recording Test
 ---------------------
-1. From the main window, with no recorded data verify that the "Play" button is inactive.
+1. From the main window, with no recorded data, verify that the "Play" button is inactive.
     * Text should be grayed out.
     * No action is performed if tapped.
 2. Focus the camera on a subject without the use of the focus aid.
@@ -123,7 +123,7 @@ Simple Recording Test
     * Sharp edges that are in focus should not display any abnormal colouration.
 3. Tap the focus aid button to enable the focus aid feature.
     * Sharp edges that are in focus should appear green (the default focus aid colour).
-4. Adjust the focus on the camera lense to bring the subject in and out of focus.
+4. Adjust the focus on the camera lens to bring the subject in and out of focus.
     * Focus peaking colouration should appear and disappear as the subject moves in
       and out of focus.
 5. Press the red recording button on the top of the camera.
@@ -187,7 +187,7 @@ number and the relative position within the recorded video.
 
 Simple Saving Test
 ------------------
-This test should immediately proceed after a playback test, with an recorded scene that containns some
+This test should immediately proceed after a playback test, with an recorded scene that contains some
 recognizable action or motion. This test should begin from the playback window with no removable media
 present.
 
@@ -206,7 +206,7 @@ present.
     * The H.264 profile dropdown menu should be disabled, with a value of "High"
     * The H.264 level dropwdown menu should be disabled, with a value of "Level 51"
     * The filename text field should be empty.
-    * The storage location should display "No storage devices detected"
+    * The storage location should be greyed out and display "No storage devices detected"
     * The "Settings" and "Close" buttons on the playback window should become inactive.
 6. Insert a USB memory stick into the eSATA/USB combo port.
     * Within approximately 15 seconds, the save location should switch to show "/media/sda1 (Filesystem Name)"
@@ -225,9 +225,9 @@ present.
     * Do *NOT* hit the "Safely Remove" button in the save settings window, or the "Eject" buttons in the Util menu.
     * The saved file should have a name of the form "vid_YYYY-MM-DD_HH-MM-SS.mp4", displaying the time at which
         the file was saved (this may differ from when the video was recorded).
-    * When opened with a video player, the video should match the selected exceprt on the camera.
+    * When opened with a video player, the video should match the selected excerpt on the camera.
     * The video should play smoothly from start to end without any dropped frames, encoding artifacts, or torn frames.
-    * No artifacts of focus peaking or exposure aids should be present.
+    * No artifacts of focus peaking or exposure aids (zebra stripes) should be present.
 11. Examine the video metadata, which should should show:
     * Dimensions: 1280x1024
     * Codec: H.264 High Profile
