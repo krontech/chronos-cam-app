@@ -190,25 +190,31 @@ void playbackWindow::on_cmdSave_clicked()
 				return;
 			}
 			
-			if (fileOverMaxSize && !insufficientFreeSpaceEstimate) {//If file size is over 4GB and file system is FAT32
-				QMessageBox::StandardButton reply;
-				reply = QMessageBox::warning(this, "Warning - File size over limit", "Estimated file size is larger than the 4GB limit for the the filesystem.\nAttempt to save anyway?", QMessageBox::Yes|QMessageBox::No);
-				if(QMessageBox::Yes != reply)
-					return;
-			}
+			/*qDebug()<<"autoSaveFlag = " <<autoSaveFlag;
+			qDebug()<<"fileOverMaxSize = " <<fileOverMaxSize;
+			qDebug()<<"insufficientFreeSpaceEstimate = " <<insufficientFreeSpaceEstimate;*/
 			
-			if (insufficientFreeSpaceEstimate && !fileOverMaxSize) {
-				QMessageBox::StandardButton reply;
-				reply = QMessageBox::warning(this, "Warning - Insufficient free space", "Estimated file size is larger than free space on drive.\nAttempt to save anyway?", QMessageBox::Yes|QMessageBox::No);
-				if(QMessageBox::Yes != reply)
-					return;
-			}
-			
-			if (fileOverMaxSize && insufficientFreeSpaceEstimate){
-				QMessageBox::StandardButton reply;
-				reply = QMessageBox::warning(this, "Warning - File size over limits", "Estimated file size is larger than free space on drive.\nEstimated file size is larger than the 4GB limit for the the filesystem.\nAttempt to save anyway?", QMessageBox::Yes|QMessageBox::No);
-				if(QMessageBox::Yes != reply)
-					return;
+			if(!autoSaveFlag){
+				if (fileOverMaxSize && !insufficientFreeSpaceEstimate) {//If file size is over 4GB and file system is FAT32
+					QMessageBox::StandardButton reply;
+					reply = QMessageBox::warning(this, "Warning - File size over limit", "Estimated file size is larger than the 4GB limit for the the filesystem.\nAttempt to save anyway?", QMessageBox::Yes|QMessageBox::No);
+					if(QMessageBox::Yes != reply)
+						return;
+				}
+				
+				if (insufficientFreeSpaceEstimate && !fileOverMaxSize) {
+					QMessageBox::StandardButton reply;
+					reply = QMessageBox::warning(this, "Warning - Insufficient free space", "Estimated file size is larger than free space on drive.\nAttempt to save anyway?", QMessageBox::Yes|QMessageBox::No);
+					if(QMessageBox::Yes != reply)
+						return;
+				}
+				
+				if (fileOverMaxSize && insufficientFreeSpaceEstimate){
+					QMessageBox::StandardButton reply;
+					reply = QMessageBox::warning(this, "Warning - File size over limits", "Estimated file size is larger than free space on drive.\nEstimated file size is larger than the 4GB limit for the the filesystem.\nAttempt to save anyway?", QMessageBox::Yes|QMessageBox::No);
+					if(QMessageBox::Yes != reply)
+						return;
+				}
 			}
 		}
 
@@ -283,6 +289,7 @@ void playbackWindow::on_cmdSave_clicked()
 		ui->verticalSlider->removeLastRegionFromList();
 		ui->verticalSlider->setHighlightRegion(markInFrame, markOutFrame);
 		saveAborted = true;
+		autoSaveFlag = false;
 		sw->setText("Aborting...");
 		//qDebug()<<"Aborting...";
 	}
