@@ -84,7 +84,7 @@ private:
 	QTimer * timer;
 	QTimer * saveDoneTimer;
 	Int32 playbackRate;
-	bool autoSaveFlag;
+	bool autoSaveFlag, autoRecordFlag;
 	bool settingsWindowIsOpen;
 	bool saveAborted;
 	bool insufficientFreeSpaceEstimate;

@@ -228,6 +228,7 @@ void CamMainWindow::on_cmdPlay_clicked()
 
 void CamMainWindow::createNewPlaybackWindow(){
 	playbackWindow *w = new playbackWindow(NULL, camera);
+	if(camera->get_autoRecord()) connect(w, SIGNAL(finishedSaving()),this, SLOT(playFinishedSaving()));
 	//w->camera = camera;
 	w->setAttribute(Qt::WA_DeleteOnClose);
 	w->show();
@@ -237,8 +238,9 @@ void CamMainWindow::createNewPlaybackWindow(){
 void CamMainWindow::playFinishedSaving()
 {
 	qDebug("--- Play Finished ---");
-	if (camera->get_autoRecord()) {
-		if (camera->get_autoSave()) autoSaveActive = true;
+	if (camera->get_autoSave()) autoSaveActive = true;
+	if (camera->get_autoRecord() && camera->autoRecord) {
+		delayms(100);//delay needed or else the record may not always automatically start
 		camera->setRecSequencerModeNormal();
 		camera->startRecording();
 		qDebug("--- started recording ---");
@@ -364,11 +366,12 @@ void CamMainWindow::updateRecordingState(bool recording)
 		if(camera->get_autoSave() && autoSaveActive)
 		{
 			playbackWindow *w = new playbackWindow(NULL, camera, true);
-			connect(w, SIGNAL(finishedSaving()),this, SLOT(playFinishedSaving()));
+			if(camera->get_autoRecord()) connect(w, SIGNAL(finishedSaving()),this, SLOT(playFinishedSaving()));
 			//w->camera = camera;
 			w->setAttribute(Qt::WA_DeleteOnClose);
 			w->show();
 		}
+		
 	}
 }
 
