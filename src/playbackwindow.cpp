@@ -319,6 +319,7 @@ void playbackWindow::on_cmdSaveSettings_clicked()
 	ui->cmdClose->setEnabled(false);
 	connect(w, SIGNAL(destroyed()), this, SLOT(saveSettingsClosed()));
 	connect(this, SIGNAL(enableSaveSettingsButtons(bool)), w, SLOT(setControlEnable(bool)));
+	connect(this, SIGNAL(destroyed(QObject*)), w, SLOT(close()));
 }
 
 void playbackWindow::saveSettingsClosed(){
