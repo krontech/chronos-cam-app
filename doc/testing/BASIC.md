@@ -217,6 +217,7 @@ present.
     * The playback position will seek to the Mark start position and begin playing forward.
     * The play rate display should update in realtime to show the recording throughput.
     * The Save button should change its text to read "Abort Save", and all other buttons become disabled.
+    * The Abort button should become disabled before the video finishes saving.
 9. When the video reaches the "mark end", the recording should end and return to playback mode.
     * The text overlay should disappear and the display should return to the saved video.
     * The Abort Save button should change its text to read "Save"
