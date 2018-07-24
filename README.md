@@ -76,9 +76,10 @@ ${QTPATH}configure -prefix $(pwd)/install -embedded arm \
         -sysroot ${SYSROOT} -xplatform qws/linux-omap2-g++ \
         -depths 16,24,32 -no-mmx -no-3dnow -no-sse -no-sse2 -no-glib -no-cups \
         -no-largefile -no-accessibility -no-openssl -no-gtkstyle \
-        -qt-mouse-pc -qt-mouse-linuxtp -qt-mouse-linuxinput \
-        -plugin-mouse-linuxtp -plugin-mouse-pc -qt-mouse-tslib \
-        -qtlibinfix E -fast
+        -qt-mouse-pc -qt-mouse-linuxtp -qt-mouse-linuxinput -qt-mouse-tslib \
+        -dbus -ldbus-1 -I${SYSROOT}/usr/include/dbus-1.0 -I${SYSROOT}/usr/lib/dbus-1.0/include \
+        -plugin-mouse-linuxtp -plugin-mouse-pc \
+        -qtlibinfix E -fast -lpthread
 ```
 
 Run the shell script from `~/Work/qt4-install`. Select "open source" when prompted.
