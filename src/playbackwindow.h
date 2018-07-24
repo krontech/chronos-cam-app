@@ -78,7 +78,7 @@ private:
 	Camera * camera;
 	StatusWindow * sw;
 	void updateStatusText();
-	void updatePlayRateLabel(Int32 playbackRate);
+	void updatePlayRateLabel();
 	void setControlEnable(bool en);
 
 	UInt32 markInFrame, markOutFrame;

@@ -304,12 +304,12 @@ void saveSettingsWindow::refreshDriveList()
 
 	//Select the entry corresponding to the last selected path
 	QSettings settings;
-	Int32 index = ui->comboDrive->findText(settings.value("recorder/fileDirectory", camera->recorder->fileDirectory).toString());
+	Int32 index = ui->comboDrive->findText(settings.value("recorder/fileDirectory", camera->vinst->fileDirectory).toString());
 	if ( index != -1 ) { // -1 for not found
 		ui->comboDrive->setCurrentIndex(index);
 	}
 	//Only save the location if it has changed
-	if(strcmp(camera->recorder->fileDirectory, ui->comboDrive->currentText().toAscii()))
+	if(strcmp(camera->vinst->fileDirectory, ui->comboDrive->currentText().toAscii()))
 		saveFileDirectory();
 }
 

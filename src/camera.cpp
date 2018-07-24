@@ -276,25 +276,23 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 
 	vinst->setRunning(true);
 
-<<<<<<< HEAD
-	recorder = new VideoRecord();
-	recorder->bitsPerPixel        = appSettings.value("recorder/bitsPerPixel", 0.7).toDouble();
-	recorder->maxBitrate          = appSettings.value("recorder/maxBitrate", 40.0).toDouble();
-	recorder->framerate           = appSettings.value("recorder/framerate", 60).toUInt();
-	strcpy(recorder->filename,      appSettings.value("recorder/filename", "").toString().toAscii());
-	strcpy(recorder->fileDirectory, appSettings.value("recorder/fileDirectory", "").toString().toAscii());
-	if(strlen(recorder->fileDirectory) == 0){
+	vinst->bitsPerPixel        = appSettings.value("recorder/bitsPerPixel", 0.7).toDouble();
+	vinst->maxBitrate          = appSettings.value("recorder/maxBitrate", 40.0).toDouble();
+	vinst->framerate           = appSettings.value("recorder/framerate", 60).toUInt();
+	strcpy(vinst->filename,      appSettings.value("recorder/filename", "").toString().toAscii());
+	strcpy(vinst->fileDirectory, appSettings.value("recorder/fileDirectory", "").toString().toAscii());
+	if(strlen(vinst->fileDirectory) == 0){
 		/* Set the default file path, or fall back to the MMC card. */
 		int i;
 		bool fileDirFoundOnUSB = false;
 		for (i = 1; i <= 3; i++) {
-			sprintf(recorder->fileDirectory, "/media/sda%d", i);
-			if (path_is_mounted(recorder->fileDirectory)) {
+			sprintf(vinst->fileDirectory, "/media/sda%d", i);
+			if (path_is_mounted(vinst->fileDirectory)) {
 				fileDirFoundOnUSB = true;
 				break;
 			}
 		}
-		if(!fileDirFoundOnUSB) strcpy(recorder->fileDirectory, "/media/mmcblk1p1");
+		if(!fileDirFoundOnUSB) strcpy(vinst->fileDirectory, "/media/mmcblk1p1");
 	}
 
 	

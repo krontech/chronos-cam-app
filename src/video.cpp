@@ -227,22 +227,6 @@ void Video::addRegion(UInt32 base, UInt32 size, UInt32 offset)
 	}
 }
 
-static int path_is_mounted(const char *path)
-{
-	char tmp[PATH_MAX];
-	struct stat st;
-	struct stat parent;
-
-	/* Get the stats for the given path and check that it's a directory. */
-	if ((stat(path, &st) != 0) || !S_ISDIR(st.st_mode)) {
-		return FALSE;
-	}
-
-	/* Ensure that the parent directly is mounted on a different device. */
-	snprintf(tmp, sizeof(tmp), "%s/..", path);
-	return (stat(tmp, &parent) == 0) && (parent.st_dev != st.st_dev);
-}
-
 int Video::mkfilename(char *path, save_mode_type save_mode)
 {
 	char fname[1000];

@@ -64,7 +64,7 @@ playbackWindow::playbackWindow(QWidget *parent, Camera * cameraInst, bool autosa
 	camera->vinst->setPosition(0, 0);
 
 	playbackExponent = 0;
-	updatePlayRateLabel(playbackExponent);
+	updatePlayRateLabel();
 
 	timer = new QTimer(this);
 	connect(timer, SIGNAL(timeout()), this, SLOT(updatePlayFrame()));
@@ -190,7 +190,7 @@ void playbackWindow::on_cmdSave_clicked()
 			
 			qDebug("===================================");
 
-			statfs(camera->recorder->fileDirectory, &fileSystemInfoBuf);
+			statfs(camera->vinst->fileDirectory, &fileSystemInfoBuf);
 			bool fileOverMaxSize = (estimatedSize > 4294967296 && fileSystemInfoBuf.f_type == 0x4d44);//If file size is over 4GB and file system is FAT32
 			insufficientFreeSpaceEstimate = (estimatedSize > (statvfsBuf.f_bsize * (uint64_t)statvfsBuf.f_bfree));
 			
@@ -413,11 +413,10 @@ void playbackWindow::checkForSaveDone()
 		sw->close();
 		ui->cmdSave->setText("Save");
 		setControlEnable(true);
-		updatePlayRateLabel(playbackExponent);
 		emit enableSaveSettingsButtons(true);
 		ui->cmdSave->setEnabled(true);
 		saveAborted = false;
-		updatePlayRateLabel(playbackRate);
+		updatePlayRateLabel();
 		ui->verticalSlider->setHighlightRegion(markInFrame, markOutFrame);
 
 		if(autoRecordFlag) {
@@ -433,7 +432,7 @@ void playbackWindow::checkForSaveDone()
 		setControlEnable(false);
 
 		struct statvfs statvfsBuf;
-		statvfs(camera->recorder->fileDirectory, &statvfsBuf);
+		statvfs(camera->vinst->fileDirectory, &statvfsBuf);
 		qDebug("Free space: %llu  (%lu * %lu)", statvfsBuf.f_bsize * (uint64_t)statvfsBuf.f_bfree, statvfsBuf.f_bsize, statvfsBuf.f_bfree);
 		
 		/* Prevent the user from pressing the abort/save button just after the last frame,
@@ -461,7 +460,7 @@ void playbackWindow::on_cmdRateUp_clicked()
 	if(playbackExponent < 5)
 		playbackExponent++;
 
-	updatePlayRateLabel(playbackExponent);
+	updatePlayRateLabel();
 }
 
 void playbackWindow::on_cmdRateDn_clicked()
@@ -469,10 +468,10 @@ void playbackWindow::on_cmdRateDn_clicked()
 	if(playbackExponent > -5)
 		playbackExponent--;
 
-	updatePlayRateLabel(playbackExponent);
+	updatePlayRateLabel();
 }
 
-void playbackWindow::updatePlayRateLabel(Int32 playbackRate)
+void playbackWindow::updatePlayRateLabel(void)
 {
 	char playRateStr[100];
 	double playRate;
