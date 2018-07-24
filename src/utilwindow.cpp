@@ -91,7 +91,7 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 
 	ui->lblAbout->setText(QString::fromAscii("Camera model: Chronos 1.4, ") + (camera->getIsColor() ? " Color, " : " Monochrome, ") + QString::number(ramSizeSlot1 + ramSizeSlot2) + "GB"
 						  + "\r\nSerial number: " + QString::fromAscii(serialNumber)
-						  + "\r\nCamera application revision: " + QString::fromAscii(CAMERA_APP_VERSION) + " beta"
+						  + "\r\nCamera application revision: " + QString::fromAscii(CAMERA_APP_VERSION)
 						  + "\r\nBuild: " + git_version_str
 						  + "\r\nFPGA Revision: " + QString::number(camera->getFPGAVersion()) + "." + QString::number(camera->getFPGASubVersion()));
 
