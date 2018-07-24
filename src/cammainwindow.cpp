@@ -47,9 +47,49 @@ Camera * camera;
 Video * vinst;
 UserInterface * userInterface;
 bool focusAidEnabled = false;
-QTimer * menuTimeoutTimer;
 
+/**********************************************************
+ * QWS Screensaver helper for interactive window hiding.
+ **********************************************************
+ */
+#ifdef Q_WS_QWS
+#include <QWSScreenSaver>
 
+class CamAutoHide : public QWSScreenSaver
+{
+public:
+	explicit CamAutoHide(class CamMainWindow *window);
+	void restore(void);
+	bool save(int level);
+
+private:
+	CamMainWindow *window;
+};
+
+CamAutoHide::CamAutoHide(CamMainWindow *mw)
+{
+	window = mw;
+}
+
+void CamAutoHide::restore(void)
+{
+	window->setVisible(true);
+}
+
+bool CamAutoHide::save(int level)
+{
+	if (!window->isActiveWindow()) {
+		return false;
+	}
+	window->setVisible(false);
+	return true;
+}
+#endif /* Q_WS_QWS */
+
+/**********************************************************
+ * Main Window Class
+ **********************************************************
+ */
 CamMainWindow::CamMainWindow(QWidget *parent) :
 	QDialog(parent),
 	ui(new Ui::CamMainWindow)
@@ -67,16 +107,8 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	battCapacityPercent = 0;
 
 	gpmc->init();
-
-	//vinst->frameCallback = &frameCallback;
-	vinst->frameCallbackArg = NULL;
 	vinst->init();
-
-
 	userInterface->init();
-
-
-
 	retVal = camera->init(gpmc, vinst, sensor, userInterface, 16*1024/32*1024*1024, true);
 
 	if(retVal != SUCCESS)
@@ -104,6 +136,12 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 
 	sw = new StatusWindow;
 
+#ifdef Q_WS_QWS
+	autohide = new CamAutoHide(this);
+	QWSServer::setScreenSaver(autohide);
+	QWSServer::setScreenSaverInterval(10000);
+#endif
+
 	updateCurrentSettingsLabel();
 
 	lastShutterButton = camera->ui->getShutterButton();
@@ -111,9 +149,6 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	timer = new QTimer(this);
 	connect(timer, SIGNAL(timeout()), this, SLOT(on_MainWindowTimer()));
 	timer->start(16);
-
-	menuTimeoutTimer = new QTimer(this);
-	connect(menuTimeoutTimer, SIGNAL(timeout()), this, SLOT(on_MainWindowTimeoutTimer()));
 
 	if (appSettings.value("debug/hideDebug", true).toBool()) {
 		ui->cmdDebugWnd->setVisible(false);
@@ -160,6 +195,7 @@ CamMainWindow::~CamMainWindow()
 	timer->stop();
 	::close(bmsFifoFD);
 	delete sw;
+	delete autohide;
 
 	delete ui;
 	if(camera->vinst->isRunning())
@@ -458,24 +494,6 @@ void CamMainWindow::on_MainWindowTimer()
 	}
 }
 
-
-void CamMainWindow::on_MainWindowTimeoutTimer()
-{
-	menuTimeoutTimer->stop();
-/*	ui->chkFocusAid->setVisible(false);
-	ui->cmdFPNCal->setVisible(false);
-	ui->cmdIOSettings->setVisible(false);
-	ui->cmdPlay->setVisible(false);
-	ui->cmdRec->setVisible(false);
-	ui->cmdRecSettings->setVisible(false);
-	ui->cmdUtil->setVisible(false);
-
-	ui->cmdWB->setVisible(false);
-	ui->expSlider->setVisible(false);
-	ui->lblCurrent->setVisible(false);
-	ui->lblExp->setVisible(false);*/
-}
-
 void CamMainWindow::on_chkFocusAid_clicked(bool focusAidEnabled)
 {
 	camera->setFocusPeakEnable(focusAidEnabled);
@@ -570,7 +588,6 @@ void CamMainWindow::on_cmdBkGndButton_clicked()
 	ui->expSlider->setVisible(true);
 	ui->lblCurrent->setVisible(true);
 	ui->lblExp->setVisible(true);
-	menuTimeoutTimer->start(8000);
 }
 
 

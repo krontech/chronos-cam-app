@@ -67,9 +67,11 @@ private slots:
 
 	void on_cmdRateDn_clicked();
 
+	void keyPressEvent(QKeyEvent *ev);
 	void on_cmdClose_clicked();
-
 	void saveSettingsClosed();
+
+	void on_cmdLoop_clicked();
 
 private:
 	Ui::playbackWindow *ui;
@@ -78,12 +80,14 @@ private:
 	void updateStatusText();
 	void updatePlayRateLabel(Int32 playbackRate);
 	void setControlEnable(bool en);
+
 	UInt32 markInFrame, markOutFrame;
 	UInt32 markInFrameOld;
 	UInt32 lastPlayframe;
 	QTimer * timer;
 	QTimer * saveDoneTimer;
-	Int32 playbackRate;
+	Int32 playbackExponent;
+	UInt32 playFrame;
 	bool autoSaveFlag, autoRecordFlag;
 	bool settingsWindowIsOpen;
 	bool saveAborted;

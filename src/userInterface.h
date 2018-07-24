@@ -29,8 +29,7 @@ typedef enum
 	UI_THREAD_ERROR
 } UIErrortype;
 */
-void* encAThread(void *arg);
-void* encBThread(void *arg);
+void *encoderThread(void *arg);
 
 class UserInterface {
 public:
@@ -48,10 +47,9 @@ private:
 	Int32 encValueLowRes;
 	bool encAVal, encBVal, encALast, encBLast;
 	Int32 encAgpioFD, encBgpioFD, encSwgpioFD, shSwgpioFD, recLedFrontFD, recLedBackFD;
-	struct pollfd encAgpioPoll, encBgpioPoll;
-	pthread_t encAThreadID, encBThreadID;
-	friend void* encAThread(void *arg);
-	friend void* encBThread(void *arg);
+	pthread_t encThreadID;
+	bool getGpioValue(int fd);
+	friend void* encoderThread(void *arg);
 	volatile bool terminateEncThreads;
 	void encoderCB(void);
 

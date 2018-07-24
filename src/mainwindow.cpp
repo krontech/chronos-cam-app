@@ -37,19 +37,13 @@
 #include "cameraRegisters.h"
 #include "camera.h"
 
-extern "C" {
-#include "vpss/ilmain.h"
-}
 #include "video.h"
-#include "videoRecord.h"
 #include "types.h"
 extern "C" {
 #include "eeprom.h"
 }
 
 void endOfRecCallback(void * arg);
-
-VideoRecord record;
 
 MainWindow::MainWindow(QWidget *parent) :
 	QMainWindow(parent),
@@ -379,8 +373,6 @@ void MainWindow::on_cmdFrameNumbers_clicked()
 		camera->gpmc->writeRam32(i, camera->gpmc->readRam32(0x32A00*32+i));
 	}
 	return;
-
-	record.start(1280, 1024, 500);
 }
 
 
@@ -393,12 +385,12 @@ void MainWindow::on_cmdGC_clicked()
 void MainWindow::on_cmdOffsetCorrection_clicked()
 {
 	//camera->offsetCorrectionIteration();
-	camera->adcOffsetCorrection(32, "");
+	camera->adcOffsetCorrection(32, false);
 }
 
 void MainWindow::on_cmdSaveOC_clicked()
 {
-	camera->sensor->saveADCOffsetsToFile("cal/lux1310Offsets.bin");
+	camera->sensor->saveADCOffsetsToFile();
 }
 
 void MainWindow::on_cmdAutoBlack_clicked()

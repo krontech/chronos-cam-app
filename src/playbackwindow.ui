@@ -22,6 +22,9 @@
      <height>481</height>
     </rect>
    </property>
+   <property name="focusPolicy">
+    <enum>Qt::NoFocus</enum>
+   </property>
    <property name="styleSheet">
     <string notr="true">QSlider::groove:vertical {
      border: 1px solid #999999;
@@ -60,6 +63,9 @@ QSlider::handle:vertical {
      <bold>true</bold>
     </font>
    </property>
+   <property name="focusPolicy">
+    <enum>Qt::NoFocus</enum>
+   </property>
    <property name="text">
     <string>Close</string>
    </property>
@@ -79,6 +85,9 @@ QSlider::handle:vertical {
      <weight>75</weight>
      <bold>true</bold>
     </font>
+   </property>
+   <property name="focusPolicy">
+    <enum>Qt::NoFocus</enum>
    </property>
    <property name="text">
     <string>▶</string>
@@ -100,6 +109,9 @@ QSlider::handle:vertical {
      <bold>true</bold>
     </font>
    </property>
+   <property name="focusPolicy">
+    <enum>Qt::NoFocus</enum>
+   </property>
    <property name="text">
     <string>◀</string>
    </property>
@@ -107,9 +119,9 @@ QSlider::handle:vertical {
   <widget class="QPushButton" name="cmdSave">
    <property name="geometry">
     <rect>
-     <x>80</x>
+     <x>70</x>
      <y>370</y>
-     <width>91</width>
+     <width>111</width>
      <height>51</height>
     </rect>
    </property>
@@ -119,6 +131,9 @@ QSlider::handle:vertical {
      <weight>75</weight>
      <bold>true</bold>
     </font>
+   </property>
+   <property name="focusPolicy">
+    <enum>Qt::NoFocus</enum>
    </property>
    <property name="text">
     <string>Save</string>
@@ -127,9 +142,9 @@ QSlider::handle:vertical {
   <widget class="QPushButton" name="cmdSaveSettings">
    <property name="geometry">
     <rect>
-     <x>80</x>
+     <x>70</x>
      <y>310</y>
-     <width>91</width>
+     <width>111</width>
      <height>51</height>
     </rect>
    </property>
@@ -139,6 +154,9 @@ QSlider::handle:vertical {
      <weight>75</weight>
      <bold>true</bold>
     </font>
+   </property>
+   <property name="focusPolicy">
+    <enum>Qt::NoFocus</enum>
    </property>
    <property name="text">
     <string>Settings</string>
@@ -153,6 +171,9 @@ QSlider::handle:vertical {
      <height>51</height>
     </rect>
    </property>
+   <property name="focusPolicy">
+    <enum>Qt::NoFocus</enum>
+   </property>
    <property name="text">
     <string>Mark
 Start</string>
@@ -166,6 +187,9 @@ Start</string>
      <width>61</width>
      <height>51</height>
     </rect>
+   </property>
+   <property name="focusPolicy">
+    <enum>Qt::NoFocus</enum>
    </property>
    <property name="text">
     <string>Mark
@@ -237,6 +261,9 @@ End</string>
       <bold>true</bold>
      </font>
     </property>
+    <property name="focusPolicy">
+     <enum>Qt::NoFocus</enum>
+    </property>
     <property name="text">
      <string>▼</string>
     </property>
@@ -257,10 +284,36 @@ End</string>
       <bold>true</bold>
      </font>
     </property>
+    <property name="focusPolicy">
+     <enum>Qt::NoFocus</enum>
+    </property>
     <property name="text">
      <string>▲</string>
     </property>
    </widget>
+  </widget>
+  <widget class="QPushButton" name="cmdLoop">
+   <property name="geometry">
+    <rect>
+     <x>59</x>
+     <y>431</y>
+     <width>61</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>16</pointsize>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="focusPolicy">
+    <enum>Qt::NoFocus</enum>
+   </property>
+   <property name="text">
+    <string>Loop</string>
+   </property>
   </widget>
  </widget>
  <customwidgets>

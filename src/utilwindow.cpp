@@ -30,6 +30,8 @@
 #include <time.h>
 #include <sys/mount.h>
 #include "sys/sendfile.h"
+#include <QDBusInterface>
+#include "chronosControlInterface.h"
 
 #define FOCUS_PEAK_THRESH_LOW	35
 #define FOCUS_PEAK_THRESH_MED	25
@@ -44,6 +46,7 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	ui(new Ui::UtilWindow)
 {
 	QSettings appSettings;
+
 	ui->setupUi(this);
 	this->setWindowFlags(Qt::Dialog | Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
 	this->move(0,0);
@@ -86,12 +89,12 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	camera->getRamSizeGB(&ramSizeSlot1, &ramSizeSlot2);
 	camera->readSerialNumber(serialNumber);
 
-	ui->lblAbout->setText(	QString::fromAscii("Camera model: Chronos 1.4, ") + (camera->getIsColor() ? "Color, " : "Monochrome, ") + QString::number(ramSizeSlot1 + ramSizeSlot2) + "GB"
-							"\r\nSerial number: " + QString::fromAscii(serialNumber) +
-                            "\r\nCamera application revision: " + QString::fromAscii(CAMERA_APP_VERSION) +
-							"\r\nBuild: " + git_version_str +
-							"\r\nFPGA Revision: " + QString::number(camera->getFPGAVersion()) + "." + QString::number(camera->getFPGASubVersion()));
-
+	ui->lblAbout->setText(QString::fromAscii("Camera model: Chronos 1.4, ") + (camera->getIsColor() ? "Color, " : "Monochrome, ") + QString::number(ramSizeSlot1 + ramSizeSlot2) + "GB"
+						  + "\r\nSerial number: " + QString::fromAscii(serialNumber)
+						  + "\r\nCamera application revision: " + QString::fromAscii(CAMERA_APP_VERSION)
+						  + "\r\nBuild: " + git_version_str
+						  + "\r\nFPGA Revision: " + QString::number(camera->getFPGAVersion()) + "." + QString::number(camera->getFPGASubVersion()));
+	
 	ui->cmdAdcOffset->setVisible(false);
 	ui->cmdAutoCal->setVisible(false);
 	ui->cmdBlackCalAll->setVisible(false);
@@ -104,6 +107,7 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 
 	ui->chkAutoSave->setChecked(camera->get_autoSave());
 	ui->chkAutoRecord->setChecked(camera->get_autoRecord());
+	ui->chkDemoMode->setChecked(camera->get_demoMode());
 	ui->chkUiOnLeft->setChecked(camera->getButtonsOnLeft());
 	ui->comboDisableUnsavedWarning->setCurrentIndex(camera->getUnsavedWarnEnable());
 
@@ -387,9 +391,11 @@ void UtilWindow::on_cmdAutoCal_clicked()
 	QCoreApplication::processEvents();
 
 	//Turn off calibration light
+	qDebug("cmdAutoCal: turn off cal light");
 	camera->io->setOutLevel(0);	//Turn off output drive
 
 	//ADC Offset calibration
+	qDebug("cmdAutoCal: autoAdcOffsetCorrection");
 	retVal = camera->autoAdcOffsetCorrection();
 
 	if(SUCCESS != retVal)
@@ -404,6 +410,7 @@ void UtilWindow::on_cmdAutoCal_clicked()
 	}
 
 	//Black cal all standard resolutions
+	qDebug("cmdAutoCal: blackCalAllStdRes");
 	retVal = camera->blackCalAllStdRes(true);
 
 	if(SUCCESS != retVal)
@@ -418,8 +425,10 @@ void UtilWindow::on_cmdAutoCal_clicked()
 	}
 
 	//Turn on calibration light
+	qDebug("cmdAutoCal: turn on cal light");
 	camera->io->setOutLevel((1 << 1));	//Turn on output drive
 
+	qDebug("cmdAutoCal: autoColGainCorrection");
 	retVal = camera->autoColGainCorrection();
 
 	if(SUCCESS != retVal)
@@ -738,6 +747,11 @@ void UtilWindow::on_chkAutoSave_stateChanged(int arg1)
 void UtilWindow::on_chkAutoRecord_stateChanged(int arg1)
 {
 	camera->set_autoRecord(ui->chkAutoRecord->isChecked());
+}
+
+void UtilWindow::on_chkDemoMode_stateChanged(int arg1)
+{
+	camera->set_demoMode(ui->chkDemoMode->isChecked());
 }
 
 void UtilWindow::on_cmdDefaults_clicked()

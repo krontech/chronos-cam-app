@@ -30,6 +30,8 @@ namespace Ui {
 class CamMainWindow;
 }
 
+class CamAutoHide;
+
 class CamMainWindow : public QDialog
 {
 	Q_OBJECT
@@ -62,8 +64,6 @@ private slots:
 
 	void on_MainWindowTimer();
 
-	void on_MainWindowTimeoutTimer();
-
 	void on_chkFocusAid_clicked(bool focusAidEnabled);
 
 	void UtilWindow_closed();
@@ -83,8 +83,9 @@ private:
 	void updateRecordingState(bool recording);
 	void updateCurrentSettingsLabel(void);
 	Ui::CamMainWindow *ui;
-    StatusWindow * sw;
-	QTimer * timer;
+	CamAutoHide * autohide;
+	StatusWindow * sw;
+	QTimer *timer;
 	bool lastShutterButton;
 	bool lastRecording;
 	int bmsFifoFD;

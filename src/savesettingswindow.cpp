@@ -51,10 +51,10 @@ saveSettingsWindow::saveSettingsWindow(QWidget *parent, Camera * camInst) :
 	camera = camInst;
 
 	
-	ui->spinBitrate->setValue(settings.value("recorder/bitsPerPixel", camera->recorder->bitsPerPixel).toDouble());
-	ui->spinMaxBitrate->setValue(settings.value("recorder/maxBitrate", camera->recorder->maxBitrate).toDouble());
-	ui->spinFramerate->setValue(settings.value("recorder/framerate", camera->recorder->framerate).toUInt());
-	ui->lineFilename->setText(settings.value("recorder/filename", camera->recorder->filename).toString());
+	ui->spinBitrate->setValue(settings.value("recorder/bitsPerPixel", camera->vinst->bitsPerPixel).toDouble());
+	ui->spinMaxBitrate->setValue(settings.value("recorder/maxBitrate", camera->vinst->maxBitrate).toDouble());
+	ui->spinFramerate->setValue(settings.value("recorder/framerate", camera->vinst->framerate).toUInt());
+	ui->lineFilename->setText(settings.value("recorder/filename", camera->vinst->filename).toString());
 
 	refreshDriveList();
 
@@ -64,7 +64,7 @@ saveSettingsWindow::saveSettingsWindow(QWidget *parent, Camera * camInst) :
 	ui->comboProfile->addItem("Extended");
 	ui->comboProfile->addItem("High");
 
-	UInt32 val = settings.value("recorder/profile", camera->recorder->profile).toUInt();
+	UInt32 val = settings.value("recorder/profile", camera->vinst->profile).toUInt();
 	//Compute base 2 logarithm to get index
 	Int32 index = 0;
 	while (val >>= 1) ++index;
@@ -88,7 +88,7 @@ saveSettingsWindow::saveSettingsWindow(QWidget *parent, Camera * camInst) :
 	ui->comboLevel->addItem("Level 5");
 	ui->comboLevel->addItem("Level 51");
 
-	val = settings.value("recorder/level", camera->recorder->level).toUInt();
+	val = settings.value("recorder/level", camera->vinst->level).toUInt();
 	//Compute base 2 logarithm to get index
 	index = 0;
 	while (val >>= 1) ++index;
@@ -96,11 +96,12 @@ saveSettingsWindow::saveSettingsWindow(QWidget *parent, Camera * camInst) :
 
 	ui->comboSaveFormat->setEnabled(false);
 	ui->comboSaveFormat->clear();
-	// these must line up with the enum in videoRecord.h
+	// these must line up with the enum in video.h
 	ui->comboSaveFormat->addItem("H.264");            // SAVE_MODE_H264
 	ui->comboSaveFormat->addItem("Raw 16bit");        // SAVE_MODE_RAW16
 	ui->comboSaveFormat->addItem("Raw 16RJ");         // SAVE_MODE_RAW16RJ
 	ui->comboSaveFormat->addItem("Raw 12bit packed"); // SAVE_MODE_RAW12
+	ui->comboSaveFormat->addItem("CinemaDNG");        // SAVE_MODE_DNG
 	
 	ui->comboSaveFormat->setCurrentIndex(settings.value("recorder/saveFormat", 0).toUInt());
 
@@ -137,13 +138,13 @@ void saveSettingsWindow::on_cmdClose_clicked()
 {
 	QSettings settings;
 
-	camera->recorder->profile = 1 << 3;
-	camera->recorder->level = 1 << 15;
+	camera->vinst->profile = OMX_H264ENC_PROFILE_HIGH;
+	camera->vinst->level = OMX_H264ENC_LVL_51;
 
 	saveFileDirectory();
 
-	settings.setValue("recorder/profile", camera->recorder->profile);
-	settings.setValue("recorder/level", camera->recorder->level);
+	settings.setValue("recorder/profile", camera->vinst->profile);
+	settings.setValue("recorder/level", camera->vinst->level);
 
 	close();
 }
@@ -163,9 +164,9 @@ void saveSettingsWindow::saveFileDirectory(){
 	else	//No valid paths available
 		path = "";
 
-	strcpy(camera->recorder->fileDirectory, path);
+	strcpy(camera->vinst->fileDirectory, path);
 	QSettings settings;
-	settings.setValue("recorder/fileDirectory", camera->recorder->fileDirectory);
+	settings.setValue("recorder/fileDirectory", camera->vinst->fileDirectory);
 }
 
 void saveSettingsWindow::on_cmdUMount_clicked()
@@ -333,7 +334,7 @@ void saveSettingsWindow::updateBitrate()
 	}
 	else {
 		switch(saveFormat) {
-			// these must line up with the enum in videoRecord.h
+			// these must line up with the enum in video.h
 			case 1: // SAVE_MODE_RAW16
 			case 2: // SAVE_MODE_RAW16RJ
 				bitsPerPixel = 16.0;
@@ -351,16 +352,16 @@ void saveSettingsWindow::on_spinBitrate_valueChanged(double arg1)
 {
 	updateBitrate();
 	QSettings settings;
-	camera->recorder->bitsPerPixel = ui->spinBitrate->value();
-	settings.setValue("recorder/bitsPerPixel", camera->recorder->bitsPerPixel);
+	camera->vinst->bitsPerPixel = ui->spinBitrate->value();
+	settings.setValue("recorder/bitsPerPixel", camera->vinst->bitsPerPixel);
 }
 
 void saveSettingsWindow::on_spinFramerate_valueChanged(int arg1)
 {
 	updateBitrate();
 	QSettings settings;
-	camera->recorder->framerate = ui->spinFramerate->value();
-	settings.setValue("recorder/framerate", camera->recorder->framerate);
+	camera->vinst->framerate = ui->spinFramerate->value();
+	settings.setValue("recorder/framerate", camera->vinst->framerate);
 }
 
 //When the number of drives connected changes, refresh the drive list
@@ -400,16 +401,16 @@ void saveSettingsWindow::updateDrives(void)
 void saveSettingsWindow::on_lineFilename_textEdited(const QString &arg1)
 {
 	QSettings settings;
-	strcpy(camera->recorder->filename, ui->lineFilename->text().toStdString().c_str());
-	settings.setValue("recorder/filename", camera->recorder->filename);
+	strcpy(camera->vinst->filename, ui->lineFilename->text().toStdString().c_str());
+	settings.setValue("recorder/filename", camera->vinst->filename);
 }
 
 void saveSettingsWindow::on_spinMaxBitrate_valueChanged(int arg1)
 {
 	updateBitrate();
 	QSettings settings;
-	camera->recorder->maxBitrate = ui->spinMaxBitrate->value();
-	settings.setValue("recorder/maxBitrate", camera->recorder->maxBitrate);
+	camera->vinst->maxBitrate = ui->spinMaxBitrate->value();
+	settings.setValue("recorder/maxBitrate", camera->vinst->maxBitrate);
 }
 
 void saveSettingsWindow::on_comboSaveFormat_currentIndexChanged(int index)

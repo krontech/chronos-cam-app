@@ -29,7 +29,6 @@
 #include "lux1310.h"
 #include "userInterface.h"
 #include "io.h"
-#include "videoRecord.h"
 #include "string.h"
 #include "types.h"
 
@@ -197,7 +196,6 @@ public:
 	Video * vinst;
 	LUX1310 * sensor;
 	UserInterface * ui;
-	VideoRecord * recorder;
 	IO * io;
 
 	UInt32 getPlayFrameAddr(UInt32 playFrame);
@@ -219,7 +217,6 @@ public:
     UInt32 setDisplaySettings(bool encoderSafe, UInt32 maxFps);
 	UInt32 setPlayMode(bool playMode);
 	UInt32 playFrame;
-	void setPlaybackRate(Int32 speed, bool forward);
 	void writeFrameNumbers();
 	UInt16 readPixel(UInt32 pixel, UInt32 offset);
 	void writePixel(UInt32 pixel, UInt32 offset, UInt16 value);
@@ -231,10 +228,10 @@ public:
 	void computeFPNCorrection();
 	void computeFPNCorrection2(UInt32 framesToAverage, bool writeToFile = false, bool factory = false);
 	UInt32 autoFPNCorrection(UInt32 framesToAverage, bool writeToFile = false, bool noCap = false, bool factory = false);
-	Int32 loadFPNFromFile(const char * filename);
+	Int32 loadFPNFromFile(void);
 	Int32 computeColGainCorrection(UInt32 framesToAverage, bool writeToFile = false);
-	Int32 loadColGainFromFile(const char * filename);
-	UInt32 adcOffsetCorrection(UInt32 iterations, const char * filename = "");
+	Int32 loadColGainFromFile(void);
+	UInt32 adcOffsetCorrection(UInt32 iterations, bool writeToFile = true);
 	void offsetCorrectionIteration(UInt32 wordAddress = LIVE_FRAME_0_ADDRESS);
 	int autoAdcOffsetCorrection(void);
 	Int32 autoColGainCorrection(void);
@@ -270,8 +267,8 @@ public:
 private:
     void setDisplayFrameSource(bool liveDisplaySource);
 private:
-    void setDisplayFrameAddress(UInt32 address);
-    void setLiveOutputTiming(UInt32 hRes, UInt32 vRes, UInt32 hOutRes, UInt32 vOutRes, UInt32 maxFps);
+	void setDisplayFrameAddress(UInt32 address);
+	void setLiveOutputTiming(UInt32 hRes, UInt32 vRes, UInt32 hOutRes, UInt32 vOutRes, UInt32 maxFps);
 	bool getRecDataFifoIsEmpty(void);
 	UInt32 readRecDataFifo(void);
 	bool getRecording(void);
@@ -296,7 +293,7 @@ public:
 	void setZebraEnableLL(bool en);
 	void setFocusPeakThresholdLL(UInt32 thresh);
 	UInt32 getFocusPeakThresholdLL(void);
-    Int32 getRamSizeGB(UInt32 * stick0SizeGB, UInt32 * stick1SizeGB);
+	Int32 getRamSizeGB(UInt32 * stick0SizeGB, UInt32 * stick1SizeGB);
 	Int32 readSerialNumber(char * dest);
 	Int32 writeSerialNumber(char * src);
 	UInt16 getFPGAVersion(void);
@@ -309,16 +306,10 @@ private:
 	UInt32 getBlockFrameAddress(UInt32 block, UInt32 frame);
 	UInt16 getMaxFPNValue(UInt16 * buf, UInt32 count);
 
-
 	friend void* recDataThread(void *arg);
-	friend void frameCallback(void * arg);
 
 	volatile bool recording;
 	bool playbackMode;
-	Int32 playbackSpeed;
-	bool playbackForward;
-	UInt32 playDivisorCount;
-	void processPlay(void);
 
 	ImagerSettings_t imagerSettings;
 	bool isColor;
@@ -349,6 +340,11 @@ public:
 	bool autoRecord;
 	void set_autoRecord(bool state);
 	bool get_autoRecord();
+
+	bool demoMode;
+	void set_demoMode(bool state);
+	bool get_demoMode();
+
 	bool getButtonsOnLeft();
 	void setButtonsOnLeft(bool en);
 	bool getUpsideDownDisplay();

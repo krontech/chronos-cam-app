@@ -15,10 +15,10 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.   *
  ****************************************************************************/
 #include <time.h>
+#include <sys/stat.h>
 #include <sys/statvfs.h>
 #include <sys/vfs.h>
 
-#include "videoRecord.h"
 #include "util.h"
 #include "camera.h"
 
@@ -29,6 +29,7 @@
 #include <QTimer>
 #include <QMessageBox>
 #include <QSettings>
+#include <QKeyEvent>
 
 #define MIN_FREE_SPACE 20000000
 
@@ -36,6 +37,7 @@ playbackWindow::playbackWindow(QWidget *parent, Camera * cameraInst, bool autosa
 	QWidget(parent),
 	ui(new Ui::playbackWindow)
 {
+	QSettings appSettings;
 	ui->setupUi(this);
 	this->setWindowFlags(Qt::Dialog /*| Qt::WindowStaysOnTopHint*/ | Qt::FramelessWindowHint);
 
@@ -53,16 +55,16 @@ playbackWindow::playbackWindow(QWidget *parent, Camera * cameraInst, bool autosa
 	ui->verticalSlider->setMinimum(0);
 	ui->verticalSlider->setMaximum(camera->recordingData.totalFrames - 1);
 	ui->verticalSlider->setValue(camera->playFrame);
+	ui->cmdLoop->setVisible(appSettings.value("camera/demoMode", false).toBool());
 	markInFrame = 1;
 	markOutFrame = camera->recordingData.totalFrames;
 	ui->verticalSlider->setHighlightRegion(markInFrame, markOutFrame);
 
 	camera->setPlayMode(true);
+	camera->vinst->setPosition(0, 0);
 
-	lastPlayframe = camera->playFrame;
-
-	playbackRate = 1;
-	updatePlayRateLabel(playbackRate);
+	playbackExponent = 0;
+	updatePlayRateLabel(playbackExponent);
 
 	timer = new QTimer(this);
 	connect(timer, SIGNAL(timeout()), this, SLOT(updatePlayFrame()));
@@ -89,32 +91,35 @@ playbackWindow::~playbackWindow()
 
 void playbackWindow::on_verticalSlider_sliderMoved(int position)
 {
-	camera->playFrame = position;
+	/* Note that a rate of zero will also pause playback. */
+	camera->vinst->setPosition(position, 0);
 }
 
 void playbackWindow::on_verticalSlider_valueChanged(int value)
 {
-	camera->playFrame = value;
+
 }
 
 void playbackWindow::on_cmdPlayForward_pressed()
 {
-	camera->setPlaybackRate(playbackRate, true);
+	int fps = (playbackExponent >= 0) ? (60 << playbackExponent) : 60 / (1 - playbackExponent);
+	camera->vinst->setPlayback(fps);
 }
 
 void playbackWindow::on_cmdPlayForward_released()
 {
-	camera->setPlaybackRate(0, true);
+	camera->vinst->setPlayback(0);
 }
 
 void playbackWindow::on_cmdPlayReverse_pressed()
 {
-	camera->setPlaybackRate(playbackRate, false);
+	int fps = (playbackExponent >= 0) ? (60 << playbackExponent) : 60 / (1 - playbackExponent);
+	camera->vinst->setPlayback(-fps);
 }
 
 void playbackWindow::on_cmdPlayReverse_released()
 {
-	camera->setPlaybackRate(0, false);
+	camera->vinst->setPlayback(0);
 }
 
 void playbackWindow::on_cmdSave_clicked()
@@ -130,21 +135,20 @@ void playbackWindow::on_cmdSave_clicked()
 	autoRecordFlag = camera->autoRecord = camera->get_autoRecord();
 
 	//Build the parent path of the save directory, to determine if it's a mount point
-	strcpy(parentPath, camera->recorder->fileDirectory);
+	strcpy(parentPath, camera->vinst->fileDirectory);
 	strcat(parentPath, "/..");
 
-	if(!camera->recorder->getRunning())
+	if(!camera->vinst->getStatus(NULL) != VIDEO_STATE_RECORDING)
 	{
 		//If no directory set, complain to the user
-		if(strlen(camera->recorder->fileDirectory) == 0)
+		if(strlen(camera->vinst->fileDirectory) == 0)
 		{
 			msg.setText("No save location set! Set save location in Settings");
 			msg.exec();
 			return;
 		}
 
-		if (!statvfs(camera->recorder->fileDirectory, &statvfsBuf)) {
-			
+		if (!statvfs(camera->vinst->fileDirectory, &statvfsBuf)) {
 			qDebug("===================================");
 			
 			// calculated estimated size
@@ -157,9 +161,10 @@ void playbackWindow::on_cmdSave_clicked()
 			switch(getSaveFormat()) {
 			case SAVE_MODE_H264:
 				// the *1.2 part is fudge factor
-				estimatedSize = (uint64_t) ((double)estimatedSize * appSettings.value("recorder/bitsPerPixel", camera->recorder->bitsPerPixel).toDouble() * 1.2);
-				qDebug("Bits/pixel: %0.3f", appSettings.value("recorder/bitsPerPixel", camera->recorder->bitsPerPixel).toDouble());
+				estimatedSize = (uint64_t) ((double)estimatedSize * appSettings.value("recorder/bitsPerPixel", camera->vinst->bitsPerPixel).toDouble() * 1.2);
+				qDebug("Bits/pixel: %0.3f", appSettings.value("recorder/bitsPerPixel", camera->vinst->bitsPerPixel).toDouble());
 				break;
+			case SAVE_MODE_DNG:
 			case SAVE_MODE_RAW16:
 			case SAVE_MODE_RAW16RJ:
 				qDebug("Bits/pixel: %d", 16);
@@ -171,6 +176,7 @@ void playbackWindow::on_cmdSave_clicked()
 				estimatedSize *= 12;
 				estimatedSize += (4096<<8);
 				break;
+
 			default:
 				// unknown format
 				qDebug("Bits/pixel: unknown - default: %d", 16);
@@ -225,31 +231,31 @@ void playbackWindow::on_cmdSave_clicked()
 		//Check that the path exists
 		struct stat sb;
 		struct stat sbP;
-		
-		if (stat(camera->recorder->fileDirectory, &sb) == 0 && S_ISDIR(sb.st_mode) &&
+		if (stat(camera->vinst->fileDirectory, &sb) == 0 && S_ISDIR(sb.st_mode) &&
 				stat(parentPath, &sbP) == 0 && sb.st_dev != sbP.st_dev)		//If location is directory and is a mount point (device ID of parent is different from device ID of path)
 		{
 			ret = camera->startSave(markInFrame - 1, markOutFrame - markInFrame + 1);
 			if(RECORD_FILE_EXISTS == ret)
 			{
-				if(camera->recorder->errorCallback)
-					(*camera->recorder->errorCallback)(camera->recorder->errorCallbackArg, "file already exists");
+				if(camera->vinst->errorCallback)
+					(*camera->vinst->errorCallback)(camera->vinst->errorCallbackArg, "file already exists");
 				msg.setText("File already exists. Rename then try saving again.");
 				msg.exec();
 				return;
 			}
 			else if(RECORD_DIRECTORY_NOT_WRITABLE == ret)
 			{
-				if(camera->recorder->errorCallback)
-					(*camera->recorder->errorCallback)(camera->recorder->errorCallbackArg, "save directory is not writable");
+				if(camera->vinst->errorCallback)
+					(*camera->vinst->errorCallback)(camera->vinst->errorCallbackArg, "save directory is not writable");
 				msg.setText("Save directory is not writable.");
 				msg.exec();
 				return;
 			}
 			else if(RECORD_INSUFFICIENT_SPACE == ret)
 			{
-				if(camera->recorder->errorCallback)
-					(*camera->recorder->errorCallback)(camera->recorder->errorCallbackArg, "insufficient free space");
+				if(camera->vinst->errorCallback) {
+					(*camera->vinst->errorCallback)(camera->vinst->errorCallbackArg, "insufficient free space");
+				}
 				msg.setText("Selected device does not have sufficient free space.");
 				msg.exec();
 				return;
@@ -278,9 +284,9 @@ void playbackWindow::on_cmdSave_clicked()
 		}
 		else
 		{
-			if(camera->recorder->errorCallback)
-				(*camera->recorder->errorCallback)(camera->recorder->errorCallbackArg, "location not found");
-			msg.setText(QString("Save location ") + QString(camera->recorder->fileDirectory) + " not found, set save location in Settings");
+			if(camera->vinst->errorCallback)
+				(*camera->vinst->errorCallback)(camera->vinst->errorCallbackArg, "location not found");
+			msg.setText(QString("Save location ") + QString(camera->vinst->fileDirectory) + " not found, set save location in Settings");
 			msg.exec();
 			return;
 		}
@@ -289,7 +295,7 @@ void playbackWindow::on_cmdSave_clicked()
 	{
 		//This block is executed when Abort is clicked
 		//or when save is automatically aborted due to full storage
-		camera->recorder->stop2();
+		camera->vinst->stopRecording();
 		ui->verticalSlider->removeLastRegionFromList();
 		ui->verticalSlider->setHighlightRegion(markInFrame, markOutFrame);
 		saveAborted = true;
@@ -324,7 +330,8 @@ void playbackWindow::on_cmdSaveSettings_clicked()
 
 void playbackWindow::saveSettingsClosed(){
 	settingsWindowIsOpen = false;
-	if(!camera->recorder->getRunning()){//Only enable these buttons if the camera is not saving a video
+	if(!camera->vinst->getStatus(NULL) != VIDEO_STATE_RECORDING) {
+		/* Only enable these buttons if the camera is not saving a video */
 		ui->cmdSaveSettings->setEnabled(true);
 		ui->cmdClose->setEnabled(true);
 	}
@@ -348,6 +355,37 @@ void playbackWindow::on_cmdMarkOut_clicked()
 	updateStatusText();
 }
 
+void playbackWindow::keyPressEvent(QKeyEvent *ev)
+{
+	unsigned int skip = 1;
+	unsigned int nextFrame;
+	switch (ev->key()) {
+	case Qt::Key_PageUp:
+		skip = 10;
+		if (playbackExponent > 0) {
+			skip <<= playbackExponent;
+		}
+	case Qt::Key_Up:
+		camera->playFrame = (camera->playFrame + skip) % camera->recordingData.totalFrames;
+		camera->vinst->setPosition(camera->playFrame, 0);
+		break;
+
+	case Qt::Key_PageDown:
+		skip = 10;
+		if (playbackExponent > 0) {
+			skip <<= playbackExponent;
+		}
+	case Qt::Key_Down:
+		if (camera->playFrame >= skip) {
+			camera->playFrame = camera->playFrame - skip;
+		} else {
+			camera->playFrame = camera->playFrame + camera->recordingData.totalFrames - skip;
+		}
+		camera->vinst->setPosition(camera->playFrame, 0);
+		break;
+	}
+}
+
 void playbackWindow::updateStatusText()
 {
 	char text[100];
@@ -358,19 +396,16 @@ void playbackWindow::updateStatusText()
 //Periodically check if the play frame is updated
 void playbackWindow::updatePlayFrame()
 {
-	UInt32 playFrame = camera->playFrame;
-	if(playFrame != lastPlayframe)
-	{
-		ui->verticalSlider->setValue(playFrame);
-		updateStatusText();
-		lastPlayframe = camera->playFrame;
-	}
+	camera->playFrame = camera->vinst->getPosition();
+	ui->verticalSlider->setValue(camera->playFrame);
+	updateStatusText();
 }
 
 //Once save is done, re-enable the window
 void playbackWindow::checkForSaveDone()
 {
-	if(camera->recorder->endOfStream())
+	VideoStatus st;
+	if(camera->vinst->getStatus(&st) != VIDEO_STATE_RECORDING)
 	{
 		saveDoneTimer->stop();
 		delete saveDoneTimer;
@@ -378,6 +413,7 @@ void playbackWindow::checkForSaveDone()
 		sw->close();
 		ui->cmdSave->setText("Save");
 		setControlEnable(true);
+		updatePlayRateLabel(playbackExponent);
 		emit enableSaveSettingsButtons(true);
 		ui->cmdSave->setEnabled(true);
 		saveAborted = false;
@@ -392,7 +428,7 @@ void playbackWindow::checkForSaveDone()
 	}
 	else {
 		char tmp[64];
-		sprintf(tmp, "%.1ffps", camera->recorder->getFramerate());
+		sprintf(tmp, "%.1ffps", st.framerate);
 		ui->lblFrameRate->setText(tmp);
 		setControlEnable(false);
 
@@ -422,22 +458,18 @@ void playbackWindow::checkForSaveDone()
 
 void playbackWindow::on_cmdRateUp_clicked()
 {
-	if(playbackRate < 5)
-		playbackRate++;
-	if(0 == playbackRate)	//Don't let playback rate be 0 (no playback)
-		playbackRate = 1;
+	if(playbackExponent < 5)
+		playbackExponent++;
 
-	updatePlayRateLabel(playbackRate);
+	updatePlayRateLabel(playbackExponent);
 }
 
 void playbackWindow::on_cmdRateDn_clicked()
 {
-	if(playbackRate > -12)
-		playbackRate--;
-	if(0 == playbackRate)	//Don't let playback rate be 0 (no playback)
-		playbackRate = -1;
+	if(playbackExponent > -5)
+		playbackExponent--;
 
-	updatePlayRateLabel(playbackRate);
+	updatePlayRateLabel(playbackExponent);
 }
 
 void playbackWindow::updatePlayRateLabel(Int32 playbackRate)
@@ -445,7 +477,7 @@ void playbackWindow::updatePlayRateLabel(Int32 playbackRate)
 	char playRateStr[100];
 	double playRate;
 
-	playRate = playbackRate > 0 ? 60.0 * (double)(1 << (playbackRate - 1)) : 60.0 / (double)(-playbackRate+1);
+	playRate = (playbackExponent >= 0) ? (60 << playbackExponent) : 60.0 / (1 - playbackExponent);
 	sprintf(playRateStr, "%.1ffps", playRate);
 
 	ui->lblFrameRate->setText(playRateStr);
@@ -478,3 +510,11 @@ UInt32 playbackWindow::getSaveFormat(){
 	QSettings appSettings;
 	return appSettings.value("recorder/saveFormat", 0).toUInt();
 }
+
+void playbackWindow::on_cmdLoop_clicked()
+{
+	int fps = (playbackExponent >= 0) ? (60 << playbackExponent) : 60 / (1 - playbackExponent);
+	unsigned int count = (markOutFrame - markInFrame + 1);
+	camera->vinst->loopPlayback(markInFrame, count, fps);
+}
+

@@ -20,6 +20,9 @@
 #include <QDebug>
 #include <semaphore.h>
 #include <QSettings>
+#include <QResource>
+#include <QDir>
+#include <QIODevice>
 #include <QApplication>
 
 #include "font.h"
@@ -27,7 +30,6 @@
 #include "gpmc.h"
 #include "gpmcRegs.h"
 #include "cameraRegisters.h"
-#include "videoRecord.h"
 #include "util.h"
 #include "types.h"
 #include "lux1310.h"
@@ -36,7 +38,6 @@
 #include <QWSDisplay>
 
 void* recDataThread(void *arg);
-void frameCallback(void * arg);
 void recordEosCallback(void * arg);
 void recordErrorCallback(void * arg, char * message);
 
@@ -50,9 +51,6 @@ Camera::Camera()
 	lastRecording = false;
 	playbackMode = false;
 	recording = false;
-	playbackSpeed = 0;
-	playbackForward = true;
-	playDivisorCount = 0;
 	endOfRecCallback = NULL;
 	imgGain = 1.0;
 	recordingData.hasBeenSaved = true;		//Nothing in RAM at power up so there's nothing to lose
@@ -91,16 +89,13 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 	//Configure FPGA
 	Ecp5Config * config;
 	const char * configFileName;
-/*
-	//Get the file name based on the RAM installed
-    if(8 == ramSizeGBSlot0)
-		configFileName = "FPGA_8GB.bit";
-	else if(16 == ramSizeGBSlot0)
-		configFileName = "FPGA_16GB.bit";
-	else
-		return CAMERA_MEM_ERROR;
-*/
-	configFileName = "FPGA.bit";
+	QFileInfo fpgaConfigFile("fpga:FPGA.bit");
+	if (fpgaConfigFile.exists() && fpgaConfigFile.isFile()) 
+		configFileName = fpgaConfigFile.absoluteFilePath().toLocal8Bit().constData();
+	else {
+		qDebug("Error: FPGA bitfile not found");
+		return CAMERA_FILE_NOT_FOUND;
+	}
 
 	config = new Ecp5Config();
 	config->init(IMAGE_SENSOR_SPI, FPGA_PROGRAMN_PATH, FPGA_INITN_PATH, FPGA_DONE_PATH, FPGA_SN_PATH, FPGA_HOLDN_PATH, 33000000);
@@ -249,8 +244,6 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
     imagerSettings.segmentLengthFrames = imagerSettings.recRegionSizeFrames;
     imagerSettings.segments = 1;
 
-    vinst->frameCallbackArg = (void *)this;
-	vinst->frameCallback = frameCallback;
 	vinst->init();
 
 	//Set to full resolution
@@ -283,6 +276,7 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 
 	vinst->setRunning(true);
 
+<<<<<<< HEAD
 	recorder = new VideoRecord();
 	recorder->bitsPerPixel        = appSettings.value("recorder/bitsPerPixel", 0.7).toDouble();
 	recorder->maxBitrate          = appSettings.value("recorder/maxBitrate", 40.0).toDouble();
@@ -305,17 +299,17 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 
 	
 	
-    recorder->eosCallback = recordEosCallback;
-	recorder->eosCallbackArg = (void *)this;
+	vinst->eosCallback = recordEosCallback;
+	vinst->eosCallbackArg = (void *)this;
 
-	recorder->errorCallback = recordErrorCallback;
-	recorder->errorCallbackArg = (void *)this;
+	vinst->errorCallback = recordErrorCallback;
+	vinst->errorCallbackArg = (void *)this;
 
-	loadColGainFromFile("cal/dcgL.bin");
+	loadColGainFromFile();
 
 	maxPostFramesRatio = 1;
 
-	if(CAMERA_FILE_NOT_FOUND == loadFPNFromFile(FPN_FILENAME))
+	if(CAMERA_FILE_NOT_FOUND == loadFPNFromFile())
 		autoFPNCorrection(2, false, true);
 	/*
 	//If the FPN file exists, read it in
@@ -378,8 +372,10 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 	qDebug() << gpmc->read16(CCM_21_ADDR) << gpmc->read16(CCM_22_ADDR) << gpmc->read16(CCM_23_ADDR);
 	qDebug() << gpmc->read16(CCM_31_ADDR) << gpmc->read16(CCM_32_ADDR) << gpmc->read16(CCM_33_ADDR);
 
-	setZebraEnable(appSettings.value("camera/zebra", true).toBool());;
-	setFocusPeakEnable(appSettings.value("camera/focusPeak", false).toBool());;
+	setZebraEnable(appSettings.value("camera/zebra", true).toBool());
+	setFocusPeakEnable(appSettings.value("camera/focusPeak", false).toBool());
+	vinst->setDisplayOptions(getZebraEnable(), getFocusPeakEnable());
+	vinst->liveDisplay();
 	setFocusPeakColorLL(getFocusPeakColor());
 	setFocusPeakThresholdLL(appSettings.value("camera/focusPeakThreshold", 25).toUInt());
 
@@ -387,10 +383,10 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 
 
 	//Set trigger for normally open switch on IO1
-    //io->setTriggerInvert(1);
-    //io->setTriggerEnable(1);
-    //io->setTriggerDebounceEn(1);
-    //io->setOutLevel((1 << 1));	//Enable strong pullup
+	//io->setTriggerInvert(1);
+	//io->setTriggerEnable(1);
+	//io->setTriggerDebounceEn(1);
+	//io->setOutLevel((1 << 1));	//Enable strong pullup
 
 
 	return SUCCESS;
@@ -428,11 +424,11 @@ UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 	imagerSettings.period = settings.period;
 	imagerSettings.exposure = settings.exposure;
 	imagerSettings.gain = settings.gain;
-    imagerSettings.disableRingBuffer = settings.disableRingBuffer;
-    imagerSettings.mode = settings.mode;
-    imagerSettings.prerecordFrames = settings.prerecordFrames;
-    imagerSettings.segmentLengthFrames = settings.segmentLengthFrames;
-    imagerSettings.segments = settings.segments;
+	imagerSettings.disableRingBuffer = settings.disableRingBuffer;
+	imagerSettings.mode = settings.mode;
+	imagerSettings.prerecordFrames = settings.prerecordFrames;
+	imagerSettings.segmentLengthFrames = settings.segmentLengthFrames;
+	imagerSettings.segments = settings.segments;
 
     //Zero trigger delay for Gated Burst
     if(settings.mode == RECORD_MODE_GATED_BURST)
@@ -449,12 +445,10 @@ UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 
     setFrameSizeWords(imagerSettings.frameSizeWords);
 
-	qDebug() << "About to sensor->loadADCOffsetsFromFile"; sensor->loadADCOffsetsFromFile("a");
+	qDebug() << "About to sensor->loadADCOffsetsFromFile";
+	sensor->loadADCOffsetsFromFile();
 
-	if(imagerSettings.gain >= LUX1310_GAIN_4)
-		loadColGainFromFile("cal/dcgH.bin");
-	else
-		loadColGainFromFile("cal/dcgL.bin");
+	loadColGainFromFile();
 
 	qDebug()	<< "\nSet imager settings:\nhRes" << imagerSettings.hRes
 				<< "vRes" << imagerSettings.vRes
@@ -548,26 +542,17 @@ UInt32 Camera::setDisplaySettings(bool encoderSafe, UInt32 maxFps)
 	if(!sensor->isValidResolution(imagerSettings.stride, imagerSettings.vRes, imagerSettings.hOffset, imagerSettings.vOffset))
 		return CAMERA_INVALID_IMAGER_SETTINGS;
 
-	//Stop live video if running
-	bool running = vinst->isRunning();
-	if(running)
-		vinst->setRunning(false);
-
     setLiveOutputTiming(imagerSettings.hRes, imagerSettings.vRes,
 			imagerSettings.hRes, imagerSettings.vRes,
 			maxFps);
 
-	vinst->setImagerResolution(imagerSettings.hRes, imagerSettings.vRes);
-
-	//Restart live video if it was running
-	if(running)
-		vinst->setRunning(true);
+	vinst->reload();
 
 	return SUCCESS;
 }
 
 void Camera::updateVideoPosition(){
-	vinst->setDisplayWindowStartX(ButtonsOnLeft ^ UpsideDownDisplay); //if both of these are true, the video position should actually be 0
+	//vinst->setDisplayWindowStartX(ButtonsOnLeft ^ UpsideDownDisplay); //if both of these are true, the video position should actually be 0
 	//qDebug()<< "updateVideoPosition() called. ButtonsOnLeft value:  " << ButtonsOnLeft;
 }
 
@@ -910,111 +895,22 @@ bool Camera::getIsRecording(void)
 
 UInt32 Camera::setPlayMode(bool playMode)
 {
-    UInt32 displayCtl;
-
 	if(recording)
 		return CAMERA_ALREADY_RECORDING;
 	if(!recordingData.valid)
 		return CAMERA_NO_RECORDING_PRESENT;
 
-    playbackMode = playMode;
+	playbackMode = playMode;
 
-    displayCtl = gpmc->read32(DISPLAY_CTL_ADDR);
-    if(playMode)
-    {
-	gpmc->write32(DISPLAY_CTL_ADDR, displayCtl | DISPLAY_CTL_SYNC_INH_MASK);
-	setDisplayFrameAddress(getPlayFrameAddr(playFrame));
-		setFocusPeakEnableLL(false);	//Disable focus peaking and zebras
-		setZebraEnableLL(false);
+	if(playMode)
+	{
+		vinst->setPosition(0, 0);
 	}
 	else
-    {
-	gpmc->write32(DISPLAY_CTL_ADDR, displayCtl & ~DISPLAY_CTL_SYNC_INH_MASK);
-		setFocusPeakEnableLL(getFocusPeakEnable());	//Enable focus peaking and zebras if they were enabled previously
-		setZebraEnableLL(getZebraEnable());
+	{
+		vinst->liveDisplay();
 	}
-
-	setDisplayFrameSource(!playMode);
-
 	return SUCCESS;
-}
-
-/* setPlaybackRate
- *
- * Sets the plaback rate for recorded video playback.
- *
- * speed:	positive numbers - Playback rate is 2**(speed - 1) (ie speed = 1 results in normal speed)
- *			negative numbers - Playback rate is one frame every |speed| + 1 frames (ie speed = -1 results in half speed)
- *			0				- Playback is stopped
- * forward:	true plays forward, false plays backwards
- *
- * returns: nothing
- **/
-void Camera::setPlaybackRate(Int32 speed, bool forward)
-{
-	playbackSpeed = speed;
-	playbackForward = forward;
-}
-
-/* processPlay
- *
- * processes playback, adjusting playframe according to the playback rate set in setPlaybackRate
- *
- * returns: nothing
- **/
-void Camera::processPlay(void)
-{
-	UInt32 divisor, multiple;
-
-	if(playbackSpeed != 0)
-	{
-		if(playbackSpeed < 0)
-			divisor = -playbackSpeed + 1;
-		else
-			divisor = 1;
-
-		if(playbackSpeed > 0)
-			multiple = 1 << (playbackSpeed-1);
-		else
-			multiple = 1;
-
-		if(0 == playDivisorCount)
-		{
-			if(playbackForward)
-				playFrame = (playFrame + multiple) % recordingData.totalFrames; //Roll over past the end
-			else
-			{
-				if(multiple > playFrame)
-					playFrame = playFrame - multiple + recordingData.totalFrames; //If going backwards past the end, take care of rolling over
-				else
-					playFrame -= multiple; //Not rolling over
-			}
-			playDivisorCount = divisor - 1;
-		}
-		else
-			playDivisorCount--;
-	}
-	else
-	{
-		//take care of encoder
-		Int32 encMovementLowRes;
-		Int32 encMovement = ui->getEncoderValue(&encMovementLowRes);
-		if(ui->getEncoderSwitch())
-			encMovement *= 10;
-		else
-			encMovement = encMovementLowRes;
-
-		if(encMovement >= 0)
-			playFrame = (playFrame + encMovement) % recordingData.totalFrames; //Roll over past the end
-		else
-		{
-			encMovement = -encMovement;
-			if(encMovement > playFrame)
-				playFrame = playFrame - encMovement + recordingData.totalFrames; //If going backwards past the end, take care of rolling over
-			else
-				playFrame -= encMovement; //Not rolling over
-		}
-	}
 }
 
 /* Camera::writeFrameNumbers
@@ -1269,25 +1165,40 @@ void Camera::computeFPNCorrection()
 void Camera::computeFPNCorrection2(UInt32 framesToAverage, bool writeToFile, bool factory)
 {
 	QSettings appSettings;
-	char filename[1000];
+	//char filename[1000];
 	const char *formatStr;
+	QString filename;
+	std::string fn;
+	QFile fp;
 
-	//Generate the filename for this particular resolution and offset
-	if(factory)
-		formatStr = "cal/factoryFPN/fpn_%dx%doff%dx%d";
-	else
-		formatStr = "userFPN/fpn_%dx%doff%dx%d";
-
-	sprintf(filename, formatStr, getImagerSettings().hRes, getImagerSettings().vRes, getImagerSettings().hOffset, getImagerSettings().vOffset);
-
-	std::string fn = sensor->getFilename(filename, ".raw");
-
-	FILE * fp;
+	// If writing to file - generate the filename and open for writing
 	if(writeToFile)
 	{
-		qDebug() << "Writing FPN to file" << fn.c_str();
-		fp = fopen(fn.c_str(), "wb");
-		if(fp == NULL)
+		//Generate the filename for this particular resolution and offset
+		if(factory) {
+			if (!QDir("./cal").exists())
+				formatStr = "/opt/camera/cal/factoryFPN/fpn_%dx%doff%dx%d";
+			else
+				formatStr = "./cal/factoryFPN/fpn_%dx%doff%dx%d";
+		}			
+		else {
+			if (!QDir("./userFPN").exists())
+				formatStr = "/opt/camera/userFPN/fpn_%dx%doff%dx%d";
+			else
+				formatStr = "./userFPN/fpn_%dx%doff%dx%d";
+		}
+		
+		filename.sprintf(formatStr, getImagerSettings().hRes, getImagerSettings().vRes, getImagerSettings().hOffset, getImagerSettings().vOffset);
+		//sprintf(filename, formatStr, getImagerSettings().hRes, getImagerSettings().vRes, getImagerSettings().hOffset, getImagerSettings().vOffset);
+
+		fn = sensor->getFilename("", ".raw");
+		filename.append(fn.c_str());
+		
+		qDebug("Writing FPN to file %s", filename.toUtf8().data());
+
+		fp.setFileName(filename);
+		fp.open(QIODevice::WriteOnly);
+		if(!fp.isOpen())
 		{
 			qDebug() << "Error: File couldn't be opened";
 			return;
@@ -1344,8 +1255,13 @@ void Camera::computeFPNCorrection2(UInt32 framesToAverage, bool writeToFile, boo
 	qDebug() << "About to write file...";
 	if(writeToFile)
 	{
-		fwrite(buffer, sizeof(buffer[0]), pixelsPerFrame, fp);
-		fclose(fp);
+		quint64 retVal;
+		retVal = fp.write((const char*)buffer, sizeof(buffer[0])*pixelsPerFrame);
+		if (retVal != (sizeof(buffer[0])*pixelsPerFrame)) {
+			qDebug("Error writing FPN data to file: %s", fp.errorString().toUtf8().data());
+		}
+		fp.flush();
+		fp.close();
 	}
 
 	delete buffer;
@@ -1416,38 +1332,35 @@ UInt32 Camera::autoFPNCorrection(UInt32 framesToAverage, bool writeToFile, bool 
 
 }
 
-Int32 Camera::loadFPNFromFile(const char * filename)
+Int32 Camera::loadFPNFromFile(void)
 {
-	char flname[1000];
-	std::string fn;
+	QString filename;
+	QFile fp;
+	UInt32 retVal = SUCCESS;
+	
 	//Generate the filename for this particular resolution and offset
-	sprintf(flname, "userFPN/fpn_%dx%doff%dx%d", getImagerSettings().hRes, getImagerSettings().vRes, getImagerSettings().hOffset, getImagerSettings().vOffset);
-
-	fn = sensor->getFilename(flname, ".raw");
-
-	qDebug() << "Trying to load user FPN from file" << fn.c_str();
-
-	//Check that the file exists, if not, try reading in from the factory cal folder
-	if( access( fn.c_str(), R_OK ) == -1 )
-	{
-		//Generate the filename for this particular resolution and offset
-		sprintf(flname, "cal/factoryFPN/fpn_%dx%doff%dx%d", getImagerSettings().hRes, getImagerSettings().vRes, getImagerSettings().hOffset, getImagerSettings().vOffset);
-
-		fn = sensor->getFilename(flname, ".raw");
-
-		qDebug() << "Trying to load factory FPN from file" << fn.c_str();
-
-		//If the FPN file exists, read it in
-		if( access( fn.c_str(), R_OK ) == -1 )
-			return CAMERA_FILE_NOT_FOUND;
+	filename.sprintf("fpn:fpn_%dx%doff%dx%d", getImagerSettings().hRes, getImagerSettings().vRes, getImagerSettings().hOffset, getImagerSettings().vOffset);
+	
+	std::string fn;
+	fn = sensor->getFilename("", ".raw");
+	filename.append(fn.c_str());
+	QFileInfo fpnResFile(filename);
+	if (fpnResFile.exists() && fpnResFile.isFile()) 
+		fn = fpnResFile.absoluteFilePath().toLocal8Bit().constData();
+	else {
+		qDebug("loadFPNFromFile: File not found %s", filename.toLocal8Bit().constData());
+		return CAMERA_FILE_NOT_FOUND;
 	}
 
 	qDebug() << "Found FPN file" << fn.c_str();
 
-	FILE * fp;
-	fp = fopen(fn.c_str(), "rb");
-	if(!fp)
+	fp.setFileName(filename);
+	fp.open(QIODevice::ReadOnly);
+	if(!fp.isOpen())
+	{
+		qDebug() << "Error: File couldn't be opened";
 		return CAMERA_FILE_ERROR;
+	}
 
 	UInt32 pixelsPerFrame = imagerSettings.stride * imagerSettings.vRes;
 	UInt32 bytesPerFrame = imagerSettings.frameSizeWords * BYTES_PER_WORD;
@@ -1455,12 +1368,17 @@ Int32 Camera::loadFPNFromFile(const char * filename)
 	UInt16 * buffer = new UInt16[pixelsPerFrame];
 	UInt32 * packedBuf32 = new UInt32[bytesPerFrame / 4];
 	UInt8 * packedBuf = (UInt8 *)packedBuf32;
+	
+	UInt32 mx;
 
 	//Read in the active region of the FPN data file.
-	fread(buffer, sizeof(buffer[0]), imagerSettings.stride*imagerSettings.vRes, fp);
-
-	fclose(fp);
-	UInt32 mx = getMaxFPNValue(buffer, pixelsPerFrame);
+	if (fp.read((char*) buffer, imagerSettings.stride*imagerSettings.vRes*sizeof(buffer[0])) < (imagerSettings.stride*imagerSettings.vRes*sizeof(buffer[0]))) {
+		retVal = CAMERA_FILE_ERROR;
+		goto loadFPNFromFileCleanup;
+	}
+	fp.close();
+	
+	mx = getMaxFPNValue(buffer, pixelsPerFrame);
 	imgGain = 4096.0 / (double)(4096 - mx) * IMAGE_GAIN_FUDGE_FACTOR;
 	qDebug() << "imgGain set to" << imgGain << "Max FPN value found" << mx;
 	setCCMatrix();
@@ -1477,15 +1395,16 @@ Int32 Camera::loadFPNFromFile(const char * filename)
 	//Write packed buffer to RAM
 	writeAcqMem(packedBuf32, FPN_ADDRESS, bytesPerFrame);
 
+loadFPNFromFileCleanup:
 	delete buffer;
 	delete packedBuf32;
 
-	return SUCCESS;
+	return retVal;
 }
 
 Int32 Camera::computeColGainCorrection(UInt32 framesToAverage, bool writeToFile)
 {
-
+	UInt32 retVal = SUCCESS;
 	UInt32 pixelsPerFrame = recordingData.is.stride * recordingData.is.vRes;
 	UInt32 bytesPerFrame = recordingData.is.frameSizeWords * BYTES_PER_WORD;
 
@@ -1493,24 +1412,46 @@ Int32 Camera::computeColGainCorrection(UInt32 framesToAverage, bool writeToFile)
 	UInt16 * fpnBuffer = new UInt16[pixelsPerFrame];
 	UInt32 * rawBuffer32 = new UInt32[bytesPerFrame / 4];
 	UInt8 * rawBuffer = (UInt8 *)rawBuffer32;
-	const char * filename;
+
+	QSettings appSettings;
+	QString filename;
+	QFile fp;
+
+	int i;
+	double minVal = 0;
+	double valueSum[16] = {0.0};
+	double gainCorrection[16];
+	
+	// If writing to file - generate the filename and open for writing
+	if(writeToFile)
+	{
+		//Generate the filename for this particular resolution and offset
+		if (!QDir("./cal").exists())
+			filename.append("/opt/camera/cal/");
+		else
+			filename.append("./cal/");
+		
+		if(recordingData.is.gain >= LUX1310_GAIN_4)
+			filename.append("dcgH.bin");
+		else
+			filename.append("dcgL.bin");
+		
+		qDebug("Writing colGain to file %s", filename.toUtf8().data());
+
+		fp.setFileName(filename);
+		fp.open(QIODevice::WriteOnly);
+		if(!fp.isOpen())
+		{
+			qDebug("Error: File couldn't be opened");
+			retVal = CAMERA_FILE_ERROR;
+			goto computeColGainCorrectionCleanup;
+		}
+	}
 
 	recordFrames(1);
 
-	if(recordingData.is.gain >= LUX1310_GAIN_4)
-		filename = "cal/dcgH.bin";
-	else
-		filename = "cal/dcgL.bin";
-
-	FILE * fp;
-	if(writeToFile)
-		fp = fopen(filename, "wb");
-
 	//Zero buffer
-	for(int i = 0; i < pixelsPerFrame; i++)
-	{
-		buffer[i] = 0;
-	}
+	memset(buffer, 0, sizeof(buffer)*sizeof(buffer[0]));
 
 	//Read the FPN frame into a buffer
 	readAcqMem(rawBuffer32,
@@ -1518,7 +1459,7 @@ Int32 Camera::computeColGainCorrection(UInt32 framesToAverage, bool writeToFile)
 			   bytesPerFrame);
 
 	//Retrieve pixels from the raw buffer and sum them
-	for(int i = 0; i < pixelsPerFrame; i++)
+	for(i = 0; i < pixelsPerFrame; i++)
 	{
 		fpnBuffer[i] = readPixelBuf12(rawBuffer, i);
 	}
@@ -1532,19 +1473,16 @@ Int32 Camera::computeColGainCorrection(UInt32 framesToAverage, bool writeToFile)
 				   bytesPerFrame);
 
 		//Retrieve pixels from the raw buffer and sum them
-		for(int i = 0; i < pixelsPerFrame; i++)
+		for(i = 0; i < pixelsPerFrame; i++)
 		{
 			buffer[i] += readPixelBuf12(rawBuffer, i) - fpnBuffer[i];
 		}
 	}
 
-	double valueSum[16] = {0.0};
-	double gainCorrection[16];
-
 	if(isColor)
 	{
 		//Divide by number summed to get average and write to FPN area
-		for(int i = 0; i < recordingData.is.stride; i++)
+		for(i = 0; i < recordingData.is.stride; i++)
 		{
 			bool isGreen = sensor->getFilterColor(i, recordingData.is.vRes/2) == FILTER_COLOR_GREEN;
 			UInt32 y = recordingData.is.vRes/2 + (isGreen ? 0 : 1);	//Zig sag to we only look at green pixels
@@ -1554,14 +1492,13 @@ Int32 Camera::computeColGainCorrection(UInt32 framesToAverage, bool writeToFile)
 	else
 	{
 		//Divide by number summed to get average and write to FPN area
-		for(int i = 0; i < recordingData.is.stride; i++)
+		for(i = 0; i < recordingData.is.stride; i++)
 		{
 			valueSum[i % 16] += (double)buffer[i+recordingData.is.stride*recordingData.is.vRes/2] / (double)framesToAverage;
 		}
 	}
 
-	double minVal = 0;
-	for(int i = 0; i < 16; i++)
+	for(i = 0; i < 16; i++)
 	{
 		//divide by number of values summed to get pixel value
 		valueSum[i] /= ((double)recordingData.is.stride/16.0);
@@ -1572,7 +1509,7 @@ Int32 Camera::computeColGainCorrection(UInt32 framesToAverage, bool writeToFile)
 	}
 
 	qDebug() << "Gain correction values:";
-	for(int i = 0; i < 16; i++)
+	for(i = 0; i < 16; i++)
 	{
 		gainCorrection[i] =  minVal / valueSum[i];
 
@@ -1582,23 +1519,98 @@ Int32 Camera::computeColGainCorrection(UInt32 framesToAverage, bool writeToFile)
 	}
 
 	//Check that values are within a sane range
-	for(int i = 0; i < 16; i++)
+	for(i = 0; i < 16; i++)
 	{
-		if(gainCorrection[i] < LUX1310_GAIN_CORRECTION_MIN || gainCorrection[i] > LUX1310_GAIN_CORRECTION_MAX)
-			return CAMERA_GAIN_CORRECTION_ERROR;
+		if(gainCorrection[i] < LUX1310_GAIN_CORRECTION_MIN || gainCorrection[i] > LUX1310_GAIN_CORRECTION_MAX) {
+			retVal = CAMERA_GAIN_CORRECTION_ERROR;
+			goto computeColGainCorrectionCleanup;
+		}
 	}
 
 	if(writeToFile)
 	{
-		fwrite(gainCorrection, sizeof(gainCorrection[0]), LUX1310_HRES_INCREMENT, fp);
-		fclose(fp);
+		quint64 retVal64;
+		retVal64 = fp.write((const char*)gainCorrection, sizeof(gainCorrection[0])*LUX1310_HRES_INCREMENT);
+		if (retVal64 != (sizeof(gainCorrection[0])*LUX1310_HRES_INCREMENT)) {
+			qDebug("Error writing colGain data to file: %s (%d vs %d)", fp.errorString().toUtf8().data(), (UInt32) retVal64, sizeof(gainCorrection[0])*LUX1310_HRES_INCREMENT);
+		}
+		fp.flush();
+		fp.close();
 	}
 
-	for(int i = 0; i < recordingData.is.stride; i++)
+	for(i = 0; i < recordingData.is.stride; i++)
 		gpmc->write16(DCG_MEM_START_ADDR+2*i, gainCorrection[i % 16]*4096.0);
 
-	delete buffer;
-	delete rawBuffer32;
+computeColGainCorrectionCleanup:
+	delete[] buffer;
+	delete[] fpnBuffer;
+	delete[] rawBuffer32;
+	return retVal;
+}
+
+
+Int32 Camera::loadColGainFromFile(void)
+{
+	double gainCorrection[16];
+	size_t count = 0;
+
+	QString filename;
+	QFile fp;
+	bool colGainError = false;
+	int i;
+	
+	//Generate the filename for this particular resolution and offset
+	if(imagerSettings.gain >= LUX1310_GAIN_4)
+		filename.sprintf("cal:dcgH.bin");
+	else
+		filename.sprintf("cal:dcgL.bin");
+	
+	QFileInfo colGainFile(filename);
+	if (colGainFile.exists() && colGainFile.isFile()) {
+		qDebug("Found colGain file %s", colGainFile.absoluteFilePath().toLocal8Bit().constData());
+	
+		fp.setFileName(filename);
+		fp.open(QIODevice::ReadOnly);
+		if(!fp.isOpen()) {
+			qDebug("Error: File couldn't be opened");
+		}
+	
+		//If the column gain file exists, read it in
+		count = fp.read((char*) gainCorrection, sizeof(gainCorrection[0]) * LUX1310_HRES_INCREMENT);
+		if (count > 0) count /= sizeof(gainCorrection[0]);
+		fp.close();
+
+		if (count < LUX1310_HRES_INCREMENT) {
+			colGainError = true;
+			qDebug("Error: col gain read error");
+		}
+		else {
+			//If all read in gain corrections are not within a sane range, set them all to 1.0
+			for(i = 0; i < 16; i++) {
+				if(gainCorrection[i] < 0.5 || gainCorrection[i] > 2.0) {
+					colGainError = true;
+					qDebug("Error: col gain outside range 0.5 to 2.0");
+					break;
+				}
+			}
+		}
+	}
+	else {
+		qDebug("Error: colGain file %s not found", colGainFile.absoluteFilePath().toLocal8Bit().constData());
+		colGainError = true;
+	}
+
+	if(colGainError) {
+		qDebug("Error while loading cal gain - resetting to 1.0");
+		for(i = 0; i < 16; i++) {
+			gainCorrection[i] = 1.0;
+		}
+	}
+	
+	//Write the values into the display column gain memory
+	for(i = 0; i < LUX1310_MAX_H_RES; i++)
+		writeDGCMem(gainCorrection[i % 16], i);
+
 	return SUCCESS;
 }
 
@@ -1868,60 +1880,9 @@ checkForDeadPixelsCleanup:
 
 
 
-Int32 Camera::loadColGainFromFile(const char * filename)
+
+UInt32 Camera::adcOffsetCorrection(UInt32 iterations, bool writeToFile)
 {
-	double gainCorrection[16];
-	size_t count = 0;
-	//If the column gain file exists, read it in
-	if( access( filename, R_OK ) != -1 )
-	{
-		FILE * fp;
-		fp = fopen(filename, "rb");
-		if(fp)
-		{
-			count = fread(gainCorrection, sizeof(gainCorrection[0]), LUX1310_HRES_INCREMENT, fp);
-			fclose(fp);
-		}
-	}
-
-	//If the file wasn't fully read in, set all gain corrections to 1.0
-	if(LUX1310_HRES_INCREMENT != count)
-	{
-		for(int i = 0; i < 16; i++)
-		{
-			gainCorrection[i] = 1.0;
-		}
-	}
-	else
-	{
-		bool gcOutOfSaneRange = false;
-		//If all read in gain corrections are not within a sane range, set them all to 1.0
-		for(int i = 0; i < 16; i++)
-		{
-			if(gainCorrection[i] < 0.5 || gainCorrection[i] > 2.0)
-				gcOutOfSaneRange = true;
-		}
-
-		if(gcOutOfSaneRange)
-		{
-			for(int i = 0; i < 16; i++)
-			{
-				gainCorrection[i] = 1.0;
-			}
-		}
-	}
-
-	//Write the values into the display column gain memory
-	for(int i = 0; i < LUX1310_MAX_H_RES; i++)
-		writeDGCMem(gainCorrection[i % 16], i);
-
-	return SUCCESS;
-}
-
-UInt32 Camera::adcOffsetCorrection(UInt32 iterations, const char * filename)
-{
-	filename = "a";
-
 	//Zero the offsets
 	for(int i = 0; i < LUX1310_HRES_INCREMENT; i++)
 		sensor->setADCOffset(i, 0);
@@ -1941,10 +1902,9 @@ UInt32 Camera::adcOffsetCorrection(UInt32 iterations, const char * filename)
 	}
 	qDebug() << "Offset correction done";
 
-	if(strlen(filename))
-	{
-		qDebug() << "Saving to file" << filename;
-		sensor->saveADCOffsetsToFile(filename);
+	if (writeToFile) {
+		qDebug() << "Saving to file";
+		sensor->saveADCOffsetsToFile();
 	}
 
 	return SUCCESS;
@@ -2093,29 +2053,37 @@ Int32 Camera::autoColGainCorrection(void)
     _is.temporary = 1;
 
 	retVal = setImagerSettings(_is);
-	if(SUCCESS != retVal)
+	if(SUCCESS != retVal) {
+		qDebug("autoColGainCorrection: Error during setImagerSettings %d", retVal);
 		return retVal;
+	}
 
 	retVal = adjustExposureToValue(CAMERA_MAX_EXPOSURE_TARGET, 100, false);
+	if(SUCCESS != retVal) {
+		qDebug("autoColGainCorrection: Error during adjustExposureToValue %d", retVal);
+		return retVal;
+	}
+
+	retVal = computeColGainCorrection(1, true);
 	if(SUCCESS != retVal)
 		return retVal;
-
-    retVal = computeColGainCorrection(1, true);
-    if(SUCCESS != retVal)
-	return retVal;
 
 	_is.gain = LUX1310_GAIN_4;
 	retVal = setImagerSettings(_is);
-	if(SUCCESS != retVal)
+	if(SUCCESS != retVal) {
+		qDebug("autoColGainCorrection: Error during setImagerSettings(2) %d", retVal);
 		return retVal;
+	}
 
 	retVal = adjustExposureToValue(CAMERA_MAX_EXPOSURE_TARGET, 100, false);
+	if(SUCCESS != retVal) {
+		qDebug("autoColGainCorrection: Error during adjustExposureToValue(2) %d", retVal);
+		return retVal;
+	}
+
+	retVal = computeColGainCorrection(1, true);
 	if(SUCCESS != retVal)
 		return retVal;
-
-    retVal = computeColGainCorrection(1, true);
-    if(SUCCESS != retVal)
-	return retVal;
 
 	return SUCCESS;
 }
@@ -2429,23 +2397,35 @@ Int32 Camera::getRawCorrectedFramesAveraged(UInt32 frame, UInt32 framesToAverage
 
 Int32 Camera::readDCG(double * gainCorrection)
 {
-	const char * filename;
-
-	//Read in column gain values
-	if(recordingData.is.gain >= LUX1310_GAIN_4)
-		filename = "cal/dcgH.bin";
+	size_t count = 0;
+	QString filename;
+	QFile fp;
+	
+	//Generate the filename for this particular resolution and offset
+	if(imagerSettings.gain >= LUX1310_GAIN_4)
+		filename.sprintf("cal:dcgH.bin");
 	else
-		filename = "cal/dcgL.bin";
-
-	size_t count;
-
-	FILE * fp;
-	fp = fopen(filename, "rb");
-	if(!fp)
+		filename.sprintf("cal:dcgL.bin");
+	
+	QFileInfo colGainFile(filename);
+	if (colGainFile.exists() && colGainFile.isFile()) {
+		qDebug("Found colGain file, %s", colGainFile.absoluteFilePath().toLocal8Bit().constData());
+	
+		fp.setFileName(filename);
+		fp.open(QIODevice::ReadOnly);
+		if(!fp.isOpen()) {
+			qDebug("Error: File couldn't be opened");
+		}
+	
+		//If the column gain file exists, read it in
+		count = fp.read((char*) gainCorrection, sizeof(gainCorrection[0]) * LUX1310_HRES_INCREMENT);
+		fp.close();
+		if (count < sizeof(gainCorrection[0]) * LUX1310_HRES_INCREMENT) 
+			return CAMERA_FILE_ERROR;
+	}
+	else {
 		return CAMERA_FILE_ERROR;
-
-	count = fread(gainCorrection, sizeof(gainCorrection[0]), LUX1310_HRES_INCREMENT, fp);
-	fclose(fp);
+	}
 
 	//If the file wasn't fully read in, fail
 	if(LUX1310_HRES_INCREMENT != count)
@@ -2525,7 +2505,6 @@ Int16 getADCOffset(UInt8 channel);
 
 Int32 Camera::startSave(UInt32 startFrame, UInt32 length)
 {
-	Int32 retVal;
 	QSettings appSettings;
 	save_mode_type record_mode;
 
@@ -2534,54 +2513,14 @@ Int32 Camera::startSave(UInt32 startFrame, UInt32 length)
 	case 1:  record_mode = SAVE_MODE_RAW16; break;
 	case 2:  record_mode = SAVE_MODE_RAW16RJ; break;
 	case 3:  record_mode = SAVE_MODE_RAW12; break;
+	case 4:  record_mode = SAVE_MODE_DNG; break;
 	default: record_mode = SAVE_MODE_H264;
 	}
 
-	if(startFrame + length > recordingData.totalFrames)
-		return CAMERA_INVALID_SETTINGS;
-
-	vinst->setRunning(false);
-	delayms(100); //Gstreamer crashes with no delay here, OMX needs time to deinit stuff?
-    setDisplaySettings(true, MAX_RECORD_FRAMERATE);	//Set to encoder safe mode, and increase the framerate.
-
-	//Set the start frame. This will advance by one before recording starts.
-	if(0 == startFrame)
-		playFrame = recordingData.totalFrames-1;	//Setting it to this will cause playback to advance to the first frame on record
-	else
-		playFrame = startFrame - 1;		//Will advance 1 frame before start of record
-
-	if (record_mode == SAVE_MODE_RAW12)   { gpmc->write16(DISPLAY_PIPELINE_ADDR, DISPLAY_PIPELINE_RAW_12BPP); }
-	if (record_mode == SAVE_MODE_RAW16)   { gpmc->write16(DISPLAY_PIPELINE_ADDR, DISPLAY_PIPELINE_RAW_16BPP); }
-	if (record_mode == SAVE_MODE_RAW16RJ) { gpmc->write16(DISPLAY_PIPELINE_ADDR, DISPLAY_PIPELINE_RAW_16BPP | DISPLAY_PIPELINE_RAW_RIGHT_JUSTIFY); }
-
-	retVal = recorder->start((recordingData.is.hRes + 15) & 0xFFFFFFF0, recordingData.is.vRes, length+2, record_mode);
-
-	if(retVal != SUCCESS)
-    {
-		vinst->setRunning(true);
-		if(RECORD_DIRECTORY_NOT_WRITABLE == retVal)
-			return RECORD_DIRECTORY_NOT_WRITABLE;
-		else if(RECORD_FILE_EXISTS == retVal)
-			return RECORD_FILE_EXISTS;
-	else if(RECORD_INSUFFICIENT_SPACE == retVal)
-	    return RECORD_INSUFFICIENT_SPACE;
-		else
-			return RECORD_ERROR;
-	}
-
-    //delayms(100);	//A few frames are skipped without this delay
-
-    /* Start recording by playing the first frame. */
-	sem_wait(&playMutex);
-    setDisplayFrameAddress(playFrame);
-	setPlaybackRate(1, true);
-	sem_post(&playMutex);
-
-	fflush(stdout);
+	setDisplaySettings(true, MAX_RECORD_FRAMERATE);	//Set to encoder safe mode, and increase the framerate.
 
 	recordingData.hasBeenSaved = true;
-
-	return SUCCESS;
+	return vinst->startRecording((recordingData.is.hRes + 15) & 0xFFFFFFF0, recordingData.is.vRes, startFrame, length+2, record_mode);
 }
 
 #define COLOR_MATRIX_MAXVAL	((1 << SENSOR_DATA_WIDTH) * (1 << COLOR_MATRIX_INT_BITS))
@@ -2721,28 +2660,44 @@ round(UInt32  x, UInt32 mult)
 Int32 Camera::blackCalAllStdRes(bool factory)
 {
 	ImagerSettings_t settings;
-	Int32 retVal;
 	//Populate the common resolution combo box from the list of resolutions
-	FILE * fp;
-	char line[30];
+	QFile fp;
+	UInt32 retVal = SUCCESS;
+	QString filename;
+	QByteArray line;
 
 	vinst->setRunning(false);
 
-	fp = fopen("resolutions", "r");
-	if (fp == NULL)
+	filename.append("camApp:resolutions");
+	QFileInfo resolutionsFile(filename);
+	if (resolutionsFile.exists() && resolutionsFile.isFile()) {
+		fp.setFileName(filename);
+		fp.open(QIODevice::ReadOnly);
+		if(!fp.isOpen()) {
+			qDebug("Error: resolutions file couldn't be opened");
+			return CAMERA_FILE_ERROR;
+		}
+	}
+	else {
+		qDebug("Error: resolutions file isn't present");
 		return CAMERA_FILE_ERROR;
+	}
 
+	
 	int g;
 
 	//For each gain
 	for(g = LUX1310_GAIN_1; g <= LUX1310_GAIN_16; g++)
 	{
-		retVal = fseek(fp, 0, SEEK_SET);
-		if (retVal != 0) {
+		if (!fp.reset()) {
 			return CAMERA_FILE_ERROR;
 		}
-		while(fgets(line, 30, fp) != NULL)
-		{	//For each resolution in the resolution list
+		while(true) {
+			line = fp.readLine(30);
+			if (line.isEmpty() || line.isNull())
+				break;
+			
+			//For each resolution in the resolution list
 			//Get the resolution and compute the maximum frame rate to be appended after the resolution
 			int hRes, vRes;
 
@@ -2753,15 +2708,15 @@ Int32 Camera::blackCalAllStdRes(bool factory)
 			settings.hOffset = round((sensor->getMaxHRes() - hRes) / 2, sensor->getHResIncrement());
 			settings.vOffset = round((sensor->getMaxVRes() - vRes) / 2, sensor->getVResIncrement());
 			settings.gain = g;
-	    settings.recRegionSizeFrames = getMaxRecordRegionSizeFrames(settings.hRes, settings.vRes);
+			settings.recRegionSizeFrames = getMaxRecordRegionSizeFrames(settings.hRes, settings.vRes);
 			settings.period = sensor->getMinFramePeriod(hRes, vRes);
 			settings.exposure = sensor->getMaxExposure(settings.period);
-	    settings.disableRingBuffer = 0;
-	    settings.mode = RECORD_MODE_NORMAL;
-	    settings.prerecordFrames = 1;
-	    settings.segmentLengthFrames = imagerSettings.recRegionSizeFrames;
-	    settings.segments = 1;
-	    settings.temporary = 0;
+			settings.disableRingBuffer = 0;
+			settings.mode = RECORD_MODE_NORMAL;
+			settings.prerecordFrames = 1;
+			settings.segmentLengthFrames = imagerSettings.recRegionSizeFrames;
+			settings.segments = 1;
+			settings.temporary = 0;
 
 			retVal = setImagerSettings(settings);
 			if(SUCCESS != retVal)
@@ -2777,7 +2732,7 @@ Int32 Camera::blackCalAllStdRes(bool factory)
 	}
 
 
-	fclose(fp);
+	fp.close();
 
 	settings.hRes = LUX1310_MAX_H_RES;		//pixels
 	settings.vRes = LUX1310_MAX_V_RES;		//pixels
@@ -2785,21 +2740,27 @@ Int32 Camera::blackCalAllStdRes(bool factory)
 	settings.hOffset = 0;	//Active area offset from left
 	settings.vOffset = 0;		//Active area offset from top
 	settings.gain = LUX1310_GAIN_1;
-    settings.recRegionSizeFrames = getMaxRecordRegionSizeFrames(settings.hRes, settings.vRes);
+	settings.recRegionSizeFrames = getMaxRecordRegionSizeFrames(settings.hRes, settings.vRes);
 	settings.period = sensor->getMinFramePeriod(LUX1310_MAX_H_RES, LUX1310_MAX_V_RES);
 	settings.exposure = sensor->getMaxExposure(settings.period);
 
 	retVal = setImagerSettings(settings);
-	if(SUCCESS != retVal)
+	if(SUCCESS != retVal) {
+		qDebug("blackCalAllStdRes: Error during setImagerSettings %d", retVal);
 		return retVal;
+	}
 
-    retVal = setDisplaySettings(false, MAX_LIVE_FRAMERATE);
-	if(SUCCESS != retVal)
+	retVal = setDisplaySettings(false, MAX_LIVE_FRAMERATE);
+	if(SUCCESS != retVal) {
+		qDebug("blackCalAllStdRes: Error during setDisplaySettings %d", retVal);
 		return retVal;
+	}
 
-	retVal = loadFPNFromFile(FPN_FILENAME);
-	if(SUCCESS != retVal)
+	retVal = loadFPNFromFile();
+	if(SUCCESS != retVal) {
+		qDebug("blackCalAllStdRes: Error during loadFPNFromFile %d", retVal);
 		return retVal;
+	}
 
 	vinst->setRunning(true);
 
@@ -2811,11 +2772,11 @@ Int32 Camera::blackCalAllStdRes(bool factory)
 
 Int32 Camera::takeWhiteReferences(void)
 {
-	Int32 retVal;
+	Int32 retVal = SUCCESS;
 	ImagerSettings_t _is;
 	UInt32 g;
-	FILE * fp;
-	char filename[1000];
+	QFile fp;
+	QString filename;
 	const char * gName;
 	double exposures[] = {0.000244141,
 						  0.000488281,
@@ -2838,13 +2799,13 @@ Int32 Camera::takeWhiteReferences(void)
 	_is.vOffset = 0;		//Active area offset from top
 	_is.exposure = 400000;	//10ns increments
 	_is.period = 500000;		//Frame period in 10ns increments
-    _is.recRegionSizeFrames = getMaxRecordRegionSizeFrames(_is.hRes, _is.vRes);
-    _is.disableRingBuffer = 0;
-    _is.mode = RECORD_MODE_NORMAL;
-    _is.prerecordFrames = 1;
-    _is.segmentLengthFrames = imagerSettings.recRegionSizeFrames;
-    _is.segments = 1;
-    _is.temporary = 0;
+	_is.recRegionSizeFrames = getMaxRecordRegionSizeFrames(_is.hRes, _is.vRes);
+	_is.disableRingBuffer = 0;
+	_is.mode = RECORD_MODE_NORMAL;
+	_is.prerecordFrames = 1;
+	_is.segmentLengthFrames = imagerSettings.recRegionSizeFrames;
+	_is.segments = 1;
+	_is.temporary = 0;
 
 	UInt32 pixelsPerFrame = _is.stride * _is.vRes;
 
@@ -2864,17 +2825,11 @@ Int32 Camera::takeWhiteReferences(void)
 
 		retVal = setImagerSettings(_is);
 		if(SUCCESS != retVal)
-		{
-			delete frameBuffer;
-			return retVal;
-		}
+			goto cleanupTakeWhiteReferences;
 
 		retVal = adjustExposureToValue(4096*3/4);
 		if(SUCCESS != retVal)
-		{
-			delete frameBuffer;
-			return retVal;
-		}
+			goto cleanupTakeWhiteReferences;
 
 		nomExp = imagerSettings.exposure;
 
@@ -2906,37 +2861,45 @@ Int32 Camera::takeWhiteReferences(void)
 			//Record frames
 			retVal = recordFrames(16);
 			if(SUCCESS != retVal)
-			{
-				delete frameBuffer;
-				return retVal;
-			}
+				goto cleanupTakeWhiteReferences;
 
 			//Get the frames averaged and save to file
 			qDebug() << "Doing getRawCorrectedFramesAveraged()";
 			retVal = getRawCorrectedFramesAveraged(0, 16, frameBuffer);
 			if(SUCCESS != retVal)
-			{
-				delete frameBuffer;
-				return retVal;
-			}
+				goto cleanupTakeWhiteReferences;
 
 
 			//Generate the filename for this particular resolution and offset
-			sprintf(filename, "userFPN/wref_%s_LV%d.raw", gName, i+1);
+			filename.sprintf("userFPN/wref_%s_LV%d.raw", gName, i+1);
 
-			fp = fopen(filename, "wb");
-			if(NULL == fp)
-			{
-				delete frameBuffer;
-				return CAMERA_FILE_ERROR;
+			if (!QDir("./userFPN").exists())
+				filename.sprintf("/opt/camera/userFPN/wref_%s_LV%d.raw", gName, i+1);
+			else
+				filename.sprintf("./userFPN/wref_%s_LV%d.raw", gName, i+1);
+
+			qDebug("Writing WhiteReference to file %s", filename.toUtf8().data());
+
+			fp.setFileName(filename);
+			fp.open(QIODevice::WriteOnly);
+			if(!fp.isOpen()) {
+				qDebug() << "Error: File couldn't be opened";
+				retVal = CAMERA_FILE_ERROR;
+				goto cleanupTakeWhiteReferences;
 			}
-			fwrite(frameBuffer, sizeof(frameBuffer[0]), pixelsPerFrame, fp);
-			fclose(fp);
+
+			retVal = fp.write((const char*)frameBuffer, sizeof(frameBuffer[0])*pixelsPerFrame);
+			if (retVal != (sizeof(frameBuffer[0])*pixelsPerFrame)) {
+				qDebug("Error writing WhiteReference data to file: %s", fp.errorString().toUtf8().data());
+			}
+			fp.flush();
+			fp.close();
 		}
 	}
 
+cleanupTakeWhiteReferences:
 	delete frameBuffer;
-	return SUCCESS;
+	return retVal;
 }
 
 bool Camera::getButtonsOnLeft(void){
@@ -2985,9 +2948,9 @@ bool Camera::getFocusPeakEnable(void)
 void Camera::setFocusPeakEnable(bool en)
 {
 	QSettings appSettings;
-	setFocusPeakEnableLL(en);
 	focusPeakEnabled = en;
 	appSettings.setValue("camera/focusPeak", en);
+	vinst->setDisplayOptions(zebraEnabled, focusPeakEnabled);
 }
 
 int Camera::getFocusPeakColor(){
@@ -3011,9 +2974,9 @@ bool Camera::getZebraEnable(void)
 void Camera::setZebraEnable(bool en)
 {
 	QSettings appSettings;
-	setZebraEnableLL(en);
 	zebraEnabled = en;
 	appSettings.setValue("camera/zebra", en);
+	vinst->setDisplayOptions(zebraEnabled, focusPeakEnabled);
 }
 
 
@@ -3054,6 +3017,18 @@ bool Camera::get_autoRecord() {
 }
 
 
+void Camera::set_demoMode(bool state) {
+	QSettings appSettings;
+	demoMode = state;
+	appSettings.setValue("camera/demoMode", state);
+}
+
+bool Camera::get_demoMode() {
+	QSettings appSettings;
+	return appSettings.value("camera/demoMode", false).toBool();
+}
+
+
 void* recDataThread(void *arg)
 {
     Camera * cInst = (Camera *)arg;
@@ -3068,9 +3043,16 @@ void* recDataThread(void *arg)
 	{
 		if(!cInst->getRecDataFifoIsEmpty())
 		{
-			cInst->recData[cInst->recDataPos].blockStart = cInst->readRecDataFifo();
-			cInst->recData[cInst->recDataPos].blockEnd = cInst->readRecDataFifo();
-			cInst->recData[cInst->recDataPos].blockLast = cInst->readRecDataFifo();
+			UInt32 start = cInst->readRecDataFifo();
+			UInt32 end = cInst->readRecDataFifo();
+			UInt32 last = cInst->readRecDataFifo();
+			UInt32 offset = ((start + last) >= end) ? 0 : last;
+			cInst->recData[cInst->recDataPos].blockStart = start;
+			cInst->recData[cInst->recDataPos].blockEnd = end;
+			cInst->recData[cInst->recDataPos].blockLast = last;
+
+			cInst->vinst->addRegion(start, (end - start), offset);
+
 			qDebug() << "Read something from recDataFifo";
 
 			//Keep track of number of records
@@ -3104,37 +3086,11 @@ void* recDataThread(void *arg)
 	pthread_exit(NULL);
 }
 
-void frameCallback(void * arg)
-{
-	Camera * cInst = (Camera *)arg;
-	if(cInst->playbackMode)
-    {
-	sem_wait(&cInst->playMutex);
-
-	/*
-	 * Wait for flow control issues to clear before the next frame.
-	 */
-	while (!cInst->recorder->flowReady()) {
-			delayms(10);
-	}
-
-	cInst->processPlay();
-
-	cInst->setDisplayFrameAddress(cInst->getPlayFrameAddr(cInst->playFrame));
-
-	cInst->recorder->debug();
-
-		sem_post(&cInst->playMutex);
-	}
-}
-
 void recordEosCallback(void * arg)
 {
 	Camera * camera = (Camera *)arg;
-	camera->setPlaybackRate(0, true);
-	camera->recorder->stop();
-    camera->setDisplaySettings(false, MAX_LIVE_FRAMERATE);
-	camera->gpmc->write16(DISPLAY_PIPELINE_ADDR, 0x0000); // turn off raw/bipass modes, if they're set
+	//camera->setPlaybackRate(0, true);
+	camera->setDisplaySettings(false, MAX_LIVE_FRAMERATE);
 	camera->vinst->setRunning(true);
 	fflush(stdout);
 }
@@ -3144,8 +3100,7 @@ void recordErrorCallback(void * arg, char * message)
 	Camera * camera = (Camera *)arg;
 	(void)message; // get rid of the warning
 	//camera->setPlaybackRate(0, true);
-    camera->setDisplaySettings(false, MAX_LIVE_FRAMERATE);
-	camera->gpmc->write16(DISPLAY_PIPELINE_ADDR, 0x0000); // turn off raw/bipass modes, if they're set
+	camera->setDisplaySettings(false, MAX_LIVE_FRAMERATE);
 	// camera->vinst->setRunning(true);
 	fflush(stdout);
 }

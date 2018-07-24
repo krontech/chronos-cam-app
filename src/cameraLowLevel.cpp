@@ -283,8 +283,6 @@ bool Camera::readIsColor(void)
 }
 
 
-
-
 bool Camera::getFocusPeakEnableLL(void)
 {
 	return gpmc->read32(DISPLAY_CTL_ADDR) & DISPLAY_CTL_FOCUS_PEAK_EN_MASK;
@@ -303,7 +301,6 @@ UInt8 Camera::getFocusPeakColorLL(void)
 {
 	return (gpmc->read32(DISPLAY_CTL_ADDR) & DISPLAY_CTL_FOCUS_PEAK_COLOR_MASK) >> DISPLAY_CTL_FOCUS_PEAK_COLOR_OFFSET;
 }
-
 
 
 void Camera::setFocusPeakColorLL(UInt8 color)
@@ -335,7 +332,6 @@ UInt32 Camera::getFocusPeakThresholdLL(void)
 {
 	return gpmc->read32(DISPLAY_PEAKING_THRESH_ADDR);
 }
-
 
 
 
