@@ -227,7 +227,7 @@ present.
     * The saved file should have a name of the form "vid_YYYY-MM-DD_HH-MM-SS.mp4", displaying the time at which
         the file was saved (this may differ from when the video was recorded).
     * When opened with a video player, the video should match the selected excerpt on the camera.
-    * The video should play smoothly from start to end without any dropped frames, encoding artifacts, or torn frames.
+    * The video should play smoothly from start to end without any dropped frames, corrupted frames, encoding artifacts, or torn frames.
     * No artifacts of focus peaking or exposure aids (zebra stripes) should be present.
 11. Examine the video metadata, which should should show:
     * Dimensions: 1280x1024

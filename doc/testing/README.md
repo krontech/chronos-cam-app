@@ -8,7 +8,7 @@ Chronos 1.4 Testing Proceedures
 | Verify Default Trigger Settings   |           |
 | Verify Default Utility Settings   |           |
 | Simple Recording Test             |           |
-| Simple Payback Test               |           |
+| Simple Playback Test              |           |
 | Simple Saving Test                |           |
 
 | [Video Save Tests](VIDEOSAVE.md)  | Pass/Fail |
