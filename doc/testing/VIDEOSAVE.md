@@ -7,7 +7,7 @@ specified, recordings should be taken at 1280x1024 and a speed of 1057fps.
 
 H.264 Feature Tests
 -------------------
-1. From the payback window, select an approximately 360-frame region of the video to be recorded
+1. From the playback window, select an approximately 360-frame region of the video to be recorded
     using the "Mark Start" and "Mark End" buttons, then tap the Settings button to open the save
     settings window.
 2. Set the save format to "H.264" and set the framerate to 60fps.
@@ -21,9 +21,9 @@ H.264 Feature Tests
     * When the maximum bitrate exceeds 23.59Mbps, the text should read "23.59Mbps @ 1280x1024 60fps"
     * When the maximum bitrate is less than 23.59Mbps, the text should display the selected maximum.
     * The maximum bitrate should be limited to 60Mbps.
-5. Select a maximum bitrate of 20Mbps, and then tap the up and down arrows "saved file framerate" box to adjust the framerate.
+5. Select a maximum bitrate of 30Mbps, and then tap the up and down arrows "saved file framerate" box to adjust the framerate.
     * When the framerate reaches 50fps, the text should display "19.66Mbps @ 1280x1024 50fps"
-    * When the framerate is decreased bewlow 50fps, the displayed framerate should scale down linearly with fps.
+    * When the framerate is decreased below 50fps, the displayed framerate should scale down linearly with fps.
 6. Select a framerate of 30fps.
     * The text should now display "11.80Mbps @ 1280x1024 30fps"
 7. Tap the "close" button to exit the save settings window, and then hit "Save" to record the
@@ -82,9 +82,9 @@ Raw Recording Test
 Abort Recording Test
 --------------------
 1. From the playback window, select a video select the entire video to be recorded using the "Mark Start" and
-    "Mark End" buttons, ensuring that this consists of at least 4000 frames., then tap the Settings button to
+    "Mark End" buttons, ensuring that this consists of at least 4000 frames, then tap the Settings button to
     open the save settings window.
-2. Insert a fast media device and select the H.264 encoding format, at 0.7 bits per pixel and 60fps.
+2. Insert a fast media device and select the H.264 encoding format, at 0.7 bits per pixel, max bitrate of 40 Mbps and 60fps.
 3. Tap the "Close" button to exit the save settings window, and then the "Save" button to begin recording.
     * The playback speed should average around 60fps on a fast storage medium.
     * The Save button should have its text replaced with "Abort Save"
@@ -119,9 +119,9 @@ and save the file to a fast storage medium using H.264 encoding.
 and save the file to a fast storage medium using H.264 encoding.
     * The play rate should average close to 60fps while saving the video file.
 
-Filesystem Limits
+FAT32 Filesystem Limits
 ----------------
-TODO: Instructions to open the vide file in a raw editing program.
+TODO: Instructions to open the video file in a raw editing program.
 
 1. Ensure that the SD card has been formatted as FAT32 and at least 8GB of free space before starting this test.
 2. Record a scene at a resolution of 1280x1024, capturing at least 2000 frames. Select a region of 1700 frames
@@ -132,12 +132,12 @@ will exceed the FAT32 file size limitation.
 3. Tap the 'Save' button to try and save the file.
     * A dialog box should pop up warning the user that the file size is bigger than 4GB.
 4. Tap the "No" button to close the pop up warning.
-    * The camera should not attempt to save the vide file.
+    * The camera should not attempt to save the video file.
 5. Tap the 'Settings' button to open the Save settings window. Select "Raw 12bit packed" as the save format and
 tap the close button to exit the save settings window. This should yeild a file size of approximately 3.11GiB,
 which should be supported by FAT32.
 6. Tap the 'Save' button to try and save the file.
-    * The camera should beging recording the file to the SD card. Depending on the performance of the card, the
+    * The camera should begin recording the file to the SD card. Depending on the performance of the card, the
     camera should average around 4-5fps while saving the video file.
 7. Wait for the video to complete saving, and then select a new video region of approximately 1600 frames in
 length using the Mark Start and Mark End buttons.
@@ -208,4 +208,4 @@ the close button to exit the save settings window.
 
 eSATA Interface
 ---------------
-TODO: Placeholder for mode advanced storage tests
+TODO: Placeholder for more advanced storage tests
