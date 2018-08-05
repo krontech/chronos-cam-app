@@ -30,8 +30,6 @@ namespace Ui {
 class CamMainWindow;
 }
 
-class CamAutoHide;
-
 class CamMainWindow : public QDialog
 {
 	Q_OBJECT
@@ -83,7 +81,6 @@ private:
 	void updateRecordingState(bool recording);
 	void updateCurrentSettingsLabel(void);
 	Ui::CamMainWindow *ui;
-	CamAutoHide * autohide;
 	StatusWindow * sw;
 	QTimer *timer;
 	bool lastShutterButton;

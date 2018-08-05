@@ -48,48 +48,6 @@ Video * vinst;
 UserInterface * userInterface;
 bool focusAidEnabled = false;
 
-/**********************************************************
- * QWS Screensaver helper for interactive window hiding.
- **********************************************************
- */
-#ifdef Q_WS_QWS
-#include <QWSScreenSaver>
-
-class CamAutoHide : public QWSScreenSaver
-{
-public:
-	explicit CamAutoHide(class CamMainWindow *window);
-	void restore(void);
-	bool save(int level);
-
-private:
-	CamMainWindow *window;
-};
-
-CamAutoHide::CamAutoHide(CamMainWindow *mw)
-{
-	window = mw;
-}
-
-void CamAutoHide::restore(void)
-{
-	window->setVisible(true);
-}
-
-bool CamAutoHide::save(int level)
-{
-	if (!window->isActiveWindow()) {
-		return false;
-	}
-	window->setVisible(false);
-	return true;
-}
-#endif /* Q_WS_QWS */
-
-/**********************************************************
- * Main Window Class
- **********************************************************
- */
 CamMainWindow::CamMainWindow(QWidget *parent) :
 	QDialog(parent),
 	ui(new Ui::CamMainWindow)
@@ -135,12 +93,6 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	bmsFifoFD = ::open(myfifo, O_RDONLY|O_NONBLOCK);
 
 	sw = new StatusWindow;
-
-#ifdef Q_WS_QWS
-	autohide = new CamAutoHide(this);
-	QWSServer::setScreenSaver(autohide);
-	QWSServer::setScreenSaverInterval(10000);
-#endif
 
 	updateCurrentSettingsLabel();
 
@@ -195,7 +147,6 @@ CamMainWindow::~CamMainWindow()
 	timer->stop();
 	::close(bmsFifoFD);
 	delete sw;
-	delete autohide;
 
 	delete ui;
 	if(camera->vinst->isRunning())

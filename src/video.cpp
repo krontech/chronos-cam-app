@@ -1,9 +1,3 @@
-
-#include <QObject>
-#include <QTimer>
-
-#include "util.h"
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -22,6 +16,7 @@
 #include <poll.h>
 #include "video.h"
 #include "camera.h"
+#include "util.h"
 
 void catch_sigchild(int sig) { /* nop */ }
 
@@ -384,12 +379,8 @@ Video::Video() : iface("com.krontech.chronos.video", "/com/krontech/chronos/vide
 	pid = -1;
 	running = false;
 
-	/* Use the full width with QWS because widgets can autohide. */
-#ifdef Q_WS_QWS
-	displayWindowXSize = 800;
-#else
+	/* Default video geometry */
 	displayWindowXSize = 600;
-#endif
 	displayWindowYSize = 480;
 	displayWindowXOff = 0;
 	displayWindowYOff = 0;
