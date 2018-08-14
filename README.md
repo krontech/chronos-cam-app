@@ -88,7 +88,7 @@ To solve a "tslib functionality test failed" error, you'll need to modify the in
 
 After configuration is complete, make and install QT by running `make && make install`. This will take 1 to 4ish hours, depending on how fast your computer is.
 
-# ![qt-icon](/doc/qt_icon.png) Setting up QT Creator
+# ![qt-icon](/doc/images/qt_icon.png) Setting up QT Creator
 To actually *build* the Chronos Cam App, we'll use QT Creator. (Which we installed at the beginning of this document.)
 
 To set up QT creator, the first step is to
@@ -97,7 +97,7 @@ add the ARM cross compiler to QT. Run the program, and navigate to `Tools -> Opt
 `Compilers` tab. The path of your G++ and GCC compiler can be found by
 running the commands `which arm-linux-gnueabi-g++` and `which arm-linux-gnueabi-gcc` respectively. 
 
-![QT Creator compiler configuration](/doc/qtcreator_compilers.png)
+![QT Creator compiler configuration](/doc/images/qtcreator_compilers.png)
 
 The second step requires adding our cross-compiled build of QT 4.8 to
 QT Creator. Select the `QT Versions` tab from the options, and add a new
@@ -105,14 +105,14 @@ QT version. You should only need to locate the `qmake` tool, which should
 be in the `install/bin` directory in the prefix that was provided while
 configuring QT.
 
-![QT Creator QT version configuration](/doc/qtcreator_qtversion.png)
+![QT Creator QT version configuration](/doc/images/qtcreator_qtversion.png)
 
 This step is optional, but to add debugging support, select the `Debuggers`
 tab and add the `gdb-multiarch` cross debugger to QT creator. You can find
 the path of the debugger by running the command `which gdb-multiarch` from
 a console.
 
-![QT Creator debugger configuration](/doc/qtcreator_debuggers.png)
+![QT Creator debugger configuration](/doc/images/qtcreator_debuggers.png)
 
 To add the Chronos camera as a debugging target, select `Devices` on the
 left column and click the `Add` button to add a new target. Select the
@@ -124,7 +124,7 @@ for the connection details, which should be set as follows:
  * Authentication type: Password
  * User's Password: Your Awesome Super Secret Root Password On the Camera
 
-![Chronos SSH login and kill](/doc/qtcreator_device_wizard.png)
+![Chronos SSH login and kill](/doc/images/qtcreator_device_wizard.png)
 
 (If you want, you may plug your camera into your laptop with a Mini-USB cable now. This is not required, QT Creator will just let you know it can't connect if you don't.)
 
@@ -146,9 +146,9 @@ We can now close the Options dialog.
 
 
 
-![QT Creator QT kit](/doc/qtcreator_kits.png)
+![QT Creator QT kit](/doc/images/qtcreator_kits.png)
 
-# ![build-icon](/doc/build_icon.png) Building the Camera Application
+# ![build-icon](/doc/images/build_icon.png) Building the Camera Application
 
 Clone this repository (`git clone https://github.com/krontech/chronos-cam-app.git`) in `~/Work`.
 
@@ -158,7 +158,7 @@ file `~/Work/chronos-cam-app/src/camApp.pro`. If this is your first time opening
 project, you will need to set up the kits by deselecting the default
 `Desktop` kit, and selecting the `Camera` kit that we set up earlier.
 
-![QT Creator project configuration](/doc/qtcreator_project.png)
+![QT Creator project configuration](/doc/images/qtcreator_project.png)
 
 Click on the  `Configure Project` button to select the kits. Click the "Run" toggle, in the "Camera" Build/Run box near the top. Delete the step 'check for available disk space', so only 'Upload files via SFTP' is left. Now, add a new step, 'run custom remote command'. Set it to `killall camApp; sleep 0.8`, and position it above the 'Upload files via SFTP' step. This command will gracefully close the app, so we don't mess up the graphics driver state.
 
@@ -168,7 +168,7 @@ Finally, we build the application by navigating to `Build -> Build Project "camA
 or clicking on the hammer icon in the bottom left corner. When complete
 the application will be output as `build-camApp-Camera-Debug/camApp`
 
-# ![debug-icon](/doc/debug_icon.png) Debugging the Camera Application
+# ![debug-icon](/doc/images/debug_icon.png) Debugging the Camera Application
 Debugging the camera application is done using a remote GDB connection to
 the Linux operating system running on the Chronos camera. The easiest way
 to establish this connection is to connect the Mini-USB on the Chronos to
@@ -187,7 +187,7 @@ command `ssh -oKexAlgorithms=+diffie-hellman-group1-sha1 root@192.168.12.1`.
 Once you are logged into the camera, run the command `killall camApp` to
 terminate the `camApp` process.
 
-![Chronos SSH login and kill](/doc/chronos_ssh_login.png)
+![Chronos SSH login and kill](/doc/images/chronos_ssh_login.png)
 
 As a word of caution, the OMX video coprocessor on the DM8148 SoC is quite
 fragile and can become deadlocked if the camera application is not shutdown
@@ -202,7 +202,7 @@ the compiled `camApp` to the camera, and start it under a remote GDB server.
 When the debugger is running, the play button will be replaced by a blue
 Pause button with a bug icon.
 
-![Chronos SSH login and kill](/doc/qtcreator_live_debug.png)
+![Chronos SSH login and kill](/doc/images/qtcreator_live_debug.png)
 
 [1]: In a future update of the camera, SSH access will be disabled until a
 root password is configured via the camera application. This is intended
