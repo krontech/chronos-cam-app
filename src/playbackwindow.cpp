@@ -176,6 +176,10 @@ void playbackWindow::on_cmdSave_clicked()
 				estimatedSize *= 12;
 				estimatedSize += (4096<<8);
 				break;
+			case SAVE_MODE_TIFF:
+				estimatedSize *= 24;
+				estimatedSize += (4096<<8);
+				break;
 
 			default:
 				// unknown format

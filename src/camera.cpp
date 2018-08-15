@@ -2512,6 +2512,7 @@ Int32 Camera::startSave(UInt32 startFrame, UInt32 length)
 	case 2:  record_mode = SAVE_MODE_RAW16RJ; break;
 	case 3:  record_mode = SAVE_MODE_RAW12; break;
 	case 4:  record_mode = SAVE_MODE_DNG; break;
+	case 5:  record_mode = SAVE_MODE_TIFF; break;
 	default: record_mode = SAVE_MODE_H264;
 	}
 
