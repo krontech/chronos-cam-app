@@ -449,6 +449,7 @@ void playbackWindow::checkForSaveDone()
 		or if the save button is not enabled(unsafe to abort at that time)(except if save mode is RAW)*/
 		bool insufficientFreeSpaceCurrent = (MIN_FREE_SPACE > statvfsBuf.f_bsize * (uint64_t)statvfsBuf.f_bfree);
 		if(insufficientFreeSpaceCurrent &&
+		   insufficientFreeSpaceEstimate &&
 		   !saveAborted &&
 				(ui->cmdSave->isEnabled() ||
 				getSaveFormat() != SAVE_MODE_H264)
