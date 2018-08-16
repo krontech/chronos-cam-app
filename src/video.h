@@ -100,7 +100,6 @@ public:
 	void setDisplayOptions(bool zebra, bool peaking);
 	void liveDisplay(void);
 	VideoState getStatus(VideoStatus *st);
-	double getFramerate();
 
 	CameraErrortype startRecording(UInt32 sizeX, UInt32 sizeY, UInt32 start, UInt32 length, save_mode_type save_mode);
 	CameraErrortype stopRecording(void);

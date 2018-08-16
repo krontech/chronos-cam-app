@@ -138,7 +138,7 @@ void playbackWindow::on_cmdSave_clicked()
 	strcpy(parentPath, camera->vinst->fileDirectory);
 	strcat(parentPath, "/..");
 
-	if(!camera->vinst->getStatus(NULL) != VIDEO_STATE_RECORDING)
+	if(camera->vinst->getStatus(NULL) != VIDEO_STATE_RECORDING)
 	{
 		//If no directory set, complain to the user
 		if(strlen(camera->vinst->fileDirectory) == 0)

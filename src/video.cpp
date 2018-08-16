@@ -357,7 +357,7 @@ CameraErrortype Video::stopRecording()
 	QVariantMap map;
 
 	pthread_mutex_lock(&mutex);
-	reply = iface.status();
+	reply = iface.stop();
 	reply.waitForFinished();
 	pthread_mutex_unlock(&mutex);
 	if (reply.isError()) {
@@ -365,12 +365,6 @@ CameraErrortype Video::stopRecording()
 	}
 	map = reply.value();
 	return SUCCESS;
-}
-
-double Video::getFramerate()
-{
-	/* TODO: Implement Me! */
-	return 3.14159;
 }
 
 Video::Video() : iface("com.krontech.chronos.video", "/com/krontech/chronos/video", QDBusConnection::systemBus())
