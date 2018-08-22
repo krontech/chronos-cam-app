@@ -9,7 +9,7 @@ supported on Ubuntu 16.04 LTS. On a base Ubuntu installations, we will also need
 to add the following packages:
 
 ```
-    sudo apt install qtcreator gcc-arm-linux-gnueabi g++-arm-linux-gnueabi gdb-multiarch git
+    sudo apt install qtcreator gcc-arm-linux-gnueabi g++-arm-linux-gnueabi gdb-multiarch libdbus-1-dev git
 ```
 
 (Newer version of Ubuntu can also be used to build the camera application, but the instructions
@@ -126,13 +126,16 @@ for the connection details, which should be set as follows:
 
 ![Chronos SSH login and kill](/doc/images/qtcreator_device_wizard.png)
 
-(If you want, you may plug your camera into your laptop with a Mini-USB cable now. This is not required, QT Creator will just let you know it can't connect if you don't.)
+(If you want, you may plug your camera into your laptop with a Mini-USB cable
+now. This is not required, QT Creator will just let you know it can't connect
+if you don't.)
 
 Click on `Next` and `Finish` to add the new debugging target to QT creator.
 
 Finally, a kit must be selected for the Chronos camera, which uses the
-compiler and QT version that we set up earlier. Still in the Options dialog, select the `Kits` tab
-to add a new kit for the camera. The following settings are required:
+compiler and QT version that we set up earlier. Still in the `Options` dialog,
+select `Build & Run` from the left column, and click on the `Kits` tab to add
+a new kit for the camera. The following settings are required:
 * Device type: Generic Linux Device
 * Sysroot: Path to the `targetfs` directory in the Chronos SDK
 * Compiler: The G++ cross compiler we set up earlier.
@@ -144,8 +147,6 @@ For debugging, you will also want to configure:
 
 We can now close the Options dialog.
 
-
-
 ![QT Creator QT kit](/doc/images/qtcreator_kits.png)
 
 # ![build-icon](/doc/images/build_icon.png) Building the Camera Application
@@ -154,15 +155,29 @@ Clone this repository (`git clone https://github.com/krontech/chronos-cam-app.gi
 
 Open the Chronos camera application from by navigating to
 `File -> Open File or Project` and selecting the QT creator project
-file `~/Work/chronos-cam-app/src/camApp.pro`. If this is your first time opening the
-project, you will need to set up the kits by deselecting the default
-`Desktop` kit, and selecting the `Camera` kit that we set up earlier.
+file `~/Work/chronos-cam-app/src/camApp.pro`. If this is your first
+time opening the project, you will need to set up the kits by deselecting
+the default `Desktop` kit, and selecting the `Camera` kit that we set up
+earlier. Click on the  `Configure Project` button to select the kits.
 
 ![QT Creator project configuration](/doc/images/qtcreator_project.png)
 
-Click on the  `Configure Project` button to select the kits. Click the "Run" toggle, in the "Camera" Build/Run box near the top. Delete the step 'check for available disk space', so only 'Upload files via SFTP' is left. Now, add a new step, 'run custom remote command'. Set it to `killall camApp; sleep 0.8`, and position it above the 'Upload files via SFTP' step. This command will gracefully close the app, so we don't mess up the graphics driver state.
+Next, we will need to configure how the camera application is deployed
+and executed on the camera. Start by selecting the `Projects` button from
+the left column of QT Creator, and clicking on the `Run` toggle button.
 
-Scrolling down a little, you'll find the Run box where you can specify 'Arguments' and 'Working directory'. Set 'Arguments' to `-qws -display transformed:rot0`, and 'Working directory' to `/opt/camera`.
+From the Deploy Steps, remove the `Check for Available Disk Space` step,
+and then replace it with a new `Run custom remote command` step instead.
+Set the command line to `killall camApp; sleep 1` and sort it ahead of
+`Upload files via SFTP`. This will ensure that the `camApp` is always
+terminated gracefully.
+
+We also need to set the command line arguments and the application
+working directory in the Run section. Set the `Arguments` field to
+`-qws -display transformed:rot0` and set the `Working directory` to
+`/opt/camera`
+
+![QT Creator Run Settings](/doc/images/qtcreator_run_settings.png)
 
 Finally, we build the application by navigating to `Build -> Build Project "camApp"`
 or clicking on the hammer icon in the bottom left corner. When complete
