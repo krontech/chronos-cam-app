@@ -166,7 +166,6 @@ void playbackWindow::on_cmdSave_clicked()
 				break;
 			case SAVE_MODE_DNG:
 			case SAVE_MODE_RAW16:
-			case SAVE_MODE_RAW16RJ:
 				qDebug("Bits/pixel: %d", 16);
 				estimatedSize *= 16;
 				estimatedSize += (4096<<8);

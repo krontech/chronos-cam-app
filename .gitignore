@@ -1,7 +1,7 @@
 ## Ignore project and compiled files
 src/camApp.pro.user
-build-camApp-Camera-Debug/
-build-camApp-Camera-Release/
+build-camApp-*-Debug/
+build-camApp-*-Release/
 
 ## Ignore common temporary files.
 .DS_Store

@@ -261,7 +261,6 @@ int Video::mkfilename(char *path, save_mode_type save_mode)
 		strcat(path, ".mp4");
 		break;
 	case SAVE_MODE_RAW16:
-	case SAVE_MODE_RAW16RJ:
 	case SAVE_MODE_RAW12:
 		strcat(path, ".raw");
 		break;
@@ -312,10 +311,6 @@ CameraErrortype Video::startRecording(UInt32 sizeX, UInt32 sizeY, UInt32 start, 
 	case SAVE_MODE_RAW16:
 		estFileSize = 16 * sizeX * sizeY * length / 8;
 		map.insert("format", QVariant("y16"));
-		break;
-	case SAVE_MODE_RAW16RJ:
-		estFileSize = 16 * sizeX * sizeY * length / 8;
-		map.insert("format", QVariant("y12"));
 		break;
 	case SAVE_MODE_RAW12:
 		estFileSize = 12 * sizeX * sizeY * length / 8;

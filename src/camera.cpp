@@ -2509,10 +2509,9 @@ Int32 Camera::startSave(UInt32 startFrame, UInt32 length)
 	switch (appSettings.value("recorder/saveFormat", SAVE_MODE_H264).toUInt()) {
 	case 0:  record_mode = SAVE_MODE_H264; break;
 	case 1:  record_mode = SAVE_MODE_RAW16; break;
-	case 2:  record_mode = SAVE_MODE_RAW16RJ; break;
-	case 3:  record_mode = SAVE_MODE_RAW12; break;
-	case 4:  record_mode = SAVE_MODE_DNG; break;
-	case 5:  record_mode = SAVE_MODE_TIFF; break;
+	case 2:  record_mode = SAVE_MODE_RAW12; break;
+	case 3:  record_mode = SAVE_MODE_DNG; break;
+	case 4:  record_mode = SAVE_MODE_TIFF; break;
 	default: record_mode = SAVE_MODE_H264;
 	}
 

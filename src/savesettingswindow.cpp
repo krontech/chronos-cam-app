@@ -97,12 +97,11 @@ saveSettingsWindow::saveSettingsWindow(QWidget *parent, Camera * camInst) :
 	ui->comboSaveFormat->setEnabled(false);
 	ui->comboSaveFormat->clear();
 	// these must line up with the enum in video.h
-	ui->comboSaveFormat->addItem("H.264");            // SAVE_MODE_H264
-	ui->comboSaveFormat->addItem("Raw 16bit");        // SAVE_MODE_RAW16
-	ui->comboSaveFormat->addItem("Raw 16RJ");         // SAVE_MODE_RAW16RJ
-	ui->comboSaveFormat->addItem("Raw 12bit packed"); // SAVE_MODE_RAW12
-	ui->comboSaveFormat->addItem("CinemaDNG");        // SAVE_MODE_DNG
-	ui->comboSaveFormat->addItem("TIFF");             // SAVE_MODE_TIFF
+	ui->comboSaveFormat->addItem("H.264");      // SAVE_MODE_H264
+	ui->comboSaveFormat->addItem("Raw 16bit");  // SAVE_MODE_RAW16
+	ui->comboSaveFormat->addItem("Raw 12bit");  // SAVE_MODE_RAW12
+	ui->comboSaveFormat->addItem("CinemaDNG");  // SAVE_MODE_DNG
+	ui->comboSaveFormat->addItem("TIFF");       // SAVE_MODE_TIFF
 	
 	ui->comboSaveFormat->setCurrentIndex(settings.value("recorder/saveFormat", 0).toUInt());
 
@@ -337,10 +336,9 @@ void saveSettingsWindow::updateBitrate()
 		switch(saveFormat) {
 			// these must line up with the enum in video.h
 			case 1: // SAVE_MODE_RAW16
-			case 2: // SAVE_MODE_RAW16RJ
 				bitsPerPixel = 16.0;
 				break;
-			case 3: // SAVE_MODE_RAW12
+			case 2: // SAVE_MODE_RAW12
 				bitsPerPixel = 12.0;
 				break;
 		}

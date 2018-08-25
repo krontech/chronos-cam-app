@@ -25,7 +25,6 @@ struct VideoRecordArgs {
 typedef enum {
 	SAVE_MODE_H264 = 0,
 	SAVE_MODE_RAW16,
-	SAVE_MODE_RAW16RJ,
 	SAVE_MODE_RAW12,
 	SAVE_MODE_DNG,
 	SAVE_MODE_TIFF,
