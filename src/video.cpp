@@ -85,8 +85,8 @@ VideoState Video::getStatus(VideoStatus *st)
 		state = VIDEO_STATE_LIVEDISPLAY;
 	}
 	map = reply.value();
-	if (map["recording"].toBool()) {
-		state = VIDEO_STATE_RECORDING;
+	if (map["filesave"].toBool()) {
+		state = VIDEO_STATE_FILESAVE;
 	}
 	else if (map["playback"].toBool()) {
 		state = VIDEO_STATE_PLAYBACK;
@@ -183,12 +183,12 @@ void Video::setDisplayOptions(bool zebra, bool peaking)
 	args.insert("peaking", QVariant(peaking));
 
 	pthread_mutex_lock(&mutex);
-	reply = iface.liveflags(args);
+	reply = iface.configure(args);
 	pthread_mutex_unlock(&mutex);
 
 	if (reply.isError()) {
 		QDBusError err = reply.error();
-		fprintf(stderr, "Failed to set live display mode: %s - %s\n", err.name().data(), err.message().toAscii().data());
+		fprintf(stderr, "Failed to configure display options: %s - %s\n", err.name().data(), err.message().toAscii().data());
 	}
 }
 
@@ -360,6 +360,25 @@ CameraErrortype Video::stopRecording()
 	}
 	map = reply.value();
 	return SUCCESS;
+}
+
+void Video::setDisplayWindowStartX(bool videoOnRight){
+	displayWindowXOff = videoOnRight ? 200 : 0;
+	displayWindowYOff = 0;
+
+	QVariantMap args;
+	QDBusPendingReply<QVariantMap> reply;
+	args.insert("xoff", QVariant(displayWindowXOff));
+	args.insert("yoff", QVariant(displayWindowYOff));
+
+	pthread_mutex_lock(&mutex);
+	reply = iface.configure(args);
+	pthread_mutex_unlock(&mutex);
+
+	if (reply.isError()) {
+		QDBusError err = reply.error();
+		fprintf(stderr, "Failed to configure horizontal offset: %s - %s\n", err.name().data(), err.message().toAscii().data());
+	}
 }
 
 Video::Video() : iface("com.krontech.chronos.video", "/com/krontech/chronos/video", QDBusConnection::systemBus())

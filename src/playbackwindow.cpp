@@ -138,7 +138,7 @@ void playbackWindow::on_cmdSave_clicked()
 	strcpy(parentPath, camera->vinst->fileDirectory);
 	strcat(parentPath, "/..");
 
-	if(camera->vinst->getStatus(NULL) != VIDEO_STATE_RECORDING)
+	if(camera->vinst->getStatus(NULL) != VIDEO_STATE_FILESAVE)
 	{
 		//If no directory set, complain to the user
 		if(strlen(camera->vinst->fileDirectory) == 0)
@@ -333,7 +333,7 @@ void playbackWindow::on_cmdSaveSettings_clicked()
 
 void playbackWindow::saveSettingsClosed(){
 	settingsWindowIsOpen = false;
-	if(!camera->vinst->getStatus(NULL) != VIDEO_STATE_RECORDING) {
+	if(camera->vinst->getStatus(NULL) != VIDEO_STATE_FILESAVE) {
 		/* Only enable these buttons if the camera is not saving a video */
 		ui->cmdSaveSettings->setEnabled(true);
 		ui->cmdClose->setEnabled(true);
@@ -408,7 +408,7 @@ void playbackWindow::updatePlayFrame()
 void playbackWindow::checkForSaveDone()
 {
 	VideoStatus st;
-	if(camera->vinst->getStatus(&st) != VIDEO_STATE_RECORDING)
+	if(camera->vinst->getStatus(&st) != VIDEO_STATE_FILESAVE)
 	{
 		saveDoneTimer->stop();
 		delete saveDoneTimer;

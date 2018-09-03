@@ -33,7 +33,7 @@ typedef enum {
 typedef enum {
 	VIDEO_STATE_LIVEDISPLAY = 0,
 	VIDEO_STATE_PLAYBACK = 1,
-	VIDEO_STATE_RECORDING = 2,
+	VIDEO_STATE_FILESAVE = 2,
 } VideoState;
 
 enum
@@ -97,6 +97,7 @@ public:
 	void setPlayback(int rate);
 	void loopPlayback(unsigned int start, unsigned int length, int rate);
 	void setDisplayOptions(bool zebra, bool peaking);
+	void setDisplayWindowStartX(bool videoOnRight);
 	void liveDisplay(void);
 	VideoState getStatus(VideoStatus *st);
 

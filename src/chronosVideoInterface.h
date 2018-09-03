@@ -25,37 +25,37 @@
  */
 class ComKrontechChronosVideoInterface: public QDBusAbstractInterface
 {
-    Q_OBJECT
+	Q_OBJECT
 public:
-    static inline const char *staticInterfaceName()
-    { return "com.krontech.chronos.video"; }
+	static inline const char *staticInterfaceName()
+	{ return "com.krontech.chronos.video"; }
 
 public:
-    ComKrontechChronosVideoInterface(const QString &service, const QString &path, const QDBusConnection &connection, QObject *parent = 0);
+	ComKrontechChronosVideoInterface(const QString &service, const QString &path, const QDBusConnection &connection, QObject *parent = 0);
 
-    ~ComKrontechChronosVideoInterface();
+	~ComKrontechChronosVideoInterface();
 
 public Q_SLOTS: // METHODS
-    inline QDBusPendingReply<QVariantMap> addregion(const QVariantMap &args)
-    {
-        QList<QVariant> argumentList;
-        argumentList << qVariantFromValue(args);
-        return asyncCallWithArgumentList(QLatin1String("addregion"), argumentList);
-    }
+	inline QDBusPendingReply<QVariantMap> addregion(const QVariantMap &args)
+	{
+		QList<QVariant> argumentList;
+		argumentList << qVariantFromValue(args);
+		return asyncCallWithArgumentList(QLatin1String("addregion"), argumentList);
+	}
 
-    inline QDBusPendingReply<> livestream(const QVariantMap &settings)
-    {
-        QList<QVariant> argumentList;
-        argumentList << qVariantFromValue(settings);
-        return asyncCallWithArgumentList(QLatin1String("livestream"), argumentList);
-    }
+	inline QDBusPendingReply<> livestream(const QVariantMap &settings)
+	{
+		QList<QVariant> argumentList;
+		argumentList << qVariantFromValue(settings);
+		return asyncCallWithArgumentList(QLatin1String("livestream"), argumentList);
+	}
 
-    inline QDBusPendingReply<QVariantMap> playback(const QVariantMap &args)
-    {
-        QList<QVariant> argumentList;
-        argumentList << qVariantFromValue(args);
-        return asyncCallWithArgumentList(QLatin1String("playback"), argumentList);
-    }
+	inline QDBusPendingReply<QVariantMap> playback(const QVariantMap &args)
+	{
+		QList<QVariant> argumentList;
+		argumentList << qVariantFromValue(args);
+		return asyncCallWithArgumentList(QLatin1String("playback"), argumentList);
+	}
 
 	inline QDBusPendingReply<QVariantMap> livedisplay()
 	{
@@ -63,19 +63,19 @@ public Q_SLOTS: // METHODS
 		return asyncCallWithArgumentList(QLatin1String("livedisplay"), argumentList);
 	}
 
-	inline QDBusPendingReply<QVariantMap> liveflags(const QVariantMap &settings)
+	inline QDBusPendingReply<QVariantMap> configure(const QVariantMap &settings)
 	{
 		QList<QVariant> argumentList;
 		argumentList << qVariantFromValue(settings);
-		return asyncCallWithArgumentList(QLatin1String("liveflags"), argumentList);
+		return asyncCallWithArgumentList(QLatin1String("configure"), argumentList);
 	}
 
-    inline QDBusPendingReply<QVariantMap> recordfile(const QVariantMap &settings)
-    {
-        QList<QVariant> argumentList;
-        argumentList << qVariantFromValue(settings);
-        return asyncCallWithArgumentList(QLatin1String("recordfile"), argumentList);
-    }
+	inline QDBusPendingReply<QVariantMap> recordfile(const QVariantMap &settings)
+	{
+		QList<QVariant> argumentList;
+		argumentList << qVariantFromValue(settings);
+		return asyncCallWithArgumentList(QLatin1String("recordfile"), argumentList);
+	}
 
 	inline QDBusPendingReply<QVariantMap> stop()
 	{
@@ -83,18 +83,24 @@ public Q_SLOTS: // METHODS
 		return asyncCallWithArgumentList(QLatin1String("stop"), argumentList);
 	}
 
-    inline QDBusPendingReply<QVariantMap> status()
-    {
-        QList<QVariant> argumentList;
-        return asyncCallWithArgumentList(QLatin1String("status"), argumentList);
-    }
+	inline QDBusPendingReply<QVariantMap> flush()
+	{
+		QList<QVariant> argumentList;
+		return asyncCallWithArgumentList(QLatin1String("flush"), argumentList);
+	}
+
+	inline QDBusPendingReply<QVariantMap> status()
+	{
+		QList<QVariant> argumentList;
+		return asyncCallWithArgumentList(QLatin1String("status"), argumentList);
+	}
 };
 
 namespace com {
-  namespace krontech {
-    namespace chronos {
-      typedef ::ComKrontechChronosVideoInterface video;
-    }
-  }
+	namespace krontech {
+		namespace chronos {
+			typedef ::ComKrontechChronosVideoInterface video;
+		}
+	}
 }
 #endif

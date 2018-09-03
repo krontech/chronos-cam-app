@@ -550,7 +550,7 @@ UInt32 Camera::setDisplaySettings(bool encoderSafe, UInt32 maxFps)
 }
 
 void Camera::updateVideoPosition(){
-	//vinst->setDisplayWindowStartX(ButtonsOnLeft ^ UpsideDownDisplay); //if both of these are true, the video position should actually be 0
+	vinst->setDisplayWindowStartX(ButtonsOnLeft ^ UpsideDownDisplay); //if both of these are true, the video position should actually be 0
 	//qDebug()<< "updateVideoPosition() called. ButtonsOnLeft value:  " << ButtonsOnLeft;
 }
 
