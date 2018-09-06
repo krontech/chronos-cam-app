@@ -585,6 +585,7 @@ Int32 Camera::startRecording(void)
 	recDataLength = 0;
 	recordingData.valid = false;
 	recordingData.hasBeenSaved = false;
+	vinst->flushRegions();
 	startSequencer();
 	ui->setRecLEDFront(true);
 	ui->setRecLEDBack(true);
@@ -3041,15 +3042,15 @@ void* recDataThread(void *arg)
 	{
 		if(!cInst->getRecDataFifoIsEmpty())
 		{
-			UInt32 start = cInst->readRecDataFifo();
-			UInt32 end = cInst->readRecDataFifo();
-			UInt32 last = cInst->readRecDataFifo();
-			UInt32 offset = ((start + last) >= end) ? 0 : last;
+			UInt32 start = cInst->readRecDataFifo();    /* Starting address first frame of the circular buffer. */
+			UInt32 end = cInst->readRecDataFifo();      /* Address of the ending frame of the circular buffer. */
+			UInt32 last = cInst->readRecDataFifo();     /* Address of the last written frame in the circular buffer. */
+			UInt32 offset = (last >= end) ? 0 : ((last - start) + cInst->imagerSettings.frameSizeWords);
 			cInst->recData[cInst->recDataPos].blockStart = start;
 			cInst->recData[cInst->recDataPos].blockEnd = end;
 			cInst->recData[cInst->recDataPos].blockLast = last;
 
-			cInst->vinst->addRegion(start, (end - start), offset);
+			cInst->vinst->addRegion(start, (end - start) + cInst->imagerSettings.frameSizeWords, offset);
 
 			qDebug() << "Read something from recDataFifo";
 

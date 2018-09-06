@@ -222,6 +222,16 @@ void Video::addRegion(UInt32 base, UInt32 size, UInt32 offset)
 	}
 }
 
+void Video::flushRegions(void)
+{
+	QDBusPendingReply<QVariantMap> reply;
+
+	pthread_mutex_lock(&mutex);
+	reply = iface.flush();
+	reply.waitForFinished();
+	pthread_mutex_unlock(&mutex);
+}
+
 int Video::mkfilename(char *path, save_mode_type save_mode)
 {
 	char fname[1000];

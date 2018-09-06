@@ -105,6 +105,7 @@ public:
 	CameraErrortype stopRecording(void);
 
 	void addRegion(UInt32 base, UInt32 size, UInt32 offset);
+	void flushRegions(void);
 	bool isRunning(void) {return running;}
 	bool setRunning(bool run);
 	void reload(void);
