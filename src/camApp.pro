@@ -93,7 +93,8 @@ SOURCES += main.cpp\
     playbackslider.cpp \
     keyboardbase.cpp \
     keyboardnumeric.cpp \
-    whitebalancedialog.cpp
+    whitebalancedialog.cpp \
+    overlay.cpp
 
 ## Generate version.cpp on every build
 versionTarget.target = version.cpp
@@ -151,7 +152,8 @@ HEADERS  += mainwindow.h \
     playbackslider.h \
     keyboardbase.h \
     keyboardnumeric.h \
-    whitebalancedialog.h
+    whitebalancedialog.h \
+    overlay.h
 
 
 

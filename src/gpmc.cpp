@@ -231,6 +231,16 @@ void GPMC::write16(UInt32 offset, UInt16 data)
 	*((volatile UInt16 *)(map_registers + offset)) = data;
 }
 
+UInt8 GPMC::read8(UInt32 offset)
+{
+    return *((volatile UInt8 *)(map_registers + offset));
+}
+
+void GPMC::write8(UInt32 offset, UInt8 data)
+{
+    *((volatile UInt8 *)(map_registers + offset)) = data;
+}
+
 UInt32 GPMC::readRam32(UInt32 offset)
 {
 	return *((volatile UInt32 *)(map_ram + offset));

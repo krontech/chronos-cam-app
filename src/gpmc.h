@@ -34,6 +34,8 @@ public:
 	void write32(UInt32 offset, UInt32 data);
 	UInt16 read16(UInt32 offset);
 	void write16(UInt32 offset, UInt16 data);
+    UInt8 read8(UInt32 offset);
+    void write8(UInt32 offset, UInt8 data);
 	UInt32 readRam32(UInt32 offset);
 	void writeRam32(UInt32 offset, UInt32 data);
 	UInt16 readRam16(UInt32 offset);

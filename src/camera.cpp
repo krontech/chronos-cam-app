@@ -75,7 +75,7 @@ Camera::~Camera()
 	sem_destroy(&playMutex);
 }
 
-CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * sensorInst, UserInterface * userInterface, UInt32 ramSizeVal, bool color)
+CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * sensorInst, UserInterface * userInterface, Overlay * overlayInst, UInt32 ramSizeVal, bool color)
 {
 	//int FRAME_SIZE = 1280*1024*12/8;
 	CameraErrortype retVal;
@@ -120,6 +120,7 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 	vinst = vinstInst;
 	sensor = sensorInst;
 	ui = userInterface;
+    overlay = overlayInst;
     ramSize = (ramSizeGBSlot0 + ramSizeGBSlot1)*1024/32*1024*1024;
 	isColor = readIsColor();
 	int err;
@@ -145,6 +146,8 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 	{
 		return CAMERA_WRONG_FPGA_VERSION;
 	}
+
+    overlay->init(gpmc);
 
     setLiveOutputTiming(1296, 1024, 1280, 1024, MAX_LIVE_FRAMERATE);
 
@@ -392,6 +395,19 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
     //io->setTriggerDebounceEn(1);
     //io->setOutLevel((1 << 1));	//Enable strong pullup
 
+    Int8 buf[128];
+
+    sprintf(buf, "Test %d", 123);
+
+    overlay->setTextbox0Enable(true);
+    overlay->setTextbox0Text(buf);
+    overlay->setTextboxPosition(0, 100, 10);
+
+
+    /*gpmc->write8(0x8100, 0x5469);
+    gpmc->write16(0x8102, 0x2020);
+    gpmc->write16(0x8104, 0x5469);
+    gpmc->write16(0x8106, 0x2020);*/
 
 	return SUCCESS;
 
@@ -772,6 +788,7 @@ void Camera::endOfRec(void)
 		for(int i = recDataLength - 1; i >= 0 && frames < recordingData.is.recRegionSizeFrames; i--)
 		{
 			blockFrames = getNumFrames(recData[lastRecDataPos].blockStart, recData[lastRecDataPos].blockEnd);
+            recData[lastRecDataPos].blockFrameCount = blockFrames;
 			frames += blockFrames;
 
 			numBlocks++;
@@ -3119,6 +3136,71 @@ void frameCallback(void * arg)
 	}
 
 	cInst->processPlay();
+
+    Int8 buf[128];
+
+    double frameTime;
+    UInt32 globalPlayFrame = cInst->playFrame;
+    UInt32 blockPlayFrame;
+    UInt32 frames = 0;
+    UInt32 block = 0;
+
+    //Find the block in which playFrame resides, and how many frames are in that block
+
+    //While playFrame is not within the current block, iterate through the blocks counting the number of frames
+    while(  block < cInst->recordingData.numRecRegions &&
+            !(globalPlayFrame >= frames &&
+            globalPlayFrame < (frames + cInst->recordingData.recData[block].blockFrameCount)))
+    { //The play frame is outside the current block
+        frames += cInst->recordingData.recData[block].blockFrameCount;
+        block++;
+    }
+
+    //At this point, frames contains the total number of frames in any blocks before the current block,
+    //and block contains the block in which playFrame resides
+
+    //Get number of frames playFrame is offset from the start of the current block
+    blockPlayFrame = globalPlayFrame - frames;
+    UInt32 blockSize = cInst->recordingData.recData[block].blockFrameCount;
+
+    frameTime = (double)cInst->recordingData.is.period / 100000000.0 *
+                ((Int32)blockPlayFrame - ((Int32)blockSize - 1) + (Int32)cInst->io->getTriggerDelayFrames());       //TODO: This is not the proper place to get the trigger delay from. Needs to be stored in recordignData somehow, as it could change after a recording is made.
+
+
+
+    if(cInst->recordingData.is.mode == RECORD_MODE_NORMAL)    //Normal mode
+    {
+        sprintf(buf, "%.6d/%.6d T=%.8fs", blockPlayFrame+1, blockSize, frameTime);
+        cInst->overlay->setTextbox0Text(buf);
+    }
+    else if(cInst->recordingData.is.mode == RECORD_MODE_SEGMENTED)    //Segmented
+    {
+        sprintf(buf, "%.6d/%.6d Sg=%d/%d T=%.8fs", blockPlayFrame+1, blockSize, block+1, cInst->recordingData.numRecRegions, frameTime);
+        cInst->overlay->setTextbox0Text(buf);
+    }
+    else if(cInst->recordingData.is.mode == RECORD_MODE_GATED_BURST)    //Gated Burst
+    {
+
+        UInt32 gatedBlocks = (cInst->recordingData.numRecRegions+1) / 2;  //Since each full block in Gated Burst consists of a prerecord block of 1 or longer plus the recording segment, divide by 2 to get the number of full blocks
+        UInt32 gatedCurrentBlock = block / 2;
+
+        //Gated block size
+        UInt32 gatedBlockSize = cInst->recordingData.recData[block & 0xFFFFFFFE].blockFrameCount;
+        //If the second associated block is valid, add its frame count
+        if(((block & 0xFFFFFFFE) + 1) < cInst->recordingData.numRecRegions)
+            gatedBlockSize += cInst->recordingData.recData[(block & 0xFFFFFFFE) + 1].blockFrameCount;
+        //Gated block playframe
+        UInt32 gatedBlockPlayFrame = (block & 1) ? //Are we in the first or second of the two real blocks that make up this gated block?
+                    (blockPlayFrame + cInst->recordingData.recData[block & 0xFFFFFFFE].blockFrameCount) : //Second block in the group of two
+                    blockPlayFrame;                                                                      //First block in the group of two;
+
+        double frameTimeGated = (double)cInst->recordingData.is.period / 100000000.0 *
+                                        ((Int32)gatedBlockPlayFrame - ((Int32)cInst->recordingData.is.prerecordFrames));
+
+        sprintf(buf, "%.6d/%.6d Sg=%d/%d T=%.8fs", gatedBlockPlayFrame+1, gatedBlockSize, gatedCurrentBlock+1, gatedBlocks, frameTimeGated);
+        cInst->overlay->setTextbox0Text(buf);
+
+    }
 
 	cInst->setDisplayFrameAddress(cInst->getPlayFrameAddr(cInst->playFrame));
 

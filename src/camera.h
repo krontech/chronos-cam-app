@@ -28,6 +28,7 @@
 //#include "lupa1300.h"
 #include "lux1310.h"
 #include "userInterface.h"
+#include "overlay.h"
 #include "io.h"
 #include "videoRecord.h"
 #include "string.h"
@@ -103,6 +104,7 @@ typedef struct {
 	UInt32 blockStart;
 	UInt32 blockEnd;
 	UInt32 blockLast;
+    UInt32 blockFrameCount;
 } RecData;
 
 typedef union SeqPrmMemWord_t
@@ -181,7 +183,7 @@ class Camera
 public:
 	Camera();
 	~Camera();
-	CameraErrortype init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * sensorInst, UserInterface * userInterface, UInt32 ramSizeVal, bool color);
+    CameraErrortype init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * sensorInst, UserInterface * userInterface, Overlay *overlayInst, UInt32 ramSizeVal, bool color);
 	Int32 startRecording(void);
 	Int32 setRecSequencerModeNormal();
     Int32 setRecSequencerModeGatedBurst(UInt32 prerecord = 0);
@@ -199,6 +201,7 @@ public:
 	UserInterface * ui;
 	VideoRecord * recorder;
 	IO * io;
+    Overlay * overlay;
 
 	UInt32 getPlayFrameAddr(UInt32 playFrame);
 	RecordSettings_t recordingData;

@@ -23,6 +23,7 @@
 
 #include "cameraRegisters.h"
 #include "userInterface.h"
+#include "overlay.h"
 #include "mainwindow.h"
 #include "playbackwindow.h"
 #include "recsettingswindow.h"
@@ -46,6 +47,7 @@ LUX1310 * sensor;
 Camera * camera;
 Video * vinst;
 UserInterface * userInterface;
+Overlay * overlay;
 bool focusAidEnabled = false;
 QTimer * menuTimeoutTimer;
 
@@ -63,6 +65,7 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	vinst = new Video();
 	sensor = new LUX1310();
 	userInterface = new UserInterface();
+    overlay = new Overlay();
 
 	battCapacityPercent = 0;
 
@@ -75,9 +78,10 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 
 	userInterface->init();
 
+    overlay->init(gpmc);
 
 
-	retVal = camera->init(gpmc, vinst, sensor, userInterface, 16*1024/32*1024*1024, true);
+    retVal = camera->init(gpmc, vinst, sensor, userInterface, overlay, 16*1024/32*1024*1024, true);
 
 	if(retVal != SUCCESS)
 	{
@@ -162,6 +166,7 @@ CamMainWindow::~CamMainWindow()
 	delete sw;
 
 	delete ui;
+    delete overlay;
 	if(camera->vinst->isRunning())
 	{
 		camera->vinst->setRunning(false);
