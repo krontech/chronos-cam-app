@@ -46,7 +46,6 @@ Camera::Camera()
 {
 	QSettings appSettings;
 
-	recDataPos = 0;
 	terminateRecDataThread = false;
 	lastRecording = false;
 	playbackMode = false;
@@ -60,17 +59,12 @@ Camera::Camera()
 	ButtonsOnLeft = getButtonsOnLeft();
 	UpsideDownDisplay = getUpsideDownDisplay();
 	strcpy(serialNumber, "Not_Set");
-
-	sem_init(&playMutex, 0, 1);
-
 }
 
 Camera::~Camera()
 {
 	terminateRecDataThread = true;
 	pthread_join(recDataThreadID, NULL);
-
-	sem_destroy(&playMutex);
 }
 
 CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * sensorInst, UserInterface * userInterface, UInt32 ramSizeVal, bool color)
@@ -590,10 +584,6 @@ Int32 Camera::startRecording(void)
 
     }
 
-
-
-	recDataPos = 0;
-	recDataLength = 0;
 	recordingData.valid = false;
 	recordingData.hasBeenSaved = false;
 	vinst->flushRegions();
@@ -602,7 +592,6 @@ Int32 Camera::startRecording(void)
 	ui->setRecLEDBack(true);
 	recording = true;
 	videoHasBeenReviewed = false;
-
 
 	return SUCCESS;
 }
@@ -743,130 +732,29 @@ Int32 Camera::stopRecording(void)
 
 void Camera::endOfRec(void)
 {
-	UInt32 lastRecDataPos = recDataPos == 0 ? RECORD_DATA_LENGTH - 1 : recDataPos - 1;
-	UInt32 firstBlock, numBlocks;
-	UInt32 blockFrames;
-	UInt32 frames;
-
     qDebug("EndOfRec");
 
     qDebug() << "--- Sequencer --- Total record region size:" << imagerSettings.recRegionSizeFrames;
 
+    /* TODO: Need to check with the video pipeline if there were actually frames captured, but there is
+     * a possible race condition since both the UI and the pipeline are just polling the sequencer.
+     *
+     * For now, just assume that we always captured something.
+     */
+#if 0
 	if(0 == recDataLength)
 	{
 		recordingData.valid = false;
 		recordingData.hasBeenSaved = true;		//We didn't record anything so there's nothing to lose by overwriting
 	}
-	else
-	{
-		recordingData.is = imagerSettings;
+#endif
 
-		frames = 0;
-		numBlocks = 0;
-		//Iterate through record data records starting from the latest and going back, until we have accounted for all the record memory
-		for(int i = recDataLength - 1; i >= 0 && frames < recordingData.is.recRegionSizeFrames; i--)
-		{
-			blockFrames = getNumFrames(recData[lastRecDataPos].blockStart, recData[lastRecDataPos].blockEnd);
-			frames += blockFrames;
-
-			numBlocks++;
-
-	    qDebug() << "--- Sequencer --- Found block, size:" << blockFrames << ", location:" << lastRecDataPos << ", total frames:" << frames
-		     << ", total blocks:" << numBlocks << "Start addr:" << recData[lastRecDataPos].blockStart << ", End addr:" << recData[lastRecDataPos].blockEnd;
-
-			if(0 == lastRecDataPos)
-				lastRecDataPos = RECORD_DATA_LENGTH - 1;
-			else
-				lastRecDataPos--;
-		}
-
-		//The iteration above may go beyond the number of frames capable of being stored in memory. If so, go back one block
-		if(frames > recordingData.is.recRegionSizeFrames)
-		{
-			frames -= blockFrames;	//total valid frames
-			numBlocks--;
-	    lastRecDataPos = (lastRecDataPos + 1) % RECORD_DATA_LENGTH;
-
-	    qDebug() << "--- Sequencer --- Earliest block is partially overwritten, discarding. Total frames:" << frames << ", total blocks:" << numBlocks;
-		}
-
-		//We've now iterated through all the valid blocks and are now on the first invalid one
-		firstBlock = (lastRecDataPos + 1) % RECORD_DATA_LENGTH;
-
-	qDebug() << "--- Sequencer --- Earliest block is at:" << firstBlock;
-
-		//Copy the data for valid blocks into the record data structure
-		for(UInt32 i = 0; i < numBlocks; i++)
-		{
-			//RecData rd; rd.blockStart = REC_REGION_START; rd.blockEnd = recordingData.is.recRegionSizeFrames * recordingData.is.frameSizeWords; rd.blockLast = rd.blockEnd; ///////////////////////////////////////////////////////////////////////////MOD FOR TESTING/////////////////////////////////////
-			recordingData.recData[i] = recData[(firstBlock + i) % RECORD_DATA_LENGTH];
-			recordingData.numRecRegions = numBlocks;
-		}
-		playFrame = 0;
-		recordingData.is = imagerSettings;
-		recordingData.totalFrames = frames;
-		//recordingData.totalFrames = recordingData.is.recRegionSizeFrames;// frames; ///////////////////////////////////////////////
-		recordingData.valid = true;
-		recordingData.hasBeenSaved = false;
-		ui->setRecLEDFront(false);
-		ui->setRecLEDBack(false);
-		recording = false;
-	}
-}
-
-//Returns the number of frames between the two points taking into account rollover at the end of the record region
-UInt32 Camera::getNumFrames(UInt32 start, UInt32 end)
-{
-	Int32 startNum = (start - REC_REGION_START) / recordingData.is.frameSizeWords;
-	Int32 endNum = (end - REC_REGION_START) / recordingData.is.frameSizeWords;
-
-	Int32 frames = endNum - startNum + 1;
-
-	if(frames <= 0)
-		frames += recordingData.is.recRegionSizeFrames;
-
-	return frames;
-}
-
-//Returns the address of the nth frame in a block
-UInt32 Camera::getBlockFrameAddress(UInt32 block, UInt32 frame)
-{
-	UInt32 startFrame = (recordingData.recData[block].blockStart - REC_REGION_START) / recordingData.is.frameSizeWords;
-	UInt32 endFrame = (recordingData.recData[block].blockEnd - REC_REGION_START) / recordingData.is.frameSizeWords;
-	UInt32 lastFrame = (recordingData.recData[block].blockLast - REC_REGION_START) / recordingData.is.frameSizeWords;
-	UInt32 size = getNumFrames(recordingData.recData[block].blockStart, recordingData.recData[block].blockEnd);
-	UInt32 position;
-
-	position = lastFrame + 1 + frame; //Advance to the first frame, then by the number of frames requested
-
-	if(startFrame > endFrame)
-	{//block rolls over end of record region
-
-		if(position < recordingData.is.recRegionSizeFrames) //If it doesn't roll over the end of the record region
-		{
-			return position * recordingData.is.frameSizeWords + REC_REGION_START;
-		}
-		else//It does roll over the end of the record region
-		{
-			position -= recordingData.is.recRegionSizeFrames;
-			if(position <= endFrame)	//If we don't roll over the end of the block
-				return position * recordingData.is.frameSizeWords + REC_REGION_START;
-			else //we do roll over the end of the block
-				return (position - endFrame + startFrame) * recordingData.is.frameSizeWords + REC_REGION_START;
-
-		}
-	}
-	else //Block does not roll over end of record region
-	{
-		if(position > endFrame)
-		{
-			return (position - size) * recordingData.is.frameSizeWords + REC_REGION_START;
-		}
-		else
-		{
-			return position * recordingData.is.frameSizeWords + REC_REGION_START;
-		}
-	}
+    recordingData.is = imagerSettings;
+    recordingData.valid = true;
+    recordingData.hasBeenSaved = false;
+    ui->setRecLEDFront(false);
+    ui->setRecLEDBack(false);
+    recording = false;
 }
 
 UInt16 Camera::getMaxFPNValue(UInt16 * buf, UInt32 count)
@@ -876,26 +764,6 @@ UInt16 Camera::getMaxFPNValue(UInt16 * buf, UInt32 count)
 		if(buf[i] > maximum)
 			maximum = buf[i];
 	return maximum;
-}
-
-//Return the address of the nth frame in the entire sequence of valid record blocks
-UInt32 Camera::getPlayFrameAddr(UInt32 playFrame)
-{
-	UInt32 frames = 0;
-	UInt32 blockFrames;
-	if(playFrame >= recordingData.totalFrames || recordingData.valid == false)
-		return 0;
-
-	for(int i = 0; i < recordingData.numRecRegions; i++)
-	{
-		blockFrames = getNumFrames(recordingData.recData[i].blockStart, recordingData.recData[i].blockEnd);
-
-		if((frames + blockFrames) > playFrame)	//If this block exceeds the play frame, we're in the block containing the play frame
-			return getBlockFrameAddress(i, playFrame - frames);
-		frames += blockFrames;
-	}
-	/* Should not get here */
-	return 0;
 }
 
 bool Camera::getIsRecording(void)
@@ -921,42 +789,6 @@ UInt32 Camera::setPlayMode(bool playMode)
 		vinst->liveDisplay();
 	}
 	return SUCCESS;
-}
-
-/* Camera::writeFrameNumbers
- *
- * Burns frame numbers and frame total into the upper left corner of the image.
- *
- * returns: nothing
- **/
-void Camera::writeFrameNumbers(void)
-{
-	char buf[32];
-
-	for(int i = 0; i < recordingData.totalFrames; i++)
-	{
-		UInt32 addr = getPlayFrameAddr(i);
-		sprintf(buf, "%d/%d", i+1, recordingData.totalFrames);
-
-		gpmc->write32(GPMC_PAGE_OFFSET_ADDR, addr);
-
-		for(int c = 0; buf[c]; c++)	//For each character
-		{
-			for(int y = 0; y < 8; y++)	//for each line of the character
-			{
-				for(int x = 0; x < 8; x++)		//for each row in the current line of the character
-				{
-					if(font8x8[buf[c] * 8 + y] & (1<<(8-x)))
-						writePixel(x + 8*c + y*recordingData.is.stride, 0, 0x3FF);
-					else
-						writePixel(x + 8*c + y*recordingData.is.stride, 0, 0);
-
-				}
-			}
-		}
-	}
-
-	gpmc->write32(GPMC_PAGE_OFFSET_ADDR, 0);
 }
 
 /* Camera::readPixel
@@ -1320,7 +1152,7 @@ UInt32 Camera::autoFPNCorrection(UInt32 framesToAverage, bool writeToFile, bool 
 
 	if(count == countMax)	//If after the timeout recording hasn't finished
 	{
-		qDebug() << "Error: Record failed to stop within timeout period. recDataLength =" << recDataLength;
+		qDebug() << "Error: Record failed to stop within timeout period.";
 
 		retVal = stopRecording();
 		if(SUCCESS != retVal)
@@ -2189,7 +2021,7 @@ Int32 Camera::recordFrames(UInt32 numframes)
 
 	if(count == countMax)	//If after the timeout recording hasn't finished
 	{
-		qDebug() << "Error: Record failed to stop within timeout period. recDataLength =" << recDataLength;
+		qDebug() << "Error: Record failed to stop within timeout period.";
 
 		retVal = stopRecording();
 		if(SUCCESS != retVal)
@@ -3046,38 +2878,10 @@ void* recDataThread(void *arg)
 	struct timespec ts = { ms / 1000, (ms % 1000) * 1000 * 1000 };
 	bool recording;
 
-	//Dummy
-	//while(cInst->getRecording());
-
 	while(!cInst->terminateRecDataThread)
-	{
-		if(!cInst->getRecDataFifoIsEmpty())
-		{
-			UInt32 start = cInst->readRecDataFifo();    /* Starting address first frame of the circular buffer. */
-			UInt32 end = cInst->readRecDataFifo();      /* Address of the ending frame of the circular buffer. */
-			UInt32 last = cInst->readRecDataFifo();     /* Address of the last written frame in the circular buffer. */
-			UInt32 offset = (last >= end) ? 0 : ((last - start) + cInst->imagerSettings.frameSizeWords);
-			cInst->recData[cInst->recDataPos].blockStart = start;
-			cInst->recData[cInst->recDataPos].blockEnd = end;
-			cInst->recData[cInst->recDataPos].blockLast = last;
-
-			cInst->vinst->addRegion(start, (end - start) + cInst->imagerSettings.frameSizeWords, offset);
-
-			qDebug() << "Read something from recDataFifo";
-
-			//Keep track of number of records
-			if(cInst->recDataLength < RECORD_DATA_LENGTH)
-				cInst->recDataLength++;
-
-			//Track which record is the latest
-			cInst->recDataPos++;
-			if(cInst->recDataPos >= RECORD_DATA_LENGTH)
-				cInst->recDataPos = 0;
-		}
-
+    {
 		//On the falling edge of recording, call the user callback
 		recording = cInst->getRecording();
-
 		if(!recording && (cInst->lastRecording || cInst->recording))	//Take care of situtation where recording goes low->high-low between two interrutps by checking the cInst->recording flag
 		{
 			recording = false;
@@ -3088,7 +2892,6 @@ void* recDataThread(void *arg)
 
 		}
 		cInst->lastRecording = recording;
-
 
 		nanosleep(&ts, NULL);
 	}

@@ -98,12 +98,6 @@ typedef enum CameraRecordModes
     RECORD_MODE_FPN
 } CameraRecordModeType;
 
-typedef struct {
-	UInt32 blockStart;
-	UInt32 blockEnd;
-	UInt32 blockLast;
-} RecData;
-
 typedef union SeqPrmMemWord_t
 {
 	struct settings_t
@@ -153,12 +147,8 @@ typedef struct {
 
 typedef struct {
 	ImagerSettings_t is;
-	RecData recData[RECORD_DATA_LENGTH];
-	UInt32 numRecRegions;
-	UInt32 totalFrames;
 	bool valid;
 	bool hasBeenSaved;
-
 } RecordSettings_t;
 
 typedef struct {
@@ -189,16 +179,12 @@ public:
 	bool getIsRecording(void);
 	void (*endOfRecCallback)(void *);
 	void * endOfRecCallbackArg;
-	UInt32 recDataPos;
-	RecData recData [RECORD_DATA_LENGTH];
-	UInt32 recDataLength;
 	GPMC * gpmc;
 	Video * vinst;
 	LUX1310 * sensor;
 	UserInterface * ui;
 	IO * io;
 
-	UInt32 getPlayFrameAddr(UInt32 playFrame);
 	RecordSettings_t recordingData;
 	ImagerSettings_t getImagerSettings() { return imagerSettings; }
 	UInt32 getRecordLengthFrames(ImagerSettings_t settings);
@@ -217,8 +203,6 @@ public:
 	UInt32 setIntegrationTime(double intTime, UInt32 hRes, UInt32 vRes, Int32 flags);
 	UInt32 setDisplaySettings(bool encoderSafe, UInt32 maxFps);
 	UInt32 setPlayMode(bool playMode);
-	UInt32 playFrame;
-	void writeFrameNumbers();
 	UInt16 readPixel(UInt32 pixel, UInt32 offset);
 	void writePixel(UInt32 pixel, UInt32 offset, UInt16 value);
 	UInt16 readPixel12(UInt32 pixel, UInt32 offset);
@@ -265,10 +249,8 @@ public:
 	void setSerialNumber(const char * sn) {strcpy(serialNumber, sn);}
 	bool getIsColor() {return isColor;}
     UInt32 getMaxRecordRegionSizeFrames(UInt32 hSize, UInt32 vSize) {return (ramSize - REC_REGION_START) / (ROUND_UP_MULT((hSize * (vSize) * BITS_PER_PIXEL / 8 + (BYTES_PER_WORD-1)) / BYTES_PER_WORD, FRAME_ALIGN_WORDS));}
+
 private:
-    void setDisplayFrameSource(bool liveDisplaySource);
-private:
-	void setDisplayFrameAddress(UInt32 address);
 	void setLiveOutputTiming(UInt32 hRes, UInt32 vRes, UInt32 hOutRes, UInt32 vOutRes, UInt32 maxFps);
 	bool getRecDataFifoIsEmpty(void);
 	UInt32 readRecDataFifo(void);
@@ -303,8 +285,6 @@ public:
 	bool UpsideDownDisplay;
 private:
 	void endOfRec(void);
-	UInt32 getNumFrames(UInt32 start, UInt32 end);
-	UInt32 getBlockFrameAddress(UInt32 block, UInt32 frame);
 	UInt16 getMaxFPNValue(UInt16 * buf, UInt32 count);
 
 	friend void* recDataThread(void *arg);
@@ -360,8 +340,6 @@ private:
 	bool terminateRecDataThread;
 	UInt32 ramSize;
 	pthread_t recDataThreadID;
-	sem_t playMutex;
-
 };
 
 #endif // CAMERA_H

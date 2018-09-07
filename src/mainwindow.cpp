@@ -120,9 +120,7 @@ void endOfRecCallback(void * arg)
 {
 	char st[100];
 	MainWindow * mw = (MainWindow*)arg;
-	sprintf(st, "Recording Ended!\n%08x\n%08x\n%08x\n", mw->camera->recData[0].blockStart,
-														mw->camera->recData[0].blockEnd,
-														mw->camera->recData[0].blockLast);
+	sprintf(st, "Recording Ended!\n");
 	mw->ui->lblStatus->setText(st);
 	qApp->processEvents();
 }
@@ -354,28 +352,10 @@ void MainWindow::on_cmdFPN_clicked()
 	Msgbox.exec();
 }
 
-
-
-
-
-
 void MainWindow::on_cmdFrameNumbers_clicked()
 {
-	camera->writeFrameNumbers();
-	return;
-
-	fflush(stdout);
-	return;
-			qDebug() << "FPN Address: " << camera->gpmc->read32(DISPLAY_FPN_ADDRESS_ADDR);
-	int FRAME_SIZE = 1296*1024*10/8;
-	for(int i = 0; i < FRAME_SIZE; i = i + 4)
-	{
-		camera->gpmc->writeRam32(i, camera->gpmc->readRam32(0x32A00*32+i));
-	}
-	return;
+    // nothing to see here.
 }
-
-
 
 void MainWindow::on_cmdGC_clicked()
 {
@@ -400,89 +380,7 @@ void MainWindow::on_cmdAutoBlack_clicked()
 
 void MainWindow::on_cmdSaveFrame_clicked()
 {
-	char path[1000];
-	char pathUnpacked[1000];
-	char fname[1000];
-	char fnameUnpacked[1000];
-
-	//Build the filename
-	strcpy(path, "/media/sda1");
-	strcpy(pathUnpacked, "/media/sda1");
-
-	//Fill timeinfo structure with the current time
-	time_t rawtime;
-	struct tm * timeinfo;
-
-	time (&rawtime);
-	timeinfo = localtime (&rawtime);
-
-	sprintf(fname, "/rawpic_%04d-%02d-%02d_%02d-%02d-%02d",
-				timeinfo->tm_year + 1900,
-				timeinfo->tm_mon + 1,
-				timeinfo->tm_mday,
-				timeinfo->tm_hour,
-				timeinfo->tm_min,
-				timeinfo->tm_sec);
-	strcat(path, fname);
-	strcat(path, ".raw");
-
-	sprintf(fnameUnpacked, "/rawUnpacked_%04d-%02d-%02d_%02d-%02d-%02d",
-				timeinfo->tm_year + 1900,
-				timeinfo->tm_mon + 1,
-				timeinfo->tm_mday,
-				timeinfo->tm_hour,
-				timeinfo->tm_min,
-				timeinfo->tm_sec);
-	strcat(pathUnpacked, fnameUnpacked);
-	strcat(pathUnpacked, ".raw");
-
-	FILE * fp;
-	FILE * fpUnpacked;
-	qDebug() << "Writing frame to file" << path;
-	fp = fopen(path, "wb");
-	if(fp == NULL)
-	{
-		qDebug() << "Error: File couldn't be opened";
-		return;
-	}
-
-	fpUnpacked = fopen(pathUnpacked, "wb");
-	if(fpUnpacked == NULL)
-	{
-		qDebug() << "Error: File fpUnpacked couldn't be opened";
-		return;
-	}
-
-
-	UInt32 bytesPerFrame = camera->recordingData.is.frameSizeWords * BYTES_PER_WORD;
-	UInt32 pixelsPerFrame = camera->recordingData.is.stride * camera->recordingData.is.vRes;
-
-	UInt32 * rawBuffer32 = new UInt32[bytesPerFrame / 4];
-	UInt8 * rawBuffer = (UInt8 *)rawBuffer32;
-	UInt16 * rawUnpacked = new UInt16[pixelsPerFrame];
-
-	//Get one frame into the raw buffer
-	camera->readAcqMem(rawBuffer32,
-			   REC_REGION_START + (camera->playFrame) * camera->recordingData.is.frameSizeWords,
-			   bytesPerFrame);
-
-
-
-	fwrite(rawBuffer32, sizeof(rawBuffer32[0]), bytesPerFrame/4, fp);
-	fclose(fp);
-
-	//Unpack the FPN data
-	for(unsigned int i = 0; i < pixelsPerFrame; i++)
-	{
-		rawUnpacked[i] = camera->readPixelBuf12(rawBuffer, i);
-	}
-
-	fwrite(rawUnpacked, sizeof(rawUnpacked[0]), pixelsPerFrame, fpUnpacked);
-	fclose(fpUnpacked);
-
-	qDebug() << "Done!" << path;
-
-	delete rawBuffer32;
-	delete rawUnpacked;
-
+    // nothing to see here.
+    // TODO: Do the same thing with the following shell command.
+    //      cat /tmp/cam-screencap.jpg > /media/sda1/somefilename.jpg
 }

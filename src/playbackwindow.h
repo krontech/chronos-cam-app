@@ -81,13 +81,13 @@ private:
 	void updatePlayRateLabel();
 	void setControlEnable(bool en);
 
-	UInt32 markInFrame, markOutFrame;
-	UInt32 markInFrameOld;
-	UInt32 lastPlayframe;
+	UInt32 markInFrame;
+	UInt32 markOutFrame;
+	UInt32 totalFrames;
+	UInt32 playFrame;
 	QTimer * timer;
 	QTimer * saveDoneTimer;
 	Int32 playbackExponent;
-	UInt32 playFrame;
 	bool autoSaveFlag, autoRecordFlag;
 	bool settingsWindowIsOpen;
 	bool saveAborted;

@@ -38,6 +38,7 @@ playbackWindow::playbackWindow(QWidget *parent, Camera * cameraInst, bool autosa
 	ui(new Ui::playbackWindow)
 {
 	QSettings appSettings;
+	VideoStatus vStatus;
 	ui->setupUi(this);
 	this->setWindowFlags(Qt::Dialog /*| Qt::WindowStaysOnTopHint*/ | Qt::FramelessWindowHint);
 
@@ -47,17 +48,20 @@ playbackWindow::playbackWindow(QWidget *parent, Camera * cameraInst, bool autosa
 	this->move(camera->ButtonsOnLeft? 0:600, 0);
 	saveAborted = false;
 	
+	camera->vinst->getStatus(&vStatus);
+	playFrame = 0;
+	totalFrames = vStatus.totalFrames;
 
 	sw = new StatusWindow;
 
 	connect(ui->cmdClose, SIGNAL(clicked()), this, SLOT(close()));
 
 	ui->verticalSlider->setMinimum(0);
-	ui->verticalSlider->setMaximum(camera->recordingData.totalFrames - 1);
-	ui->verticalSlider->setValue(camera->playFrame);
+	ui->verticalSlider->setMaximum(totalFrames - 1);
+	ui->verticalSlider->setValue(playFrame);
 	ui->cmdLoop->setVisible(appSettings.value("camera/demoMode", false).toBool());
 	markInFrame = 1;
-	markOutFrame = camera->recordingData.totalFrames;
+	markOutFrame = totalFrames;
 	ui->verticalSlider->setHighlightRegion(markInFrame, markOutFrame);
 
 	camera->setPlayMode(true);
@@ -342,7 +346,7 @@ void playbackWindow::saveSettingsClosed(){
 
 void playbackWindow::on_cmdMarkIn_clicked()
 {
-	markInFrame = camera->playFrame + 1;
+    markInFrame = playFrame + 1;
 	if(markOutFrame < markInFrame)
 		markOutFrame = markInFrame;
 	ui->verticalSlider->setHighlightRegion(markInFrame, markOutFrame);
@@ -351,7 +355,7 @@ void playbackWindow::on_cmdMarkIn_clicked()
 
 void playbackWindow::on_cmdMarkOut_clicked()
 {
-	markOutFrame = camera->playFrame + 1;
+    markOutFrame = playFrame + 1;
 	if(markInFrame > markOutFrame)
 		markInFrame = markOutFrame;
 	ui->verticalSlider->setHighlightRegion(markInFrame, markOutFrame);
@@ -369,8 +373,8 @@ void playbackWindow::keyPressEvent(QKeyEvent *ev)
 			skip <<= playbackExponent;
 		}
 	case Qt::Key_Up:
-		camera->playFrame = (camera->playFrame + skip) % camera->recordingData.totalFrames;
-		camera->vinst->setPosition(camera->playFrame, 0);
+		playFrame = (playFrame + skip) % totalFrames;
+		camera->vinst->setPosition(playFrame, 0);
 		break;
 
 	case Qt::Key_PageDown:
@@ -379,12 +383,12 @@ void playbackWindow::keyPressEvent(QKeyEvent *ev)
 			skip <<= playbackExponent;
 		}
 	case Qt::Key_Down:
-		if (camera->playFrame >= skip) {
-			camera->playFrame = camera->playFrame - skip;
+		if (playFrame >= skip) {
+			playFrame = playFrame - skip;
 		} else {
-			camera->playFrame = camera->playFrame + camera->recordingData.totalFrames - skip;
+			playFrame = playFrame + totalFrames - skip;
 		}
-		camera->vinst->setPosition(camera->playFrame, 0);
+		camera->vinst->setPosition(playFrame, 0);
 		break;
 	}
 }
@@ -392,15 +396,15 @@ void playbackWindow::keyPressEvent(QKeyEvent *ev)
 void playbackWindow::updateStatusText()
 {
 	char text[100];
-	sprintf(text, "Frame %d/%d\r\nMark start %d\r\nMark end %d", camera->playFrame + 1, camera->recordingData.totalFrames, markInFrame, markOutFrame);
+    sprintf(text, "Frame %d/%d\r\nMark start %d\r\nMark end %d", playFrame + 1, totalFrames, markInFrame, markOutFrame);
 	ui->lblInfo->setText(text);
 }
 
 //Periodically check if the play frame is updated
 void playbackWindow::updatePlayFrame()
 {
-	camera->playFrame = camera->vinst->getPosition();
-	ui->verticalSlider->setValue(camera->playFrame);
+    playFrame = camera->vinst->getPosition();
+    ui->verticalSlider->setValue(playFrame);
 	updateStatusText();
 }
 
@@ -440,7 +444,7 @@ void playbackWindow::checkForSaveDone()
 		
 		/* Prevent the user from pressing the abort/save button just after the last frame,
 		 * as that can make the camera try to save a 2nd video too soon, crashing the camapp.*/
-		if(camera->playFrame >= markOutFrame - 25)
+		if(playFrame >= markOutFrame - 25)
 			ui->cmdSave->setEnabled(false);
 		
 		/*Abort the save if insufficient free space,
@@ -520,4 +524,3 @@ void playbackWindow::on_cmdLoop_clicked()
 	unsigned int count = (markOutFrame - markInFrame + 1);
 	camera->vinst->loopPlayback(markInFrame, count, fps);
 }
-
