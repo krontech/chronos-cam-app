@@ -482,20 +482,31 @@ UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 	return SUCCESS;
 }
 
+UInt32 Camera::getRecordLengthFrames(ImagerSettings_t settings)
+{
+	if ((settings.mode == RECORD_MODE_NORMAL) || (settings.mode == RECORD_MODE_GATED_BURST)) {
+		return settings.recRegionSizeFrames;
+	}
+	else {
+		return (settings.recRegionSizeFrames / settings.segments);
+	}
+}
+
 void Camera::updateTriggerValues(ImagerSettings_t settings){
+	UInt32 recLengthFrames = getRecordLengthFrames(settings);
 	if(getTriggerDelayConstant() == TRIGGERDELAY_TIME_RATIO){
-	   triggerPostFrames  = triggerTimeRatio * settings.recRegionSizeFrames;
-	   triggerPostSeconds = triggerPostFrames * ((double)settings.period / 100000000);
-     }
-     if(getTriggerDelayConstant() == TRIGGERDELAY_SECONDS){
-	   triggerTimeRatio  = settings.recRegionSizeFrames / ((double)settings.period / 100000000);
-	   triggerPostFrames = triggerPostSeconds / ((double)settings.period / 100000000);
-     }
-     if(getTriggerDelayConstant() == TRIGGERDELAY_FRAMES){
-	   triggerTimeRatio   = (double)triggerPostFrames / settings.recRegionSizeFrames;
-	   triggerPostSeconds = triggerPostFrames * ((double)settings.period / 100000000);
-     }
-     io->setTriggerDelayFrames(triggerPostFrames);
+		triggerPostFrames  = triggerTimeRatio * recLengthFrames;
+		triggerPostSeconds = triggerPostFrames * ((double)settings.period / 100000000);
+	}
+	if(getTriggerDelayConstant() == TRIGGERDELAY_SECONDS){
+		triggerTimeRatio  = recLengthFrames / ((double)settings.period / 100000000);
+		triggerPostFrames = triggerPostSeconds / ((double)settings.period / 100000000);
+	}
+	if(getTriggerDelayConstant() == TRIGGERDELAY_FRAMES){
+		triggerTimeRatio   = (double)triggerPostFrames / recLengthFrames;
+		triggerPostSeconds = triggerPostFrames * ((double)settings.period / 100000000);
+	}
+	io->setTriggerDelayFrames(triggerPostFrames);
 }
 
 unsigned short Camera::getTriggerDelayConstant(){

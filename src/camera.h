@@ -201,6 +201,7 @@ public:
 	UInt32 getPlayFrameAddr(UInt32 playFrame);
 	RecordSettings_t recordingData;
 	ImagerSettings_t getImagerSettings() { return imagerSettings; }
+	UInt32 getRecordLengthFrames(ImagerSettings_t settings);
 
 	unsigned short getTriggerDelayConstant();
 	void setTriggerDelayConstant(unsigned short value);
@@ -214,7 +215,7 @@ public:
 
 	UInt32 setImagerSettings(ImagerSettings_t settings);
 	UInt32 setIntegrationTime(double intTime, UInt32 hRes, UInt32 vRes, Int32 flags);
-    UInt32 setDisplaySettings(bool encoderSafe, UInt32 maxFps);
+	UInt32 setDisplaySettings(bool encoderSafe, UInt32 maxFps);
 	UInt32 setPlayMode(bool playMode);
 	UInt32 playFrame;
 	void writeFrameNumbers();
