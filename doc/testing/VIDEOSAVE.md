@@ -160,11 +160,11 @@ Free Space Check
 This will list the available space on the SD card in 1kiB blocks. Take this number and compute the maximum file size
 in frames from the formula `frames = blocks / 2560`
 3. Record a scene at a resolution of 1280x1024, capturing at least 2000 frames, and use the Mark Start and Mark End
-buttons to select a region equal to the calculated number of frames plus one. For example, if the available 1kiB
-blocks were 1000000, we would select a Mark Start position of 1, and a Mark End of 391.
+buttons to select a region equal to the calculated number of frames minus one. For example, if the available 1kiB
+blocks were 1000000, we would select a Mark Start position of 1, and a Mark End of 389.
 4. Tap the 'Settings' button to open the Save settings window. Select "Raw 16bit" as the save format and tap
 the close button to exit the save settings window. This should yeild a file size that just barely exceeds the free
-space left on the filesystem.
+space left on the filesystem, as the camapp adds 2 extra frames to the estimate because extra frames are usually saved.
 5. Tap the 'Save' button to try and save the file.
     * The camera should display a pop up warning the user that the file size is bigger than the free space available.
 6. Tap the "No" button to close the pop up warning.

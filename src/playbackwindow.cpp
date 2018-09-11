@@ -152,7 +152,7 @@ void playbackWindow::on_cmdSave_clicked()
 			qDebug("===================================");
 			
 			// calculated estimated size
-			estimatedSize = (markOutFrame - markInFrame + 1);
+			estimatedSize = (markOutFrame - markInFrame + 3);// +3 instead of +1 because the length of a saved video can be up to 2 frames more than the length of the region selected.
 			qDebug("Number of frames: %llu", estimatedSize);
 			estimatedSize *= appSettings.value("camera/hRes", MAX_FRAME_SIZE_H).toInt();
 			estimatedSize *= appSettings.value("camera/vRes", MAX_FRAME_SIZE_V).toInt();
