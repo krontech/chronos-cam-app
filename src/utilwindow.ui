@@ -75,7 +75,7 @@ Software Update</string>
        </font>
       </property>
       <property name="displayFormat">
-       <string>d MMMM yyyy hh:mm:ss</string>
+       <string>d MMM yyyy hh:mm:ss</string>
       </property>
      </widget>
      <widget class="QPushButton" name="cmdSetClock">
