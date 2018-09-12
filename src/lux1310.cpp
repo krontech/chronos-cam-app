@@ -975,7 +975,7 @@ Int32 LUX1310::loadADCOffsetsFromFile(void)
 	filename.sprintf("cal:lux1310Offsets");
 	
 	std::string fn;
-	fn = getFilename("", ".raw");
+	fn = getFilename("", ".bin");
 	filename.append(fn.c_str());
 	QFileInfo adcOffsetsFile(filename);
 	if (adcOffsetsFile.exists() && adcOffsetsFile.isFile()) 
@@ -1017,7 +1017,7 @@ Int32 LUX1310::saveADCOffsetsToFile(void)
 		filename.append("./cal/lux1310Offsets");
 	
 	std::string fn;
-	fn = getFilename("", ".raw");
+	fn = getFilename("", ".bin");
 	filename.append(fn.c_str());
 	fn = filename.toLocal8Bit().constData();
 
