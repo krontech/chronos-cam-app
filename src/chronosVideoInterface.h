@@ -36,13 +36,6 @@ public:
 	~ComKrontechChronosVideoInterface();
 
 public Q_SLOTS: // METHODS
-	inline QDBusPendingReply<QVariantMap> addregion(const QVariantMap &args)
-	{
-		QList<QVariant> argumentList;
-		argumentList << qVariantFromValue(args);
-		return asyncCallWithArgumentList(QLatin1String("addregion"), argumentList);
-	}
-
 	inline QDBusPendingReply<> livestream(const QVariantMap &settings)
 	{
 		QList<QVariant> argumentList;
@@ -75,6 +68,13 @@ public Q_SLOTS: // METHODS
 		QList<QVariant> argumentList;
 		argumentList << qVariantFromValue(settings);
 		return asyncCallWithArgumentList(QLatin1String("recordfile"), argumentList);
+	}
+
+	inline QDBusPendingReply<QVariantMap> overlay(const QVariantMap &settings)
+	{
+		QList<QVariant> argumentList;
+		argumentList << qVariantFromValue(settings);
+		return asyncCallWithArgumentList(QLatin1String("overlay"), argumentList);
 	}
 
 	inline QDBusPendingReply<QVariantMap> stop()

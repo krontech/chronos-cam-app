@@ -202,24 +202,33 @@ void Video::liveDisplay(void)
 	pthread_mutex_unlock(&mutex);
 }
 
-void Video::addRegion(UInt32 base, UInt32 size, UInt32 offset)
+void Video::setOverlay(const char *format)
 {
+	QVariantMap args;
 	QDBusPendingReply<QVariantMap> reply;
-	QVariantMap region;
 
-	region.insert("base", QVariant(base));
-	region.insert("size", QVariant(size));
-	region.insert("offset", QVariant(offset));
+	args.insert("format", QVariant(format));
+	args.insert("position", QVariant("bottom"));
+	args.insert("textbox", QVariant("0x0"));
 
 	pthread_mutex_lock(&mutex);
-	reply = iface.addregion(region);
-	reply.waitForFinished();
+	reply = iface.overlay(args);
 	pthread_mutex_unlock(&mutex);
 
 	if (reply.isError()) {
 		QDBusError err = reply.error();
-		fprintf(stderr, "Failed to set video region: %s - %s\n", err.name().data(), err.message().toAscii().data());
+		fprintf(stderr, "Failed to configure video overlay: %s - %s\n", err.name().data(), err.message().toAscii().data());
 	}
+}
+
+void Video::clearOverlay(void)
+{
+ 	QVariantMap args;
+	args.insert("format", QVariant(""));
+
+	pthread_mutex_lock(&mutex);
+	iface.overlay(args);
+	pthread_mutex_unlock(&mutex);
 }
 
 void Video::flushRegions(void)

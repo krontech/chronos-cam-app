@@ -93,6 +93,8 @@ public:
 	Int32 init();
 
 	UInt32 getPosition(void);
+	void setOverlay(const char *format);
+	void clearOverlay(void);
 	void setPosition(unsigned int position, int rate);
 	void setPlayback(int rate);
 	void loopPlayback(unsigned int start, unsigned int length, int rate);
@@ -104,7 +106,6 @@ public:
 	CameraErrortype startRecording(UInt32 sizeX, UInt32 sizeY, UInt32 start, UInt32 length, save_mode_type save_mode);
 	CameraErrortype stopRecording(void);
 
-	void addRegion(UInt32 base, UInt32 size, UInt32 offset);
 	void flushRegions(void);
 	bool isRunning(void) {return running;}
 	bool setRunning(bool run);
