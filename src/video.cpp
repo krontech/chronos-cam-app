@@ -219,6 +219,13 @@ void Video::setOverlay(const char *format)
 		QDBusError err = reply.error();
 		fprintf(stderr, "Failed to configure video overlay: %s - %s\n", err.name().data(), err.message().toAscii().data());
 	}
+	QSettings appSettings;
+	appSettings.setValue("overlayEnabled", true);
+}
+
+bool Video::getOverlayStatus(){
+	QSettings appSettings;
+	return appSettings.value("overlayEnabled", false).toBool();
 }
 
 void Video::clearOverlay(void)
@@ -229,6 +236,8 @@ void Video::clearOverlay(void)
 	pthread_mutex_lock(&mutex);
 	iface.overlay(args);
 	pthread_mutex_unlock(&mutex);
+	QSettings appSettings;
+	appSettings.setValue("overlayEnabled", false);
 }
 
 void Video::flushRegions(void)

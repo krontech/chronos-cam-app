@@ -81,6 +81,8 @@ playbackWindow::playbackWindow(QWidget *parent, Camera * cameraInst, bool autosa
 	if(autoSaveFlag) {
 		on_cmdSave_clicked();
 	}
+	
+	if(camera->vinst->getOverlayStatus())	camera->vinst->setOverlay("%.6h/%.6z Sg=%g/%i T=%.8Ss");
 }
 
 playbackWindow::~playbackWindow()

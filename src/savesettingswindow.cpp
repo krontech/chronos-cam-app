@@ -25,6 +25,7 @@
 
 #include "savesettingswindow.h"
 #include "ui_savesettingswindow.h"
+#include "video.h"
 
 #include <cstring>
 
@@ -106,6 +107,9 @@ saveSettingsWindow::saveSettingsWindow(QWidget *parent, Camera * camInst) :
 	ui->comboSaveFormat->setCurrentIndex(settings.value("recorder/saveFormat", 0).toUInt());
 
 	ui->comboSaveFormat->setEnabled(true);
+	
+	ui->chkEnableOverlay->setChecked(camera->vinst->getOverlayStatus());
+	//updateOverlayCheckboxCheckable();
 
 	if(ui->comboSaveFormat->currentIndex() == 0) {
 		ui->spinBitrate->setEnabled(true);
@@ -426,6 +430,7 @@ void saveSettingsWindow::on_comboSaveFormat_currentIndexChanged(int index)
 		ui->spinMaxBitrate->setEnabled(false);
 	}
 	updateBitrate();
+	//updateOverlayCheckboxCheckable();
 	QSettings settings;
 	settings.setValue("recorder/saveFormat", ui->comboSaveFormat->currentIndex());
 }
@@ -447,4 +452,19 @@ void saveSettingsWindow::setControlEnable(bool en){
 void saveSettingsWindow::on_comboDrive_currentIndexChanged(const QString &arg1)
 {
 	if(okToSaveLocation) saveFileDirectory();
+}
+
+void saveSettingsWindow::on_chkEnableOverlay_toggled(bool checked)
+{
+	if(checked) camera->vinst->setOverlay("%.6h/%.6z Sg=%g/%i T=%.8Ss");
+	else camera->vinst->clearOverlay();
+}
+
+void saveSettingsWindow::updateOverlayCheckboxCheckable(){
+	int saveFormat = ui->comboSaveFormat->currentIndex();
+	if((saveFormat == SAVE_MODE_H264) || (saveFormat == SAVE_MODE_TIFF))
+		ui->chkEnableOverlay->setEnabled(true);
+	else
+		ui->chkEnableOverlay->setEnabled(false);
+
 }

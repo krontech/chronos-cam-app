@@ -37,7 +37,8 @@ public:
 	UInt32 framerate;
 	char filename[1000];
 	Camera * camera;
-
+	
+	void updateOverlayCheckboxCheckable();
 public slots:
 	void setControlEnable(bool en);
 private slots:
@@ -61,6 +62,8 @@ private slots:
 
     void on_comboDrive_currentIndexChanged(const QString &arg1);
 
+    void on_chkEnableOverlay_toggled(bool checked);
+    
 private:
 	void refreshDriveList();
 	void updateBitrate();
