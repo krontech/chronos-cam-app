@@ -41,11 +41,30 @@ extern const char* git_version_str;
 
 bool copyFile(const char * fromfile, const char * tofile);
 
+static char *readReleaseString(char *buf, size_t len)
+{
+	FILE * fp = fopen("/opt/camera/filesystemRevision", "r");
+	char * ret;
+	if (!fp) {
+		return strcpy(buf, CAMERA_APP_VERSION);
+	}
+	if (fgets(buf, len, fp)) {
+		/* strip off any newlines */
+		buf[strcspn(buf, "\r\n")] = '\0';
+	}
+	else {
+		strcpy(buf, CAMERA_APP_VERSION);
+	}
+	fclose(fp);
+	return buf;
+}
+
 UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	QWidget(parent),
 	ui(new Ui::UtilWindow)
 {
 	QSettings appSettings;
+	QString aboutText;
 
 	ui->setupUi(this);
 	this->setWindowFlags(Qt::Dialog | Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
@@ -86,14 +105,17 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	//Fill about label with camera info
 	UInt32 ramSizeSlot1, ramSizeSlot2;
 	char serialNumber[33];
+	char release[128];
 	camera->getRamSizeGB(&ramSizeSlot1, &ramSizeSlot2);
 	camera->readSerialNumber(serialNumber);
 
-	ui->lblAbout->setText(QString::fromAscii("Camera model: Chronos 1.4, ") + (camera->getIsColor() ? "Color, " : "Monochrome, ") + QString::number(ramSizeSlot1 + ramSizeSlot2) + "GB"
-						  + "\r\nSerial number: " + QString::fromAscii(serialNumber)
-						  + "\r\nCamera application revision: " + QString::fromAscii(CAMERA_APP_VERSION)
-						  + "\r\nBuild: " + git_version_str
-						  + "\r\nFPGA Revision: " + QString::number(camera->getFPGAVersion()) + "." + QString::number(camera->getFPGASubVersion()));
+	aboutText.sprintf("Camera Model: Chronos 1.4, %s, %dGB\r\n", (camera->getIsColor() ? "Color" : "Monochrome"), ramSizeSlot1 + ramSizeSlot2);
+	aboutText.append(QString("Serial Number: %1\r\n").arg(serialNumber));
+	aboutText.append(QString("\r\n"));
+	aboutText.append(QString("Release Version: %1\r\n").arg(readReleaseString(release, sizeof(release))));
+	aboutText.append(QString("Build: %1 (%2)\r\n").arg(CAMERA_APP_VERSION, git_version_str));
+	aboutText.append(QString("FPGA Revision: %1.%2").arg(QString::number(camera->getFPGAVersion()), QString::number(camera->getFPGASubVersion())));
+	ui->lblAbout->setText(aboutText);
 	
 	ui->cmdAdcOffset->setVisible(false);
 	ui->cmdAutoCal->setVisible(false);
