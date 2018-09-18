@@ -133,8 +133,7 @@ void playbackWindow::on_cmdSave_clicked()
 	UInt32 ret;
 	QMessageBox msg;
 	char parentPath[1000];
-	struct statvfs statvfsBuf;
-	struct statfs fileSystemInfoBuf;
+	struct statfs statfsBuf;
 	uint64_t estimatedSize;
 	QSettings appSettings;
 	
@@ -154,9 +153,11 @@ void playbackWindow::on_cmdSave_clicked()
 			return;
 		}
 
-		if (!statvfs(camera->vinst->fileDirectory, &statvfsBuf)) {
+		if (!statfs(camera->vinst->fileDirectory, &statfsBuf)) {
 			qDebug("===================================");
-			
+			uint64_t freeSpace = statfsBuf.f_bsize * (uint64_t)statfsBuf.f_bfree;
+			bool fileOverMaxSize = (statfsBuf.f_type == 0x4d44); // Check for file size limits for FAT32 only.
+
 			// calculated estimated size
 			estimatedSize = (markOutFrame - markInFrame + 3);// +3 instead of +1 because the length of a saved video can be up to 2 frames more than the length of the region selected.
 			qDebug("Number of frames: %llu", estimatedSize);
@@ -171,6 +172,7 @@ void playbackWindow::on_cmdSave_clicked()
 				qDebug("Bits/pixel: %0.3f", appSettings.value("recorder/bitsPerPixel", camera->vinst->bitsPerPixel).toDouble());
 				break;
 			case SAVE_MODE_DNG:
+				fileOverMaxSize = false;
 			case SAVE_MODE_RAW16:
 				qDebug("Bits/pixel: %d", 16);
 				estimatedSize *= 16;
@@ -182,6 +184,7 @@ void playbackWindow::on_cmdSave_clicked()
 				estimatedSize += (4096<<8);
 				break;
 			case SAVE_MODE_TIFF:
+				fileOverMaxSize = false;
 				estimatedSize *= 24;
 				estimatedSize += (4096<<8);
 				break;
@@ -194,25 +197,19 @@ void playbackWindow::on_cmdSave_clicked()
 			// convert to bytes
 			estimatedSize /= 8;
 
-			qDebug("Free space: %llu  (%lu * %lu)", statvfsBuf.f_bsize * (uint64_t)statvfsBuf.f_bfree, statvfsBuf.f_bsize, statvfsBuf.f_bfree);
+			qDebug("Free space: %llu", freeSpace);
 			qDebug("Estimated file size: %llu", estimatedSize);
 			
 			qDebug("===================================");
+			fileOverMaxSize = fileOverMaxSize && (estimatedSize > 4294967296);
+			insufficientFreeSpaceEstimate = (estimatedSize > freeSpace);
 
-			statfs(camera->vinst->fileDirectory, &fileSystemInfoBuf);
-			bool fileOverMaxSize = (estimatedSize > 4294967296 && fileSystemInfoBuf.f_type == 0x4d44);//If file size is over 4GB and file system is FAT32
-			insufficientFreeSpaceEstimate = (estimatedSize > (statvfsBuf.f_bsize * (uint64_t)statvfsBuf.f_bfree));
-			
 			//If amount of free space is below both 10MB and below the estimated size of the video, do not allow the save to start
-			if(insufficientFreeSpaceEstimate && MIN_FREE_SPACE > (statvfsBuf.f_bsize * (uint64_t)statvfsBuf.f_bfree)){
+			if(insufficientFreeSpaceEstimate && (MIN_FREE_SPACE > freeSpace)) {
 				QMessageBox::warning(this, "Warning - Insufficient free space", "Cannot save a video because of insufficient free space", QMessageBox::Ok);
 				return;
 			}
-			
-			/*qDebug()<<"autoSaveFlag = " <<autoSaveFlag;
-			qDebug()<<"fileOverMaxSize = " <<fileOverMaxSize;
-			qDebug()<<"insufficientFreeSpaceEstimate = " <<insufficientFreeSpaceEstimate;*/
-			
+
 			if(!autoSaveFlag){
 				if (fileOverMaxSize && !insufficientFreeSpaceEstimate) {
 					QMessageBox::StandardButton reply;
