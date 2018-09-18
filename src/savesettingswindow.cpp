@@ -195,6 +195,7 @@ void saveSettingsWindow::on_cmdUMount_clicked()
 //Find all mounted drives and populate the drive comboBox
 void saveSettingsWindow::refreshDriveList()
 {
+	QSettings settings;
 	FILE * fp;
 	FILE * mtab = setmntent("/etc/mtab", "r");
 	struct mntent* m;
@@ -204,6 +205,8 @@ void saveSettingsWindow::refreshDriveList()
 	char vendor[256];		//Stores vendor of sd* device
 	char drive[1024];		//Stores string to be placed in combo box
 	UInt32 len;
+	bool setDefault = true;	//Revert to defaults if the prevDirectory was not found.
+	QString prevDirectory = settings.value("recorder/fileDirectory", QString(camera->vinst->fileDirectory)).toString();
 
 	okToSaveLocation = false;//prevent saving a new value while drive list is being updated
 	ui->comboDrive->clear();
@@ -217,7 +220,7 @@ void saveSettingsWindow::refreshDriveList()
 		{
 			ui->comboDrive->setEnabled(true);
 
-			//Find only drives that are SD card or USB drives
+			//Find only SATA drives, SD cards, and USB drives.
 			if(strstr(mnt.mnt_dir, "/media/mmcblk1") ||
 					strstr(mnt.mnt_dir, "/media/sd"))
 			{
@@ -287,6 +290,12 @@ void saveSettingsWindow::refreshDriveList()
 
 				ui->comboDrive->addItem(drive);
 
+				// If this drive matches the previous selection, select it.
+				if (strcmp(mnt.mnt_dir, prevDirectory.toAscii().data()) == 0) {
+					ui->comboDrive->setCurrentIndex(ui->comboDrive->count() - 1);
+					setDefault = false;
+				}
+
 				unsigned long long int size = fs.f_blocks * fs.f_bsize;
 				unsigned long long int free = fs.f_bfree * fs.f_bsize;
 				unsigned long long int avail = fs.f_bavail * fs.f_bsize;
@@ -302,19 +311,12 @@ void saveSettingsWindow::refreshDriveList()
 	{
 		ui->comboDrive->addItem("No storage devices detected");
 		ui->comboDrive->setEnabled(false);
-
+	}
+	else if (setDefault) {
+		ui->comboDrive->setCurrentIndex(0);
+		saveFileDirectory();
 	}
 	okToSaveLocation = true;
-
-	//Select the entry corresponding to the last selected path
-	QSettings settings;
-	Int32 index = ui->comboDrive->findText(settings.value("recorder/fileDirectory", camera->vinst->fileDirectory).toString());
-	if ( index != -1 ) { // -1 for not found
-		ui->comboDrive->setCurrentIndex(index);
-	}
-	//Only save the location if it has changed
-	if(strcmp(camera->vinst->fileDirectory, ui->comboDrive->currentText().toAscii()))
-		saveFileDirectory();
 }
 
 void saveSettingsWindow::on_cmdRefresh_clicked()
