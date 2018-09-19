@@ -345,7 +345,7 @@ void playbackWindow::saveSettingsClosed(){
 
 void playbackWindow::on_cmdMarkIn_clicked()
 {
-    markInFrame = playFrame + 1;
+	markInFrame = playFrame + 1;
 	if(markOutFrame < markInFrame)
 		markOutFrame = markInFrame;
 	ui->verticalSlider->setHighlightRegion(markInFrame, markOutFrame);
@@ -354,7 +354,7 @@ void playbackWindow::on_cmdMarkIn_clicked()
 
 void playbackWindow::on_cmdMarkOut_clicked()
 {
-    markOutFrame = playFrame + 1;
+	markOutFrame = playFrame + 1;
 	if(markInFrame > markOutFrame)
 		markInFrame = markOutFrame;
 	ui->verticalSlider->setHighlightRegion(markInFrame, markOutFrame);
@@ -363,25 +363,26 @@ void playbackWindow::on_cmdMarkOut_clicked()
 
 void playbackWindow::keyPressEvent(QKeyEvent *ev)
 {
-	unsigned int skip = 1;
-	unsigned int nextFrame;
+	unsigned int skip = 10;
+	if (playbackExponent > 0) {
+		skip <<= playbackExponent;
+	}
+
 	switch (ev->key()) {
-	case Qt::Key_PageUp:
-		skip = 10;
-		if (playbackExponent > 0) {
-			skip <<= playbackExponent;
-		}
 	case Qt::Key_Up:
+		camera->vinst->seekFrame(1);
+		break;
+
+	case Qt::Key_Down:
+		camera->vinst->seekFrame(-1);
+		break;
+
+	case Qt::Key_PageUp:
 		playFrame = (playFrame + skip) % totalFrames;
 		camera->vinst->setPosition(playFrame, 0);
 		break;
 
 	case Qt::Key_PageDown:
-		skip = 10;
-		if (playbackExponent > 0) {
-			skip <<= playbackExponent;
-		}
-	case Qt::Key_Down:
 		if (playFrame >= skip) {
 			playFrame = playFrame - skip;
 		} else {
@@ -395,15 +396,15 @@ void playbackWindow::keyPressEvent(QKeyEvent *ev)
 void playbackWindow::updateStatusText()
 {
 	char text[100];
-    sprintf(text, "Frame %d/%d\r\nMark start %d\r\nMark end %d", playFrame + 1, totalFrames, markInFrame, markOutFrame);
+	sprintf(text, "Frame %d/%d\r\nMark start %d\r\nMark end %d", playFrame + 1, totalFrames, markInFrame, markOutFrame);
 	ui->lblInfo->setText(text);
 }
 
 //Periodically check if the play frame is updated
 void playbackWindow::updatePlayFrame()
 {
-    playFrame = camera->vinst->getPosition();
-    ui->verticalSlider->setValue(playFrame);
+	playFrame = camera->vinst->getPosition();
+	ui->verticalSlider->setValue(playFrame);
 	updateStatusText();
 }
 
@@ -508,8 +509,8 @@ void playbackWindow::setControlEnable(bool en)
 
 void playbackWindow::on_cmdClose_clicked()
 {
-    camera->videoHasBeenReviewed = true;
-    camera->autoRecord = false;
+	camera->videoHasBeenReviewed = true;
+	camera->autoRecord = false;
 }
 
 UInt32 playbackWindow::getSaveFormat(){

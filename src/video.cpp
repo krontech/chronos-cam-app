@@ -156,6 +156,14 @@ void Video::setPlayback(int rate)
 	}
 }
 
+
+void Video::seekFrame(int delta)
+{
+	if (delta && running) {
+		kill(pid, (delta > 0) ? SIGUSR1 : SIGUSR2);
+	}
+}
+
 void Video::loopPlayback(unsigned int start, unsigned int length, int rate)
 {
 	QVariantMap args;

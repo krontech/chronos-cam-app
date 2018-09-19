@@ -95,6 +95,7 @@ public:
 	UInt32 getPosition(void);
 	bool getOverlayStatus();
 	void setOverlay(const char *format);
+	void seekFrame(int delta);
 	void clearOverlay(void);
 	void setPosition(unsigned int position, int rate);
 	void setPlayback(int rate);
