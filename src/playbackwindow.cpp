@@ -50,6 +50,7 @@ playbackWindow::playbackWindow(QWidget *parent, Camera * cameraInst, bool autosa
 	
 	camera->vinst->getStatus(&vStatus);
 	playFrame = 0;
+	playLoop = false;
 	totalFrames = vStatus.totalFrames;
 
 	sw = new StatusWindow;
@@ -99,6 +100,7 @@ playbackWindow::~playbackWindow()
 void playbackWindow::on_verticalSlider_sliderMoved(int position)
 {
 	/* Note that a rate of zero will also pause playback. */
+	stopPlayLoop();
 	camera->vinst->setPosition(position, 0);
 }
 
@@ -110,22 +112,26 @@ void playbackWindow::on_verticalSlider_valueChanged(int value)
 void playbackWindow::on_cmdPlayForward_pressed()
 {
 	int fps = (playbackExponent >= 0) ? (60 << playbackExponent) : 60 / (1 - playbackExponent);
+	stopPlayLoop();
 	camera->vinst->setPlayback(fps);
 }
 
 void playbackWindow::on_cmdPlayForward_released()
 {
+	stopPlayLoop();
 	camera->vinst->setPlayback(0);
 }
 
 void playbackWindow::on_cmdPlayReverse_pressed()
 {
 	int fps = (playbackExponent >= 0) ? (60 << playbackExponent) : 60 / (1 - playbackExponent);
+	stopPlayLoop();
 	camera->vinst->setPlayback(-fps);
 }
 
 void playbackWindow::on_cmdPlayReverse_released()
 {
+	stopPlayLoop();
 	camera->vinst->setPlayback(0);
 }
 
@@ -499,7 +505,14 @@ void playbackWindow::setControlEnable(bool en)
 	ui->cmdPlayReverse->setEnabled(en);
 	ui->cmdRateDn->setEnabled(en);
 	ui->cmdRateUp->setEnabled(en);
+	ui->cmdLoop->setEnabled(en);
 	ui->verticalSlider->setEnabled(en);
+}
+
+void playbackWindow::stopPlayLoop(void)
+{
+	playLoop = false;
+	ui->cmdLoop->setText("Play");
 }
 
 void playbackWindow::on_cmdClose_clicked()
@@ -515,7 +528,15 @@ UInt32 playbackWindow::getSaveFormat(){
 
 void playbackWindow::on_cmdLoop_clicked()
 {
-	int fps = (playbackExponent >= 0) ? (60 << playbackExponent) : 60 / (1 - playbackExponent);
-	unsigned int count = (markOutFrame - markInFrame + 1);
-	camera->vinst->loopPlayback(markInFrame, count, fps);
+	if (playLoop) {
+		stopPlayLoop();
+		camera->vinst->setPlayback(0);
+	}
+	else {
+		int fps = (playbackExponent >= 0) ? (60 << playbackExponent) : 60 / (1 - playbackExponent);
+		unsigned int count = (markOutFrame - markInFrame + 1);
+		playLoop = true;
+		ui->cmdLoop->setText("Stop");
+		camera->vinst->loopPlayback(markInFrame, count, fps);
+	}
 }

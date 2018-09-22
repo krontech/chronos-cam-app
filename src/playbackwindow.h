@@ -77,6 +77,7 @@ private:
 	Ui::playbackWindow *ui;
 	Camera * camera;
 	StatusWindow * sw;
+	void stopPlayLoop();
 	void updateStatusText();
 	void updatePlayRateLabel();
 	void setControlEnable(bool en);
@@ -85,6 +86,7 @@ private:
 	UInt32 markOutFrame;
 	UInt32 totalFrames;
 	UInt32 playFrame;
+	bool playLoop;
 	QTimer * timer;
 	QTimer * saveDoneTimer;
 	Int32 playbackExponent;

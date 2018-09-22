@@ -312,7 +312,7 @@ End</string>
     <enum>Qt::NoFocus</enum>
    </property>
    <property name="text">
-    <string>Loop</string>
+    <string>Play</string>
    </property>
   </widget>
  </widget>
