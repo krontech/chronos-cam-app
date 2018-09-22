@@ -63,6 +63,7 @@ playbackWindow::playbackWindow(QWidget *parent, Camera * cameraInst, bool autosa
 	markInFrame = 1;
 	markOutFrame = totalFrames;
 	ui->verticalSlider->setHighlightRegion(markInFrame, markOutFrame);
+	ui->verticalSlider->setFocusProxy(this);
 
 	camera->setPlayMode(true);
 	camera->vinst->setPosition(0, 0);
