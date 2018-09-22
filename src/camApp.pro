@@ -24,10 +24,10 @@ TARGET = camApp
 CONFIG += qt console link_pkgconfig
 target.path = /opt/camera
 
-QMAKE_CFLAGS += -Dxdc_target_types__=ti/targets/std.h -D__TMS470__ -DPlatform_dm814x -DG_THREADS_MANDATORY -DG_DISABLE_CAST_CHECKS -DG_DISABLE_ASSERT -pthread -march=armv7-a -mtune=cortex-a8 -mfpu=neon -mfloat-abi=softfp
-QMAKE_CXXFLAGS += -Dxdc_target_types__=ti/targets/std.h -D__TMS470__ -DPlatform_dm814x -DG_THREADS_MANDATORY -DG_DISABLE_CAST_CHECKS -DG_DISABLE_ASSERT -pthread -march=armv7-a -mtune=cortex-a8 -mfpu=neon -mfloat-abi=softfp -std=c++11
-#QMAKE_CFLAGS += -DPlatform_dm814x -DG_THREADS_MANDATORY -DG_DISABLE_CAST_CHECKS -DG_DISABLE_ASSERT -pthread -march=armv7-a -mtune=cortex-a8 -mfpu=neon -mfloat-abi=softfp
-#QMAKE_CXXFLAGS += -Dxdc_target_types__=ti/targets/std.h -D__TMS470__ -DPlatform_dm814x -DG_THREADS_MANDATORY -DG_DISABLE_CAST_CHECKS -DG_DISABLE_ASSERT
+INCLUDEPATH += $${QT_SYSROOT}/usr/include
+QMAKE_CFLAGS += -pthread -march=armv7-a -mtune=cortex-a8 -mfpu=neon -mfloat-abi=softfp
+QMAKE_CXXFLAGS += -pthread -march=armv7-a -mtune=cortex-a8 -mfpu=neon -mfloat-abi=softfp -std=c++11
+QMAKE_LIBDIR += $${QT_SYSROOT}/usr/lib
 
 ## Fixes for GCC 4.x to 5.x compatibilitiy
 QMAKE_CFLAGS += -Wno-unused-parameter -Wno-sign-compare -ffreestanding
@@ -35,22 +35,8 @@ QMAKE_CXXFLAGS += -Wno-unused-parameter -Wno-sign-compare -ffreestanding
 
 TEMPLATE = app
 INSTALLS += target
-INCLUDEPATH += $${QT_SYSROOT}/usr/include \
-               $${QT_SYSROOT}/usr/include/gstreamer-0.10 \
-               $${QT_SYSROOT}/usr/include/glib-2.0 \
-	       $${QT_SYSROOT}/usr/lib/glib-2.0/include
 
-# Library notes:
-# In OMX documentation, it says to include omxcore.av5T in the above list. However, this conflicts with
-# OMX shared libraries used by gstreamer, solving this took THREE WEEKS of my life!
-#
-# Workaround is to include the following shared libaries that are included by libgstomx instead of omxcore.av5t
-#
-QMAKE_LIBDIR += $${QT_SYSROOT}/usr/lib $${QT_SYSROOT}/usr/lib/gstreamer-0.10
-LIBS += -ldl -lgmodule-2.0 -lgobject-2.0 -lgstbase-0.10 -lgstreamer-0.10 -lm -lpthread -l:libxml2.so.2 -l:libz.so.1 -lgthread-2.0 -lrt -lglib-2.0
-LIBS += -lgstapp-0.10
-LIBS += -static-libstdc++
-#LIBS += -lgstreamer-0.10 -lgobject-2.0 -lgthread-2.0 -lgmodule-2.0 -lrt -lglib-2.0
+LIBS += -lm -lpthread -lrt -static-libstdc++
 
 SOURCES += main.cpp\
 	mainwindow.cpp \
@@ -65,7 +51,6 @@ SOURCES += main.cpp\
     playbackwindow.cpp \
     cameraLowLevel.cpp \
     recsettingswindow.cpp \
-    gstLaunch.c \
     util.cpp \
     savesettingswindow.cpp \
     userInterface.cpp \
@@ -117,8 +102,6 @@ HEADERS  += mainwindow.h \
     keyboard.h \
     playbackwindow.h \
     recsettingswindow.h \
-    gstLaunch.h \
-    tools.h \
     util.h \
     font.h \
     savesettingswindow.h \
