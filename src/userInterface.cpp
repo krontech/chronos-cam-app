@@ -25,10 +25,11 @@
 #include "userInterface.h"
 #include "types.h"
 
+#define ENC_SW_DEBOUNCE_MSEC	10
+
 Int32 UserInterface::init(void)
 {
 	int err;
-	char buf[2];
 
 	printf("Opening frame GPIO\n");
 	encAgpioFD = open("/sys/class/gpio/gpio20/value", O_RDONLY|O_NONBLOCK);
@@ -41,13 +42,6 @@ Int32 UserInterface::init(void)
 	if (-1 == encAgpioFD || -1 == encBgpioFD || -1 == encSwgpioFD || -1 == shSwgpioFD || -1 == recLedFrontFD || -1 == recLedBackFD)
 		return UI_FILE_ERROR;
 
-	//set up initial values
-	read(encAgpioFD, buf, sizeof(buf));
-	encAVal = encALast = ('1' == buf[0]) ? true : false;
-
-	read(encBgpioFD, buf, sizeof(buf));
-	encBVal = encBLast = ('1' == buf[0]) ? true : false;
-
 	printf("Starting encoder threads\n");
 	terminateEncThreads = false;
 
@@ -57,12 +51,6 @@ Int32 UserInterface::init(void)
 
 	printf("UI init done\n");
 	return SUCCESS;
-}
-
-UserInterface::UserInterface()
-{
-	encValue = 0;
-	encValueLowRes = 0;
 }
 
 UserInterface::~UserInterface()
@@ -91,18 +79,6 @@ bool UserInterface::getGpioValue(int fd)
 	read(fd, buf, sizeof(buf));
 	return ('1' == buf[0]) ? true : false;
 }
-
-Int32 UserInterface::getEncoderValue(Int32 * encValLowResPtr)
- {
-	Int32 val = encValue;
-	if(encValLowResPtr)
-		*encValLowResPtr = encValueLowRes;
-
-	encValue = 0;
-	encValueLowRes = 0;
-
-	return val;
- }
 
 bool UserInterface::getShutterButton()
 {
@@ -188,16 +164,38 @@ void UserInterface::encoderCB(void)
 	}
 }
 
+// check for changes in the encoder switch position.
+bool UserInterface::switchCB(void)
+{
+	bool change = false;
+
+	encSwVal = getGpioValue(encSwgpioFD);
+	if (encSwVal && !encSwLast) {
+		/* Encoder switch rising edge */
+		QKeyEvent *ev = new QKeyEvent(QKeyEvent::KeyPress, Qt::Key_Select, Qt::NoModifier, "", false, 0);
+		QApplication::postEvent(QApplication::focusWidget(), ev);
+		change = true;
+	}
+	if (!encSwVal && encSwLast) {
+		/* Encoder switch falling edge */
+		QKeyEvent *ev = new QKeyEvent(QKeyEvent::KeyRelease, Qt::Key_Select, Qt::NoModifier, "", false, 0);
+		QApplication::postEvent(QApplication::focusWidget(), ev);
+		change = true;
+	}
+	encSwLast = encSwVal;
+	return change;
+}
+
 void *encoderThread(void *arg)
 {
 	pthread_t this_thread = pthread_self();
 	UserInterface * uiInst = (UserInterface *)arg;
+	struct timespec debounce = {0, 0};
 	struct pollfd fds[] = {
 		{ .fd = uiInst->encAgpioFD, .events = POLLPRI | POLLERR, .revents = 0 },
 		{ .fd = uiInst->encBgpioFD, .events = POLLPRI | POLLERR, .revents = 0 },
 		{ .fd = uiInst->encSwgpioFD, .events = POLLPRI | POLLERR, .revents = 0 },
 	};
-	char buf[2];
 	int ret;
 
 	// struct sched_param is used to store the scheduling priority
@@ -233,34 +231,42 @@ void *encoderThread(void *arg)
 	// Print thread scheduling priority
 	printf("Thread priority is %d", params.sched_priority);
 
-	//Dummy read so poll blocks properly
-	read(uiInst->encAgpioFD, buf, sizeof(buf));
-	read(uiInst->encBgpioFD, buf, sizeof(buf));
-	read(uiInst->encSwgpioFD, buf, sizeof(buf));
+	// Setup the initial values
+	uiInst->encAVal = uiInst->encALast = uiInst->getGpioValue(uiInst->encAgpioFD);
+	uiInst->encBVal = uiInst->encBLast = uiInst->getGpioValue(uiInst->encBgpioFD);
+	uiInst->encSwVal = uiInst->encSwLast = uiInst->getGpioValue(uiInst->encSwgpioFD);
 
-	while(!uiInst->terminateEncThreads)
-	{
-		if((ret = poll(fds, sizeof(fds)/sizeof(struct pollfd), -1)) > 0)	//If we returned due to a GPIO event rather than a timeout
-		{
-			if (fds[0].revents & POLLPRI)
-			{
-				/* IRQ happened for encoder pin A */
+	while(!uiInst->terminateEncThreads) {
+		ret = poll(fds, sizeof(fds)/sizeof(struct pollfd), ENC_SW_DEBOUNCE_MSEC);
+		if(ret > 0) {
+			/* Handle IRQs for the encoder rotation pins. */
+			if (fds[0].revents & POLLPRI) {
 				uiInst->encAVal = uiInst->getGpioValue(uiInst->encAgpioFD);
 			}
-			if (fds[1].revents & POLLPRI)
-			{
-				/* IRQ happened for encoder pin B */
+			if (fds[1].revents & POLLPRI) {
 				uiInst->encBVal = uiInst->getGpioValue(uiInst->encBgpioFD);
 			}
-			if (fds[2].revents & POLLPRI)
-			{
-				/* IRQ happened for encoder switch */
-				QEvent::Type type = uiInst->getEncoderSwitch() ? QKeyEvent::KeyPress : QKeyEvent::KeyRelease;
-				QWidget *w = QApplication::focusWidget();
-				QKeyEvent *ev = new QKeyEvent(type, Qt::Key_Return, Qt::NoModifier, "encoder", false, 0);
-				QApplication::postEvent(w, ev);
-			}
 			uiInst->encoderCB();
+		}
+
+		/* Debounce and check for changes in the encoder switch. */
+		if (debounce.tv_sec || debounce.tv_nsec) {
+			struct timespec now;
+			clock_gettime(CLOCK_MONOTONIC, &now);
+			if (now.tv_sec < debounce.tv_sec) continue;
+			if ((now.tv_sec == debounce.tv_sec) && (now.tv_nsec < debounce.tv_nsec)) continue;
+
+			/* Debouncing cleared */
+			memset(&debounce, 0, sizeof(debounce));
+		}
+		if (uiInst->switchCB()) {
+			/* Set a new debounce timeout. */
+			clock_gettime(CLOCK_MONOTONIC, &debounce);
+			debounce.tv_nsec += ENC_SW_DEBOUNCE_MSEC * 1000000;
+			if (debounce.tv_nsec > 1000000000) {
+				debounce.tv_nsec -= 1000000000;
+				debounce.tv_sec++;
+			}
 		}
 	}
 

@@ -34,25 +34,23 @@ void *encoderThread(void *arg);
 class UserInterface {
 public:
 	Int32 init(void);
-	UserInterface();
 	~UserInterface();
 
-	Int32 getEncoderValue(Int32 * encValLowResPtr = 0);
-	bool getEncoderSwitch();
 	bool getShutterButton();
 	void setRecLEDBack(bool on);
 	void setRecLEDFront(bool on);
 private:
-	Int32 encValue;
-	Int32 encValueLowRes;
-	bool encAVal, encBVal, encALast, encBLast;
+	bool encAVal, encALast;
+	bool encBVal, encBLast;
+	bool encSwVal, encSwLast;
 	Int32 encAgpioFD, encBgpioFD, encSwgpioFD, shSwgpioFD, recLedFrontFD, recLedBackFD;
 	pthread_t encThreadID;
 	bool getGpioValue(int fd);
+	bool getEncoderSwitch();
 	friend void* encoderThread(void *arg);
 	volatile bool terminateEncThreads;
 	void encoderCB(void);
-
+	bool switchCB(void);
 };
 
 #endif // USERINTERFACE_H
