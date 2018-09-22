@@ -160,7 +160,8 @@ void Video::setPlayback(int rate)
 void Video::seekFrame(int delta)
 {
 	if (delta && running) {
-		kill(pid, (delta > 0) ? SIGUSR1 : SIGUSR2);
+		union sigval val = { .sival_int = delta };
+		sigqueue(pid, SIGUSR1, val);
 	}
 }
 
@@ -261,7 +262,6 @@ void Video::flushRegions(void)
 int Video::mkfilename(char *path, save_mode_type save_mode)
 {
 	char fname[1000];
-	char sequencePath[1000];
 
 	if(strlen(fileDirectory) == 0)
 		return RECORD_NO_DIRECTORY_SET;
@@ -324,7 +324,6 @@ CameraErrortype Video::startRecording(UInt32 sizeX, UInt32 sizeY, UInt32 start, 
 {
 	QDBusPendingReply<QVariantMap> reply;
 	QVariantMap map;
-	struct statvfs statBuf;
 	UInt64 estFileSize;
 	char path[1000];
 

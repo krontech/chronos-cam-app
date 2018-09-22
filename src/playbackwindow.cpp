@@ -379,17 +379,11 @@ void playbackWindow::keyPressEvent(QKeyEvent *ev)
 		break;
 
 	case Qt::Key_PageUp:
-		playFrame = (playFrame + skip) % totalFrames;
-		camera->vinst->setPosition(playFrame, 0);
+		camera->vinst->seekFrame(skip);
 		break;
 
 	case Qt::Key_PageDown:
-		if (playFrame >= skip) {
-			playFrame = playFrame - skip;
-		} else {
-			playFrame = playFrame + totalFrames - skip;
-		}
-		camera->vinst->setPosition(playFrame, 0);
+		camera->vinst->seekFrame(-skip);
 		break;
 	}
 }
