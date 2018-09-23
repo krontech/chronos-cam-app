@@ -45,19 +45,19 @@ RecSettingsWindow::RecSettingsWindow(QWidget *parent, Camera * cameraInst) :
 {
 	char str[100];
 	// as non-static data member initializers can't happen in the .h, making sure it's set correct here.
-    windowInitComplete = false;
+	windowInitComplete = false;
 
 	ui->setupUi(this);
 	this->setWindowFlags(Qt::Dialog /*| Qt::WindowStaysOnTopHint*/ | Qt::FramelessWindowHint);
 	this->move(0,0);
 
-    is = new ImagerSettings_t;
+	is = new ImagerSettings_t;
 	connect(ui->cmdCancel, SIGNAL(clicked()), this, SLOT(close()));
 
 	camera = cameraInst;
 
-    ImagerSettings_t isTemp = camera->getImagerSettings();          //Using new and memcpy because passing the address of a class variable was causing segfaults among others in the trigger delay window.
-    memcpy((void *)is, (void *)(&isTemp), sizeof(ImagerSettings_t));
+	ImagerSettings_t isTemp = camera->getImagerSettings();          //Using new and memcpy because passing the address of a class variable was causing segfaults among others in the trigger delay window.
+	memcpy((void *)is, (void *)(&isTemp), sizeof(ImagerSettings_t));
 
 	ui->spinHRes->setSingleStep(camera->sensor->getHResIncrement());
 	ui->spinHRes->setMinimum(camera->sensor->getMinHRes());
@@ -69,24 +69,24 @@ RecSettingsWindow::RecSettingsWindow(QWidget *parent, Camera * cameraInst) :
 
 	ui->spinHOffset->setSingleStep(camera->sensor->getHResIncrement());
 	ui->spinHOffset->setMinimum(0);
-    ui->spinHOffset->setMaximum(camera->sensor->getMaxHStride() - is->hOffset);
+	ui->spinHOffset->setMaximum(camera->sensor->getMaxHStride() - is->hOffset);
 
 	ui->spinVOffset->setSingleStep(camera->sensor->getVResIncrement());
 	ui->spinVOffset->setMinimum(0);
-    ui->spinVOffset->setMaximum(camera->sensor->getMaxVRes() - is->vRes);
-
-    ui->spinHRes->setValue(is->stride);
-    ui->spinVRes->setValue(is->vRes);
-    updateOffsetLimits();
-    ui->spinHOffset->setValue(is->hOffset);
-    ui->spinVOffset->setValue(is->vOffset);
+	ui->spinVOffset->setMaximum(camera->sensor->getMaxVRes() - is->vRes);
+	
+	ui->spinHRes->setValue(is->stride);
+	ui->spinVRes->setValue(is->vRes);
+	updateOffsetLimits();
+	ui->spinHOffset->setValue(is->hOffset);
+	ui->spinVOffset->setValue(is->vOffset);
 
 	ui->comboGain->addItem("0dB (x1)");
 	ui->comboGain->addItem("6dB (x2)");
 	ui->comboGain->addItem("12dB (x4)");
 	ui->comboGain->addItem("18dB (x8)");
 	ui->comboGain->addItem("24dB (x16)");
-    ui->comboGain->setCurrentIndex(is->gain);
+	ui->comboGain->setCurrentIndex(is->gain);
 
 	//Populate the common resolution combo box from the list of resolutions
 	QFile fp;
@@ -123,6 +123,10 @@ RecSettingsWindow::RecSettingsWindow(QWidget *parent, Camera * cameraInst) :
 		lineText.sprintf("%dx%d %d fps", hRes, vRes, fr);
 		
 		ui->comboRes->addItem(line);
+
+		if ((hRes == is->hRes) && (vRes == is->vRes)) {
+			ui->comboRes->setCurrentIndex(ui->comboRes->count() - 1);
+		}
 	}
 	
 	fp.close();
