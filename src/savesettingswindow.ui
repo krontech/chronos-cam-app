@@ -226,9 +226,9 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
     <property name="geometry">
      <rect>
       <x>365</x>
-      <y>65</y>
+      <y>110</y>
       <width>151</width>
-      <height>106</height>
+      <height>61</height>
      </rect>
     </property>
     <property name="font">
@@ -243,10 +243,8 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
 }</string>
     </property>
     <property name="text">
-     <string>Enable
-Overlay
-(saved in
-H264/TIFF)</string>
+     <string>Text Overlay
+(H.264/TIFF)</string>
     </property>
     <property name="tristate">
      <bool>false</bool>
@@ -473,16 +471,30 @@ Remove</string>
    <header>camspinbox.h</header>
   </customwidget>
   <customwidget>
-   <class>CamDoubleSpinBox</class>
-   <extends>QDoubleSpinBox</extends>
-   <header>camdoublespinbox.h</header>
-  </customwidget>
-  <customwidget>
    <class>CamLineEdit</class>
    <extends>QLineEdit</extends>
    <header>camLineEdit.h</header>
   </customwidget>
+  <customwidget>
+   <class>CamDoubleSpinBox</class>
+   <extends>QDoubleSpinBox</extends>
+   <header>camdoublespinbox.h</header>
+  </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>comboDrive</tabstop>
+  <tabstop>lineFilename</tabstop>
+  <tabstop>comboSaveFormat</tabstop>
+  <tabstop>spinBitrate</tabstop>
+  <tabstop>spinFramerate</tabstop>
+  <tabstop>spinMaxBitrate</tabstop>
+  <tabstop>chkEnableOverlay</tabstop>
+  <tabstop>cmdRefresh</tabstop>
+  <tabstop>cmdUMount</tabstop>
+  <tabstop>cmdClose</tabstop>
+  <tabstop>comboProfile</tabstop>
+  <tabstop>comboLevel</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

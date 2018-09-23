@@ -672,6 +672,24 @@ Delay</string>
    <header>camLineEdit.h</header>
   </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>comboRes</tabstop>
+  <tabstop>cmdOK</tabstop>
+  <tabstop>cmdCancel</tabstop>
+  <tabstop>cmdMax</tabstop>
+  <tabstop>cmdExpMax</tabstop>
+  <tabstop>lineRate</tabstop>
+  <tabstop>linePeriod</tabstop>
+  <tabstop>lineExp</tabstop>
+  <tabstop>cmdRecMode</tabstop>
+  <tabstop>cmdDelaySettings</tabstop>
+  <tabstop>comboGain</tabstop>
+  <tabstop>chkCenter</tabstop>
+  <tabstop>spinVOffset</tabstop>
+  <tabstop>spinHOffset</tabstop>
+  <tabstop>spinVRes</tabstop>
+  <tabstop>spinHRes</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

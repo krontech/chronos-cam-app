@@ -36,6 +36,11 @@ recModeWindow::recModeWindow(QWidget *parent, Camera * cameraInst, ImagerSetting
             ui->radioGated->setChecked(true);
             ui->stackedWidget->setCurrentIndex(1);
         break;
+
+        case RECORD_MODE_FPN:
+        default:
+            /* Internal recording modes only. */
+        break;
     }
 
     ui->spinRecLengthFrames->setMaximum(camera->getMaxRecordRegionSizeFrames(is->hRes, is->vRes));

@@ -22,11 +22,14 @@
      <height>461</height>
     </rect>
    </property>
+   <property name="focusPolicy">
+    <enum>Qt::NoFocus</enum>
+   </property>
    <property name="tabPosition">
     <enum>QTabWidget::East</enum>
    </property>
    <property name="currentIndex">
-    <number>0</number>
+    <number>3</number>
    </property>
    <widget class="QWidget" name="tabMain">
     <attribute name="title">
@@ -884,6 +887,9 @@ Application</string>
        <height>51</height>
       </rect>
      </property>
+     <property name="focusPolicy">
+      <enum>Qt::WheelFocus</enum>
+     </property>
      <property name="text">
       <string>Auto Factory
 Cal</string>
@@ -1023,6 +1029,43 @@ calibration data
    <header>camLineEdit.h</header>
   </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>cmdClose</tabstop>
+  <tabstop>comboDisableUnsavedWarning</tabstop>
+  <tabstop>chkAutoRecord</tabstop>
+  <tabstop>chkAutoSave</tabstop>
+  <tabstop>chkZebraEnable</tabstop>
+  <tabstop>chkDemoMode</tabstop>
+  <tabstop>chkUiOnLeft</tabstop>
+  <tabstop>chkUpsideDownDisplay</tabstop>
+  <tabstop>cmdEjectSD</tabstop>
+  <tabstop>cmdEjectUSB</tabstop>
+  <tabstop>cmdSetClock</tabstop>
+  <tabstop>dateTimeEdit</tabstop>
+  <tabstop>comboFPColor</tabstop>
+  <tabstop>chkFPEnable</tabstop>
+  <tabstop>radioFPSensHigh</tabstop>
+  <tabstop>radioFPSensMed</tabstop>
+  <tabstop>radioFPSensLow</tabstop>
+  <tabstop>cmdRestoreCal</tabstop>
+  <tabstop>cmdSaveCal</tabstop>
+  <tabstop>cmdSWUpdate</tabstop>
+  <tabstop>cmdBackupSettings</tabstop>
+  <tabstop>cmdDefaults</tabstop>
+  <tabstop>cmdRestoreSettings</tabstop>
+  <tabstop>KickstarterBackersTextEdit</tabstop>
+  <tabstop>linePassword</tabstop>
+  <tabstop>cmdRevertCalData</tabstop>
+  <tabstop>cmdCloseApp</tabstop>
+  <tabstop>cmdWhiteRef</tabstop>
+  <tabstop>cmdBlackCalAll</tabstop>
+  <tabstop>cmdColumnGain</tabstop>
+  <tabstop>cmdAdcOffset</tabstop>
+  <tabstop>cmdAutoCal</tabstop>
+  <tabstop>lineSerialNumber</tabstop>
+  <tabstop>cmdSetSN</tabstop>
+  <tabstop>chkShowDebugControls</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

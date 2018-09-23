@@ -68,7 +68,7 @@
     <enum>QFrame::Raised</enum>
    </property>
    <property name="currentIndex">
-    <number>1</number>
+    <number>0</number>
    </property>
    <widget class="QWidget" name="normalPage">
     <widget class="QPushButton" name="cmdMax">
@@ -631,6 +631,20 @@ QSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}<
    <header>camdoublespinbox.h</header>
   </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>radioNormal</tabstop>
+  <tabstop>radioSegmented</tabstop>
+  <tabstop>radioGated</tabstop>
+  <tabstop>cmdMax</tabstop>
+  <tabstop>spinRecLengthSeconds</tabstop>
+  <tabstop>spinRecLengthFrames</tabstop>
+  <tabstop>spinSegmentCount</tabstop>
+  <tabstop>spinPrerecordSeconds</tabstop>
+  <tabstop>spinPrerecordFrames</tabstop>
+  <tabstop>chkDisableRing</tabstop>
+  <tabstop>cmdOK</tabstop>
+  <tabstop>cmdCancel</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

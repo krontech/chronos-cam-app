@@ -123,7 +123,7 @@ public:
 	char filename[1000];
 	char fileDirectory[1000];
 
-	void (*errorCallback)(void *, char *);
+	void (*errorCallback)(void *, const char *);
 	void * errorCallbackArg;
 	void (*eosCallback)(void *);
 	void * eosCallbackArg;

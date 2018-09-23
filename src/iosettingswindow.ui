@@ -782,6 +782,35 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
    <header>camdoublespinbox.h</header>
   </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>radioIO1TrigIn</tabstop>
+  <tabstop>radioIO1TriggeredShutter</tabstop>
+  <tabstop>radioIO1ShutterGating</tabstop>
+  <tabstop>radioIO1FSOut</tabstop>
+  <tabstop>radioIO1None</tabstop>
+  <tabstop>chkIO1InvertOut</tabstop>
+  <tabstop>chkIO1Debounce</tabstop>
+  <tabstop>chkIO1WeakPull</tabstop>
+  <tabstop>chkIO1Pull</tabstop>
+  <tabstop>chkIO1InvertIn</tabstop>
+  <tabstop>spinIO1Thresh</tabstop>
+  <tabstop>radioIO2TrigIn</tabstop>
+  <tabstop>radioIO2TriggeredShutter</tabstop>
+  <tabstop>radioIO2ShutterGating</tabstop>
+  <tabstop>chkIO2InvertIn</tabstop>
+  <tabstop>chkIO2Debounce</tabstop>
+  <tabstop>chkIO2Pull</tabstop>
+  <tabstop>radioIO2FSOut</tabstop>
+  <tabstop>chkIO2InvertOut</tabstop>
+  <tabstop>radioIO2None</tabstop>
+  <tabstop>spinIO2Thresh</tabstop>
+  <tabstop>chkIO3TriggerInEn</tabstop>
+  <tabstop>chkIO3InvertIn</tabstop>
+  <tabstop>chkIO3Debounce</tabstop>
+  <tabstop>cmdCancel</tabstop>
+  <tabstop>cmdOK</tabstop>
+  <tabstop>cmdApply</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

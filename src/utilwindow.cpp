@@ -44,7 +44,6 @@ bool copyFile(const char * fromfile, const char * tofile);
 static char *readReleaseString(char *buf, size_t len)
 {
 	FILE * fp = fopen("/opt/camera/filesystemRevision", "r");
-	char * ret;
 	if (!fp) {
 		return strcpy(buf, CAMERA_APP_VERSION);
 	}

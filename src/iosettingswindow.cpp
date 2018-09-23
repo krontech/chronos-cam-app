@@ -30,8 +30,6 @@ IOSettingsWindow::IOSettingsWindow(QWidget *parent, Camera * cameraInst) :
 
 	camera = cameraInst;
 
-	char str[100];
-
 	ui->spinIO1Thresh->setValue(camera->io->getThreshold(1));
 
 	ui->spinIO2Thresh->setValue(camera->io->getThreshold(2));

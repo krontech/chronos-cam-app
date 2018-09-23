@@ -39,7 +39,7 @@
 
 void* recDataThread(void *arg);
 void recordEosCallback(void * arg);
-void recordErrorCallback(void * arg, char * message);
+void recordErrorCallback(void * arg, const char * message);
 
 
 Camera::Camera()
@@ -2908,7 +2908,7 @@ void recordEosCallback(void * arg)
 	fflush(stdout);
 }
 
-void recordErrorCallback(void * arg, char * message)
+void recordErrorCallback(void * arg, const char * message)
 {
 	Camera * camera = (Camera *)arg;
 	(void)message; // get rid of the warning

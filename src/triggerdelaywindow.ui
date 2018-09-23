@@ -98,6 +98,9 @@ QSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}<
      <height>51</height>
     </rect>
    </property>
+   <property name="focusPolicy">
+    <enum>Qt::NoFocus</enum>
+   </property>
    <property name="styleSheet">
     <string notr="true">QSlider::groove:horizontal {
     border: 1px solid #999999;
@@ -214,6 +217,9 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
      <pointsize>16</pointsize>
     </font>
    </property>
+   <property name="focusPolicy">
+    <enum>Qt::NoFocus</enum>
+   </property>
    <property name="text">
     <string>100%</string>
    </property>
@@ -232,6 +238,9 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
      <pointsize>16</pointsize>
     </font>
    </property>
+   <property name="focusPolicy">
+    <enum>Qt::NoFocus</enum>
+   </property>
    <property name="text">
     <string>50%</string>
    </property>
@@ -249,6 +258,9 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
     <font>
      <pointsize>16</pointsize>
     </font>
+   </property>
+   <property name="focusPolicy">
+    <enum>Qt::NoFocus</enum>
    </property>
    <property name="text">
     <string>0%</string>
@@ -730,6 +742,19 @@ resolution or framerate:</string>
    <header>triggerslider.h</header>
   </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>cmdOK</tabstop>
+  <tabstop>cmdCancel</tabstop>
+  <tabstop>spinPostSeconds</tabstop>
+  <tabstop>spinPostFrames</tabstop>
+  <tabstop>spinPreSeconds</tabstop>
+  <tabstop>spinPreFrames</tabstop>
+  <tabstop>spinPreRecSeconds</tabstop>
+  <tabstop>spinPreRecFrames</tabstop>
+  <tabstop>comboKeepConstant</tabstop>
+  <tabstop>cmdResetToDefaults</tabstop>
+  <tabstop>cmdMorePreRecTime</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

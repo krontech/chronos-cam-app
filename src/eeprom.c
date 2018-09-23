@@ -85,7 +85,7 @@ int eeprom_write(int fd,
 int eeprom_read(int fd,
 		 unsigned int addr,
 		 unsigned int offset,
-		 unsigned char *buf,
+		 void *buf,
 		 unsigned char len
 ){
 	struct i2c_rdwr_ioctl_data msg_rdwr;
@@ -175,7 +175,7 @@ int eeprom_write_large(int fd,
 int eeprom_read_large(int fd,
 		 unsigned int addr,
 		 unsigned int offset,
-		 unsigned char *buf,
+		 void *buf,
 		 unsigned char len
 ){
 	struct i2c_rdwr_ioctl_data msg_rdwr;
