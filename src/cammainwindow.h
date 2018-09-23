@@ -66,7 +66,7 @@ private slots:
 
 	void UtilWindow_closed();
 
-	void on_expSlider_sliderMoved(int position);
+	void on_expSlider_valueChanged(int position);
 
 	void recSettingsClosed();
 
@@ -74,12 +74,16 @@ private slots:
 
 	void on_cmdBkGndButton_clicked();
 
-    void on_cmdDPCButton_clicked();
+	void on_cmdDPCButton_clicked();
 
-    void createNewPlaybackWindow();
+	void createNewPlaybackWindow();
+
+	void keyPressEvent(QKeyEvent *ev);
+
 private:
 	void updateRecordingState(bool recording);
 	void updateCurrentSettingsLabel(void);
+	void updateExpSliderLimits(void);
 	Ui::CamMainWindow *ui;
 	StatusWindow * sw;
 	QTimer *timer;

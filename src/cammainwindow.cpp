@@ -48,6 +48,7 @@ Video * vinst;
 UserInterface * userInterface;
 bool focusAidEnabled = false;
 
+
 CamMainWindow::CamMainWindow(QWidget *parent) :
 	QDialog(parent),
 	ui(new Ui::CamMainWindow)
@@ -78,11 +79,6 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	//camera->endOfRecCallback = &endOfRecCallback;
 	//camera->endOfRecCallbackArg = this;
 
-	qDebug() << "camera->sensor->getMaxCurrentIntegrationTime() returned" << camera->sensor->getMaxCurrentIntegrationTime();
-
-	ui->expSlider->setMinimum(LUX1310_MIN_INT_TIME * 100000000.0);
-	ui->expSlider->setMaximum(camera->sensor->getMaxCurrentIntegrationTime() * 100000000.0 - 20);
-	ui->expSlider->setValue(camera->sensor->getIntegrationTime() * 100000000.0);
 	ui->cmdWB->setEnabled(camera->getIsColor());
 	ui->chkFocusAid->setChecked(camera->getFocusPeakEnable());
 
@@ -94,6 +90,7 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 
 	sw = new StatusWindow;
 
+	updateExpSliderLimits();
 	updateCurrentSettingsLabel();
 
 	lastShutterButton = camera->ui->getShutterButton();
@@ -450,20 +447,30 @@ void CamMainWindow::on_chkFocusAid_clicked(bool focusAidEnabled)
 	camera->setFocusPeakEnable(focusAidEnabled);
 }
 
-void CamMainWindow::on_expSlider_sliderMoved(int position)
+void CamMainWindow::on_expSlider_valueChanged(int position)
 {
 	camera->setIntegrationTime((double)position / 100000000.0, 0, 0, 0);
 	updateCurrentSettingsLabel();
 }
 
-
-
 void CamMainWindow::recSettingsClosed()
 {
-	ui->expSlider->setMinimum(LUX1310_MIN_INT_TIME * 100000000.0);
-	ui->expSlider->setMaximum(camera->sensor->getMaxCurrentIntegrationTime() * 100000000.0 - 20);
-	ui->expSlider->setValue(camera->sensor->getIntegrationTime() * 100000000.0);
+	updateExpSliderLimits();
 	updateCurrentSettingsLabel();
+}
+
+//Upate the exposure slider limits and step size.
+void CamMainWindow::updateExpSliderLimits()
+{
+	int expSliderValue = camera->sensor->getIntegrationTime() * 100000000.0;
+	int expSliderMax = camera->sensor->getMaxCurrentIntegrationTime() * 100000000.0 - 20;
+	int expSliderMin = LUX1310_MIN_INT_TIME * 100000000.0;
+
+	ui->expSlider->setMinimum(expSliderMin);
+	ui->expSlider->setMaximum(expSliderMax);
+	ui->expSlider->setValue(expSliderValue);
+	ui->expSlider->setSingleStep((expSliderMax - expSliderMin) / 256);
+	ui->expSlider->setPageStep((expSliderMax - expSliderMin) / 32);
 }
 
 //Update the status textbox with the current settings
@@ -569,3 +576,23 @@ void CamMainWindow::on_cmdDPCButton_clicked()
 	}
 }
 
+void CamMainWindow::keyPressEvent(QKeyEvent *ev)
+{
+	switch (ev->key()) {
+	case Qt::Key_Up:
+		ui->expSlider->triggerAction(QSlider::SliderSingleStepAdd);
+		break;
+
+	case Qt::Key_Down:
+		ui->expSlider->triggerAction(QSlider::SliderSingleStepSub);
+		break;
+
+	case Qt::Key_PageUp:
+		ui->expSlider->triggerAction(QSlider::SliderPageStepAdd);
+		break;
+
+	case Qt::Key_PageDown:
+		ui->expSlider->triggerAction(QSlider::SliderPageStepSub);
+		break;
+	}
+}
