@@ -173,8 +173,8 @@ public:
 	CameraErrortype init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * sensorInst, UserInterface * userInterface, UInt32 ramSizeVal, bool color);
 	Int32 startRecording(void);
 	Int32 setRecSequencerModeNormal();
-    Int32 setRecSequencerModeGatedBurst(UInt32 prerecord = 0);
-    Int32 setRecSequencerModeSingleBlock(UInt32 blockLength, UInt32 frameOffset = 0);
+	Int32 setRecSequencerModeGatedBurst(UInt32 prerecord = 0);
+	Int32 setRecSequencerModeSingleBlock(UInt32 blockLength, UInt32 frameOffset = 0);
 	Int32 stopRecording(void);
 	bool getIsRecording(void);
 	void (*endOfRecCallback)(void *);
@@ -295,13 +295,14 @@ private:
 	ImagerSettings_t imagerSettings;
 	bool isColor;
 
-	// camSPECS CCM calculation: CIECAM02 RGB to sRGB & white balance
+	// camSPECS CCM calculation: CIECAM02 Sensor-RGB to  Linear-sRGB at D55 Illuminant
 	double colorCalMatrix[9] = {
 		+1.2330, +0.6468, -0.7764,
 		-0.3219, +1.6901, -0.3811,
 		-0.0614, -0.6409, +1.5258,
 	};
-	double cameraWhiteBalMatrix[3] = { 1.15177, 1.09279, 1.0 };
+	// camSPECS CCM calculation: Sensor White Balance
+	double cameraWhiteBalMatrix[3] = { 1.5150, 1.0, 1.1048 };
 	double imgGain;
 	bool focusPeakEnabled;
 	int focusPeakColorIndex;

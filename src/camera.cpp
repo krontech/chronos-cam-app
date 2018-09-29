@@ -71,7 +71,7 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 {
 	//int FRAME_SIZE = 1280*1024*12/8;
 	CameraErrortype retVal;
-    UInt32 ramSizeGBSlot0, ramSizeGBSlot1;
+	UInt32 ramSizeGBSlot0, ramSizeGBSlot1;
 	QSettings appSettings;
 
 	//Get the memory size
@@ -135,10 +135,10 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 		return CAMERA_WRONG_FPGA_VERSION;
 	}
 
-    setLiveOutputTiming(1296, 1024, 1280, 1024, MAX_LIVE_FRAMERATE);
+	setLiveOutputTiming(1296, 1024, 1280, 1024, MAX_LIVE_FRAMERATE);
 
-    gpmc->write16(IMAGE_SENSOR_FIFO_START_W_THRESH_ADDR, 0x0100);
-    gpmc->write16(IMAGE_SENSOR_FIFO_STOP_W_THRESH_ADDR, 0x0100);
+	gpmc->write16(IMAGE_SENSOR_FIFO_START_W_THRESH_ADDR, 0x0100);
+	gpmc->write16(IMAGE_SENSOR_FIFO_STOP_W_THRESH_ADDR, 0x0100);
 
 	gpmc->write32(SEQ_LIVE_ADDR_0_ADDR, LIVE_FRAME_0_ADDRESS);
 	gpmc->write32(SEQ_LIVE_ADDR_1_ADDR, LIVE_FRAME_1_ADDRESS);
@@ -2369,29 +2369,49 @@ Int32 Camera::startSave(UInt32 startFrame, UInt32 length)
 
 void Camera::setCCMatrix()
 {
-	gpmc->write16(CCM_11_ADDR, within((int)(4096.0 * colorCalMatrix[0] * imgGain * sceneWhiteBalMatrix[0]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1));
-	gpmc->write16(CCM_12_ADDR, within((int)(4096.0 * colorCalMatrix[1] * imgGain * sceneWhiteBalMatrix[1]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1));
-	gpmc->write16(CCM_13_ADDR, within((int)(4096.0 * colorCalMatrix[2] * imgGain * sceneWhiteBalMatrix[2]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1));
+	int i;
+	int ccm[] = {
+		/* First row */
+		(int)(4096.0 * colorCalMatrix[0] * imgGain * sceneWhiteBalMatrix[0]),
+		(int)(4096.0 * colorCalMatrix[1] * imgGain * sceneWhiteBalMatrix[0]),
+		(int)(4096.0 * colorCalMatrix[2] * imgGain * sceneWhiteBalMatrix[0]),
+		/* Second row */
+		(int)(4096.0 * colorCalMatrix[3] * imgGain * sceneWhiteBalMatrix[1]),
+		(int)(4096.0 * colorCalMatrix[4] * imgGain * sceneWhiteBalMatrix[1]),
+		(int)(4096.0 * colorCalMatrix[5] * imgGain * sceneWhiteBalMatrix[1]),
+		/* Third row */
+		(int)(4096.0 * colorCalMatrix[6] * imgGain * sceneWhiteBalMatrix[2]),
+		(int)(4096.0 * colorCalMatrix[7] * imgGain * sceneWhiteBalMatrix[2]),
+		(int)(4096.0 * colorCalMatrix[8] * imgGain * sceneWhiteBalMatrix[2])
+	};
 
-	gpmc->write16(CCM_21_ADDR, within((int)(4096.0 * colorCalMatrix[3] * imgGain * sceneWhiteBalMatrix[0]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1));
-	gpmc->write16(CCM_22_ADDR, within((int)(4096.0 * colorCalMatrix[4] * imgGain * sceneWhiteBalMatrix[1]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1));
-	gpmc->write16(CCM_23_ADDR, within((int)(4096.0 * colorCalMatrix[5] * imgGain * sceneWhiteBalMatrix[2]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1));
+	for (i = 0; i < 9; i++) {
+		if (ccm[i] > COLOR_MATRIX_MAXVAL-1) ccm[i] = COLOR_MATRIX_MAXVAL-1;
+		if (ccm[i] < -COLOR_MATRIX_MAXVAL) ccm[i] = -COLOR_MATRIX_MAXVAL;
+	}
 
-	gpmc->write16(CCM_31_ADDR, within((int)(4096.0 * colorCalMatrix[6] * imgGain * sceneWhiteBalMatrix[0]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1));
-	gpmc->write16(CCM_32_ADDR, within((int)(4096.0 * colorCalMatrix[7] * imgGain * sceneWhiteBalMatrix[1]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1));
-	gpmc->write16(CCM_33_ADDR, within((int)(4096.0 * colorCalMatrix[8] * imgGain * sceneWhiteBalMatrix[2]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1));
+	gpmc->write16(CCM_11_ADDR, ccm[0]);
+	gpmc->write16(CCM_12_ADDR, ccm[1]);
+	gpmc->write16(CCM_13_ADDR, ccm[2]);
 
-	qDebug() << "Blue matrix" << within((int)(4096.0 * colorCalMatrix[6] * cameraWhiteBalMatrix[2] * sceneWhiteBalMatrix[2]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1)
-			<< within((int)(4096.0 * colorCalMatrix[7] * cameraWhiteBalMatrix[2] * sceneWhiteBalMatrix[2]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1)
-			<< within((int)(4096.0 * colorCalMatrix[8] * cameraWhiteBalMatrix[2] * sceneWhiteBalMatrix[2]), -COLOR_MATRIX_MAXVAL, COLOR_MATRIX_MAXVAL-1);
+	gpmc->write16(CCM_21_ADDR, ccm[3]);
+	gpmc->write16(CCM_22_ADDR, ccm[4]);
+	gpmc->write16(CCM_23_ADDR, ccm[5]);
+
+	gpmc->write16(CCM_31_ADDR, ccm[6]);
+	gpmc->write16(CCM_32_ADDR, ccm[7]);
+	gpmc->write16(CCM_33_ADDR, ccm[8]);
+
+	fprintf(stderr, "Setting Color Matrix: (gain=%06f)\n", imgGain);
+	fprintf(stderr, "\t%06f %06f %06f\n",   ccm[0] / 4096.0, ccm[1] / 4096.0, ccm[2] / 4096.0);
+	fprintf(stderr, "\t%06f %06f %06f\n",   ccm[3] / 4096.0, ccm[4] / 4096.0, ccm[5] / 4096.0);
+	fprintf(stderr, "\t%06f %06f %06f\n\n", ccm[6] / 4096.0, ccm[7] / 4096.0, ccm[8] / 4096.0);
 }
 
 Int32 Camera::setWhiteBalance(UInt32 x, UInt32 y)
 {
 	UInt32 quadStartX = x & 0xFFFFFFFE;
 	UInt32 quadStartY = y & 0xFFFFFFFE;
-	//3=G B
-	//  R G
 
 	int bRaw = readPixel12((quadStartY + 1) * imagerSettings.stride + quadStartX, LIVE_FRAME_0_ADDRESS * BYTES_PER_WORD);
 	int gRaw = readPixel12(quadStartY * imagerSettings.stride + quadStartX, LIVE_FRAME_0_ADDRESS * BYTES_PER_WORD);
@@ -2404,10 +2424,6 @@ Int32 Camera::setWhiteBalance(UInt32 x, UInt32 y)
 				readPixel12(quadStartY * imagerSettings.stride + quadStartX, FPN_ADDRESS * BYTES_PER_WORD);
 	double r =  rRaw-
 				readPixel12(quadStartY * imagerSettings.stride + quadStartX + 1, FPN_ADDRESS * BYTES_PER_WORD);
-
-	r *= cameraWhiteBalMatrix[0];
-	g *= cameraWhiteBalMatrix[1];
-	b *= cameraWhiteBalMatrix[2];
 
     qDebug() << "RGB values read:" << r << g << b;
 
@@ -2477,7 +2493,6 @@ void Camera::setFocusAid(bool enable)
 			qDebug() << "Setting startX" << startX << "startY" << startY << "cropX" << cropX << "cropY" << cropY;
 			vinst->setScaling(startX & 0xFFFF8, startY, cropX, cropY);	//StartX must be a multiple of 8
 		}
-
 	}
 	else
 	{
