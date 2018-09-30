@@ -143,6 +143,4 @@ void whiteBalanceDialog::on_cmdResetCustomWB_clicked()
     appSettings.setValue("whiteBalance/currentB", BLUE);
     
     if(ui->comboWB->currentIndex() == COMBO_MAX_INDEX)	camera->setCCMatrix();
-    //qDebug() <<" colors: " << RED << GREEN << BLUE;
-    //qDebug()<<"sceneWhiteBalPresets: " <<customWhiteBalOld[0] << customWhiteBalOld[1] << customWhiteBalOld[2];
 }

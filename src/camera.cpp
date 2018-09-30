@@ -109,7 +109,7 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 	vinst = vinstInst;
 	sensor = sensorInst;
 	ui = userInterface;
-    ramSize = (ramSizeGBSlot0 + ramSizeGBSlot1)*1024/32*1024*1024;
+	ramSize = (ramSizeGBSlot0 + ramSizeGBSlot1)*1024/32*1024*1024;
 	isColor = readIsColor();
 	int err;
 
@@ -353,16 +353,7 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 		sceneWhiteBalMatrix[2] = appSettings.value("whiteBalance/currentB", 1.584).toDouble();
 	}
 
-	qDebug() << gpmc->read16(CCM_11_ADDR) << gpmc->read16(CCM_12_ADDR) << gpmc->read16(CCM_13_ADDR);
-	qDebug() << gpmc->read16(CCM_21_ADDR) << gpmc->read16(CCM_22_ADDR) << gpmc->read16(CCM_23_ADDR);
-	qDebug() << gpmc->read16(CCM_31_ADDR) << gpmc->read16(CCM_32_ADDR) << gpmc->read16(CCM_33_ADDR);
-
-
 	setCCMatrix();
-
-	qDebug() << gpmc->read16(CCM_11_ADDR) << gpmc->read16(CCM_12_ADDR) << gpmc->read16(CCM_13_ADDR);
-	qDebug() << gpmc->read16(CCM_21_ADDR) << gpmc->read16(CCM_22_ADDR) << gpmc->read16(CCM_23_ADDR);
-	qDebug() << gpmc->read16(CCM_31_ADDR) << gpmc->read16(CCM_32_ADDR) << gpmc->read16(CCM_33_ADDR);
 
 	setZebraEnable(appSettings.value("camera/zebra", true).toBool());
 	setFocusPeakEnable(appSettings.value("camera/focusPeak", false).toBool());
@@ -2410,43 +2401,77 @@ void Camera::setCCMatrix()
 
 Int32 Camera::setWhiteBalance(UInt32 x, UInt32 y)
 {
-	UInt32 quadStartX = x & 0xFFFFFFFE;
-	UInt32 quadStartY = y & 0xFFFFFFFE;
+	const UInt32 min_sum = 100 * (LUX1310_HRES_INCREMENT * LUX1310_HRES_INCREMENT) / 2;
 
-	int bRaw = readPixel12((quadStartY + 1) * imagerSettings.stride + quadStartX, LIVE_FRAME_0_ADDRESS * BYTES_PER_WORD);
-	int gRaw = readPixel12(quadStartY * imagerSettings.stride + quadStartX, LIVE_FRAME_0_ADDRESS * BYTES_PER_WORD);
-	int rRaw = readPixel12(quadStartY * imagerSettings.stride + quadStartX + 1, LIVE_FRAME_0_ADDRESS * BYTES_PER_WORD);
+	UInt32 offset = (y & 0xFFFFFFF0) * imagerSettings.stride + (x & 0xFFFFFFF0);
+	double gain[LUX1310_HRES_INCREMENT];
+	UInt32 r_sum = 0;
+	UInt32 g_sum = 0;
+	UInt32 b_sum = 0;
+	double r_linear, g_linear, b_linear;
+	double scale;
+	int i, j;
 
-	//Read pixels from first live display buffer and subtract FPN data
-	double b = bRaw -
-				readPixel12((quadStartY + 1) * imagerSettings.stride + quadStartX, FPN_ADDRESS * BYTES_PER_WORD);
-	double g = gRaw -
-				readPixel12(quadStartY * imagerSettings.stride + quadStartX, FPN_ADDRESS * BYTES_PER_WORD);
-	double r =  rRaw-
-				readPixel12(quadStartY * imagerSettings.stride + quadStartX + 1, FPN_ADDRESS * BYTES_PER_WORD);
+	readDCG(gain);
+	for (i = 0; i < LUX1310_HRES_INCREMENT; i += 2) {
+		/* Even Rows - Green/Red Pixels */
+		for (j = 0; j < LUX1310_HRES_INCREMENT; j++) {
+			UInt16 fpn = readPixel12(offset + j, FPN_ADDRESS * BYTES_PER_WORD);
+			UInt16 pix = readPixel12(offset + j, LIVE_FRAME_0_ADDRESS * BYTES_PER_WORD);
+			if (pix >= (4096 - 128)) {
+				return CAMERA_CLIPPED_ERROR;
+			}
+	
+			if (j & 1) {
+				r_sum += gain[j] * (pix - fpn) * 2;
+			} else {
+				g_sum += gain[j] * (pix - fpn);
+			}
+		}
+        	offset += imagerSettings.stride;
 
-    qDebug() << "RGB values read:" << r << g << b;
+		/* Odd Rows - Blue/Green Pixels */
+		for (j = 0; j < LUX1310_HRES_INCREMENT; j++) {
+			UInt16 fpn = readPixel12(offset + j, FPN_ADDRESS * BYTES_PER_WORD);
+			UInt16 pix = readPixel12(offset + j, LIVE_FRAME_0_ADDRESS * BYTES_PER_WORD);
+			if (pix >= (4096 - 128)) {
+				return CAMERA_CLIPPED_ERROR;
+			}
 
-    //Fail if the pixel values is clipped or too low
-	if(rRaw == 4095 || gRaw == 4095 || bRaw == 4095)
-		return CAMERA_CLIPPED_ERROR;
+			if (j & 1) {
+				g_sum += (pix - fpn) * gain[j];
+			} else {
+				b_sum += (pix - fpn) * gain[j] * 2;
+			}
+		}
+		offset += imagerSettings.stride;
+	}
 
-    if(r < 100 || g < 100 || b < 100)
-		return CAMERA_LOW_SIGNAL_ERROR;
+	if ((r_sum < min_sum) || (g_sum < min_sum) || (b_sum < min_sum))
+        	return CAMERA_LOW_SIGNAL_ERROR;
 
+	/* Apply the color correction matrix to convert into linear-sRGB space. */
+	r_linear = (r_sum * colorCalMatrix[0]) + (g_sum * colorCalMatrix[1]) + (b_sum * colorCalMatrix[2]);
+	g_linear = (r_sum * colorCalMatrix[3]) + (g_sum * colorCalMatrix[4]) + (b_sum * colorCalMatrix[5]);
+	b_linear = (r_sum * colorCalMatrix[6]) + (g_sum * colorCalMatrix[7]) + (b_sum * colorCalMatrix[8]);
 
-	//Find the max value, generate white balance matrix that scales the other colors up to match the brightest color
-	double mx = max(r, max(g, b));
+	qDebug() << "Sensor-RGB sums:" << r_sum << g_sum << b_sum;
+	qDebug() << "Linear-sRGB sums:" << r_linear << g_linear << b_linear;
 
-	sceneWhiteBalMatrix[0] = (double)mx / (double)r;
-	sceneWhiteBalMatrix[1] = (double)mx / (double)g;
-	sceneWhiteBalMatrix[2] = (double)mx / (double)b;
+	/* Find the highest channel (probably green) */
+	scale = g_linear;
+	if (scale < r_linear) scale = r_linear;
+	if (scale < b_linear) scale = b_linear;
+
+	/* Generate the white balance coefficients. */
+	sceneWhiteBalMatrix[0] = scale / r_linear;
+	sceneWhiteBalMatrix[1] = scale / g_linear;
+	sceneWhiteBalMatrix[2] = scale / b_linear;
 
 	qDebug() << "Setting WB matrix to " << sceneWhiteBalMatrix[0] << sceneWhiteBalMatrix[1] << sceneWhiteBalMatrix[2];
 
 	setCCMatrix();
 	return SUCCESS;
-
 }
 
 UInt8 Camera::getWBIndex(){
