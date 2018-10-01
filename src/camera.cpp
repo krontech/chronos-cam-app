@@ -2360,26 +2360,37 @@ Int32 Camera::startSave(UInt32 startFrame, UInt32 length)
 
 void Camera::setCCMatrix()
 {
-	int i;
 	int ccm[] = {
 		/* First row */
-		(int)(4096.0 * colorCalMatrix[0] * imgGain * sceneWhiteBalMatrix[0]),
-		(int)(4096.0 * colorCalMatrix[1] * imgGain * sceneWhiteBalMatrix[0]),
-		(int)(4096.0 * colorCalMatrix[2] * imgGain * sceneWhiteBalMatrix[0]),
+		(int)(4096.0 * colorCalMatrix[0] * sceneWhiteBalMatrix[0]),
+		(int)(4096.0 * colorCalMatrix[1] * sceneWhiteBalMatrix[0]),
+		(int)(4096.0 * colorCalMatrix[2] * sceneWhiteBalMatrix[0]),
 		/* Second row */
-		(int)(4096.0 * colorCalMatrix[3] * imgGain * sceneWhiteBalMatrix[1]),
-		(int)(4096.0 * colorCalMatrix[4] * imgGain * sceneWhiteBalMatrix[1]),
-		(int)(4096.0 * colorCalMatrix[5] * imgGain * sceneWhiteBalMatrix[1]),
+		(int)(4096.0 * colorCalMatrix[3] * sceneWhiteBalMatrix[1]),
+		(int)(4096.0 * colorCalMatrix[4] * sceneWhiteBalMatrix[1]),
+		(int)(4096.0 * colorCalMatrix[5] * sceneWhiteBalMatrix[1]),
 		/* Third row */
-		(int)(4096.0 * colorCalMatrix[6] * imgGain * sceneWhiteBalMatrix[2]),
-		(int)(4096.0 * colorCalMatrix[7] * imgGain * sceneWhiteBalMatrix[2]),
-		(int)(4096.0 * colorCalMatrix[8] * imgGain * sceneWhiteBalMatrix[2])
+		(int)(4096.0 * colorCalMatrix[6] * sceneWhiteBalMatrix[2]),
+		(int)(4096.0 * colorCalMatrix[7] * sceneWhiteBalMatrix[2]),
+		(int)(4096.0 * colorCalMatrix[8] * sceneWhiteBalMatrix[2])
 	};
 
+	/* Check if the colour matrix has clipped, and scale it back down if necessary. */
+	int i;
+	int peak = 4096;
 	for (i = 0; i < 9; i++) {
-		if (ccm[i] > COLOR_MATRIX_MAXVAL-1) ccm[i] = COLOR_MATRIX_MAXVAL-1;
-		if (ccm[i] < -COLOR_MATRIX_MAXVAL) ccm[i] = -COLOR_MATRIX_MAXVAL;
+		if (ccm[i] > peak) peak = ccm[i];
+		if (-ccm[i] > peak) peak = -ccm[i];
 	}
+	if (peak > COLOR_MATRIX_MAXVAL) {
+		fprintf(stderr, "Warning: Color matrix has clipped - scaling down to fit\n");
+		for (i = 0; i < 9; i++) ccm[i] = (ccm[i] * COLOR_MATRIX_MAXVAL) / peak;
+	}
+
+	fprintf(stderr, "Setting Color Matrix:\n");
+	fprintf(stderr, "\t%06f %06f %06f\n",   ccm[0] / 4096.0, ccm[1] / 4096.0, ccm[2] / 4096.0);
+	fprintf(stderr, "\t%06f %06f %06f\n",   ccm[3] / 4096.0, ccm[4] / 4096.0, ccm[5] / 4096.0);
+	fprintf(stderr, "\t%06f %06f %06f\n\n", ccm[6] / 4096.0, ccm[7] / 4096.0, ccm[8] / 4096.0);
 
 	gpmc->write16(CCM_11_ADDR, ccm[0]);
 	gpmc->write16(CCM_12_ADDR, ccm[1]);
@@ -2393,10 +2404,6 @@ void Camera::setCCMatrix()
 	gpmc->write16(CCM_32_ADDR, ccm[7]);
 	gpmc->write16(CCM_33_ADDR, ccm[8]);
 
-	fprintf(stderr, "Setting Color Matrix: (gain=%06f)\n", imgGain);
-	fprintf(stderr, "\t%06f %06f %06f\n",   ccm[0] / 4096.0, ccm[1] / 4096.0, ccm[2] / 4096.0);
-	fprintf(stderr, "\t%06f %06f %06f\n",   ccm[3] / 4096.0, ccm[4] / 4096.0, ccm[5] / 4096.0);
-	fprintf(stderr, "\t%06f %06f %06f\n\n", ccm[6] / 4096.0, ccm[7] / 4096.0, ccm[8] / 4096.0);
 }
 
 Int32 Camera::setWhiteBalance(UInt32 x, UInt32 y)

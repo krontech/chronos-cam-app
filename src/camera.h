@@ -295,11 +295,12 @@ private:
 	ImagerSettings_t imagerSettings;
 	bool isColor;
 
-	// camSPECS CCM calculation: CIECAM02 Sensor-RGB to  Linear-sRGB at D55 Illuminant
+	// camSPECS CCM calculations
 	double colorCalMatrix[9] = {
-		+1.2330, +0.6468, -0.7764,
-		-0.3219, +1.6901, -0.3811,
-		-0.0614, -0.6409, +1.5258,
+		// CIECAM16: Camera to Linear-SRGB at D55 Illuminant
+		+1.9147, -0.5768, -0.2342,
+		-0.3056, +1.3895, -0.0969,
+		+0.1272, -0.9531, +1.6492,
 	};
 	// camSPECS CCM calculation: Sensor White Balance
 	double cameraWhiteBalMatrix[3] = { 1.5150, 1.0, 1.1048 };
