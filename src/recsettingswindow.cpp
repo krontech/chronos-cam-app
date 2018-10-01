@@ -122,7 +122,7 @@ RecSettingsWindow::RecSettingsWindow(QWidget *parent, Camera * cameraInst) :
 
 		lineText.sprintf("%dx%d %d fps", hRes, vRes, fr);
 		
-		ui->comboRes->addItem(line);
+		ui->comboRes->addItem(lineText);
 
 		if ((hRes == is->hRes) && (vRes == is->vRes)) {
 			ui->comboRes->setCurrentIndex(ui->comboRes->count() - 1);
