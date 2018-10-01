@@ -325,6 +325,7 @@ CameraErrortype Video::startRecording(UInt32 sizeX, UInt32 sizeY, UInt32 start, 
 	QDBusPendingReply<QVariantMap> reply;
 	QVariantMap map;
 	UInt64 estFileSize;
+	UInt32 realBitrate;
 	char path[1000];
 
 	/* Generate the desired filename, and check that we can write it. */
@@ -339,9 +340,10 @@ CameraErrortype Video::startRecording(UInt32 sizeX, UInt32 sizeY, UInt32 start, 
 	map.insert("length", QVariant(length));
 	switch(save_mode) {
 	case SAVE_MODE_H264:
-		estFileSize = min(bitsPerPixel * sizeX * sizeY * framerate, min(60000000, (UInt32)(maxBitrate * 1000000.0)) * framerate / 60) / framerate * length / 8;//bitsPerPixel * imgXSize * imgYSize * numFrames / 8;
+		realBitrate = min(bitsPerPixel * sizeX * sizeY * framerate, min(60000000, (UInt32)(maxBitrate * 1000000.0)));
+		estFileSize = realBitrate * (length / framerate) / 8; /* size = (bits/sec) * (seconds) / (8 bits/byte) */
 		map.insert("format", QVariant("h264"));
-		map.insert("bitrate", QVariant((uint)maxBitrate));
+		map.insert("bitrate", QVariant((uint)realBitrate));
 		map.insert("framerate", QVariant((uint)framerate));
 		break;
 	case SAVE_MODE_RAW16:
