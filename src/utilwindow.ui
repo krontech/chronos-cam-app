@@ -602,6 +602,24 @@ Settings Data</string>
 from backup</string>
      </property>
     </widget>
+    <widget class="QPushButton" name="cmdClose_2">
+     <property name="geometry">
+      <rect>
+       <x>660</x>
+       <y>390</y>
+       <width>71</width>
+       <height>51</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>16</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>Close</string>
+     </property>
+    </widget>
    </widget>
    <widget class="QWidget" name="tabAbout">
     <attribute name="title">
@@ -625,6 +643,24 @@ from backup</string>
      </property>
      <property name="text">
       <string>TextLabel</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="cmdClose_3">
+     <property name="geometry">
+      <rect>
+       <x>660</x>
+       <y>390</y>
+       <width>71</width>
+       <height>51</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>16</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>Close</string>
      </property>
     </widget>
    </widget>
@@ -1017,6 +1053,24 @@ Number</string>
       <string>Remove user
 calibration data
 (revert to factory)</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="cmdClose_4">
+     <property name="geometry">
+      <rect>
+       <x>660</x>
+       <y>390</y>
+       <width>71</width>
+       <height>51</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>16</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>Close</string>
      </property>
     </widget>
    </widget>

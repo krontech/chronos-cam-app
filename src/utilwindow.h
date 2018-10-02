@@ -98,6 +98,12 @@ private slots:
 
 	void on_comboDisableUnsavedWarning_currentIndexChanged(int index);
 
+	void on_cmdClose_2_clicked();
+	
+	void on_cmdClose_3_clicked();
+	
+	void on_cmdClose_4_clicked();
+	
 private:
 	Ui::UtilWindow *ui;
 	Camera * camera;

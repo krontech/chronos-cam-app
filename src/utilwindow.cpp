@@ -138,8 +138,6 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 		ui->chkUpsideDownDisplay->setVisible(false);
 
 	ui->chkShowDebugControls->setChecked(!(appSettings.value("debug/hideDebug", true).toBool()));
-
-	connect(ui->cmdClose, SIGNAL(clicked()), this, SLOT(close()));
 }
 
 UtilWindow::~UtilWindow()
@@ -505,13 +503,31 @@ void UtilWindow::on_cmdClose_clicked()
 
 	if(UpsideDownDisplayChanged ^ ButtonsOnLeftChanged) camera->updateVideoPosition();
 
-
+	close();
 /*
 	if((camera->ButtonsOnLeft !=	 ui->chkUiOnLeft->isChecked()) ||
 		camera->UpsideDownDisplay != ui->chkUpsideDownDisplay->isChecked())
 			{
 				camera->updateVideoPosition();
 	*/
+}
+
+void UtilWindow::on_cmdClose_2_clicked()
+{
+	qDebug()<<"on_cmdClose_2_clicked";
+	on_cmdClose_clicked();
+}
+
+void UtilWindow::on_cmdClose_3_clicked()
+{
+	qDebug()<<"on_cmdClose_3_clicked";
+	on_cmdClose_clicked();
+}
+
+void UtilWindow::on_cmdClose_4_clicked()
+{
+	qDebug()<<"on_cmdClose_4_clicked";
+	on_cmdClose_clicked();
 }
 
 void UtilWindow::on_cmdWhiteRef_clicked()
