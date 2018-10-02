@@ -662,33 +662,33 @@ Delay</string>
  </widget>
  <customwidgets>
   <customwidget>
-   <class>CamSpinBox</class>
-   <extends>QSpinBox</extends>
-   <header>camspinbox.h</header>
-  </customwidget>
-  <customwidget>
    <class>CamLineEdit</class>
    <extends>QLineEdit</extends>
    <header>camLineEdit.h</header>
   </customwidget>
+  <customwidget>
+   <class>CamSpinBox</class>
+   <extends>QSpinBox</extends>
+   <header>camspinbox.h</header>
+  </customwidget>
  </customwidgets>
  <tabstops>
-  <tabstop>comboRes</tabstop>
-  <tabstop>cmdOK</tabstop>
   <tabstop>cmdCancel</tabstop>
-  <tabstop>cmdMax</tabstop>
-  <tabstop>cmdExpMax</tabstop>
-  <tabstop>lineRate</tabstop>
-  <tabstop>linePeriod</tabstop>
-  <tabstop>lineExp</tabstop>
+  <tabstop>cmdOK</tabstop>
   <tabstop>cmdRecMode</tabstop>
   <tabstop>cmdDelaySettings</tabstop>
   <tabstop>comboGain</tabstop>
+  <tabstop>lineExp</tabstop>
+  <tabstop>cmdExpMax</tabstop>
+  <tabstop>linePeriod</tabstop>
+  <tabstop>lineRate</tabstop>
+  <tabstop>cmdMax</tabstop>
   <tabstop>chkCenter</tabstop>
   <tabstop>spinVOffset</tabstop>
   <tabstop>spinHOffset</tabstop>
   <tabstop>spinVRes</tabstop>
   <tabstop>spinHRes</tabstop>
+  <tabstop>comboRes</tabstop>
  </tabstops>
  <resources/>
  <connections/>

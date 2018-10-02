@@ -218,7 +218,7 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
     </font>
    </property>
    <property name="focusPolicy">
-    <enum>Qt::NoFocus</enum>
+    <enum>Qt::TabFocus</enum>
    </property>
    <property name="text">
     <string>100%</string>
@@ -239,7 +239,7 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
     </font>
    </property>
    <property name="focusPolicy">
-    <enum>Qt::NoFocus</enum>
+    <enum>Qt::TabFocus</enum>
    </property>
    <property name="text">
     <string>50%</string>
@@ -260,7 +260,7 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
     </font>
    </property>
    <property name="focusPolicy">
-    <enum>Qt::NoFocus</enum>
+    <enum>Qt::TabFocus</enum>
    </property>
    <property name="text">
     <string>0%</string>
@@ -727,14 +727,14 @@ resolution or framerate:</string>
  </widget>
  <customwidgets>
   <customwidget>
-   <class>CamSpinBox</class>
-   <extends>QSpinBox</extends>
-   <header>camspinbox.h</header>
-  </customwidget>
-  <customwidget>
    <class>CamDoubleSpinBox</class>
    <extends>QDoubleSpinBox</extends>
    <header>camdoublespinbox.h</header>
+  </customwidget>
+  <customwidget>
+   <class>CamSpinBox</class>
+   <extends>QSpinBox</extends>
+   <header>camspinbox.h</header>
   </customwidget>
   <customwidget>
    <class>TriggerSlider</class>
@@ -743,17 +743,21 @@ resolution or framerate:</string>
   </customwidget>
  </customwidgets>
  <tabstops>
-  <tabstop>cmdOK</tabstop>
   <tabstop>cmdCancel</tabstop>
-  <tabstop>spinPostSeconds</tabstop>
-  <tabstop>spinPostFrames</tabstop>
-  <tabstop>spinPreSeconds</tabstop>
-  <tabstop>spinPreFrames</tabstop>
-  <tabstop>spinPreRecSeconds</tabstop>
-  <tabstop>spinPreRecFrames</tabstop>
+  <tabstop>cmdOK</tabstop>
   <tabstop>comboKeepConstant</tabstop>
   <tabstop>cmdResetToDefaults</tabstop>
   <tabstop>cmdMorePreRecTime</tabstop>
+  <tabstop>spinPostFrames</tabstop>
+  <tabstop>spinPreFrames</tabstop>
+  <tabstop>spinPreRecFrames</tabstop>
+  <tabstop>spinPostSeconds</tabstop>
+  <tabstop>spinPreSeconds</tabstop>
+  <tabstop>spinPreRecSeconds</tabstop>
+  <tabstop>horizontalSlider</tabstop>
+  <tabstop>cmdHundredPercent</tabstop>
+  <tabstop>cmdFiftyPercent</tabstop>
+  <tabstop>cmdZeroPercent</tabstop>
  </tabstops>
  <resources/>
  <connections/>

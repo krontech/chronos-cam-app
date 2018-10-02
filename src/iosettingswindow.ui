@@ -61,7 +61,7 @@
 }</string>
     </property>
     <property name="text">
-     <string>Frame Sync Output</string>
+     <string>Frame S&amp;ync Output</string>
     </property>
    </widget>
    <widget class="QRadioButton" name="radioIO1TrigIn">
@@ -112,7 +112,7 @@
 }</string>
     </property>
     <property name="text">
-     <string>Exposure Trigger</string>
+     <string>E&amp;xposure Trigger</string>
     </property>
    </widget>
    <widget class="QCheckBox" name="chkIO1InvertIn">
@@ -284,7 +284,7 @@
 }</string>
     </property>
     <property name="text">
-     <string>Shutter Gating</string>
+     <string>Sh&amp;utter Gating</string>
     </property>
    </widget>
    <widget class="CamDoubleSpinBox" name="spinIO1Thresh">
@@ -556,7 +556,7 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
 }</string>
     </property>
     <property name="text">
-     <string>Exposure Trigger</string>
+     <string>Exposure &amp;Trigger</string>
     </property>
    </widget>
    <widget class="QRadioButton" name="radioIO2ShutterGating">
@@ -580,7 +580,7 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
 }</string>
     </property>
     <property name="text">
-     <string>Shutter Gating</string>
+     <string>Shutter &amp;Gating</string>
     </property>
    </widget>
    <widget class="CamDoubleSpinBox" name="spinIO2Thresh">
@@ -783,33 +783,33 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
   </customwidget>
  </customwidgets>
  <tabstops>
-  <tabstop>radioIO1TrigIn</tabstop>
-  <tabstop>radioIO1TriggeredShutter</tabstop>
-  <tabstop>radioIO1ShutterGating</tabstop>
-  <tabstop>radioIO1FSOut</tabstop>
-  <tabstop>radioIO1None</tabstop>
-  <tabstop>chkIO1InvertOut</tabstop>
+  <tabstop>cmdCancel</tabstop>
+  <tabstop>cmdOK</tabstop>
+  <tabstop>cmdApply</tabstop>
+  <tabstop>chkIO3Debounce</tabstop>
+  <tabstop>chkIO3InvertIn</tabstop>
+  <tabstop>chkIO3TriggerInEn</tabstop>
+  <tabstop>radioIO2None</tabstop>
+  <tabstop>chkIO2Pull</tabstop>
+  <tabstop>radioIO2ShutterGating</tabstop>
+  <tabstop>chkIO2InvertOut</tabstop>
+  <tabstop>chkIO2Debounce</tabstop>
+  <tabstop>radioIO2TriggeredShutter</tabstop>
+  <tabstop>radioIO2FSOut</tabstop>
+  <tabstop>chkIO2InvertIn</tabstop>
+  <tabstop>radioIO2TrigIn</tabstop>
+  <tabstop>spinIO2Thresh</tabstop>
   <tabstop>chkIO1Debounce</tabstop>
   <tabstop>chkIO1WeakPull</tabstop>
   <tabstop>chkIO1Pull</tabstop>
   <tabstop>chkIO1InvertIn</tabstop>
+  <tabstop>radioIO1ShutterGating</tabstop>
+  <tabstop>chkIO1InvertOut</tabstop>
+  <tabstop>radioIO1TriggeredShutter</tabstop>
+  <tabstop>radioIO1None</tabstop>
+  <tabstop>radioIO1FSOut</tabstop>
+  <tabstop>radioIO1TrigIn</tabstop>
   <tabstop>spinIO1Thresh</tabstop>
-  <tabstop>radioIO2TrigIn</tabstop>
-  <tabstop>radioIO2TriggeredShutter</tabstop>
-  <tabstop>radioIO2ShutterGating</tabstop>
-  <tabstop>chkIO2InvertIn</tabstop>
-  <tabstop>chkIO2Debounce</tabstop>
-  <tabstop>chkIO2Pull</tabstop>
-  <tabstop>radioIO2FSOut</tabstop>
-  <tabstop>chkIO2InvertOut</tabstop>
-  <tabstop>radioIO2None</tabstop>
-  <tabstop>spinIO2Thresh</tabstop>
-  <tabstop>chkIO3TriggerInEn</tabstop>
-  <tabstop>chkIO3InvertIn</tabstop>
-  <tabstop>chkIO3Debounce</tabstop>
-  <tabstop>cmdCancel</tabstop>
-  <tabstop>cmdOK</tabstop>
-  <tabstop>cmdApply</tabstop>
  </tabstops>
  <resources/>
  <connections/>

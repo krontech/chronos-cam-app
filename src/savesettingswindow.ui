@@ -466,11 +466,6 @@ Remove</string>
  </widget>
  <customwidgets>
   <customwidget>
-   <class>CamSpinBox</class>
-   <extends>QSpinBox</extends>
-   <header>camspinbox.h</header>
-  </customwidget>
-  <customwidget>
    <class>CamLineEdit</class>
    <extends>QLineEdit</extends>
    <header>camLineEdit.h</header>
@@ -480,20 +475,25 @@ Remove</string>
    <extends>QDoubleSpinBox</extends>
    <header>camdoublespinbox.h</header>
   </customwidget>
+  <customwidget>
+   <class>CamSpinBox</class>
+   <extends>QSpinBox</extends>
+   <header>camspinbox.h</header>
+  </customwidget>
  </customwidgets>
  <tabstops>
-  <tabstop>comboDrive</tabstop>
+  <tabstop>comboLevel</tabstop>
+  <tabstop>comboProfile</tabstop>
+  <tabstop>cmdClose</tabstop>
+  <tabstop>cmdUMount</tabstop>
   <tabstop>lineFilename</tabstop>
+  <tabstop>comboDrive</tabstop>
+  <tabstop>cmdRefresh</tabstop>
+  <tabstop>chkEnableOverlay</tabstop>
+  <tabstop>spinMaxBitrate</tabstop>
+  <tabstop>spinFramerate</tabstop>
   <tabstop>comboSaveFormat</tabstop>
   <tabstop>spinBitrate</tabstop>
-  <tabstop>spinFramerate</tabstop>
-  <tabstop>spinMaxBitrate</tabstop>
-  <tabstop>chkEnableOverlay</tabstop>
-  <tabstop>cmdRefresh</tabstop>
-  <tabstop>cmdUMount</tabstop>
-  <tabstop>cmdClose</tabstop>
-  <tabstop>comboProfile</tabstop>
-  <tabstop>comboLevel</tabstop>
  </tabstops>
  <resources/>
  <connections/>

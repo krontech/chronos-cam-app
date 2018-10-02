@@ -110,6 +110,12 @@ White Balance</string>
    </property>
   </widget>
  </widget>
+ <tabstops>
+  <tabstop>cmdClose</tabstop>
+  <tabstop>cmdResetCustomWB</tabstop>
+  <tabstop>comboWB</tabstop>
+  <tabstop>cmdSetCustomWB</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

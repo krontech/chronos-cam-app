@@ -535,7 +535,7 @@ QSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}<
 }</string>
     </property>
     <property name="text">
-     <string>Normal</string>
+     <string>Norma&amp;l</string>
     </property>
     <property name="checked">
      <bool>false</bool>
@@ -562,7 +562,7 @@ QSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}<
 }</string>
     </property>
     <property name="text">
-     <string>Gated Burst</string>
+     <string>&amp;Gated Burst</string>
     </property>
     <property name="checked">
      <bool>true</bool>
@@ -621,29 +621,29 @@ QSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}<
  </widget>
  <customwidgets>
   <customwidget>
-   <class>CamSpinBox</class>
-   <extends>QSpinBox</extends>
-   <header>camspinbox.h</header>
-  </customwidget>
-  <customwidget>
    <class>CamDoubleSpinBox</class>
    <extends>QDoubleSpinBox</extends>
    <header>camdoublespinbox.h</header>
   </customwidget>
+  <customwidget>
+   <class>CamSpinBox</class>
+   <extends>QSpinBox</extends>
+   <header>camspinbox.h</header>
+  </customwidget>
  </customwidgets>
  <tabstops>
-  <tabstop>radioNormal</tabstop>
-  <tabstop>radioSegmented</tabstop>
-  <tabstop>radioGated</tabstop>
-  <tabstop>cmdMax</tabstop>
-  <tabstop>spinRecLengthSeconds</tabstop>
-  <tabstop>spinRecLengthFrames</tabstop>
-  <tabstop>spinSegmentCount</tabstop>
   <tabstop>spinPrerecordSeconds</tabstop>
   <tabstop>spinPrerecordFrames</tabstop>
-  <tabstop>chkDisableRing</tabstop>
-  <tabstop>cmdOK</tabstop>
   <tabstop>cmdCancel</tabstop>
+  <tabstop>cmdOK</tabstop>
+  <tabstop>chkDisableRing</tabstop>
+  <tabstop>radioGated</tabstop>
+  <tabstop>radioSegmented</tabstop>
+  <tabstop>radioNormal</tabstop>
+  <tabstop>spinSegmentCount</tabstop>
+  <tabstop>spinRecLengthFrames</tabstop>
+  <tabstop>cmdMax</tabstop>
+  <tabstop>spinRecLengthSeconds</tabstop>
  </tabstops>
  <resources/>
  <connections/>
