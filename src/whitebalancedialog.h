@@ -2,6 +2,7 @@
 #define WHITEBALANCEDIALOG_H
 
 #include <QDialog>
+#include <QSplashScreen>
 #include "camera.h"
 #include "statuswindow.h"
 
@@ -31,6 +32,7 @@ private:
 	Camera * camera;
 	bool windowInitComplete;
 	StatusWindow * sw;
+	QSplashScreen *crosshair;
 	double sceneWhiteBalPresets[7][3];
 	double customWhiteBalOld[3] = {1.0, 1.0, 1.0};
 	void addPreset(double r, double b, double g, QString s);

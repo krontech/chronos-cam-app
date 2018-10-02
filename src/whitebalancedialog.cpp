@@ -3,23 +3,50 @@
 #include <QMessageBox>
 #include <QSettings>
 #include <QDebug>
+#include <QBitmap>
 
 #define RED   camera->sceneWhiteBalMatrix[0]
 #define GREEN camera->sceneWhiteBalMatrix[1]
 #define BLUE  camera->sceneWhiteBalMatrix[2]
 #define COMBO_MAX_INDEX ui->comboWB->count()-1
 
+/* 32x32 Crosshair in PNG format */
+const uint8_t crosshair32x32_png[] = {
+	0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d,
+	0x49, 0x48, 0x44, 0x52, 0x00, 0x00, 0x00, 0x20, 0x00, 0x00, 0x00, 0x20,
+	0x01, 0x03, 0x00, 0x00, 0x00, 0x49, 0xb4, 0xe8, 0xb7, 0x00, 0x00, 0x00,
+	0x06, 0x50, 0x4c, 0x54, 0x45, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xa5,
+	0x67, 0xb9, 0xcf, 0x00, 0x00, 0x00, 0x01, 0x74, 0x52, 0x4e, 0x53, 0x00,
+	0x40, 0xe6, 0xd8, 0x66, 0x00, 0x00, 0x00, 0x09, 0x70, 0x48, 0x59, 0x73,
+	0x00, 0x00, 0x0b, 0x13, 0x00, 0x00, 0x0b, 0x13, 0x01, 0x00, 0x9a, 0x9c,
+	0x18, 0x00, 0x00, 0x00, 0x17, 0x49, 0x44, 0x41, 0x54, 0x08, 0xd7, 0x63,
+	0x60, 0x60, 0x3c, 0xc0, 0xc0, 0x40, 0x1d, 0xe2, 0x3f, 0x10, 0x20, 0x11,
+	0x54, 0x31, 0x14, 0x00, 0x6f, 0x7a, 0x21, 0xd2, 0x4b, 0xd5, 0xd2, 0xcf,
+	0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4e, 0x44, 0xae, 0x42, 0x60, 0x82
+};
+
 whiteBalanceDialog::whiteBalanceDialog(QWidget *parent, Camera * cameraInst) :
 	QDialog(parent),
 	ui(new Ui::whiteBalanceDialog)
 {
+	QSettings appSettings;
+
 	windowInitComplete = false;
 	ui->setupUi(this);
 	camera = cameraInst;
 	this->setWindowFlags(Qt::Dialog /*| Qt::WindowStaysOnTopHint*/ | Qt::FramelessWindowHint);
 	this->move(camera->ButtonsOnLeft? 0:600, 0);
 	sw = new StatusWindow;
-	QSettings appSettings;	
+
+	/* Draw a crosshair to show the white balance position */
+	QPixmap crosspx;
+	crosspx.loadFromData(crosshair32x32_png, sizeof(crosshair32x32_png));
+
+	crosshair = new QSplashScreen(crosspx);
+	crosshair->setWindowFlags(Qt::WindowStaysOnTopHint | Qt::SplashScreen | Qt::FramelessWindowHint);
+	crosshair->setMask(crosspx.mask());
+	crosshair->setGeometry((600 - crosspx.width()) / 2, (480 - crosspx.height()) / 2, crosspx.width(), crosspx.height());
+	crosshair->show();
 	
 	addPreset(1.53, 1.00, 1.35, "8000K(Cloudy Sky)");
 	addPreset(1.42, 1.00, 1.46, "6500K(Noon Daylight)");
@@ -85,13 +112,7 @@ void whiteBalanceDialog::on_comboWB_currentIndexChanged(int index)
 
 void whiteBalanceDialog::on_cmdSetCustomWB_clicked()
 {
-	QMessageBox::StandardButton reply;
-	reply = QMessageBox::question(this, "Set white balance?", "Will set white balance. Continue?", QMessageBox::Yes|QMessageBox::No);
-	if(QMessageBox::Yes != reply)
-		return;
-
-	Int32 ret = camera->setWhiteBalance(camera->getImagerSettings().hRes / 2 & 0xFFFFFFFE,
-								 camera->getImagerSettings().vRes / 2 & 0xFFFFFFFE);	//Sample from middle but make sure position is a multiple of 2
+	Int32 ret = camera->setWhiteBalance(camera->getImagerSettings().hRes / 2, camera->getImagerSettings().vRes / 2);
 	if(ret == CAMERA_CLIPPED_ERROR)
 	{
 		sw->setText("Clipping. Reduce exposure and try white balance again");
@@ -128,6 +149,7 @@ void whiteBalanceDialog::on_cmdSetCustomWB_clicked()
 void whiteBalanceDialog::on_cmdClose_clicked()
 {
 	delete sw;
+	delete crosshair;
 	this->close();
 }
 
