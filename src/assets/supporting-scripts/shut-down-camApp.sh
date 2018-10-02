@@ -8,6 +8,8 @@ set -eu #Strict mode. Catch errors early. Note: -o pipefail not supported.
 #exit gracefully. This script tries to solve that problem by waiting a little while,
 #and then restarting the camera if the camApp isn't responsive.
 
+killall cam-pipeline;
+
 camAppPID="$(pidof camApp || true)"
 if [ -n "$camAppPID" ]; then
 	killall camApp;
@@ -18,6 +20,8 @@ if [ -n "$camAppPID" ]; then
 		camAppPID="$(pidof camApp || true)"
 		iter="$(( $iter + 1))"
 	done
+	
+	sleep 0.01 #Try to avoid startup segfault.
 
 	if [ -n "$camAppPID" ]; then #If the camApp is still running now, it must be frozen. Kill it ungracefully.
 		killall -KILL camApp
