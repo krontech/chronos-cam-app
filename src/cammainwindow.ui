@@ -229,6 +229,7 @@ Settings</string>
    </property>
    <property name="font">
     <font>
+     <pointsize>14</pointsize>
      <weight>75</weight>
      <bold>true</bold>
     </font>
@@ -237,7 +238,7 @@ Settings</string>
     <enum>Qt::NoFocus</enum>
    </property>
    <property name="text">
-    <string>Set White
+    <string>White
 Balance</string>
    </property>
   </widget>
