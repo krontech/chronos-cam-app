@@ -231,8 +231,9 @@ public:
 	Int32 getRawCorrectedFramesAveraged(UInt32 frame, UInt32 framesToAverage, UInt16 * frameBuffer);
 	Int32 takeWhiteReferences(void);
 	Int32 startSave(UInt32 startFrame, UInt32 length);
-	void setCCMatrix();
-	int setWhiteBalance(UInt32 x, UInt32 y);
+	void setCCMatrix(const double *matrix);
+	void setWhiteBalance(double r, double g, double b);
+	int autoWhiteBalance(unsigned int x, unsigned int y);
 	void setFocusAid(bool enable);
 	bool getFocusAid();
 	int blackCalAllStdRes(bool factory = false);
@@ -295,6 +296,16 @@ private:
 	ImagerSettings_t imagerSettings;
 	bool isColor;
 
+	double imgGain;
+	bool focusPeakEnabled;
+	int focusPeakColorIndex;
+	bool zebraEnabled;
+	char serialNumber[SERIAL_NUMBER_MAX_LEN+1];
+
+public:
+	// Actual white balance applied at runtime.
+	double sceneWhiteBalMatrix[3];
+
 	// camSPECS CCM calculations
 	double colorCalMatrix[9] = {
 		// CIECAM16: Camera to Linear-SRGB at D55 Illuminant
@@ -304,14 +315,6 @@ private:
 	};
 	// camSPECS CCM calculation: Sensor White Balance
 	double cameraWhiteBalMatrix[3] = { 1.5150, 1.0, 1.1048 };
-	double imgGain;
-	bool focusPeakEnabled;
-	int focusPeakColorIndex;
-	bool zebraEnabled;
-	char serialNumber[SERIAL_NUMBER_MAX_LEN+1];
-
-public:
-	double sceneWhiteBalMatrix[3];	//Actual white balance computed during runtime
 	UInt8 getWBIndex();
 	void  setWBIndex(UInt8 index);
 	int unsavedWarnEnabled;

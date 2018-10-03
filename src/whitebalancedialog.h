@@ -5,6 +5,7 @@
 #include <QSplashScreen>
 #include "camera.h"
 #include "statuswindow.h"
+#include "colorwindow.h"
 
 namespace Ui {
 class whiteBalanceDialog;
@@ -26,12 +27,15 @@ private slots:
 	void on_cmdClose_clicked();
 	
 	void on_cmdResetCustomWB_clicked();
+
+	void on_cmdMatrix_clicked();
 	
 private:
 	Ui::whiteBalanceDialog *ui;
 	Camera * camera;
 	bool windowInitComplete;
 	StatusWindow * sw;
+	ColorWindow * cw;
 	QSplashScreen *crosshair;
 	double sceneWhiteBalPresets[7][3];
 	double customWhiteBalOld[3] = {1.0, 1.0, 1.0};

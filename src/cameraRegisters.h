@@ -86,10 +86,15 @@
 #define CCM_31						0x26E
 #define CCM_32						0x270
 #define CCM_33						0x272
-#define WL_DYNDLY_0					0x274
-#define WL_DYNDLY_1					0x276
-#define WL_DYNDLY_2					0x278
-#define WL_DYNDLY_3					0x27A
+
+#define WBAL_RED					0x278
+#define WBAL_GREEN					0x27A
+#define WBAL_BLUE					0x27C
+
+#define WL_DYNDLY_0					0x280
+#define WL_DYNDLY_1					0x282
+#define WL_DYNDLY_2					0x284
+#define WL_DYNDLY_3					0x286
 
 #define MMU_CONFIG_ADDRESS          0x290
 
@@ -237,6 +242,10 @@
 #define CCM_31_ADDR						(CCM_31 * 2)
 #define CCM_32_ADDR						(CCM_32 * 2)
 #define CCM_33_ADDR						(CCM_33 * 2)
+
+#define WBAL_RED_ADDR					(WBAL_RED * 2)
+#define WBAL_GREEN_ADDR					(WBAL_GREEN * 2)
+#define WBAL_BLUE_ADDR					(WBAL_BLUE * 2)
 
 #define WL_DYNDLY_0_ADDR				(WL_DYNDLY_0 * 2)
 #define WL_DYNDLY_1_ADDR				(WL_DYNDLY_1 * 2)

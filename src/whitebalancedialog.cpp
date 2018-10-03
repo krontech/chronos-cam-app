@@ -45,8 +45,11 @@ whiteBalanceDialog::whiteBalanceDialog(QWidget *parent, Camera * cameraInst) :
 	crosshair = new QSplashScreen(crosspx);
 	crosshair->setWindowFlags(Qt::WindowStaysOnTopHint | Qt::SplashScreen | Qt::FramelessWindowHint);
 	crosshair->setMask(crosspx.mask());
-	crosshair->setGeometry((600 - crosspx.width()) / 2, (480 - crosspx.height()) / 2, crosspx.width(), crosspx.height());
+	crosshair->setGeometry((camera->ButtonsOnLeft ? 200:0) + (600 - crosspx.width()) / 2, (480 - crosspx.height()) / 2, crosspx.width(), crosspx.height());
 	crosshair->show();
+
+	/* Hide the color matrix dialog for now */
+	cw = NULL;
 	
 	addPreset(1.53, 1.00, 1.35, "8000K(Cloudy Sky)");
 	addPreset(1.42, 1.00, 1.46, "6500K(Noon Daylight)");
@@ -102,35 +105,44 @@ void whiteBalanceDialog::on_comboWB_currentIndexChanged(int index)
 	RED =   sceneWhiteBalPresets[index][0];
 	GREEN = sceneWhiteBalPresets[index][1];
 	BLUE =  sceneWhiteBalPresets[index][2];
+
+	camera->setWhiteBalance(RED, GREEN, BLUE);
+	if (cw) cw->whiteBalanceChanged();
 	
 	appSettings.setValue("whiteBalance/currentR", RED);
 	appSettings.setValue("whiteBalance/currentG", GREEN);
 	appSettings.setValue("whiteBalance/currentB", BLUE);
-	//qDebug() <<" colors: " << RED << GREEN << BLUE;
-	camera->setCCMatrix();
+
 }
 
 void whiteBalanceDialog::on_cmdSetCustomWB_clicked()
 {
-	Int32 ret = camera->setWhiteBalance(camera->getImagerSettings().hRes / 2, camera->getImagerSettings().vRes / 2);
-	if(ret == CAMERA_CLIPPED_ERROR)
-	{
-		sw->setText("Clipping. Reduce exposure and try white balance again");
-		sw->setTimeout(3000);
-		sw->show();
-		return;
-	}
-	else if(ret == CAMERA_LOW_SIGNAL_ERROR)
-	{
-		sw->setText("Too dark. Increase exposure and try white balance again");
-		sw->setTimeout(3000);
-		sw->show();
-		return;
-	}
-	
-	camera->setCCMatrix();
-	
 	QSettings appSettings;
+
+	/* Get the white balance from the colour matrix window, if open. */
+	if (cw) {
+		cw->getWhiteBalance(camera->sceneWhiteBalMatrix);
+		camera->setWhiteBalance(RED, GREEN, BLUE);
+	}
+	/* Otherwise, generate an automatic white balance. */
+	if (!cw) {
+		Int32 ret = camera->autoWhiteBalance(camera->getImagerSettings().hRes / 2, camera->getImagerSettings().vRes / 2);
+		if(ret == CAMERA_CLIPPED_ERROR)
+		{
+			sw->setText("Clipping. Reduce exposure and try white balance again");
+			sw->setTimeout(3000);
+			sw->show();
+			return;
+		}
+		else if(ret == CAMERA_LOW_SIGNAL_ERROR)
+		{
+			sw->setText("Too dark. Increase exposure and try white balance again");
+			sw->setTimeout(3000);
+			sw->show();
+			return;
+		}
+	}
+
 	if(appSettings.value("whiteBalance/customR", 0.0).toDouble() == 0.0)
 		ui->comboWB->addItem("Custom"); //Only add "Custom" if the values have not already been set
 	appSettings.setValue("whiteBalance/customR", RED);
@@ -148,6 +160,10 @@ void whiteBalanceDialog::on_cmdSetCustomWB_clicked()
 
 void whiteBalanceDialog::on_cmdClose_clicked()
 {
+	if (cw) {
+		delete cw;
+		cw = NULL;
+	}
 	delete sw;
 	delete crosshair;
 	this->close();
@@ -164,5 +180,25 @@ void whiteBalanceDialog::on_cmdResetCustomWB_clicked()
     appSettings.setValue("whiteBalance/currentG", GREEN);
     appSettings.setValue("whiteBalance/currentB", BLUE);
     
-    if(ui->comboWB->currentIndex() == COMBO_MAX_INDEX)	camera->setCCMatrix();
+	if(ui->comboWB->currentIndex() == COMBO_MAX_INDEX) {
+		camera->setWhiteBalance(RED, GREEN, BLUE);
+		if (cw) cw->whiteBalanceChanged();
+	}
+
+}
+
+void whiteBalanceDialog::on_cmdMatrix_clicked()
+{
+	/* Close the color matrix window and re-enable the crosshair */
+	if (cw) {
+		delete cw;
+		cw = NULL;
+		crosshair->show();
+	}
+	/* Disable the crosshair and show the colour matrix window. */
+	else {
+		cw = new ColorWindow(NULL, camera);
+		cw->show();
+		crosshair->hide();
+	}
 }

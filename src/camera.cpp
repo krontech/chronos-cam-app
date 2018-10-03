@@ -289,8 +289,6 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 		if(!fileDirFoundOnUSB) strcpy(vinst->fileDirectory, "/media/mmcblk1p1");
 	}
 
-	
-	
 	vinst->eosCallback = recordEosCallback;
 	vinst->eosCallbackArg = (void *)this;
 
@@ -339,21 +337,22 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 	*/
 
 	//For mono version, set color matrix to just pass straight through
-	if(!isColor)
-	{
+	if (!isColor) {
 		colorCalMatrix[0] = 1.0;	colorCalMatrix[1] = 0.0;	colorCalMatrix[2] = 0.0;
 		colorCalMatrix[3] = 0.0;	colorCalMatrix[4] = 1.0;	colorCalMatrix[5] = 0.0;
 		colorCalMatrix[6] = 0.0;	colorCalMatrix[7] = 0.0;	colorCalMatrix[8] = 1.0;
 		cameraWhiteBalMatrix[0] = 1.0;	cameraWhiteBalMatrix[1] = 1.0;	cameraWhiteBalMatrix[2] = 1.0;
-		sceneWhiteBalMatrix[0] = sceneWhiteBalMatrix[1] = sceneWhiteBalMatrix[2] = 1.0;
+		sceneWhiteBalMatrix[0] = 1.0;	sceneWhiteBalMatrix[1] = 1.0;	sceneWhiteBalMatrix[2] = 1.0;
 	}
+	/* Load the white balance from settings. */
 	else{
-		sceneWhiteBalMatrix[0] = appSettings.value("whiteBalance/currentR", 1.35).toDouble();//Use the values for average daylight by default.  See whitebalancedialog.cpp for the other presets.
+		sceneWhiteBalMatrix[0] = appSettings.value("whiteBalance/currentR", 1.35).toDouble();
 		sceneWhiteBalMatrix[1] = appSettings.value("whiteBalance/currentG", 1.00).toDouble();
 		sceneWhiteBalMatrix[2] = appSettings.value("whiteBalance/currentB", 1.584).toDouble();
 	}
 
-	setCCMatrix();
+	setCCMatrix(colorCalMatrix);
+	setWhiteBalance(sceneWhiteBalMatrix[0], sceneWhiteBalMatrix[1], sceneWhiteBalMatrix[2]);
 
 	setZebraEnable(appSettings.value("camera/zebra", true).toBool());
 	setFocusPeakEnable(appSettings.value("camera/focusPeak", false).toBool());
@@ -1083,7 +1082,7 @@ void Camera::computeFPNCorrection2(UInt32 framesToAverage, bool writeToFile, boo
 
 	imgGain = 4096.0 / (double)(4096 - getMaxFPNValue(buffer, pixelsPerFrame)) * IMAGE_GAIN_FUDGE_FACTOR;
 	qDebug() << "imgGain set to" << imgGain;
-	setCCMatrix();
+	setWhiteBalance(sceneWhiteBalMatrix[0], sceneWhiteBalMatrix[1], sceneWhiteBalMatrix[2]);
 
 	qDebug() << "About to write file...";
 	if(writeToFile)
@@ -1214,7 +1213,7 @@ Int32 Camera::loadFPNFromFile(void)
 	mx = getMaxFPNValue(buffer, pixelsPerFrame);
 	imgGain = 4096.0 / (double)(4096 - mx) * IMAGE_GAIN_FUDGE_FACTOR;
 	qDebug() << "imgGain set to" << imgGain << "Max FPN value found" << mx;
-	setCCMatrix();
+	setWhiteBalance(sceneWhiteBalMatrix[0], sceneWhiteBalMatrix[1], sceneWhiteBalMatrix[2]);
 
 	//zero the buffer
 	memset(packedBuf, 0, bytesPerFrame);
@@ -2293,7 +2292,6 @@ Int32 Camera::readFPN(UInt16 * fpnUnpacked)
 	return SUCCESS;
 }
 
-
 Int32 Camera::readCorrectedFrame(UInt32 frame, UInt16 * frameBuffer, UInt16 * fpnInput, double * gainCorrection)
 {
 	UInt32 pixelsPerFrame = recordingData.is.stride * recordingData.is.vRes;
@@ -2358,21 +2356,21 @@ Int32 Camera::startSave(UInt32 startFrame, UInt32 length)
 
 #define COLOR_MATRIX_MAXVAL	((1 << SENSOR_DATA_WIDTH) * (1 << COLOR_MATRIX_INT_BITS))
 
-void Camera::setCCMatrix()
+void Camera::setCCMatrix(const double *matrix)
 {
 	int ccm[] = {
 		/* First row */
-		(int)(4096.0 * colorCalMatrix[0] * sceneWhiteBalMatrix[0]),
-		(int)(4096.0 * colorCalMatrix[1] * sceneWhiteBalMatrix[0]),
-		(int)(4096.0 * colorCalMatrix[2] * sceneWhiteBalMatrix[0]),
+		(int)(4096.0 * matrix[0]),
+		(int)(4096.0 * matrix[1]),
+		(int)(4096.0 * matrix[2]),
 		/* Second row */
-		(int)(4096.0 * colorCalMatrix[3] * sceneWhiteBalMatrix[1]),
-		(int)(4096.0 * colorCalMatrix[4] * sceneWhiteBalMatrix[1]),
-		(int)(4096.0 * colorCalMatrix[5] * sceneWhiteBalMatrix[1]),
+		(int)(4096.0 * matrix[3]),
+		(int)(4096.0 * matrix[4]),
+		(int)(4096.0 * matrix[5]),
 		/* Third row */
-		(int)(4096.0 * colorCalMatrix[6] * sceneWhiteBalMatrix[2]),
-		(int)(4096.0 * colorCalMatrix[7] * sceneWhiteBalMatrix[2]),
-		(int)(4096.0 * colorCalMatrix[8] * sceneWhiteBalMatrix[2])
+		(int)(4096.0 * matrix[6]),
+		(int)(4096.0 * matrix[7]),
+		(int)(4096.0 * matrix[8])
 	};
 
 	/* Check if the colour matrix has clipped, and scale it back down if necessary. */
@@ -2403,10 +2401,22 @@ void Camera::setCCMatrix()
 	gpmc->write16(CCM_31_ADDR, ccm[6]);
 	gpmc->write16(CCM_32_ADDR, ccm[7]);
 	gpmc->write16(CCM_33_ADDR, ccm[8]);
-
 }
 
-Int32 Camera::setWhiteBalance(UInt32 x, UInt32 y)
+void Camera::setWhiteBalance(double r, double g, double b)
+{
+	r = within(r * imgGain, 0.0, 8.0);
+	g = within(g * imgGain, 0.0, 8.0);
+	b = within(b * imgGain, 0.0, 8.0);
+
+	fprintf(stderr, "Setting WB Matrix: %06f %06f %06f\n", r, g, b);
+
+	gpmc->write16(WBAL_RED_ADDR,   (int)(4096.0 * r));
+	gpmc->write16(WBAL_GREEN_ADDR, (int)(4096.0 * g));
+	gpmc->write16(WBAL_BLUE_ADDR,  (int)(4096.0 * b));
+}
+
+Int32 Camera::autoWhiteBalance(UInt32 x, UInt32 y)
 {
 	const UInt32 min_sum = 100 * (LUX1310_HRES_INCREMENT * LUX1310_HRES_INCREMENT) / 2;
 
@@ -2415,7 +2425,6 @@ Int32 Camera::setWhiteBalance(UInt32 x, UInt32 y)
 	UInt32 r_sum = 0;
 	UInt32 g_sum = 0;
 	UInt32 b_sum = 0;
-	double r_linear, g_linear, b_linear;
 	double scale;
 	int i, j;
 
@@ -2428,14 +2437,13 @@ Int32 Camera::setWhiteBalance(UInt32 x, UInt32 y)
 			if (pix >= (4096 - 128)) {
 				return CAMERA_CLIPPED_ERROR;
 			}
-	
 			if (j & 1) {
 				r_sum += gain[j] * (pix - fpn) * 2;
 			} else {
 				g_sum += gain[j] * (pix - fpn);
 			}
 		}
-        	offset += imagerSettings.stride;
+		offset += imagerSettings.stride;
 
 		/* Odd Rows - Blue/Green Pixels */
 		for (j = 0; j < LUX1310_HRES_INCREMENT; j++) {
@@ -2444,7 +2452,6 @@ Int32 Camera::setWhiteBalance(UInt32 x, UInt32 y)
 			if (pix >= (4096 - 128)) {
 				return CAMERA_CLIPPED_ERROR;
 			}
-
 			if (j & 1) {
 				g_sum += (pix - fpn) * gain[j];
 			} else {
@@ -2457,27 +2464,21 @@ Int32 Camera::setWhiteBalance(UInt32 x, UInt32 y)
 	if ((r_sum < min_sum) || (g_sum < min_sum) || (b_sum < min_sum))
         	return CAMERA_LOW_SIGNAL_ERROR;
 
-	/* Apply the color correction matrix to convert into linear-sRGB space. */
-	r_linear = (r_sum * colorCalMatrix[0]) + (g_sum * colorCalMatrix[1]) + (b_sum * colorCalMatrix[2]);
-	g_linear = (r_sum * colorCalMatrix[3]) + (g_sum * colorCalMatrix[4]) + (b_sum * colorCalMatrix[5]);
-	b_linear = (r_sum * colorCalMatrix[6]) + (g_sum * colorCalMatrix[7]) + (b_sum * colorCalMatrix[8]);
-
-	qDebug() << "Sensor-RGB sums:" << r_sum << g_sum << b_sum;
-	qDebug() << "Linear-sRGB sums:" << r_linear << g_linear << b_linear;
+	fprintf(stderr, "WhiteBalance RGB average: %d %d %d\n",
+			(2*r_sum) / (LUX1310_HRES_INCREMENT * LUX1310_HRES_INCREMENT),
+			(2*g_sum) / (LUX1310_HRES_INCREMENT * LUX1310_HRES_INCREMENT),
+			(2*b_sum) / (LUX1310_HRES_INCREMENT * LUX1310_HRES_INCREMENT));
 
 	/* Find the highest channel (probably green) */
-	scale = g_linear;
-	if (scale < r_linear) scale = r_linear;
-	if (scale < b_linear) scale = b_linear;
+	scale = g_sum;
+	if (scale < r_sum) scale = r_sum;
+	if (scale < b_sum) scale = b_sum;
 
-	/* Generate the white balance coefficients. */
-	sceneWhiteBalMatrix[0] = scale / r_linear;
-	sceneWhiteBalMatrix[1] = scale / g_linear;
-	sceneWhiteBalMatrix[2] = scale / b_linear;
+	sceneWhiteBalMatrix[0] = scale / r_sum;
+	sceneWhiteBalMatrix[1] = scale / g_sum;
+	sceneWhiteBalMatrix[2] = scale / b_sum;
 
-	qDebug() << "Setting WB matrix to " << sceneWhiteBalMatrix[0] << sceneWhiteBalMatrix[1] << sceneWhiteBalMatrix[2];
-
-	setCCMatrix();
+	setWhiteBalance(sceneWhiteBalMatrix[0], sceneWhiteBalMatrix[1], sceneWhiteBalMatrix[2]);
 	return SUCCESS;
 }
 

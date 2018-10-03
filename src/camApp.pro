@@ -76,7 +76,8 @@ SOURCES += main.cpp\
     keyboardnumeric.cpp \
     whitebalancedialog.cpp \
     chronosControlInterface.cpp \
-    chronosVideoInterface.cpp
+    chronosVideoInterface.cpp \
+    colorwindow.cpp
 
 ## Generate version.cpp on every build
 versionTarget.target = version.cpp
@@ -130,7 +131,8 @@ HEADERS  += mainwindow.h \
     keyboardnumeric.h \
     whitebalancedialog.h \
     chronosControlInterface.h \
-    chronosVideoInterface.h
+    chronosVideoInterface.h \
+    colorwindow.h
 
 FORMS    += mainwindow.ui \
     cammainwindow.ui \
@@ -145,7 +147,8 @@ FORMS    += mainwindow.ui \
     recmodewindow.ui \
     triggerdelaywindow.ui \
     keyboardnumeric.ui \
-    whitebalancedialog.ui
+    whitebalancedialog.ui \
+    colorwindow.ui
 
 RESOURCES += \
     Images.qrc
