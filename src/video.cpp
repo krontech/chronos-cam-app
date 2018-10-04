@@ -70,11 +70,26 @@ CameraErrortype Video::setScaling(UInt32 startX, UInt32 startY, UInt32 cropX, UI
 	return SUCCESS;
 }
 
+static VideoState parseVideoState(const QVariantMap &args)
+{
+	if (args["filesave"].toBool()) {
+		return VIDEO_STATE_FILESAVE;
+	}
+	else if (args["playback"].toBool()) {
+		return VIDEO_STATE_PLAYBACK;
+	}
+	else {
+		return VIDEO_STATE_LIVEDISPLAY;
+	}
+}
+
 VideoState Video::getStatus(VideoStatus *st)
 {
 	QDBusPendingReply<QVariantMap> reply;
 	QVariantMap map;
 	VideoState state;
+
+	if (st) memset(st, 0, sizeof(VideoState));
 
 	pthread_mutex_lock(&mutex);
 	reply = iface.status();
@@ -82,21 +97,12 @@ VideoState Video::getStatus(VideoStatus *st)
 	pthread_mutex_unlock(&mutex);
 	if (reply.isError()) {
 		/* TODO: Error handling */
-		state = VIDEO_STATE_LIVEDISPLAY;
-	}
-	map = reply.value();
-	if (map["filesave"].toBool()) {
-		state = VIDEO_STATE_FILESAVE;
-	}
-	else if (map["playback"].toBool()) {
-		state = VIDEO_STATE_PLAYBACK;
-	}
-	else {
-		state = VIDEO_STATE_LIVEDISPLAY;
+		return VIDEO_STATE_LIVEDISPLAY;
 	}
 
+	map = reply.value();
+	state = parseVideoState(map);
 	if (st) {
-		memset(st, 0, sizeof(VideoState));
 		st->state = state;
 		st->totalFrames = map["totalFrames"].toUInt();
 		st->position = map["position"].toUInt();
@@ -419,15 +425,25 @@ void Video::setDisplayWindowStartX(bool videoOnRight){
 	}
 }
 
+void Video::sof(const QVariantMap &args)
+{
+	emit started(parseVideoState(args));
+}
+
+void Video::eof(const QVariantMap &args)
+{
+	if (args.contains("error")) {
+		emit ended(parseVideoState(args), args["error"].toString());
+	} else {
+		emit ended(parseVideoState(args), QString());
+	}
+}
+
 Video::Video() : iface("com.krontech.chronos.video", "/com/krontech/chronos/video", QDBusConnection::systemBus())
 {
 	QDBusConnection conn = iface.connection();
 	int i;
 
-	eosCallback = NULL;
-	eosCallbackArg = NULL;
-	errorCallback = NULL;
-	errorCallbackArg = NULL;
 	pid = -1;
 	running = false;
 

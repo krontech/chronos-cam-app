@@ -288,12 +288,6 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 		if(!fileDirFoundOnUSB) strcpy(vinst->fileDirectory, "/media/mmcblk1p1");
 	}
 
-	vinst->eosCallback = recordEosCallback;
-	vinst->eosCallbackArg = (void *)this;
-
-	vinst->errorCallback = recordErrorCallback;
-	vinst->errorCallbackArg = (void *)this;
-
 	loadColGainFromFile();
 
 	maxPostFramesRatio = 1;
@@ -2323,29 +2317,8 @@ Int32 Camera::readCorrectedFrame(UInt32 frame, UInt16 * frameBuffer, UInt16 * fp
 	return SUCCESS;
 }
 
-
 void setADCOffset(UInt8 channel, Int16 offset);
 Int16 getADCOffset(UInt8 channel);
-
-Int32 Camera::startSave(UInt32 startFrame, UInt32 length)
-{
-	QSettings appSettings;
-	save_mode_type record_mode;
-
-	switch (appSettings.value("recorder/saveFormat", SAVE_MODE_H264).toUInt()) {
-	case 0:  record_mode = SAVE_MODE_H264; break;
-	case 1:  record_mode = SAVE_MODE_RAW16; break;
-	case 2:  record_mode = SAVE_MODE_RAW12; break;
-	case 3:  record_mode = SAVE_MODE_DNG; break;
-	case 4:  record_mode = SAVE_MODE_TIFF; break;
-	default: record_mode = SAVE_MODE_H264;
-	}
-
-	setDisplaySettings(true, MAX_RECORD_FRAMERATE);	//Set to encoder safe mode, and increase the framerate.
-
-	recordingData.hasBeenSaved = true;
-	return vinst->startRecording((recordingData.is.hRes + 15) & 0xFFFFFFF0, recordingData.is.vRes, startFrame, length+2, record_mode);
-}
 
 void Camera::loadCCMFromSettings(void)
 {
@@ -2941,7 +2914,6 @@ bool Camera::get_demoMode() {
 	return appSettings.value("camera/demoMode", false).toBool();
 }
 
-
 void* recDataThread(void *arg)
 {
     Camera * cInst = (Camera *)arg;
@@ -2969,23 +2941,3 @@ void* recDataThread(void *arg)
 
 	pthread_exit(NULL);
 }
-
-void recordEosCallback(void * arg)
-{
-	Camera * camera = (Camera *)arg;
-	//camera->setPlaybackRate(0, true);
-	camera->setDisplaySettings(false, MAX_LIVE_FRAMERATE);
-	camera->vinst->setRunning(true);
-	fflush(stdout);
-}
-
-void recordErrorCallback(void * arg, const char * message)
-{
-	Camera * camera = (Camera *)arg;
-	(void)message; // get rid of the warning
-	//camera->setPlaybackRate(0, true);
-	camera->setDisplaySettings(false, MAX_LIVE_FRAMERATE);
-	// camera->vinst->setRunning(true);
-	fflush(stdout);
-}
-

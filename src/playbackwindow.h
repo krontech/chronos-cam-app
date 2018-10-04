@@ -73,6 +73,10 @@ private slots:
 
 	void on_cmdLoop_clicked();
 
+	/* Video class signals */
+	void videoStarted(VideoState state);
+	void videoEnded(VideoState state, QString err);
+
 private:
 	Ui::playbackWindow *ui;
 	Camera * camera;
@@ -95,7 +99,8 @@ private:
 	bool saveAborted;
 	bool insufficientFreeSpaceEstimate;
 	
-	unsigned int getSaveFormat();
+	save_mode_type getSaveFormat();
+
 signals:
 	void finishedSaving();
 	void enableSaveSettingsButtons(bool);

@@ -233,7 +233,6 @@ public:
 	Int32 readCorrectedFrame(UInt32 frame, UInt16 * frameBuffer, UInt16 * fpnInput, double * gainCorrection);
 	Int32 getRawCorrectedFramesAveraged(UInt32 frame, UInt32 framesToAverage, UInt16 * frameBuffer);
 	Int32 takeWhiteReferences(void);
-	Int32 startSave(UInt32 startFrame, UInt32 length);
 
 	void loadCCMFromSettings(void);
 	void setCCMatrix(const double *matrix);

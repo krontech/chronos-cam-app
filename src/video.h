@@ -123,10 +123,9 @@ public:
 	char filename[1000];
 	char fileDirectory[1000];
 
-	void (*errorCallback)(void *, const char *);
-	void * errorCallbackArg;
-	void (*eosCallback)(void *);
-	void * eosCallbackArg;
+signals:
+	void started(VideoState state);
+	void ended(VideoState state, QString error);
 
 private:
 	int pid;
@@ -143,15 +142,8 @@ private:
 	UInt32 displayWindowYOff;
 
 private slots:
-	void sof(const QVariantMap &args)
-	{
-		qDebug() << "video sof received: playback = " << args["playback"].toBool();
-	}
-
-	void eof(const QVariantMap &args)
-	{
-		qDebug() << "video eof received: playback = " << args["playback"].toBool();
-	}
+	void sof(const QVariantMap &args);
+	void eof(const QVariantMap &args);
 };
 
 #endif // VIDEO_H

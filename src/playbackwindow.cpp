@@ -68,6 +68,8 @@ playbackWindow::playbackWindow(QWidget *parent, Camera * cameraInst, bool autosa
 
 	camera->setPlayMode(true);
 	camera->vinst->setPosition(0, 0);
+	connect(camera->vinst, SIGNAL(started(VideoState)), this, SLOT(videoStarted(VideoState)));
+	connect(camera->vinst, SIGNAL(ended(VideoState, QString)), this, SLOT(videoEnded(VideoState, QString)));
 
 	playbackExponent = 0;
 	updatePlayRateLabel();
@@ -95,6 +97,33 @@ playbackWindow::~playbackWindow()
 	emit finishedSaving();
 	delete sw;
 	delete ui;
+}
+
+void playbackWindow::videoStarted(VideoState state)
+{
+	/* When starting a filesave, increase the frame timing for maximum speed */
+	if (state == VIDEO_STATE_FILESAVE) {
+		camera->recordingData.hasBeenSaved = true;
+		camera->setDisplaySettings(true, MAX_RECORD_FRAMERATE);
+	}
+	/* TODO: Other start events might occur on HDMI hotplugs. */
+}
+
+void playbackWindow::videoEnded(VideoState state, QString err)
+{
+	if (state == VIDEO_STATE_FILESAVE) {
+		QMessageBox msg;
+
+		/* When ending a filesave, return to live display timing. */
+		camera->setDisplaySettings(false, MAX_LIVE_FRAMERATE);
+
+		/* If recording failed from an error. Tell the user about it. */
+		if (!err.isNull()) {
+			msg.setText("Recording Failed: " + err);
+			msg.exec();
+			return;
+		}
+	}
 }
 
 void playbackWindow::on_verticalSlider_sliderMoved(int position)
@@ -152,6 +181,10 @@ void playbackWindow::on_cmdSave_clicked()
 
 	if(camera->vinst->getStatus(NULL) != VIDEO_STATE_FILESAVE)
 	{
+		save_mode_type format = getSaveFormat();
+		UInt32 hRes = appSettings.value("camera/hRes", MAX_FRAME_SIZE_H).toInt();
+		UInt32 vRes = appSettings.value("camera/vRes", MAX_FRAME_SIZE_V).toInt();
+
 		//If no directory set, complain to the user
 		if(strlen(camera->vinst->fileDirectory) == 0)
 		{
@@ -161,18 +194,12 @@ void playbackWindow::on_cmdSave_clicked()
 		}
 
 		if (!statfs(camera->vinst->fileDirectory, &statfsBuf)) {
-			qDebug("===================================");
 			uint64_t freeSpace = statfsBuf.f_bsize * (uint64_t)statfsBuf.f_bfree;
 			bool fileOverMaxSize = (statfsBuf.f_type == 0x4d44); // Check for file size limits for FAT32 only.
 
-			// calculated estimated size
-			estimatedSize = (markOutFrame - markInFrame + 3);// +3 instead of +1 because the length of a saved video can be up to 2 frames more than the length of the region selected.
-			qDebug("Number of frames: %llu", estimatedSize);
-			estimatedSize *= appSettings.value("camera/hRes", MAX_FRAME_SIZE_H).toInt();
-			estimatedSize *= appSettings.value("camera/vRes", MAX_FRAME_SIZE_V).toInt();
-			qDebug("Resolution: %d x %d", appSettings.value("camera/hRes", MAX_FRAME_SIZE_H).toInt(), appSettings.value("camera/vRes", MAX_FRAME_SIZE_V).toInt());
-			// multiply by bits per pixel
-			switch(getSaveFormat()) {
+			// calculate estimated file size
+			estimatedSize = (markOutFrame - markInFrame + 3) * (hRes * vRes);
+			switch(format) {
 			case SAVE_MODE_H264:
 				// the *1.2 part is fudge factor
 				estimatedSize = (uint64_t) ((double)estimatedSize * appSettings.value("recorder/bitsPerPixel", camera->vinst->bitsPerPixel).toDouble() * 1.2);
@@ -204,10 +231,13 @@ void playbackWindow::on_cmdSave_clicked()
 			// convert to bytes
 			estimatedSize /= 8;
 
+			qDebug("===================================");
+			qDebug("Resolution: %d x %d", hRes, vRes);
+			qDebug("Frames: %d", markOutFrame - markInFrame + 1);
 			qDebug("Free space: %llu", freeSpace);
 			qDebug("Estimated file size: %llu", estimatedSize);
-			
 			qDebug("===================================");
+
 			fileOverMaxSize = fileOverMaxSize && (estimatedSize > 4294967296);
 			insufficientFreeSpaceEstimate = (estimatedSize > freeSpace);
 
@@ -247,28 +277,18 @@ void playbackWindow::on_cmdSave_clicked()
 		if (stat(camera->vinst->fileDirectory, &sb) == 0 && S_ISDIR(sb.st_mode) &&
 				stat(parentPath, &sbP) == 0 && sb.st_dev != sbP.st_dev)		//If location is directory and is a mount point (device ID of parent is different from device ID of path)
 		{
-			ret = camera->startSave(markInFrame - 1, markOutFrame - markInFrame + 1);
-			if(RECORD_FILE_EXISTS == ret)
-			{
-				if(camera->vinst->errorCallback)
-					(*camera->vinst->errorCallback)(camera->vinst->errorCallbackArg, "file already exists");
+			ret = camera->vinst->startRecording((hRes + 15) & 0xFFFFFFF0, vRes, markInFrame - 1, markOutFrame - markInFrame + 1, format);
+			if (RECORD_FILE_EXISTS == ret) {
 				msg.setText("File already exists. Rename then try saving again.");
 				msg.exec();
 				return;
 			}
-			else if(RECORD_DIRECTORY_NOT_WRITABLE == ret)
-			{
-				if(camera->vinst->errorCallback)
-					(*camera->vinst->errorCallback)(camera->vinst->errorCallbackArg, "save directory is not writable");
+			else if (RECORD_DIRECTORY_NOT_WRITABLE == ret) {
 				msg.setText("Save directory is not writable.");
 				msg.exec();
 				return;
 			}
-			else if(RECORD_INSUFFICIENT_SPACE == ret)
-			{
-				if(camera->vinst->errorCallback) {
-					(*camera->vinst->errorCallback)(camera->vinst->errorCallbackArg, "insufficient free space");
-				}
+			else if (RECORD_INSUFFICIENT_SPACE == ret) {
 				msg.setText("Selected device does not have sufficient free space.");
 				msg.exec();
 				return;
@@ -295,17 +315,13 @@ void playbackWindow::on_cmdSave_clicked()
 			//and it should not overlap the one that was just appended
 			emit enableSaveSettingsButtons(false);
 		}
-		else
-		{
-			if(camera->vinst->errorCallback)
-				(*camera->vinst->errorCallback)(camera->vinst->errorCallbackArg, "location not found");
+		else {
 			msg.setText(QString("Save location ") + QString(camera->vinst->fileDirectory) + " not found, set save location in Settings");
 			msg.exec();
 			return;
 		}
 	}
-	else
-	{
+	else {
 		//This block is executed when Abort is clicked
 		//or when save is automatically aborted due to full storage
 		camera->vinst->stopRecording();
@@ -521,9 +537,18 @@ void playbackWindow::on_cmdClose_clicked()
 	camera->autoRecord = false;
 }
 
-UInt32 playbackWindow::getSaveFormat(){
+save_mode_type playbackWindow::getSaveFormat()
+{
 	QSettings appSettings;
-	return appSettings.value("recorder/saveFormat", 0).toUInt();
+
+	switch (appSettings.value("recorder/saveFormat", SAVE_MODE_H264).toUInt()) {
+	case 0:  return SAVE_MODE_H264;
+	case 1:  return SAVE_MODE_RAW16;
+	case 2:  return SAVE_MODE_RAW12;
+	case 3:  return SAVE_MODE_DNG;
+	case 4:  return SAVE_MODE_TIFF;
+	default: return SAVE_MODE_H264;
+	}
 }
 
 void playbackWindow::on_cmdLoop_clicked()
