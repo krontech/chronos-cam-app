@@ -196,9 +196,11 @@
   </widget>
  </widget>
  <tabstops>
-  <tabstop>cmdClose</tabstop>
-  <tabstop>cmdResetCustomWB</tabstop>
   <tabstop>comboWB</tabstop>
+  <tabstop>cmdClose</tabstop>
+  <tabstop>cmdMatrix</tabstop>
+  <tabstop>comboColor</tabstop>
+  <tabstop>cmdResetCustomWB</tabstop>
   <tabstop>cmdSetCustomWB</tabstop>
  </tabstops>
  <resources/>

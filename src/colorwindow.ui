@@ -400,6 +400,24 @@
    <header>camdoublespinbox.h</header>
   </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>wbApply</tabstop>
+  <tabstop>wbBlue</tabstop>
+  <tabstop>wbGreen</tabstop>
+  <tabstop>wbRed</tabstop>
+  <tabstop>ccmApply</tabstop>
+  <tabstop>ccmIdentity</tabstop>
+  <tabstop>ccmDefault</tabstop>
+  <tabstop>ccm33</tabstop>
+  <tabstop>ccm32</tabstop>
+  <tabstop>ccm31</tabstop>
+  <tabstop>ccm23</tabstop>
+  <tabstop>ccm22</tabstop>
+  <tabstop>ccm21</tabstop>
+  <tabstop>ccm13</tabstop>
+  <tabstop>ccm12</tabstop>
+  <tabstop>ccm11</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>
