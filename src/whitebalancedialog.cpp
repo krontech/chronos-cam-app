@@ -211,9 +211,6 @@ void whiteBalanceDialog::applyWhiteBalance(void)
 		}
 	}
 
-	cw->getWhiteBalance(camera->whiteBalMatrix);
-	camera->setWhiteBalance(camera->whiteBalMatrix);
-
 	if(appSettings.value("whiteBalance/customR", 0.0).toDouble() == 0.0)
 		ui->comboWB->addItem("Custom"); //Only add "Custom" if the values have not already been set
 	appSettings.setValue("whiteBalance/customR", RED);
