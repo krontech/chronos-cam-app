@@ -4,32 +4,37 @@
 #include "colorwindow.h"
 #include "ui_colorwindow.h"
 
-ColorWindow::ColorWindow(QWidget *parent, Camera *cameraInst) :
+ColorWindow::ColorWindow(QWidget *parent, Camera *cameraInst, const double *matrix) :
 	QDialog(parent),
 	ui(new Ui::ColorWindow)
 {
 	camera = cameraInst;
 	ui->setupUi(this);
 
-	this->setWindowFlags(Qt::Dialog /*| Qt::WindowStaysOnTopHint*/ | Qt::FramelessWindowHint);
-	move(camera->ButtonsOnLeft ? 200:0, 0);
+	this->setWindowFlags(Qt::Window /*| Qt::WindowStaysOnTopHint*/ | Qt::FramelessWindowHint);
+	move(camera->ButtonsOnLeft ? (800 - width()) : 0, 0);
 
-	/* Load the custom white balance. */
-	applyMatrix(camera->colorCalMatrix);
+	colorMatrixChanged();
 	whiteBalanceChanged();
 }
 
 ColorWindow::~ColorWindow()
 {
-	camera->setWhiteBalance(camera->sceneWhiteBalMatrix[0], camera->sceneWhiteBalMatrix[1], camera->sceneWhiteBalMatrix[2]);
+	camera->setWhiteBalance(camera->whiteBalMatrix);
+	camera->setCCMatrix(camera->colorCalMatrix);
 	delete ui;
+}
+
+void ColorWindow::colorMatrixChanged(void)
+{
+	setMatrix(camera->colorCalMatrix);
 }
 
 void ColorWindow::whiteBalanceChanged(void)
 {
-	ui->wbRed->setValue(camera->sceneWhiteBalMatrix[0]);
-	ui->wbGreen->setValue(camera->sceneWhiteBalMatrix[1]);
-	ui->wbBlue->setValue(camera->sceneWhiteBalMatrix[2]);
+	ui->wbRed->setValue(camera->whiteBalMatrix[0]);
+	ui->wbGreen->setValue(camera->whiteBalMatrix[1]);
+	ui->wbBlue->setValue(camera->whiteBalMatrix[2]);
 }
 
 void ColorWindow::getWhiteBalance(double *rgb)
@@ -39,7 +44,20 @@ void ColorWindow::getWhiteBalance(double *rgb)
 	rgb[2] = ui->wbBlue->value();
 }
 
-void ColorWindow::applyMatrix(const double *matrix)
+void ColorWindow::getColorMatrix(double *matrix)
+{
+	matrix[0] = ui->ccm11->value();
+	matrix[1] = ui->ccm12->value();
+	matrix[2] = ui->ccm13->value();
+	matrix[3] = ui->ccm21->value();
+	matrix[4] = ui->ccm22->value();
+	matrix[5] = ui->ccm23->value();
+	matrix[6] = ui->ccm31->value();
+	matrix[7] = ui->ccm32->value();
+	matrix[8] = ui->ccm33->value();
+}
+
+void ColorWindow::setMatrix(const double *matrix)
 {
 	ui->ccm11->setValue(matrix[0]);
 	ui->ccm12->setValue(matrix[1]);
@@ -54,28 +72,46 @@ void ColorWindow::applyMatrix(const double *matrix)
 
 void ColorWindow::on_ccmDefault_clicked(void)
 {
-	applyMatrix(camera->colorCalMatrix);
+	setMatrix(camera->ccmPresets[0].matrix);
+}
+
+void ColorWindow::on_ccmIdentity_clicked(void)
+{
+	double identity[9] = {
+		1.0, 0.0, 0.0,
+		0.0, 1.0, 0.0,
+		0.0, 0.0, 1.0
+	};
+	setMatrix(identity);
 }
 
 void ColorWindow::on_ccmApply_clicked(void)
 {
-	/* TODO? Fixme? */
+	emit applyColorMatrix();
+}
+
+void ColorWindow::on_wbApply_clicked(void)
+{
+	emit applyWhiteBalance();
 }
 
 /* Live updates to the white balance matrix */
 void ColorWindow::on_wbRed_valueChanged(double arg)
 {
-	camera->setWhiteBalance(arg, ui->wbGreen->value(), ui->wbBlue->value());
+	double wb[3] = { arg, ui->wbGreen->value(), ui->wbBlue->value() };
+	camera->setWhiteBalance(wb);
 }
 
 void ColorWindow::on_wbGreen_valueChanged(double arg)
 {
-	camera->setWhiteBalance(ui->wbRed->value(), arg, ui->wbBlue->value());
+	double wb[3] = {ui->wbRed->value(), arg, ui->wbBlue->value() };
+	camera->setWhiteBalance(wb);
 }
 
 void ColorWindow::on_wbBlue_valueChanged(double arg)
 {
-	camera->setWhiteBalance(ui->wbRed->value(), ui->wbGreen->value(), arg);
+	double wb[3] = {ui->wbRed->value(), ui->wbGreen->value(), arg };
+	camera->setWhiteBalance(wb);
 }
 
 /* Live updates to the color matrix. */

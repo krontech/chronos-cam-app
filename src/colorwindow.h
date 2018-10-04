@@ -13,11 +13,17 @@ class ColorWindow : public QDialog
 	Q_OBJECT
 
 public:
-	explicit ColorWindow(QWidget *parent = 0, Camera * cameraInst = NULL);
+	explicit ColorWindow(QWidget *parent = 0, Camera * cameraInst = NULL, const double *matrix = NULL);
 	~ColorWindow();
 
 	void whiteBalanceChanged(void);
+	void colorMatrixChanged(void);
 	void getWhiteBalance(double *);
+	void getColorMatrix(double *);
+
+signals:
+	void applyColorMatrix();
+	void applyWhiteBalance();
 
 private slots:
 	void on_wbRed_valueChanged(double arg);
@@ -35,13 +41,15 @@ private slots:
 	void on_ccm33_valueChanged(double arg);
 
 	void on_ccmDefault_clicked();
+	void on_ccmIdentity_clicked();
 	void on_ccmApply_clicked();
+	void on_wbApply_clicked();
 
 private:
 	Ui::ColorWindow *ui;
 	Camera * camera;
 
-	void applyMatrix(const double *);
+	void setMatrix(const double *matrix);
 };
 
 #endif // COLORWINDOW_H

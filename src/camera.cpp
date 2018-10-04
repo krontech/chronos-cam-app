@@ -41,7 +41,6 @@ void* recDataThread(void *arg);
 void recordEosCallback(void * arg);
 void recordErrorCallback(void * arg, const char * message);
 
-
 Camera::Camera()
 {
 	QSettings appSettings;
@@ -336,23 +335,18 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 	}
 	*/
 
-	//For mono version, set color matrix to just pass straight through
-	if (!isColor) {
-		colorCalMatrix[0] = 1.0;	colorCalMatrix[1] = 0.0;	colorCalMatrix[2] = 0.0;
-		colorCalMatrix[3] = 0.0;	colorCalMatrix[4] = 1.0;	colorCalMatrix[5] = 0.0;
-		colorCalMatrix[6] = 0.0;	colorCalMatrix[7] = 0.0;	colorCalMatrix[8] = 1.0;
-		cameraWhiteBalMatrix[0] = 1.0;	cameraWhiteBalMatrix[1] = 1.0;	cameraWhiteBalMatrix[2] = 1.0;
-		sceneWhiteBalMatrix[0] = 1.0;	sceneWhiteBalMatrix[1] = 1.0;	sceneWhiteBalMatrix[2] = 1.0;
-	}
-	/* Load the white balance from settings. */
-	else{
-		sceneWhiteBalMatrix[0] = appSettings.value("whiteBalance/currentR", 1.35).toDouble();
-		sceneWhiteBalMatrix[1] = appSettings.value("whiteBalance/currentG", 1.00).toDouble();
-		sceneWhiteBalMatrix[2] = appSettings.value("whiteBalance/currentB", 1.584).toDouble();
-	}
+	/* Load color matrix from settings */
+	if (isColor) {
+		/* White Balance. */
+		whiteBalMatrix[0] = appSettings.value("whiteBalance/currentR", 1.35).toDouble();
+		whiteBalMatrix[1] = appSettings.value("whiteBalance/currentG", 1.00).toDouble();
+		whiteBalMatrix[2] = appSettings.value("whiteBalance/currentB", 1.584).toDouble();
 
+		/* Color Matrix */
+		loadCCMFromSettings();
+	}
 	setCCMatrix(colorCalMatrix);
-	setWhiteBalance(sceneWhiteBalMatrix[0], sceneWhiteBalMatrix[1], sceneWhiteBalMatrix[2]);
+	setWhiteBalance(whiteBalMatrix);
 
 	setZebraEnable(appSettings.value("camera/zebra", true).toBool());
 	setFocusPeakEnable(appSettings.value("camera/focusPeak", false).toBool());
@@ -372,7 +366,6 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 
 
 	return SUCCESS;
-
 }
 
 UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
@@ -1082,7 +1075,7 @@ void Camera::computeFPNCorrection2(UInt32 framesToAverage, bool writeToFile, boo
 
 	imgGain = 4096.0 / (double)(4096 - getMaxFPNValue(buffer, pixelsPerFrame)) * IMAGE_GAIN_FUDGE_FACTOR;
 	qDebug() << "imgGain set to" << imgGain;
-	setWhiteBalance(sceneWhiteBalMatrix[0], sceneWhiteBalMatrix[1], sceneWhiteBalMatrix[2]);
+	setWhiteBalance(whiteBalMatrix);
 
 	qDebug() << "About to write file...";
 	if(writeToFile)
@@ -1213,7 +1206,7 @@ Int32 Camera::loadFPNFromFile(void)
 	mx = getMaxFPNValue(buffer, pixelsPerFrame);
 	imgGain = 4096.0 / (double)(4096 - mx) * IMAGE_GAIN_FUDGE_FACTOR;
 	qDebug() << "imgGain set to" << imgGain << "Max FPN value found" << mx;
-	setWhiteBalance(sceneWhiteBalMatrix[0], sceneWhiteBalMatrix[1], sceneWhiteBalMatrix[2]);
+	setWhiteBalance(whiteBalMatrix);
 
 	//zero the buffer
 	memset(packedBuf, 0, bytesPerFrame);
@@ -2354,6 +2347,36 @@ Int32 Camera::startSave(UInt32 startFrame, UInt32 length)
 	return vinst->startRecording((recordingData.is.hRes + 15) & 0xFFFFFFF0, recordingData.is.vRes, startFrame, length+2, record_mode);
 }
 
+void Camera::loadCCMFromSettings(void)
+{
+	QSettings appSettings;
+	QString currentName = appSettings.value("colorMatrix/current", "").toString();
+
+	/* Special case for the custom color matrix. */
+	if (currentName == "Custom") {
+		if (appSettings.beginReadArray("colorMatrix") >= 9) {
+			for (int i = 0; i < 9; i++) {
+				appSettings.setArrayIndex(i);
+				colorCalMatrix[i] = appSettings.value("ccmValue").toDouble();
+			}
+			appSettings.endArray();
+			return;
+		}
+		appSettings.endArray();
+	}
+
+	/* For preset matricies, look them up by name. */
+	for (int i = 0; i < sizeof(ccmPresets)/sizeof(ccmPresets[0]); i++) {
+		if (currentName == ccmPresets[i].name) {
+			memcpy(colorCalMatrix, ccmPresets[i].matrix, sizeof(ccmPresets[0].matrix));
+			return;
+		}
+	}
+
+	/* Otherwise, use the default matrix. */
+	memcpy(colorCalMatrix, ccmPresets[0].matrix, sizeof(ccmPresets[0].matrix));
+}
+
 #define COLOR_MATRIX_MAXVAL	((1 << SENSOR_DATA_WIDTH) * (1 << COLOR_MATRIX_INT_BITS))
 
 void Camera::setCCMatrix(const double *matrix)
@@ -2403,11 +2426,11 @@ void Camera::setCCMatrix(const double *matrix)
 	gpmc->write16(CCM_33_ADDR, ccm[8]);
 }
 
-void Camera::setWhiteBalance(double r, double g, double b)
+void Camera::setWhiteBalance(const double *rgb)
 {
-	r = within(r * imgGain, 0.0, 8.0);
-	g = within(g * imgGain, 0.0, 8.0);
-	b = within(b * imgGain, 0.0, 8.0);
+	double r = within(rgb[0] * imgGain, 0.0, 8.0);
+	double g = within(rgb[1] * imgGain, 0.0, 8.0);
+	double b = within(rgb[2] * imgGain, 0.0, 8.0);
 
 	fprintf(stderr, "Setting WB Matrix: %06f %06f %06f\n", r, g, b);
 
@@ -2474,11 +2497,11 @@ Int32 Camera::autoWhiteBalance(UInt32 x, UInt32 y)
 	if (scale < r_sum) scale = r_sum;
 	if (scale < b_sum) scale = b_sum;
 
-	sceneWhiteBalMatrix[0] = scale / r_sum;
-	sceneWhiteBalMatrix[1] = scale / g_sum;
-	sceneWhiteBalMatrix[2] = scale / b_sum;
+	whiteBalMatrix[0] = scale / r_sum;
+	whiteBalMatrix[1] = scale / g_sum;
+	whiteBalMatrix[2] = scale / b_sum;
 
-	setWhiteBalance(sceneWhiteBalMatrix[0], sceneWhiteBalMatrix[1], sceneWhiteBalMatrix[2]);
+	setWhiteBalance(whiteBalMatrix);
 	return SUCCESS;
 }
 

@@ -29,7 +29,7 @@
     <enum>Qt::DefaultContextMenu</enum>
    </property>
    <property name="title">
-    <string>Color Matrix</string>
+    <string>Custom Color Matrix</string>
    </property>
    <widget class="CamDoubleSpinBox" name="ccm11">
     <property name="geometry">
@@ -253,7 +253,7 @@
     <property name="geometry">
      <rect>
       <x>460</x>
-      <y>70</y>
+      <y>110</y>
       <width>81</width>
       <height>31</height>
      </rect>
@@ -269,13 +269,33 @@
      <string>Apply</string>
     </property>
    </widget>
+   <widget class="QPushButton" name="ccmIdentity">
+    <property name="geometry">
+     <rect>
+      <x>460</x>
+      <y>70</y>
+      <width>81</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>13</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Identity</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QGroupBox" name="wbBox">
    <property name="geometry">
     <rect>
      <x>10</x>
      <y>170</y>
-     <width>461</width>
+     <width>551</width>
      <height>71</height>
     </rect>
    </property>
@@ -349,6 +369,26 @@
     </property>
     <property name="singleStep">
      <double>0.010000000000000</double>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="wbApply">
+    <property name="geometry">
+     <rect>
+      <x>460</x>
+      <y>30</y>
+      <width>81</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>13</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Apply</string>
     </property>
    </widget>
   </widget>

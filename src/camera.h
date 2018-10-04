@@ -163,7 +163,10 @@ typedef struct {
 	UInt32 topFracOffset;
 } ScalerSettings_t;
 
-
+typedef struct {
+	const char *name;
+	double matrix[9];
+} ColorMatrix_t;
 
 class Camera
 {
@@ -231,8 +234,10 @@ public:
 	Int32 getRawCorrectedFramesAveraged(UInt32 frame, UInt32 framesToAverage, UInt16 * frameBuffer);
 	Int32 takeWhiteReferences(void);
 	Int32 startSave(UInt32 startFrame, UInt32 length);
+
+	void loadCCMFromSettings(void);
 	void setCCMatrix(const double *matrix);
-	void setWhiteBalance(double r, double g, double b);
+	void setWhiteBalance(const double *rgb);
 	int autoWhiteBalance(unsigned int x, unsigned int y);
 	void setFocusAid(bool enable);
 	bool getFocusAid();
@@ -304,17 +309,29 @@ private:
 
 public:
 	// Actual white balance applied at runtime.
-	double sceneWhiteBalMatrix[3];
-
-	// camSPECS CCM calculations
+	double whiteBalMatrix[3] = { 1.0, 1.0, 1.0 };
 	double colorCalMatrix[9] = {
-		// CIECAM16: Camera to Linear-SRGB at D55 Illuminant
-		+1.9147, -0.5768, -0.2342,
-		-0.3056, +1.3895, -0.0969,
-		+0.1272, -0.9531, +1.6492,
+		1.0, 0.0, 0.0,
+		0.0, 1.0, 0.0,
+		0.0, 0.0, 1.0
 	};
-	// camSPECS CCM calculation: Sensor White Balance
-	double cameraWhiteBalMatrix[3] = { 1.5150, 1.0, 1.1048 };
+
+	/* Color Matrix Presets */
+	const ColorMatrix_t ccmPresets[2] = {
+		{ "CIECAM16/D55", {
+			  +1.9147, -0.5768, -0.2342,
+			  -0.3056, +1.3895, -0.0969,
+			  +0.1272, -0.9531, +1.6492,
+		  }
+		},
+		{ "CIECAM02/D55", {
+			  +1.2330, +0.6468, -0.7764,
+			  -0.3219, +1.6901, -0.3811,
+			  -0.0614, -0.6409, +1.5258,
+		  }
+		}
+	};
+
 	UInt8 getWBIndex();
 	void  setWBIndex(UInt8 index);
 	int unsavedWarnEnabled;

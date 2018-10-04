@@ -21,6 +21,7 @@ public:
 
 private slots:
 	void on_comboWB_currentIndexChanged(int index);
+	void on_comboColor_currentIndexChanged(int index);
 
 	void on_cmdSetCustomWB_clicked();
 
@@ -29,6 +30,9 @@ private slots:
 	void on_cmdResetCustomWB_clicked();
 
 	void on_cmdMatrix_clicked();
+
+	void applyColorMatrix();
+	void applyWhiteBalance();
 	
 private:
 	Ui::whiteBalanceDialog *ui;
@@ -37,6 +41,16 @@ private:
 	StatusWindow * sw;
 	ColorWindow * cw;
 	QSplashScreen *crosshair;
+
+	/* User Custom Color Matrix */
+	ColorMatrix_t ccmCustom = {
+		"Custom", {
+			1.0, 0.0, 0.0,
+			0.0, 1.0, 0.0,
+			0.0, 0.0, 1.0
+		}
+	};
+
 	double sceneWhiteBalPresets[7][3];
 	double customWhiteBalOld[3] = {1.0, 1.0, 1.0};
 	void addPreset(double r, double b, double g, QString s);

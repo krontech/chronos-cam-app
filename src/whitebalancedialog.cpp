@@ -5,13 +5,13 @@
 #include <QDebug>
 #include <QBitmap>
 
-#define RED   camera->sceneWhiteBalMatrix[0]
-#define GREEN camera->sceneWhiteBalMatrix[1]
-#define BLUE  camera->sceneWhiteBalMatrix[2]
+#define RED   camera->whiteBalMatrix[0]
+#define GREEN camera->whiteBalMatrix[1]
+#define BLUE  camera->whiteBalMatrix[2]
 #define COMBO_MAX_INDEX ui->comboWB->count()-1
 
 /* 32x32 Crosshair in PNG format */
-const uint8_t crosshair32x32_png[] = {
+static const uint8_t crosshair32x32_png[] = {
 	0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d,
 	0x49, 0x48, 0x44, 0x52, 0x00, 0x00, 0x00, 0x20, 0x00, 0x00, 0x00, 0x20,
 	0x01, 0x03, 0x00, 0x00, 0x00, 0x49, 0xb4, 0xe8, 0xb7, 0x00, 0x00, 0x00,
@@ -30,12 +30,13 @@ whiteBalanceDialog::whiteBalanceDialog(QWidget *parent, Camera * cameraInst) :
 	ui(new Ui::whiteBalanceDialog)
 {
 	QSettings appSettings;
+	QString ccmName = appSettings.value("colorMatrix/current", "").toString();
 
 	windowInitComplete = false;
 	ui->setupUi(this);
 	camera = cameraInst;
-	this->setWindowFlags(Qt::Dialog /*| Qt::WindowStaysOnTopHint*/ | Qt::FramelessWindowHint);
-	this->move(camera->ButtonsOnLeft? 0:600, 0);
+	setWindowFlags(Qt::Dialog /*| Qt::WindowStaysOnTopHint*/ | Qt::FramelessWindowHint);
+	move(camera->ButtonsOnLeft ? 0:600, 0);
 	sw = new StatusWindow;
 
 	/* Draw a crosshair to show the white balance position */
@@ -50,7 +51,9 @@ whiteBalanceDialog::whiteBalanceDialog(QWidget *parent, Camera * cameraInst) :
 
 	/* Hide the color matrix dialog for now */
 	cw = NULL;
+	ui->cmdMatrix->setText(camera->ButtonsOnLeft ? "Matrix >>" : "<< Matrix");
 	
+	/* Load white balance presets. */
 	addPreset(1.53, 1.00, 1.35, "8000K(Cloudy Sky)");
 	addPreset(1.42, 1.00, 1.46, "6500K(Noon Daylight)");
 	addPreset(1.35, 1.00, 1.584,"5600K(Avg Daylight)");
@@ -71,6 +74,27 @@ whiteBalanceDialog::whiteBalanceDialog(QWidget *parent, Camera * cameraInst) :
 		customWhiteBalOld[2] = sceneWhiteBalPresets[COMBO_MAX_INDEX][2];
 	} else customWhiteBalOld[0] = -1.0;// so that on_cmdSetCustomWB_clicked() knows not to enable the "Reset Custom WB" button
 	
+	/* Load Color Matrix presets */
+	for (int i = 0; i < sizeof(camera->ccmPresets)/sizeof(camera->ccmPresets[0]); i++) {
+		ui->comboColor->addItem(camera->ccmPresets[i].name);
+		if (ccmName == camera->ccmPresets[i].name) {
+			ui->comboColor->setCurrentIndex(i);
+		}
+	}
+
+	/* Load Custom Matrix */
+	if (appSettings.beginReadArray("colorMatrix") >= 9) {
+		for (int i = 0; i < 9; i++) {
+			appSettings.setArrayIndex(i);
+			ccmCustom.matrix[i] = appSettings.value("ccmValue").toDouble();
+		}
+		ui->comboColor->addItem(ccmCustom.name);
+		if (ccmName == ccmCustom.name) {
+			ui->comboColor->setCurrentIndex(sizeof(camera->ccmPresets)/sizeof(camera->ccmPresets[0]));
+		}
+	}
+	appSettings.endArray();
+
 	windowInitComplete = true;
 	ui->comboWB->setCurrentIndex(camera->getWBIndex());
 }
@@ -106,26 +130,70 @@ void whiteBalanceDialog::on_comboWB_currentIndexChanged(int index)
 	GREEN = sceneWhiteBalPresets[index][1];
 	BLUE =  sceneWhiteBalPresets[index][2];
 
-	camera->setWhiteBalance(RED, GREEN, BLUE);
+	camera->setWhiteBalance(camera->whiteBalMatrix);
 	if (cw) cw->whiteBalanceChanged();
 	
 	appSettings.setValue("whiteBalance/currentR", RED);
 	appSettings.setValue("whiteBalance/currentG", GREEN);
 	appSettings.setValue("whiteBalance/currentB", BLUE);
-
 }
 
-void whiteBalanceDialog::on_cmdSetCustomWB_clicked()
+void whiteBalanceDialog::on_comboColor_currentIndexChanged(int index)
+{
+	if(!windowInitComplete) return;
+	QSettings appSettings;
+	const ColorMatrix_t *choice;
+
+	if (index < sizeof(camera->ccmPresets)/sizeof(camera->ccmPresets[0])) {
+		choice = &camera->ccmPresets[index];
+	} else {
+		choice = &ccmCustom;
+	}
+
+	memcpy(camera->colorCalMatrix, choice->matrix, sizeof(choice->matrix));
+	camera->setCCMatrix(camera->colorCalMatrix);
+	if (cw) cw->colorMatrixChanged();
+
+	appSettings.setValue("colorMatrix/current", choice->name);
+}
+
+void whiteBalanceDialog::applyColorMatrix(void)
+{
+	if (!cw) return;
+	QSettings appSettings;
+	int index;
+
+	/* Retreive the entered color matrix. */
+	cw->getColorMatrix(ccmCustom.matrix);
+	cw->getColorMatrix(camera->colorCalMatrix);
+	index = ui->comboColor->findText(ccmCustom.name);
+	if (index < 0) {
+		ui->comboColor->addItem(ccmCustom.name);
+		ui->comboColor->setCurrentIndex(ui->comboColor->count() - 1);
+	} else {
+		ui->comboColor->setCurrentIndex(index);
+	}
+
+	/* Save the matrix in the settings. */
+	appSettings.setValue("colorMatrix/current", "Custom");
+	appSettings.beginWriteArray("colorMatrix", 9);
+	for (int i = 0; i < 9; i++) {
+		appSettings.setArrayIndex(i);
+		appSettings.setValue("ccmValue", camera->colorCalMatrix[i]);
+	}
+	appSettings.endArray();
+}
+
+void whiteBalanceDialog::applyWhiteBalance(void)
 {
 	QSettings appSettings;
 
 	/* Get the white balance from the colour matrix window, if open. */
 	if (cw) {
-		cw->getWhiteBalance(camera->sceneWhiteBalMatrix);
-		camera->setWhiteBalance(RED, GREEN, BLUE);
+		cw->getWhiteBalance(camera->whiteBalMatrix);
+		camera->setWhiteBalance(camera->whiteBalMatrix);
 	}
-	/* Otherwise, generate an automatic white balance. */
-	if (!cw) {
+	else {
 		Int32 ret = camera->autoWhiteBalance(camera->getImagerSettings().hRes / 2, camera->getImagerSettings().vRes / 2);
 		if(ret == CAMERA_CLIPPED_ERROR)
 		{
@@ -143,19 +211,26 @@ void whiteBalanceDialog::on_cmdSetCustomWB_clicked()
 		}
 	}
 
+	cw->getWhiteBalance(camera->whiteBalMatrix);
+	camera->setWhiteBalance(camera->whiteBalMatrix);
+
 	if(appSettings.value("whiteBalance/customR", 0.0).toDouble() == 0.0)
 		ui->comboWB->addItem("Custom"); //Only add "Custom" if the values have not already been set
 	appSettings.setValue("whiteBalance/customR", RED);
 	appSettings.setValue("whiteBalance/customG", GREEN);
 	appSettings.setValue("whiteBalance/customB", BLUE);
-	
+
 	sceneWhiteBalPresets[COMBO_MAX_INDEX][0] = RED;
 	sceneWhiteBalPresets[COMBO_MAX_INDEX][1] = GREEN;
 	sceneWhiteBalPresets[COMBO_MAX_INDEX][2] = BLUE;
-	
+
 	ui->comboWB->setCurrentIndex(COMBO_MAX_INDEX);
 	if(customWhiteBalOld[0] > 0.0) ui->cmdResetCustomWB->setEnabled(true);
-	//qDebug("COMBO_COUNT = %d", COMBO_MAX_INDEX);
+}
+
+void whiteBalanceDialog::on_cmdSetCustomWB_clicked()
+{
+	applyWhiteBalance();
 }
 
 void whiteBalanceDialog::on_cmdClose_clicked()
@@ -181,10 +256,9 @@ void whiteBalanceDialog::on_cmdResetCustomWB_clicked()
     appSettings.setValue("whiteBalance/currentB", BLUE);
     
 	if(ui->comboWB->currentIndex() == COMBO_MAX_INDEX) {
-		camera->setWhiteBalance(RED, GREEN, BLUE);
+		camera->setWhiteBalance(camera->whiteBalMatrix);
 		if (cw) cw->whiteBalanceChanged();
 	}
-
 }
 
 void whiteBalanceDialog::on_cmdMatrix_clicked()
@@ -194,11 +268,16 @@ void whiteBalanceDialog::on_cmdMatrix_clicked()
 		delete cw;
 		cw = NULL;
 		crosshair->show();
+		ui->cmdMatrix->setText(camera->ButtonsOnLeft ? "Matrix >>" : "<< Matrix");
 	}
 	/* Disable the crosshair and show the colour matrix window. */
 	else {
-		cw = new ColorWindow(NULL, camera);
+		cw = new ColorWindow(this, camera);
 		cw->show();
 		crosshair->hide();
+		ui->cmdMatrix->setText(camera->ButtonsOnLeft ? "Matrix <<" : ">> Matrix");
+
+		connect(cw, SIGNAL(applyColorMatrix()), this, SLOT(applyColorMatrix()));
+		connect(cw, SIGNAL(applyWhiteBalance()), this, SLOT(applyWhiteBalance()));
 	}
 }
