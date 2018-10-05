@@ -101,5 +101,6 @@ void PlaybackSlider::appendRegionToList(){
 
 void PlaybackSlider::removeLastRegionFromList()
 {
+	if(previouslySavedRegions.isEmpty()) return; // Without this check, if removeLast() is called when the list is empty, qt will crash with a "!isEmpty()" assert.
 	previouslySavedRegions.removeLast();
 }
