@@ -465,7 +465,7 @@ Video::Video() : iface("com.krontech.chronos.video", "/com/krontech/chronos/vide
 	for (i = 1; i <= 3; i++) {
 		sprintf(fileDirectory, "/media/sda%d", i);
 		if (path_is_mounted(fileDirectory)) {
-			return;
+			break;
 		}
 	}
 	strcpy(fileDirectory, "/media/mmcblk1p1");
