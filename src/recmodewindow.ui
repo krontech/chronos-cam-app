@@ -519,7 +519,7 @@ QSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}<
      <rect>
       <x>10</x>
       <y>20</y>
-      <width>171</width>
+      <width>161</width>
       <height>41</height>
      </rect>
     </property>
@@ -546,7 +546,7 @@ QSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}<
      <rect>
       <x>10</x>
       <y>120</y>
-      <width>171</width>
+      <width>161</width>
       <height>41</height>
      </rect>
     </property>
@@ -573,7 +573,7 @@ QSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}<
      <rect>
       <x>10</x>
       <y>70</y>
-      <width>171</width>
+      <width>161</width>
       <height>41</height>
      </rect>
     </property>

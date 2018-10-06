@@ -522,7 +522,8 @@ void CamMainWindow::on_cmdUtil_clicked()
 	connect(w, SIGNAL(destroyed()), this, SLOT(UtilWindow_closed()));
 }
 
-void CamMainWindow::UtilWindow_closed(){
+void CamMainWindow::UtilWindow_closed()
+{
 	ui->chkFocusAid->setChecked(camera->getFocusPeakEnable());
 }
 

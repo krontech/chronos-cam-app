@@ -77,7 +77,8 @@ SOURCES += main.cpp\
     whitebalancedialog.cpp \
     chronosControlInterface.cpp \
     chronosVideoInterface.cpp \
-    colorwindow.cpp
+    colorwindow.cpp \
+    colordoublespinbox.cpp
 
 ## Generate version.cpp on every build
 versionTarget.target = version.cpp
@@ -132,7 +133,8 @@ HEADERS  += mainwindow.h \
     whitebalancedialog.h \
     chronosControlInterface.h \
     chronosVideoInterface.h \
-    colorwindow.h
+    colorwindow.h \
+    colordoublespinbox.h
 
 FORMS    += mainwindow.ui \
     cammainwindow.ui \
@@ -152,3 +154,6 @@ FORMS    += mainwindow.ui \
 
 RESOURCES += \
     Images.qrc
+
+DISTFILES += \
+    stylesheet.qss

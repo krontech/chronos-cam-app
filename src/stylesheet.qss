@@ -1,0 +1,55 @@
+QSpinBox {
+    border: 3px outset grey;
+    padding-right: 40px;
+    font: bold 16px;
+}
+QDoubleSpinBox {
+    border: 3px outset grey;
+    padding-right: 40px;
+    font: bold 16px;
+}
+
+CamSpinBox::up-button {
+    subcontrol-position: right;
+    right: 40px;
+    width: 40px;
+    height: 35px;
+}
+CamSpinBox::down-button {
+    subcontrol-position: right;
+    width: 40px;
+    height: 35px;
+}
+
+CamDoubleSpinBox::up-button {
+    subcontrol-position: right;
+    right: 40px;
+    width: 40px;
+    height: 35px;
+}
+CamDoubleSpinBox::down-button {
+    subcontrol-position: right;
+    width: 40px;
+    height: 35px;
+}
+
+QWidget:focus {
+    background-color: rgb(192, 192, 255);
+}
+
+QTextEdit:focus {
+    background-color: white;
+}
+
+QPushButton#cmdFocusAid:checked {
+    background-color: rgb(160,160,160);
+}
+
+QCheckBox::indicator {
+    width: 40px;
+    height: 40px;
+}
+
+QComboBox QAbstractItemView:focus {
+    background-color: white;
+}

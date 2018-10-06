@@ -86,6 +86,9 @@
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
+  <property name="autoFillBackground">
+   <bool>false</bool>
+  </property>
   <widget class="QPushButton" name="cmdClose">
    <property name="geometry">
     <rect>
@@ -266,42 +269,6 @@ Balance</string>
 Settings</string>
    </property>
   </widget>
-  <widget class="QCheckBox" name="chkFocusAid">
-   <property name="geometry">
-    <rect>
-     <x>100</x>
-     <y>310</y>
-     <width>91</width>
-     <height>51</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>16</pointsize>
-     <weight>75</weight>
-     <bold>true</bold>
-    </font>
-   </property>
-   <property name="focusPolicy">
-    <enum>Qt::NoFocus</enum>
-   </property>
-   <property name="autoFillBackground">
-    <bool>true</bool>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QCheckBox::indicator {
-     width: 28px;
-     height: 28px;
-}
-
-
-</string>
-   </property>
-   <property name="text">
-    <string>Focus
-Aid</string>
-   </property>
-  </widget>
   <widget class="QSlider" name="expSlider">
    <property name="geometry">
     <rect>
@@ -401,6 +368,12 @@ QSlider::handle:vertical {
    <property name="text">
     <string>Util</string>
    </property>
+   <property name="checkable">
+    <bool>false</bool>
+   </property>
+   <property name="checked">
+    <bool>false</bool>
+   </property>
   </widget>
   <widget class="QPushButton" name="cmdBkGndButton">
    <property name="geometry">
@@ -422,6 +395,9 @@ border-color: black;</string>
    <property name="text">
     <string/>
    </property>
+   <property name="checkable">
+    <bool>false</bool>
+   </property>
   </widget>
   <widget class="QPushButton" name="cmdDPCButton">
    <property name="geometry">
@@ -439,6 +415,62 @@ border-color: black;</string>
     <string>DPC</string>
    </property>
   </widget>
+  <widget class="QPushButton" name="cmdFocusBackground">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="geometry">
+    <rect>
+     <x>100</x>
+     <y>310</y>
+     <width>91</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>14</pointsize>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="focusPolicy">
+    <enum>Qt::NoFocus</enum>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+   <property name="checkable">
+    <bool>false</bool>
+   </property>
+  </widget>
+  <widget class="QCheckBox" name="chkFocusAid">
+   <property name="geometry">
+    <rect>
+     <x>100</x>
+     <y>310</y>
+     <width>91</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>14</pointsize>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="focusPolicy">
+    <enum>Qt::NoFocus</enum>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QCheckBox::indicator { width: 28px; height: 28px; }</string>
+   </property>
+   <property name="text">
+    <string>Focus
+Aid</string>
+   </property>
+  </widget>
   <zorder>cmdBkGndButton</zorder>
   <zorder>cmdRec</zorder>
   <zorder>cmdPlay</zorder>
@@ -446,7 +478,6 @@ border-color: black;</string>
   <zorder>cmdFPNCal</zorder>
   <zorder>cmdWB</zorder>
   <zorder>cmdIOSettings</zorder>
-  <zorder>chkFocusAid</zorder>
   <zorder>expSlider</zorder>
   <zorder>lblCurrent</zorder>
   <zorder>cmdClose</zorder>
@@ -454,6 +485,8 @@ border-color: black;</string>
   <zorder>cmdUtil</zorder>
   <zorder>cmdDebugWnd</zorder>
   <zorder>cmdDPCButton</zorder>
+  <zorder>cmdFocusBackground</zorder>
+  <zorder>chkFocusAid</zorder>
  </widget>
  <resources/>
  <connections/>

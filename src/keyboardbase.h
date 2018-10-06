@@ -22,6 +22,9 @@ enum {
 class keyboardBase : public QWidget
 {
 	Q_OBJECT
+
+	friend class QAbstractSpinBox;
+
 public:
 	explicit keyboardBase(QWidget *parent = 0);
 	QWidget * getLastFocsedWidget() {return lastFocusedWidget;}

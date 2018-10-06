@@ -43,11 +43,7 @@
     </font>
    </property>
    <property name="styleSheet">
-    <string notr="true">QSpinBox { border: 3px outset grey;padding-right: 40px;}  
-
-QSpinBox::up-button { subcontrol-position: right; right: 40px; width: 40px; height: 35px;}
-
-QSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}</string>
+    <string notr="true"/>
    </property>
    <property name="maximum">
     <number>100000000</number>
@@ -145,11 +141,7 @@ QSlider::handle:horizontal {
     </font>
    </property>
    <property name="styleSheet">
-    <string notr="true">QDoubleSpinBox { border: 3px outset grey;padding-right: 40px;}  
-
-QDoubleSpinBox::up-button { subcontrol-position: right; right: 40px; width: 40px; height: 35px;}
-
-QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}</string>
+    <string notr="true"/>
    </property>
    <property name="decimals">
     <number>4</number>
@@ -296,11 +288,7 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
     </font>
    </property>
    <property name="styleSheet">
-    <string notr="true">QSpinBox { border: 3px outset grey;padding-right: 40px;}  
-
-QSpinBox::up-button { subcontrol-position: right; right: 40px; width: 40px; height: 35px;}
-
-QSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}</string>
+    <string notr="true"/>
    </property>
    <property name="maximum">
     <number>100000000</number>
@@ -342,11 +330,7 @@ QSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}<
     </font>
    </property>
    <property name="styleSheet">
-    <string notr="true">QDoubleSpinBox { border: 3px outset grey;padding-right: 40px;}  
-
-QDoubleSpinBox::up-button { subcontrol-position: right; right: 40px; width: 40px; height: 35px;}
-
-QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}</string>
+    <string notr="true"/>
    </property>
    <property name="decimals">
     <number>4</number>
@@ -409,11 +393,7 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
     </font>
    </property>
    <property name="styleSheet">
-    <string notr="true">QSpinBox { border: 3px outset grey;padding-right: 40px;}  
-
-QSpinBox::up-button { subcontrol-position: right; right: 40px; width: 40px; height: 35px;}
-
-QSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}</string>
+    <string notr="true"/>
    </property>
    <property name="maximum">
     <number>100000000</number>
@@ -455,11 +435,7 @@ QSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}<
     </font>
    </property>
    <property name="styleSheet">
-    <string notr="true">QDoubleSpinBox { border: 3px outset grey;padding-right: 40px;}  
-
-QDoubleSpinBox::up-button { subcontrol-position: right; right: 40px; width: 40px; height: 35px;}
-
-QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}</string>
+    <string notr="true"/>
    </property>
    <property name="decimals">
     <number>4</number>

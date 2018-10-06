@@ -136,6 +136,14 @@ int main(int argc, char *argv[])
 	QWSServer::setBackground(QBrush(Qt::transparent));  // have not tested
 #endif
 	
+	// Load stylesheet from file, if one exists.
+	QFile fStyle("/opt/camera/stylesheet.qss");
+	if (fStyle.open(QFile::ReadOnly)) {
+		QString sheet = QLatin1String(fStyle.readAll());
+		qApp->setStyleSheet(sheet);
+		fStyle.close();
+	}
+
 	//Disable stdout buffering so prints work rather than just filling the buffer.
 //	setbuf(stdout, NULL);
 	
