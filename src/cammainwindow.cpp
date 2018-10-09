@@ -447,9 +447,10 @@ void CamMainWindow::on_chkFocusAid_clicked(bool focusAidEnabled)
 	camera->setFocusPeakEnable(focusAidEnabled);
 }
 
-void CamMainWindow::on_expSlider_valueChanged(int position)
+void CamMainWindow::on_expSlider_valueChanged(int shutterAngle)
 {
-	camera->setIntegrationTime((double)position / 100000000.0, 0, 0, 0);
+	double eMaxPeriod = camera->sensor->getMaxCurrentIntegrationTime();
+	camera->setIntegrationTime((shutterAngle * eMaxPeriod) / 360, 0, 0, 0);
 	updateCurrentSettingsLabel();
 }
 
@@ -462,28 +463,33 @@ void CamMainWindow::recSettingsClosed()
 //Upate the exposure slider limits and step size.
 void CamMainWindow::updateExpSliderLimits()
 {
-	int expSliderValue = camera->sensor->getIntegrationTime() * 100000000.0;
-	int expSliderMax = camera->sensor->getMaxCurrentIntegrationTime() * 100000000.0 - 20;
-	int expSliderMin = LUX1310_MIN_INT_TIME * 100000000.0;
+	double fPeriod = camera->sensor->getCurrentFramePeriodDouble();
+	double eMaxPeriod = camera->sensor->getMaxCurrentIntegrationTime();
+	int eShutterAngle = (camera->sensor->getCurrentExposureDouble() * 360) / fPeriod;
 
-	ui->expSlider->setMinimum(expSliderMin);
-	ui->expSlider->setMaximum(expSliderMax);
-	ui->expSlider->setValue(expSliderValue);
-	ui->expSlider->setSingleStep((expSliderMax - expSliderMin) / 256);
-	ui->expSlider->setPageStep((expSliderMax - expSliderMin) / 32);
+	ui->expSlider->setMinimum((LUX1310_MIN_INT_TIME * 360) / fPeriod);
+	ui->expSlider->setMaximum(((eMaxPeriod * 360) / fPeriod + 0.5));
+	ui->expSlider->setValue(eShutterAngle);
+
+	ui->expSlider->setSingleStep(1);
+	ui->expSlider->setPageStep(1);
 }
 
 //Update the status textbox with the current settings
 void CamMainWindow::updateCurrentSettingsLabel()
 {
+	double framePeriod = camera->sensor->getCurrentFramePeriodDouble();
+	double expPeriod = camera->sensor->getCurrentExposureDouble();
+	int shutterAngle = ui->expSlider->value();
+
 	char str[300];
 	char battStr[50];
 	char fpsString[30];
 	char expString[30];
-	sprintf(fpsString, QString::number(1 / camera->sensor->getCurrentFramePeriodDouble()).toAscii());
-	getSIText(expString, camera->sensor->getCurrentExposureDouble(), 4, DEF_SI_OPTS, 10);
-	UInt32 expPercent = camera->sensor->getCurrentExposureDouble() * 100 / (camera->sensor->getMaxCurrentIntegrationTime());
-	expPercent = max(expPercent, 1);//to prevent 0% from showing on the label if the current exposure is less than 1% of the max exposure(happens on 1280x1024)
+
+	sprintf(fpsString, QString::number(1 / framePeriod).toAscii());
+	getSIText(expString, expPeriod, 4, DEF_SI_OPTS, 10);
+	shutterAngle = max(shutterAngle, 1); //to prevent 0 degrees from showing on the label if the current exposure is less than 1/360'th of the frame period.
 
 	double battPercent = (flags & 4) ?	//If battery is charging
 						within(((double)battVoltageCam/1000.0 - 10.75) / (12.4 - 10.75) * 80, 0.0, 80.0) +
@@ -500,7 +506,7 @@ void CamMainWindow::updateCurrentSettingsLabel()
 		sprintf(battStr, "No Batt");
 	}
 
-	sprintf(str, "%s\r\n%ux%u %sfps\r\nExp %ss (%u%%)", battStr, camera->sensor->currentHRes, camera->sensor->currentVRes, fpsString, expString, expPercent);
+	sprintf(str, "%s\r\n%ux%u %sfps\r\nExp %ss (%u\xb0)", battStr, camera->sensor->currentHRes, camera->sensor->currentVRes, fpsString, expString, shutterAngle);
 	ui->lblCurrent->setText(str);
 }
 
@@ -577,23 +583,59 @@ void CamMainWindow::on_cmdDPCButton_clicked()
 	}
 }
 
+/*
+ * Approximate the logarithmic position by computing
+ *   theta = 180 * (3/2) ^ (n / 4)
+ *
+ * Return the next logarithmic step given by:
+ *   180 * (3/2) ^ ((n + delta) / 4)
+ */
+static int expSliderLog(unsigned int angle, int delta)
+{
+	/* Precomputed quartic roots of 3/2. */
+	const double qRoots[] = {
+		1.0, 1.10668192, 1.224744871, 1.355403005
+	};
+
+	/* n = delta + round(4 * log2(theta / 180) / log2(3/2)) */
+	int n = round(log2((double)angle / 180.0) * (4.0 / 0.5849625007211562)) + delta;
+
+	double x = 180 * qRoots[n & 0x3];
+	while (n >= 4) { x = (x * 3) / 2; n -= 4; };
+	while (n <  0) { x = (x * 2) / 3; n += 4; };
+	return (int)(x + 0.5);
+}
+
 void CamMainWindow::keyPressEvent(QKeyEvent *ev)
 {
+	const int expLinearRange = 15;
+	int expAngle = ui->expSlider->value();
+
 	switch (ev->key()) {
+	/* Up/Down moves the slider logarithmically */
 	case Qt::Key_Up:
-		ui->expSlider->triggerAction(QSlider::SliderSingleStepAdd);
+		if (expAngle <= expLinearRange) {
+			ui->expSlider->setValue(expAngle + 1);
+			break;
+		}
+		ui->expSlider->setValue(expSliderLog(expAngle, 1));
 		break;
 
 	case Qt::Key_Down:
-		ui->expSlider->triggerAction(QSlider::SliderSingleStepSub);
+		if (expAngle <= expLinearRange) {
+			ui->expSlider->setValue(expAngle - 1);
+			break;
+		}
+		ui->expSlider->setValue(expSliderLog(expAngle, -1));
 		break;
 
+	/* PageUp/PageDown moves the slider linearly by degrees. */
 	case Qt::Key_PageUp:
-		ui->expSlider->triggerAction(QSlider::SliderPageStepAdd);
+		ui->expSlider->setValue(expAngle + 1);
 		break;
 
 	case Qt::Key_PageDown:
-		ui->expSlider->triggerAction(QSlider::SliderPageStepSub);
+		ui->expSlider->setValue(expAngle - 1);
 		break;
 	}
 }
