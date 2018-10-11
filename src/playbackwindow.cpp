@@ -101,16 +101,41 @@ playbackWindow::~playbackWindow()
 
 void playbackWindow::videoStarted(VideoState state)
 {
+	qDebug()<<"videoStarted - will reenable save/abort button";
+	qDebug()<<"status:" <<camera->vinst->getStatus(NULL);
+	ui->cmdSave->setEnabled(true);
+
 	/* When starting a filesave, increase the frame timing for maximum speed */
 	if (state == VIDEO_STATE_FILESAVE) {
+		qDebug()<<"state == VIDEO_STATE_FILESAVE";
 		camera->recordingData.hasBeenSaved = true;
 		camera->setDisplaySettings(true, MAX_RECORD_FRAMERATE);
+		ui->cmdSave->setText("Abort\nSave");
+		saveDoneTimer = new QTimer(this);
+		connect(saveDoneTimer, SIGNAL(timeout()), this, SLOT(checkForSaveDone()));
+		saveDoneTimer->start(100);
+
+		/* Prevent the user from pressing the abort/save button just after the last frame,
+		 * as that can make the camera try to save a 2nd video too soon, crashing the camapp.
+		 * It is also disabled in checkForSaveDone(), but if the video is very short,
+		 * that might not be called at all before the end of the video, so just disable the button right away.*/
+		if(markOutFrame - markInFrame < 25) ui->cmdSave->setEnabled(false);
+		else ui->cmdSave->setEnabled(true);
+		
+	} else {
+		qDebug()<<"state != VIDEO_STATE_FILESAVE";
+		ui->cmdSave->setText("Save");
+		ui->cmdSave->setEnabled(true);
+		setControlEnable(true);
+		emit enableSaveSettingsButtons(true);
 	}
+	qDebug()<<"videoStarted - function finished";
 	/* TODO: Other start events might occur on HDMI hotplugs. */
 }
 
 void playbackWindow::videoEnded(VideoState state, QString err)
 {
+	qDebug()<<"videoEnded. status:" <<camera->vinst->getStatus(NULL);
 	if (state == VIDEO_STATE_FILESAVE) {
 		QMessageBox msg;
 
@@ -122,6 +147,22 @@ void playbackWindow::videoEnded(VideoState state, QString err)
 			msg.setText("Recording Failed: " + err);
 			msg.exec();
 			return;
+		}
+		if(state == VIDEO_STATE_FILESAVE){
+			saveDoneTimer->stop();
+			delete saveDoneTimer;
+			
+			sw->close();
+			ui->cmdSave->setText("Save");//ended
+			saveAborted = false;
+			updatePlayRateLabel();
+			ui->verticalSlider->setHighlightRegion(markInFrame, markOutFrame);
+	
+			if(autoRecordFlag) {
+				qDebug()<<".  closing";
+				emit finishedSaving();
+				delete this;
+			}
 		}
 	}
 }
@@ -294,20 +335,10 @@ void playbackWindow::on_cmdSave_clicked()
 				return;
 			}
 
-			ui->cmdSave->setText("Abort\nSave");
+			ui->cmdSave->setEnabled(false);
 			setControlEnable(false);
 			sw->setText("Saving...");
 			sw->show();
-
-			saveDoneTimer = new QTimer(this);
-			connect(saveDoneTimer, SIGNAL(timeout()), this, SLOT(checkForSaveDone()));
-			saveDoneTimer->start(100);
-
-			/* Prevent the user from pressing the abort/save button just after the last frame,
-			 * as that can make the camera try to save a 2nd video too soon, crashing the camapp.
-			 * It is also disabled in checkForSaveDone(), but if the video is very short,
-			 * that might not be called at all before the end of the video, so just disable the button right away.*/
-			if(markOutFrame - markInFrame < 25) ui->cmdSave->setEnabled(false);
 
 			ui->verticalSlider->appendRegionToList();
 			ui->verticalSlider->setHighlightRegion(markOutFrame, markOutFrame);
@@ -325,6 +356,7 @@ void playbackWindow::on_cmdSave_clicked()
 		//This block is executed when Abort is clicked
 		//or when save is automatically aborted due to full storage
 		camera->vinst->stopRecording();
+		ui->cmdSave->setEnabled(false);
 		ui->verticalSlider->removeLastRegionFromList();
 		ui->verticalSlider->setHighlightRegion(markInFrame, markOutFrame);
 		saveAborted = true;
@@ -431,23 +463,11 @@ void playbackWindow::checkForSaveDone()
 	VideoStatus st;
 	if(camera->vinst->getStatus(&st) != VIDEO_STATE_FILESAVE)
 	{
+		/* Now done in videoended()
 		saveDoneTimer->stop();
 		delete saveDoneTimer;
+		*/
 
-		sw->close();
-		ui->cmdSave->setText("Save");
-		setControlEnable(true);
-		emit enableSaveSettingsButtons(true);
-		ui->cmdSave->setEnabled(true);
-		saveAborted = false;
-		updatePlayRateLabel();
-		ui->verticalSlider->setHighlightRegion(markInFrame, markOutFrame);
-
-		if(autoRecordFlag) {
-			qDebug()<<".  closing";
-			emit finishedSaving();
-			delete this;
-		}
 	}
 	else {
 		char tmp[64];
