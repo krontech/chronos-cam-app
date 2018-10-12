@@ -449,6 +449,7 @@ void saveSettingsWindow::setControlEnable(bool en){
 	ui->cmdRefresh->setEnabled(en);
 	ui->cmdUMount->setEnabled(en);
 	ui->cmdClose->setEnabled(en);
+	ui->chkEnableOverlay->setEnabled(en);
 }
 
 void saveSettingsWindow::on_comboDrive_currentIndexChanged(const QString &arg1)
