@@ -186,33 +186,19 @@ void MyInputPanelContext::sendCode(int code)
 		key = Qt::Key_Enter;
 		break;
 	case KC_CLOSE:
-		if(keyboardActive)
-		{
+		if(keyboardActive) {
+			/* Restore the window positions. */
 			QWidget *window;
-	/*		qDebug() << "sendCode case KC_CLOSE";
-			QWidget *widget = focusWidget();
-			if(!widget)
-			{
-				qDebug() << "focusWidget() was null so returned";
-				//return;
-			}
-
-			QWidget *window = widget->window();
-			if (!window)
-			{
-				qDebug() << "widget->window() was null so returned";
-				//return;
-			}
-
-			*/
 			window = inputPanel->getLastFocsedWidget()->window();
 			inputPanel->hide();
 			window->move(originalPos);
 			keyboardActive = false;
+
+			/* Also send an Enter event. */
+			key = Qt::Key_Enter;
+			break;
 		}
 		return;
-		break;
-
 	}
 
 	if (!w)

@@ -227,41 +227,6 @@ void RecSettingsWindow::on_cmdOK_clicked()
 	close();
 }
 
-/*
-void RecSettingsWindow::on_cmdOK_clicked()
-{
-	ImagerSettings_t settings;
-
-	settings.hRes = min(ui->spinHRes->value(), 1280);		//pixels
-	settings.vRes = ui->spinVRes->value();		//pixels
-	settings.stride = ui->spinHRes->value();		//Number of pixels per line (allows for dark pixels in the last column), always multiple of 16
-	settings.hOffset = ui->spinHOffset->value();	//Active area offset from left
-	settings.vOffset = ui->spinVOffset->value();		//Active area offset from top
-
-	double framePeriodMin = (double)camera->sensor->getMinFramePeriod(settings.stride, settings.vRes) / 100000000.0;
-	double framePeriod = siText2Double(ui->linePeriod->text().toStdString().c_str());
-
-	if(framePeriod < framePeriodMin)
-		framePeriod = framePeriodMin;
-
-	settings.period = framePeriod * 100000000.0;
-
-	double expMax = (double)camera->sensor->getMaxExposure(settings.period) / 100000000.0;
-	double exp = siText2Double(ui->lineExp->text().toStdString().c_str());
-
-	if(exp > expMax)
-		exp = expMax;
-
-	settings.exposure = exp * 100000000.0;
-
-	camera->setImagerSettings(settings);
-    camera->setDisplaySettings(false, MAX_LIVE_FRAMERATE);
-
-	camera->loadFPNFromFile();
-
-	close();
-}
-*/
 void RecSettingsWindow::on_spinHRes_valueChanged(int arg1)
 {
     if(windowInitComplete)
@@ -388,44 +353,6 @@ void RecSettingsWindow::on_cmdMax_clicked()
 
 }
 
-/*
-void RecSettingsWindow::on_cmdMax_clicked()
-{
-	double framePeriod = (double)camera->sensor->getMinFramePeriod(ui->spinHRes->value(), ui->spinVRes->value()) / 100000000.0;
-	char str[100];
-	UInt32 framePeriodInt;
-
-	//Round up to the next 10ns period
-	framePeriod = ceil(framePeriod * (100000000.0)) / 100000000.0;
-	framePeriodInt = framePeriod * 100000000.0;
-	getSIText(str, framePeriod, 10, DEF_SI_OPTS, 8);
-	qDebug() << framePeriod;
-	ui->linePeriod->setText(str);
-
-	double frameRate = 1.0 / framePeriod;
-	qDebug() << frameRate;
-	getSIText(str, frameRate, ceil(log10(framePeriodInt)+1), DEF_SI_OPTS, 1000);
-
-	ui->lineRate->setText(str);
-
-	//Make sure exposure is within limits
-	double expMax = (double)camera->sensor->getMaxExposure(framePeriodInt) / 100000000.0;
-	double exp = siText2Double(ui->lineExp->text().toStdString().c_str());
-
-	if(exp > expMax)
-		exp = expMax;
-
-	//Round to nearest 10ns period
-	exp = round(exp * (100000000.0)) / 100000000.0;
-
-	//Format the entered value nicely
-	getSIText(str, exp, 10, DEF_SI_OPTS, 8);
-	qDebug() << exp;
-	ui->lineExp->setText(str);
-
-}
-*/
-
 void RecSettingsWindow::on_linePeriod_returnPressed()
 {
 	char str[100];
@@ -458,51 +385,6 @@ void RecSettingsWindow::on_linePeriod_returnPressed()
 	ui->lineExp->setText(str);
 
 }
-/*
-void RecSettingsWindow::on_linePeriod_returnPressed()
-{
-	double framePeriod;
-	double framePeriodMin = (double)camera->sensor->getMinFramePeriod(ui->spinHRes->value(), ui->spinVRes->value()) / 100000000.0;
-	UInt32 framePeriodInt;
-	char str[100];
-	framePeriod = siText2Double(ui->linePeriod->text().toStdString().c_str());
-
-	if(framePeriod < framePeriodMin)
-		framePeriod = framePeriodMin;
-
-	//Round to nearest 10ns period
-	framePeriod = round(framePeriod * (100000000.0)) / 100000000.0;
-	framePeriodInt = framePeriod * 100000000.0;
-
-	//format the entered value nicely
-	getSIText(str, framePeriod, 10, DEF_SI_OPTS, 8);
-	qDebug() << framePeriod;
-	ui->linePeriod->setText(str);
-
-	//Set the frame rate
-	double frameRate = 1.0 / framePeriod;
-	qDebug() << frameRate;
-	getSIText(str, frameRate, ceil(log10(framePeriodInt)+1), DEF_SI_OPTS, 1000);
-
-	ui->lineRate->setText(str);
-
-	//Make sure exposure is within limits
-	double expMax = (double)camera->sensor->getMaxExposure(framePeriodInt) / 100000000.0;
-	double exp = siText2Double(ui->lineExp->text().toStdString().c_str());
-
-	if(exp > expMax)
-		exp = expMax;
-
-	//Round to nearest 10ns period
-	exp = round(exp * (100000000.0)) / 100000000.0;
-
-	//Format the entered value nicely
-	getSIText(str, exp, 10, DEF_SI_OPTS, 8);
-	qDebug() << exp;
-	ui->lineExp->setText(str);
-
-}
-*/
 
 void RecSettingsWindow::on_lineRate_returnPressed()
 {
@@ -542,61 +424,7 @@ void RecSettingsWindow::on_lineRate_returnPressed()
 	getSIText(str, exp, 10, DEF_SI_OPTS, 8);
 	qDebug() << exp;
 	ui->lineExp->setText(str);
-
 }
-
-/*
-void RecSettingsWindow::on_lineRate_returnPressed()
-{
-	double framePeriod;
-	double frameRate;
-	double framePeriodMin = (double)camera->sensor->getMinFramePeriod(ui->spinHRes->value(), ui->spinVRes->value()) / 100000000.0;
-	UInt32 framePeriodInt;
-	char str[100];
-
-	frameRate = siText2Double(ui->lineRate->text().toStdString().c_str());
-
-	if(0.0 == frameRate)
-		return;
-
-	framePeriod = 1.0 / frameRate;
-
-	if(framePeriod < framePeriodMin)
-		framePeriod = framePeriodMin;
-
-	//Round to nearest 10ns period
-	framePeriod = round(framePeriod * (100000000.0)) / 100000000.0;
-	framePeriodInt = framePeriod * 100000000.0;
-
-	//Set the frame period box
-	getSIText(str, framePeriod, 10, DEF_SI_OPTS, 8);
-	qDebug() << framePeriod;
-	ui->linePeriod->setText(str);
-
-	//Refill the frame rate box with the nicely formatted value
-	frameRate = 1.0 / framePeriod;
-	qDebug() << frameRate;
-	getSIText(str, frameRate, ceil(log10(framePeriodInt)+1), DEF_SI_OPTS, 1000);
-
-	ui->lineRate->setText(str);
-
-	//Make sure exposure is within limits
-	double expMax = (double)camera->sensor->getMaxExposure(framePeriodInt) / 100000000.0;
-	double exp = siText2Double(ui->lineExp->text().toStdString().c_str());
-
-	if(exp > expMax)
-		exp = expMax;
-
-	//Round to nearest 10ns period
-	exp = round(exp * (100000000.0)) / 100000000.0;
-
-	//Format the entered value nicely
-	getSIText(str, exp, 10, DEF_SI_OPTS, 8);
-	qDebug() << exp;
-	ui->lineExp->setText(str);
-
-}
-*/
 
 void RecSettingsWindow::on_lineExp_returnPressed()
 {
@@ -619,38 +447,6 @@ void RecSettingsWindow::on_lineExp_returnPressed()
 	ui->lineExp->setText(str);
 }
 
-/*
-void RecSettingsWindow::on_lineExp_returnPressed()
-{
-	char str[100];
-	UInt32 framePeriodInt;
-	double framePeriodMin = (double)camera->sensor->getMinFramePeriod(ui->spinHRes->value(), ui->spinVRes->value()) / 100000000.0;
-	double framePeriod = siText2Double(ui->linePeriod->text().toStdString().c_str());
-
-	if(framePeriod < framePeriodMin)
-		framePeriod = framePeriodMin;
-
-	//Round to nearest 10ns period
-	framePeriod = round(framePeriod * (100000000.0)) / 100000000.0;
-	framePeriodInt = framePeriod * 100000000.0;
-
-	double expMax = (double)camera->sensor->getMaxExposure(framePeriodInt) / 100000000.0;
-	double exp = siText2Double(ui->lineExp->text().toStdString().c_str());
-
-	if(exp > expMax)
-		exp = expMax;
-
-	//Round to nearest 10ns period
-	exp = round(exp * (100000000.0)) / 100000000.0;
-
-	//Format the entered value nicely
-	getSIText(str, exp, 10, DEF_SI_OPTS, 8);
-	qDebug() << exp;
-	ui->lineExp->setText(str);
-}
-
-*/
-
 void RecSettingsWindow::on_cmdExpMax_clicked()
 {
 	char str[100];
@@ -670,31 +466,6 @@ void RecSettingsWindow::on_cmdExpMax_clicked()
 	qDebug() << exp;
 	ui->lineExp->setText(str);
 }
-
-/*
-void RecSettingsWindow::on_cmdExpMax_clicked()
-{
-	char str[100];
-	UInt32 framePeriodInt;
-	double framePeriodMin = (double)camera->sensor->getMinFramePeriod(ui->spinHRes->value(), ui->spinVRes->value()) / 100000000.0;
-	double framePeriod = siText2Double(ui->linePeriod->text().toStdString().c_str());
-
-	if(framePeriod < framePeriodMin)
-		framePeriod = framePeriodMin;
-
-	//Round to nearest 10ns period
-	framePeriod = round(framePeriod * (100000000.0)) / 100000000.0;
-	framePeriodInt = framePeriod * 100000000.0;
-
-	//Set to maximum exposure
-	double exp = (double)camera->sensor->getMaxExposure(framePeriodInt) / 100000000.0;
-
-	//Format the entered value nicely
-	getSIText(str, exp, 10, DEF_SI_OPTS, 8);
-	qDebug() << exp;
-	ui->lineExp->setText(str);
-}
-*/
 
 void RecSettingsWindow::updateInfoText()
 {
