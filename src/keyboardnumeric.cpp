@@ -21,6 +21,7 @@ keyboardNumeric::keyboardNumeric(QWidget *parent) :
 	signalMapper.setMapping(ui->num8, ui->num8);
 	signalMapper.setMapping(ui->num9, ui->num9);
 	signalMapper.setMapping(ui->numdot, ui->numdot);
+	signalMapper.setMapping(ui->minus, ui->minus);
 
 
 
@@ -35,6 +36,7 @@ keyboardNumeric::keyboardNumeric(QWidget *parent) :
 	connect(ui->num8, SIGNAL(clicked()), &signalMapper, SLOT(map()));
 	connect(ui->num9, SIGNAL(clicked()), &signalMapper, SLOT(map()));
 	connect(ui->numdot, SIGNAL(clicked()), &signalMapper, SLOT(map()));
+	connect(ui->minus, SIGNAL(clicked()), &signalMapper, SLOT(map()));
 
 	connect(&signalMapper, SIGNAL(mapped(QWidget*)),
 			this, SLOT(buttonClicked(QWidget*)));

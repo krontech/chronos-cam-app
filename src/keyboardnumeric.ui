@@ -232,15 +232,15 @@
   <widget class="QPushButton" name="back">
    <property name="geometry">
     <rect>
-     <x>310</x>
-     <y>160</y>
-     <width>151</width>
+     <x>470</x>
+     <y>10</y>
+     <width>101</width>
      <height>51</height>
     </rect>
    </property>
    <property name="font">
     <font>
-     <pointsize>20</pointsize>
+     <pointsize>25</pointsize>
      <weight>75</weight>
      <italic>false</italic>
      <bold>true</bold>
@@ -275,8 +275,8 @@
    <property name="geometry">
     <rect>
      <x>690</x>
-     <y>170</y>
-     <width>111</width>
+     <y>160</y>
+     <width>101</width>
      <height>51</height>
     </rect>
    </property>
@@ -295,10 +295,10 @@
   <widget class="QPushButton" name="up">
    <property name="geometry">
     <rect>
-     <x>570</x>
-     <y>10</y>
-     <width>111</width>
-     <height>101</height>
+     <x>580</x>
+     <y>30</y>
+     <width>101</width>
+     <height>81</height>
     </rect>
    </property>
    <property name="font">
@@ -316,10 +316,10 @@
   <widget class="QPushButton" name="down">
    <property name="geometry">
     <rect>
-     <x>570</x>
+     <x>580</x>
      <y>110</y>
-     <width>111</width>
-     <height>101</height>
+     <width>101</width>
+     <height>81</height>
     </rect>
    </property>
    <property name="font">
@@ -337,10 +337,10 @@
   <widget class="QPushButton" name="left">
    <property name="geometry">
     <rect>
-     <x>460</x>
-     <y>60</y>
-     <width>111</width>
-     <height>101</height>
+     <x>480</x>
+     <y>70</y>
+     <width>101</width>
+     <height>81</height>
     </rect>
    </property>
    <property name="font">
@@ -359,9 +359,9 @@
    <property name="geometry">
     <rect>
      <x>680</x>
-     <y>60</y>
-     <width>111</width>
-     <height>101</height>
+     <y>70</y>
+     <width>101</width>
+     <height>81</height>
     </rect>
    </property>
    <property name="font">
@@ -379,9 +379,9 @@
   <widget class="QPushButton" name="enter">
    <property name="geometry">
     <rect>
-     <x>460</x>
+     <x>470</x>
      <y>160</y>
-     <width>111</width>
+     <width>101</width>
      <height>51</height>
     </rect>
    </property>
@@ -395,6 +395,24 @@
    </property>
    <property name="text">
     <string>Apply</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="minus">
+   <property name="geometry">
+    <rect>
+     <x>310</x>
+     <y>160</y>
+     <width>151</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>30</pointsize>
+    </font>
+   </property>
+   <property name="text">
+    <string>-</string>
    </property>
   </widget>
  </widget>
