@@ -90,9 +90,15 @@ bool MyInputPanelContext::filterEvent(const QEvent* event)
 
 		QString className = widget->metaObject()->className();
 		if(className.contains("spinbox", Qt::CaseInsensitive))
+		{
 			inputPanel = inputPanelNumeric;
+			inputPanelAlphabetic->hide();
+		}
 		else
+		{
 			inputPanel = inputPanelAlphabetic;
+			inputPanelNumeric->hide();
+		}
 
 		qDebug() << "inputPanel Show";
 		inputPanel->show();
