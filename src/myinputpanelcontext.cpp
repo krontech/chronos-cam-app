@@ -92,14 +92,13 @@ bool MyInputPanelContext::filterEvent(const QEvent* event)
 		if(className.contains("spinbox", Qt::CaseInsensitive))
 		{
 			inputPanel = inputPanelNumeric;
-			inputPanelAlphabetic->hide();
+			QTimer::singleShot(200, inputPanelAlphabetic, SLOT(hide()));
 		}
 		else
 		{
 			inputPanel = inputPanelAlphabetic;
-			inputPanelNumeric->hide();
+			QTimer::singleShot(200, inputPanelNumeric, SLOT(hide()));
 		}
-
 		qDebug() << "inputPanel Show";
 		inputPanel->show();
 
