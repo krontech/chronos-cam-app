@@ -53,6 +53,8 @@ void PlaybackSlider::paintEvent(QPaintEvent *ev) {
 	int start;
 	int end;
 	initStyleOption(&opt);
+	
+	QSlider::paintEvent(ev);
 
 	opt.subControls = QStyle::SC_SliderGroove | QStyle::SC_SliderHandle;
 	if (tickPosition() != NoTicks) {
@@ -78,7 +80,7 @@ void PlaybackSlider::paintEvent(QPaintEvent *ev) {
 
 
 	//specify (left, top, width, height) of the rectangle to highlight
-	newSaveRegion.setRect(groove_rect.left(),
+	newSaveRegion.setRect(groove_rect.left() + groove_rect.width(),
 						  HANDLE_HEIGHT/2 + end,
 						  groove_rect.width() + 2, //+ 2 pixels so the highlight will actually be visible instead of just covered up by the slider bar
 						  start - end);
@@ -91,8 +93,6 @@ void PlaybackSlider::paintEvent(QPaintEvent *ev) {
 	}
 
 	painter.fillRect(newSaveRegion, QBrush(*(colorArray + (currentColorIndex % 9))));
-
-	QSlider::paintEvent(ev);
 }
 
 void PlaybackSlider::appendRegionToList(){
