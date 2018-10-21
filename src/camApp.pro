@@ -22,7 +22,6 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets multimedia
 
 TARGET = camApp
 CONFIG += qt console link_pkgconfig
-target.path = /opt/camera
 
 INCLUDEPATH += $${QT_SYSROOT}/usr/include
 QMAKE_CFLAGS += -pthread -march=armv7-a -mtune=cortex-a8 -mfpu=neon -mfloat-abi=softfp
@@ -38,10 +37,27 @@ INSTALLS += target
 
 LIBS += -lm -lpthread -lrt -static-libstdc++
 
+## Tweaks for Debian builds.
+exists( $${QT_SYSROOT}/etc/debian_version ) {
+    target.path = /usr/bin
+
+    DEBPACKAGE = chronos-gui
+    DEBFULLNAME = $$system(git config user.name)
+    DEBEMAIL = $$system(git config user.email)
+    DEBFILES = $$files(debian/*, true)
+    DEBCONFIG = $$find(DEBFILES, "\\.in$")
+    DEBFILES -= $$DEBCONFIG
+    QMAKE_SUBSTITUTES += $$DEBCONFIG
+
+    system($$QMAKE_MKDIR -p $${OUT_PWD}/debian $${OUT_PWD}/debian/source)
+    system($$QMAKE_COPY $$DEBFILES $${OUT_PWD}/debian)
+} else {
+    target.path = /opt/camera
+}
+
 SOURCES += main.cpp\
 	mainwindow.cpp \
     camera.cpp \
-    lupa1300.cpp \
     spi.cpp \
     gpmc.cpp \
     video.cpp \
@@ -93,7 +109,6 @@ HEADERS  += mainwindow.h \
     gpmc.h \
     gpmcRegs.h \
     camera.h \
-    lupa1300.h \
     spi.h \
     defines.h \
     types.h \

@@ -1,0 +1,14 @@
+Source: $${DEBPACKAGE}
+Section: misc
+Priority: optional
+Maintainer: $${DEBFULLNAME} <$${DEBEMAIL}>
+Build-Depends: debhelper (>=9)
+Standards-Version: 3.9.6
+Homepage: https://github.com/krontech/chronos-cam-app
+
+Package: $${DEBPACKAGE}
+Architecture: armel
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: User Interface for the Chronos Camera
+ Qt4 user interface runs locally on the camera, and
+ renders to the LCD display on the back of the camera.

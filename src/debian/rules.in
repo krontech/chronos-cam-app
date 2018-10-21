@@ -1,0 +1,16 @@
+#!/usr/bin/make -f
+# See debhelper(7) (uncomment to enable)
+# output every command that modifies files on the build system.
+#export DH_VERBOSE = 1
+
+export INSTALL_ROOT=$(shell pwd)/debian/chronos-gui
+
+%:
+	dh $@
+
+override_dh_auto_clean:
+
+override_dh_shlibdeps:
+	dh_shlibdeps -- --ignore-missing-info \\
+		-l$${QT_SYSROOT}/lib/${DEB_HOST_MULTIARCH} \\
+		-l$${QT_SYSROOT}/usr/lib/${DEB_HOST_MULTIARCH}
