@@ -37,6 +37,8 @@
 #define FOCUS_PEAK_THRESH_MED	25
 #define FOCUS_PEAK_THRESH_HIGH	15
 
+#define USER_EXIT -2
+
 extern const char* git_version_str;
 
 bool copyFile(const char * fromfile, const char * tofile);
@@ -149,35 +151,52 @@ UtilWindow::~UtilWindow()
 
 void UtilWindow::on_cmdSWUpdate_clicked()
 {
+	int itr, retval;
+	char location[100];
+	
+	for(itr = 1; itr <= 4; itr++)
+	{
+		//Look for the update on sda
+		sprintf(location, "/media/sda%d/camUpdate/update.sh", itr);
+		if((retval = updateSoftware(location)) != CAMERA_FILE_NOT_FOUND) return;
+		
+		//Also look for the update on sdb, as the usb is sometimes mounted there instead of sda
+		sprintf(location, "/media/sdb%d/camUpdate/update.sh", itr);
+		if((retval = updateSoftware(location)) != CAMERA_FILE_NOT_FOUND) return;
+		
+		//Look for the update on the SD card
+		sprintf(location, "/media/mmcblk1p%d/camUpdate/update.sh", itr);
+		if((retval = updateSoftware(location)) != CAMERA_FILE_NOT_FOUND) return;
+	}
 
+	QMessageBox msg;
+	msg.setText("No software update found");
+	msg.setWindowFlags(Qt::WindowStaysOnTopHint);
+	//msg.setInformativeText("Update");
+	msg.exec();
+}
+
+int UtilWindow::updateSoftware(char * updateLocation){
 	struct stat buffer;
 	char mesg[100];
 
-	if(stat ("/media/sda1/camUpdate/update.sh", &buffer) == 0)	//If file exists
+	if(stat (updateLocation, &buffer) == 0)	//If file exists
 	{
 		QMessageBox::StandardButton reply;
 		reply = QMessageBox::question(this, "Software update", "Found software update, do you want to install it now?\r\nThe display may go blank and the camera may restart during this process.\r\nWARNING: Any unsaved video in RAM will be lost.", QMessageBox::Yes|QMessageBox::No);
 		if(QMessageBox::Yes != reply)
-			return;
+			return USER_EXIT;
 
-		UInt32 retVal = system("/media/sda1/camUpdate/update.sh");
+		UInt32 retVal = system(updateLocation);
 		QMessageBox msg;
 		sprintf(mesg, "Update complete! Please restart camera to complete update.");
 		msg.setText(mesg);
 		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
 		msg.exec();
-		return;
+		return SUCCESS;
 	}
-	else
-	{
-		QMessageBox msg;
-		msg.setText("No software update found");
-		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
-		//msg.setInformativeText("Update");
-		msg.exec();
-	}
+	return CAMERA_FILE_NOT_FOUND;
 }
-
 bool copyFile(const char * fromfile, const char * tofile)
 {
 
