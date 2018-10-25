@@ -1,0 +1,4 @@
+var/camera/
+var/camera/cal
+var/camera/cal/factoryFPN
+var/camera/userFPN

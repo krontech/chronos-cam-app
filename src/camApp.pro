@@ -34,12 +34,20 @@ QMAKE_CXXFLAGS += -Wno-unused-parameter -Wno-sign-compare -ffreestanding
 
 TEMPLATE = app
 INSTALLS += target
+target.path = /opt/camera
 
 LIBS += -lm -lpthread -lrt -static-libstdc++
+
+## Some other stuff to install.
+datafiles.path = /opt/camera
+datafiles.files = data/*
+INSTALLS += datafiles
 
 ## Tweaks for Debian builds.
 exists( $${QT_SYSROOT}/etc/debian_version ) {
     target.path = /usr/bin
+    datafiles.path = /var/camera
+    DEFINES += DEBIAN=1
 
     DEBPACKAGE = chronos-gui
     DEBFULLNAME = $$system(git config user.name)
@@ -51,8 +59,6 @@ exists( $${QT_SYSROOT}/etc/debian_version ) {
 
     system($$QMAKE_MKDIR -p $${OUT_PWD}/debian $${OUT_PWD}/debian/source)
     system($$QMAKE_COPY $$DEBFILES $${OUT_PWD}/debian)
-} else {
-    target.path = /opt/camera
 }
 
 SOURCES += main.cpp\

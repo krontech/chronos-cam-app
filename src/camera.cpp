@@ -984,7 +984,6 @@ void Camera::computeFPNCorrection()
 void Camera::computeFPNCorrection2(UInt32 framesToAverage, bool writeToFile, bool factory)
 {
 	QSettings appSettings;
-	//char filename[1000];
 	const char *formatStr;
 	QString filename;
 	std::string fn;
@@ -995,20 +994,13 @@ void Camera::computeFPNCorrection2(UInt32 framesToAverage, bool writeToFile, boo
 	{
 		//Generate the filename for this particular resolution and offset
 		if(factory) {
-			if (!QDir("./cal").exists())
-				formatStr = "/opt/camera/cal/factoryFPN/fpn_%dx%doff%dx%d";
-			else
-				formatStr = "./cal/factoryFPN/fpn_%dx%doff%dx%d";
-		}			
+			formatStr = "cal/factoryFPN/fpn_%dx%doff%dx%d";
+		}
 		else {
-			if (!QDir("./userFPN").exists())
-				formatStr = "/opt/camera/userFPN/fpn_%dx%doff%dx%d";
-			else
-				formatStr = "./userFPN/fpn_%dx%doff%dx%d";
+			formatStr = "userFPN/fpn_%dx%doff%dx%d";
 		}
 		
 		filename.sprintf(formatStr, getImagerSettings().hRes, getImagerSettings().vRes, getImagerSettings().hOffset, getImagerSettings().vOffset);
-		//sprintf(filename, formatStr, getImagerSettings().hRes, getImagerSettings().vRes, getImagerSettings().hOffset, getImagerSettings().vOffset);
 
 		fn = sensor->getFilename("", ".raw");
 		filename.append(fn.c_str());
@@ -1245,15 +1237,10 @@ Int32 Camera::computeColGainCorrection(UInt32 framesToAverage, bool writeToFile)
 	if(writeToFile)
 	{
 		//Generate the filename for this particular resolution and offset
-		if (!QDir("./cal").exists())
-			filename.append("/opt/camera/cal/");
-		else
-			filename.append("./cal/");
-		
 		if(recordingData.is.gain >= LUX1310_GAIN_4)
-			filename.append("dcgH.bin");
+			filename.append("cal/dcgH.bin");
 		else
-			filename.append("dcgL.bin");
+			filename.append("cal/dcgL.bin");
 		
 		qDebug("Writing colGain to file %s", filename.toUtf8().data());
 
@@ -2758,11 +2745,6 @@ Int32 Camera::takeWhiteReferences(void)
 
 			//Generate the filename for this particular resolution and offset
 			filename.sprintf("userFPN/wref_%s_LV%d.raw", gName, i+1);
-
-			if (!QDir("./userFPN").exists())
-				filename.sprintf("/opt/camera/userFPN/wref_%s_LV%d.raw", gName, i+1);
-			else
-				filename.sprintf("./userFPN/wref_%s_LV%d.raw", gName, i+1);
 
 			qDebug("Writing WhiteReference to file %s", filename.toUtf8().data());
 

@@ -1,4 +1,4 @@
-$${DEBPACKAGE} (0.3.1) unstable; urgency=medium
+$${DEBPACKAGE} (0.3.1~beta) unstable; urgency=medium
 
   * Packaged for Debian.
 

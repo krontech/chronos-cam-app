@@ -45,7 +45,7 @@ bool copyFile(const char * fromfile, const char * tofile);
 
 static char *readReleaseString(char *buf, size_t len)
 {
-	FILE * fp = fopen("/opt/camera/filesystemRevision", "r");
+	FILE * fp = fopen("filesystemRevision", "r");
 	if (!fp) {
 		return strcpy(buf, CAMERA_APP_VERSION);
 	}
@@ -993,8 +993,8 @@ void UtilWindow::on_cmdRevertCalData_pressed()
 	if(QMessageBox::Yes != reply)
 		return;
 
-	// delete all files under /opt/camera/userFPN/
-	sprintf(str, "rm /opt/camera/userFPN/*");
+	// delete all files under userFPN/
+	sprintf(str, "rm userFPN/*");
 	retVal = system(str);
 
 	if(0 != retVal)

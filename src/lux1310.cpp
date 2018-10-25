@@ -1007,20 +1007,9 @@ Int32 LUX1310::loadADCOffsetsFromFile(void)
 Int32 LUX1310::saveADCOffsetsToFile(void)
 {
 	Int16 offsets[LUX1310_HRES_INCREMENT];
-
-	QString filename;
-	
-	//Generate the filename for this particular resolution and offset
-	if (!QDir("./cal").exists())
-		filename.append("/opt/camera/cal/lux1310Offsets");
-	else
-		filename.append("./cal/lux1310Offsets");
-	
 	std::string fn;
-	fn = getFilename("", ".bin");
-	filename.append(fn.c_str());
-	fn = filename.toLocal8Bit().constData();
 
+	fn = getFilename("cal/lux1310Offsets", ".bin");
 	qDebug("writing ADC offsets to %s", fn.c_str());
 	
 	FILE * fp;

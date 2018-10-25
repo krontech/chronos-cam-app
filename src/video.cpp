@@ -36,12 +36,16 @@ bool Video::setRunning(bool run)
 		}
 		else if (child == 0) {
 			/* child process - start the pipeline */
+#ifdef DEBIAN
+			const char *path = "cam-pipeline";
+#else
 			const char *path = "/opt/camera/cam-pipeline";
+#endif
 			char display[64];
 			char offset[64];
 			snprintf(display, sizeof(display), "%ux%u", displayWindowXSize, displayWindowYSize);
 			snprintf(offset, sizeof(offset), "%ux%u", displayWindowXOff, displayWindowYOff);
-			execl(path, path, display, "--offset", offset, NULL);
+			execlp(path, path, display, "--offset", offset, NULL);
 			exit(EXIT_FAILURE);
 		}
 		pid = child;
