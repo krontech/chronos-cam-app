@@ -2411,7 +2411,11 @@ Int32 Camera::autoWhiteBalance(UInt32 x, UInt32 y)
 	double scale;
 	int i, j;
 
-	readDCG(gain);
+	/* Attempt to get the current column gain data, or default to 1.0 (no gain). */
+	if (readDCG(gain) != SUCCESS) {
+		for (i = 0; i < LUX1310_HRES_INCREMENT; i++) gain[i] = 1.0;
+	}
+
 	for (i = 0; i < LUX1310_HRES_INCREMENT; i += 2) {
 		/* Even Rows - Green/Red Pixels */
 		for (j = 0; j < LUX1310_HRES_INCREMENT; j++) {
