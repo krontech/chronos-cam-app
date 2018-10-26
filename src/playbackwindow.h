@@ -76,7 +76,10 @@ private slots:
 	/* Video class signals */
 	void videoStarted(VideoState state);
 	void videoEnded(VideoState state, QString err);
-
+	
+	void addDotsToString(QString* abc);
+	void updateSWText();
+	
 private:
 	Ui::playbackWindow *ui;
 	Camera * camera;
@@ -97,7 +100,9 @@ private:
 	bool autoSaveFlag, autoRecordFlag;
 	bool settingsWindowIsOpen;
 	bool saveAborted;
+	bool saveAbortedAutomatically;
 	bool insufficientFreeSpaceEstimate;
+	short periodsToAdd = 0;
 	
 	save_mode_type getSaveFormat();
 
