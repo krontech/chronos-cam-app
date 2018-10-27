@@ -16,6 +16,7 @@
  ****************************************************************************/
 #ifndef LUX1310_H
 #define LUX1310_H
+#include "frameGeometry.h"
 #include "errorCodes.h"
 #include "types.h"
 #include "spi.h"
@@ -24,12 +25,13 @@
 
 #define LUX1310_HRES_INCREMENT 16
 #define LUX1310_VRES_INCREMENT	2
-#define LUX1310_MAX_STRIDE		1280
 #define LUX1310_MAX_H_RES		1280
 #define LUX1310_MAX_V_RES		1024
 #define LUX1310_MIN_HRES		192		//Limited by video encoder minimum
 #define LUX1310_MIN_VRES		96
 #define LUX1310_MAGIC_ABN_DELAY	26
+#define LUX1310_MAX_V_DARK		8
+#define LUX1310_BITS_PER_PIXEL	12
 
 #define TIMING_CLOCK_FREQ		100000000.0	//Hz
 #define LUX1310_SENSOR_CLOCK	90000000.0	//Hz
@@ -125,17 +127,18 @@ public:
 	Int32 setOffset(UInt16 * offsets);
 	CameraErrortype autoPhaseCal(void);
 	UInt32 getDataCorrect(void);
-	bool isValidResolution(UInt32 hRes, UInt32 vRes, UInt32 hOffset, UInt32 vOffset);
 	void setSyncToken(UInt16 token);
-	void setResolution(UInt32 hStart, UInt32 hWidth, UInt32 vStart, UInt32 vEnd);
-	UInt32 getMinFramePeriod(UInt32 hRes, UInt32 vRes, UInt32 wtSize = LUX1310_MIN_WAVETABLE_SIZE);
-	double getMinMasterFramePeriod(UInt32 hRes, UInt32 vRes);
-	double getActualFramePeriod(double targetPeriod, UInt32 hRes, UInt32 vRes);
-	double setFramePeriod(double period, UInt32 hRes, UInt32 vRes);
-	double getMaxIntegrationTime(double period, UInt32 hRes, UInt32 vRes);
+	void setResolution(FrameGeometry *frameSize);
+	bool isValidResolution(FrameGeometry *frameSize);
+	FrameGeometry getMaxGeometry(void);
+	UInt32 getMinFramePeriod(FrameGeometry *frameSize, UInt32 wtSize = LUX1310_MIN_WAVETABLE_SIZE);
+	double getMinMasterFramePeriod(FrameGeometry *frameSize);
+	double getActualFramePeriod(double targetPeriod, FrameGeometry *frameSize);
+	double setFramePeriod(double period, FrameGeometry *frameSize);
+	double getMaxIntegrationTime(double period, FrameGeometry *frameSize);
 	double getMaxCurrentIntegrationTime(void);
-	double getActualIntegrationTime(double intTime, double period, UInt32 hRes, UInt32 vRes);
-	double setIntegrationTime(double intTime, UInt32 hRes, UInt32 vRes);
+	double getActualIntegrationTime(double intTime, double period, FrameGeometry *frameSize);
+	double setIntegrationTime(double intTime, FrameGeometry *frameSize = NULL);
 	double getIntegrationTime(void);
 	UInt32 getMaxExposure(UInt32 period);
 	double getCurrentFramePeriodDouble(void);
@@ -149,9 +152,6 @@ public:
 	void dumpRegisters(void);
 	inline UInt32 getHResIncrement() { return LUX1310_HRES_INCREMENT; }
 	inline UInt32 getVResIncrement()  { return LUX1310_VRES_INCREMENT; }
-	inline UInt32 getMaxHRes() { return LUX1310_MAX_H_RES; }
-	inline UInt32 getMaxHStride() { return LUX1310_MAX_STRIDE; }
-	inline UInt32 getMaxVRes()  { return LUX1310_MAX_V_RES; }
 	inline UInt32 getMinHRes() { return LUX1310_MIN_HRES; }
 	inline UInt32 getMinVRes() { return LUX1310_MIN_VRES; }
 	void initDAC();
@@ -176,8 +176,7 @@ public:
 
 	bool masterMode;
 	UInt32 masterModeTotalLines;
-	UInt32 currentHRes;
-	UInt32 currentVRes;
+	FrameGeometry currentRes;
 	UInt32 currentPeriod;
 	UInt32 currentExposure;
 	Int32 dacCSFD;
@@ -192,10 +191,5 @@ public:
 	UInt8 clkPhase;
 	Int16 offsetsA[16];
 };
-/*
-enum {
-	LUX1310_SUCCESS = 0,
-	LUX1310_SPI_OPEN_FAIL
-};
-*/
+
 #endif // LUX1310_H

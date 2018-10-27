@@ -156,7 +156,8 @@ HEADERS  += mainwindow.h \
     chronosControlInterface.h \
     chronosVideoInterface.h \
     colorwindow.h \
-    colordoublespinbox.h
+    colordoublespinbox.h \
+    frameGeometry.h
 
 FORMS    += mainwindow.ui \
     cammainwindow.ui \
