@@ -211,9 +211,11 @@ void RecSettingsWindow::on_cmdOK_clicked()
 
     camera->setImagerSettings(*is);
     camera->setDisplaySettings(false, MAX_LIVE_FRAMERATE);
+	camera->liveAdcOffsetCalibration();
 
-	if(CAMERA_FILE_NOT_FOUND == camera->loadFPNFromFile())
-		camera->autoFPNCorrection(2, false, true);
+	if(CAMERA_FILE_NOT_FOUND == camera->loadFPNFromFile()) {
+		camera->fastFPNCorrection();
+	}
 
 	emit settingsChanged();
 	
