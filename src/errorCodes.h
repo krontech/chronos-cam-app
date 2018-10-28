@@ -77,6 +77,7 @@ typedef enum CameraErrortype
 	LUPA1300_NO_DATA_VALID_WINDOW             = 402,
 	LUPA1300_INSUFFICIENT_DATA_VALID_WINDOW   = 403,
 	LUX1310_FILE_ERROR                        = 404,
+	LUX1310_SERIAL_READBACK_ERROR             = 405,
 	
 	
 	SPI_NOT_OPEN                              = 501,
