@@ -107,6 +107,7 @@ enum {
 #define ABN_DELAY_WT25				27
 #define ABN_DELAY_WT20				25
 
+#define LUX1310_CHIP_ID				0xDA
 #define LUX1310_VERSION_1			1
 #define LUX1310_VERSION_2			2
 
@@ -159,7 +160,7 @@ public:
 	void writeDACVoltage(UInt8 channel, float voltage);
 	int writeDACSPI(UInt16 data);
 	void setDACCS(bool on);
-	void SCIWrite(UInt8 address, UInt16 data);
+	bool SCIWrite(UInt8 address, UInt16 data, bool readback = false);
 	void SCIWriteBuf(UInt8 address, UInt8 * data, UInt32 dataLen);
 	UInt16 SCIRead(UInt8 address);
 	void setWavetable(UInt8 mode);
