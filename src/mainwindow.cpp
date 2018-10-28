@@ -363,7 +363,6 @@ void MainWindow::on_cmdGC_clicked()
 
 void MainWindow::on_cmdOffsetCorrection_clicked()
 {
-	//camera->offsetCorrectionIteration();
 	camera->adcOffsetCorrection(32, false);
 }
 
