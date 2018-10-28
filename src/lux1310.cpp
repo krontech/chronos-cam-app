@@ -223,6 +223,9 @@ CameraErrortype LUX1310::init(GPMC * gpmc_inst)
 
 CameraErrortype LUX1310::initSensor()
 {
+	CameraErrortype err;
+	UInt16 rev;
+
 	wavetableSize = 80;
 	gain = LUX1310_GAIN_1;
 
@@ -247,7 +250,16 @@ CameraErrortype LUX1310::initSensor()
 
 	delayms(1);		//Seems to be required for SCI clock to get running
 
+	/* Reset the sensor and check its chip ID. */
 	SCIWrite(0x7E, 0);	//reset all registers
+	rev = SCIRead(0x00);
+	if ((rev >> 8) != LUX1310_CHIP_ID) {
+		fprintf(stderr, "LUX1310 rev_chip returned invalid ID (0x02x)\n", rev>>8);
+		return CAMERA_ERROR_SENSOR;
+	}
+	sensorVersion = rev & 0xFF;
+	fprintf(stderr, "Initializing LUX1310: silicon revision %d\n", sensorVersion);
+
 	//delayms(1);
 	SCIWrite(0x57, 0x0FC0); //custom pattern for ADC training pattern
 	//delayms(1);
@@ -260,66 +272,61 @@ CameraErrortype LUX1310::initSensor()
 
 	autoPhaseCal();
 
-	//Return to normal data mode
+	/* Break out in case of an error. */
+	err = LUX1310_SERIAL_READBACK_ERROR;
+	do {
+		//Return to normal data mode
+		if (!SCIWrite(0x4C, 0x0F00, true)) break;	//pclk channel output during vertical blanking
+		if (!SCIWrite(0x56, 0x0000, true)) break;	//Disable test pattern
 
-	SCIWrite(0x4C, 0x0F00);	//pclk channel output during vertical blanking
-	SCIWrite(0x56, 0x0000); //Disable test pattern
+		//Set for 80 clock wavetable
+		if (!SCIWrite(0x37, 80, true)) break;	//non-overlapping readout delay
+		if (!SCIWrite(0x7A, 80, true)) break;	//wavetable size
 
-	//Set for 80 clock wavetable
-	SCIWrite(0x37, 80); //non-overlapping readout delay
-	SCIWrite(0x7A, 80); //wavetable size
+		//Set internal control registers to fine tune the performance of the sensor
+		if (!SCIWrite(0x71, 0x0007, true)) break; //line valid delay to match internal ADC latency
+		if (!SCIWrite(0x2D, 0xE08E, true)) break; //state for idle controls
+		if (!SCIWrite(0x2E, 0xFC1F, true)) break; //state for idle controls
+		if (!SCIWrite(0x2F, 0x0003, true)) break; //state for idle controls
 
-	//Set internal control registers to fine tune the performance of the sensor
+		if (!SCIWrite(0x5C, 0x2202, true)) break; //ADC clock controls
+		if (!SCIWrite(0x62, 0x4B76, true)) break; //ADC range to match pixel saturation level
+		if (!SCIWrite(0x74, 0x041F, true)) break; //internal clock timing
 
-	SCIWrite(0x71, 0x0007); //line valid delay to match internal ADC latency
-	SCIWrite(0x2D, 0xE08E); //state for idle controls
-	SCIWrite(0x2E, 0xFC1F); //state for idle controls
-	SCIWrite(0x2F, 0x0003); //state for idle controls
+		//Load the appropriate values based on the silicon revision
+		if(LUX1310_VERSION_2 == sensorVersion) {
+			SCIWrite(0x5B, 0x307F); //internal control register
+			SCIWrite(0x7B, 0x3007); //internal control register
+		}
+		else if(LUX1310_VERSION_1 == sensorVersion) {
+			SCIWrite(0x5B, 0x301F); //internal control register
+			SCIWrite(0x7B, 0x3001); //internal control register
+		}
+		else
+		{	//Unknown version, default to version 1 values
+			SCIWrite(0x5B, 0x301F); //internal control register
+			SCIWrite(0x7B, 0x3001); //internal control register
+			qDebug() << "Found LUX1310 sensor, unexpected Silicon revision found:" << sensorVersion;
+		}
 
-	SCIWrite(0x5C, 0x2202); //ADC clock controls
-	SCIWrite(0x62, 0x4B76); //ADC range to match pixel saturation level
-	SCIWrite(0x74, 0x041F); //internal clock timing
-
-	//Read out the version register to determine the silicon revision
-	UInt16 rev = SCIRead(0x00);
-	qDebug() << "Read rev of " << rev;
-	sensorVersion = rev & 0xFF;
-
-	qDebug() << "Found LUX1310 sensor, silicon revision" << sensorVersion;
-
-	//Load the appropriate values based on the silicon revision
-	if(LUX1310_VERSION_2 == sensorVersion)
-	{
-		SCIWrite(0x5B, 0x307F); //internal control register
-		SCIWrite(0x7B, 0x3007); //internal control register
-	}
-	else if(LUX1310_VERSION_1 == sensorVersion)
-	{
-		SCIWrite(0x5B, 0x301F); //internal control register
-		SCIWrite(0x7B, 0x3001); //internal control register
-	}
-	else
-	{	//Unknown version, default to version 1 values
-		SCIWrite(0x5B, 0x301F); //internal control register
-		SCIWrite(0x7B, 0x3001); //internal control register
-		qDebug() << "Found LUX1310 sensor, unexpected Silicon revision found:" << sensorVersion;
-
+		err = SUCCESS;
+	} while (0);
+	if (err != SUCCESS) {
+		return err;
 	}
 
-	for(int i = 0; i < 16; i++)
-		SCIWrite(0x3a+i, 0x0); //internal control register
-
+	/* Load and enable ADC offsets. */
+	if (loadADCOffsetsFromFile() != SUCCESS) {
+		for (int i = 0; i < LUX1310_HRES_INCREMENT; i++) {
+			setADCOffset(i, 0);
+		}
+	}
 	SCIWrite(0x39, 0x1); //ADC offset enable??
-
-	//Set ADC offsets
-	loadADCOffsetsFromFile();
 
 	//Set Gain
 	SCIWrite(0x51, 0x007F);	//gain selection sampling cap (11)	12 bit
 	SCIWrite(0x52, 0x007F);	//gain selection feedback cap (8) 7 bit
 	SCIWrite(0x53, 0x03);	//Serial gain
-
-
 
 	//Load the wavetable
 	SCIWriteBuf(0x7F, sram80Clk, 427 /*sizeof(sram80Clk)*/);
@@ -333,12 +340,13 @@ CameraErrortype LUX1310::initSensor()
 	gpmc->write32(IMAGER_INT_TIME_ADDR, 100*3900);
 	delayms(50);
 
-
 	currentRes.hRes = LUX1310_MAX_H_RES;
 	currentRes.vRes = LUX1310_MAX_V_RES;
 	currentRes.hOffset = 0;
 	currentRes.vOffset = 0;
 	currentRes.vDarkRows = 0;
+	currentRes.bitDepth = LUX1310_BITS_PER_PIXEL;
+
 	setFramePeriod(getMinFramePeriod(&currentRes)/100000000.0, &currentRes);
 	//mem problem before this
 	setIntegrationTime((double)getMaxExposure(currentPeriod) / 100000000.0, &currentRes);
@@ -346,14 +354,12 @@ CameraErrortype LUX1310::initSensor()
 	return SUCCESS;
 }
 
-void LUX1310::SCIWrite(UInt8 address, UInt16 data)
+bool LUX1310::SCIWrite(UInt8 address, UInt16 data, bool readback)
 {
 	int i = 0;
 
-	//qDebug() << "sci write" << data;
-
 	//Clear RW and reset FIFO
-	gpmc->write16(SENSOR_SCI_CONTROL_ADDR, 0x8000 | (gpmc->read16(SENSOR_SCI_CONTROL_ADDR) & ~SENSOR_SCI_CONTROL_RW_MASK));
+	gpmc->write16(SENSOR_SCI_CONTROL_ADDR, 0x8000);
 
 	//Set up address, transfer length and put data into FIFO
 	gpmc->write16(SENSOR_SCI_ADDRESS_ADDR, address);
@@ -361,24 +367,23 @@ void LUX1310::SCIWrite(UInt8 address, UInt16 data)
 	gpmc->write16(SENSOR_SCI_FIFO_WR_ADDR_ADDR, data >> 8);
 	gpmc->write16(SENSOR_SCI_FIFO_WR_ADDR_ADDR, data & 0xFF);
 
-	//Start transfer
-	gpmc->write16(SENSOR_SCI_CONTROL_ADDR, gpmc->read16(SENSOR_SCI_CONTROL_ADDR) | SENSOR_SCI_CONTROL_RUN_MASK);
+	// Start the write and wait for completion.
+	gpmc->write16(SENSOR_SCI_CONTROL_ADDR, SENSOR_SCI_CONTROL_RUN_MASK);
+	while(gpmc->read16(SENSOR_SCI_CONTROL_ADDR) & SENSOR_SCI_CONTROL_RUN_MASK) i++;
 
-	int first = gpmc->read16(SENSOR_SCI_CONTROL_ADDR) & SENSOR_SCI_CONTROL_RUN_MASK;
-	//Wait for completion
-	while(gpmc->read16(SENSOR_SCI_CONTROL_ADDR) & SENSOR_SCI_CONTROL_RUN_MASK)
-		i++;
+	if (readback) {
+		UInt16 readback;
 
-	if(!first && i != 0)
-		qDebug() << "First busy was missed, address:" << address;
-	else if(i == 0)
-		qDebug() << "No busy detected, something is probably very wrong, address:" << address;
-
-	int readback = SCIRead(address);
-	int readback2 = SCIRead(address);
-	int readback3 = SCIRead(address);
-	if(data != readback)
-		qDebug() << "SCI readback wrong, address: " << address << " expected: " << data << " got: " << readback << readback2 << readback3;
+		if (i == 0) {
+			qDebug() << "No busy detected, something is probably very wrong, address:" << address;
+		}
+		readback = SCIRead(address);
+		if (data != readback) {
+			qDebug() << "SCI readback wrong, address: " << address << " expected: " << data << " got: " << readback;
+			return false;
+		}
+	}
+	return true;
 }
 
 void LUX1310::SCIWriteBuf(UInt8 address, UInt8 * data, UInt32 dataLen)
@@ -950,7 +955,6 @@ void LUX1310::updateWavetableSetting()
 		setWavetable(wavetableSelect);
 	}
 }
-
 
 //Sets ADC offset for one channel
 //Converts the input 2s complement value to the sensors's weird sign bit plus value format (sort of like float, with +0 and -0)
