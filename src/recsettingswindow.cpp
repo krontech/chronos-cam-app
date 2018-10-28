@@ -467,6 +467,7 @@ void RecSettingsWindow::setResFromText(char * str)
 	frameSize.hOffset = round((maxSize.hRes - frameSize.hRes) / 2, camera->sensor->getHResIncrement());
 	frameSize.vOffset = round((maxSize.vRes - frameSize.vRes) / 2, camera->sensor->getVResIncrement());
 	frameSize.vDarkRows = 0;
+	frameSize.bitDepth = BITS_PER_PIXEL;
 
 	if(camera->sensor->isValidResolution(&frameSize)) {
 		ui->spinHRes->setValue(frameSize.hRes);
