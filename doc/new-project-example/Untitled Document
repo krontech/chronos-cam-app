@@ -1,0 +1,1 @@
+To create a new project, such as the included example tar'd in this folder, go through the creation wizard in Qt Creator. Then, copy over .target and the "## Tweaks for Debian builds." section in the project .pro file.
