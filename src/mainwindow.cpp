@@ -32,7 +32,6 @@
 
 #include "spi.h"
 #include "gpmc.h"
-#include "lupa1300.h"
 #include "defines.h"
 #include "cameraRegisters.h"
 #include "camera.h"
