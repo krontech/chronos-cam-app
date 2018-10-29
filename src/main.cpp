@@ -74,36 +74,31 @@ int main(int argc, char *argv[])
 	QCoreApplication::setApplicationName("camApp");
 	QSettings settings;
 
+	/* Change into the data directory. */
+#ifdef DEBIAN
+	chdir("/var/camera");
+#else
+	chdir("/opt/camera");
+#endif
+
 	QString currentPath(QDir::current().canonicalPath());
 	QDir::addSearchPath("camApp", currentPath);
-	QDir::addSearchPath("camApp", "/opt/camera");
-	
 	QDir::addSearchPath("cal", currentPath + "/cal");
-	QDir::addSearchPath("cal", "/opt/camera/cal");
-	
 	QDir::addSearchPath("fpn", currentPath + "/userFPN");
-	QDir::addSearchPath("fpn", "/opt/camera/userFPN");
 	QDir::addSearchPath("fpn", currentPath + "/cal/factoryFPN");
-	QDir::addSearchPath("fpn", "/opt/camera/cal/factoryFPN");
-
-	QDir::addSearchPath("factoryFPN", currentPath + "/cal/factoryFPN");
-	QDir::addSearchPath("factoryFPN", "/opt/camera/cal/factoryFPN");
-
 	QDir::addSearchPath("fpga", currentPath);
-	QDir::addSearchPath("fpga", "/opt/camera/");
 
-	
+	//Check for and create required directories
+	checkAndCreateDir("cal");
+	checkAndCreateDir("cal/factoryFPN");
+	checkAndCreateDir("userFPN");
+
 	//Set up SIGTERM handler to cleanly exit the application
 	struct sigaction action;
 	memset(&action, 0, sizeof(struct sigaction));
 	action.sa_handler = term;
 	sigaction(SIGTERM, &action, NULL);
-		
-	//Check for and create required directories
-	if (!QDir("/opt/camera/cal").exists())            checkAndCreateDir("/opt/camera/cal");
-	if (!QDir("/opt/camera/cal/factoryFPN").exists()) checkAndCreateDir("/opt/camera/cal/factoryFPN");
-	if (!QDir("/opt/camera/userFPN").exists())        checkAndCreateDir("/opt/camera/userFPN");
-	
+
 	//Set frame buffer blending
 	int fd = open ("/dev/fb0", O_RDWR);
 	
@@ -137,7 +132,7 @@ int main(int argc, char *argv[])
 #endif
 	
 	// Load stylesheet from file, if one exists.
-	QFile fStyle("/opt/camera/stylesheet.qss");
+	QFile fStyle("stylesheet.qss");
 	if (fStyle.open(QFile::ReadOnly)) {
 		QString sheet = QLatin1String(fStyle.readAll());
 		qApp->setStyleSheet(sheet);

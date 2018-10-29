@@ -47,6 +47,7 @@ playbackWindow::playbackWindow(QWidget *parent, Camera * cameraInst, bool autosa
 	autoRecordFlag = camera->get_autoRecord();
 	this->move(camera->ButtonsOnLeft? 0:600, 0);
 	saveAborted = false;
+	saveAbortedAutomatically = false;
 	
 	camera->vinst->getStatus(&vStatus);
 	playFrame = 0;
@@ -101,8 +102,7 @@ playbackWindow::~playbackWindow()
 
 void playbackWindow::videoStarted(VideoState state)
 {
-	qDebug()<<"videoStarted - will reenable save/abort button";
-	qDebug()<<"status:" <<camera->vinst->getStatus(NULL);
+	qDebug()<<"videoStarted. status:" <<camera->vinst->getStatus(NULL);
 	ui->cmdSave->setEnabled(true);
 
 	/* When starting a filesave, increase the frame timing for maximum speed */
@@ -113,7 +113,8 @@ void playbackWindow::videoStarted(VideoState state)
 		ui->cmdSave->setText("Abort\nSave");
 		saveDoneTimer = new QTimer(this);
 		connect(saveDoneTimer, SIGNAL(timeout()), this, SLOT(checkForSaveDone()));
-		saveDoneTimer->start(100);
+		saveDoneTimer->start(1000);
+		saveAbortedAutomatically = false;
 
 		/* Prevent the user from pressing the abort/save button just after the last frame,
 		 * as that can make the camera try to save a 2nd video too soon, crashing the camapp.
@@ -129,14 +130,14 @@ void playbackWindow::videoStarted(VideoState state)
 		setControlEnable(true);
 		emit enableSaveSettingsButtons(true);
 	}
-	qDebug()<<"videoStarted - function finished";
+	qDebug()<<"videoStarted() - function finished";
 	/* TODO: Other start events might occur on HDMI hotplugs. */
 }
 
 void playbackWindow::videoEnded(VideoState state, QString err)
 {
 	qDebug()<<"videoEnded. status:" <<camera->vinst->getStatus(NULL);
-	if (state == VIDEO_STATE_FILESAVE) {
+	if (state == VIDEO_STATE_FILESAVE) { //Filesave has just ended
 		QMessageBox msg;
 
 		/* When ending a filesave, return to live display timing. */
@@ -148,21 +149,23 @@ void playbackWindow::videoEnded(VideoState state, QString err)
 			msg.exec();
 			return;
 		}
-		if(state == VIDEO_STATE_FILESAVE){
+		
+		sw->close();
+		ui->cmdSave->setText("Save");
+		saveAborted = false;
+		updatePlayRateLabel();
+		ui->verticalSlider->setHighlightRegion(markInFrame, markOutFrame);
+		
+		if(saveDoneTimer){
 			saveDoneTimer->stop();
 			delete saveDoneTimer;
-			
-			sw->close();
-			ui->cmdSave->setText("Save");//ended
-			saveAborted = false;
-			updatePlayRateLabel();
-			ui->verticalSlider->setHighlightRegion(markInFrame, markOutFrame);
-	
-			if(autoRecordFlag) {
-				qDebug()<<".  closing";
-				emit finishedSaving();
-				delete this;
-			}
+			qDebug()<<"saveDoneTimer deleted";
+		} else qDebug("cannot delete saveDoneTimer because it is null");
+		
+		if(autoRecordFlag) {
+			qDebug()<<"autoRecordFlag is true.  closing";
+			emit finishedSaving();
+			delete this;
 		}
 	}
 }
@@ -362,11 +365,18 @@ void playbackWindow::on_cmdSave_clicked()
 		saveAborted = true;
 		autoSaveFlag = false;
 		autoRecordFlag = false;
-		//camera->autoRecord = false;
-		sw->setText("Aborting...");
-		//qDebug()<<"Aborting...";
+		updateSWText();
 	}
 
+}
+
+void playbackWindow::addDotsToString(QString* abc)
+{
+	periodsToAdd++;
+	if(periodsToAdd > 2) periodsToAdd = 0;
+	if(periodsToAdd == 0) abc->append("  ");
+	if(periodsToAdd == 1) abc->append(". ");
+	if(periodsToAdd == 2) abc->append("..");
 }
 
 void playbackWindow::on_cmdStopSave_clicked()
@@ -381,7 +391,7 @@ void playbackWindow::on_cmdSaveSettings_clicked()
 	w->show();
 	
 	settingsWindowIsOpen = true;
-	if(camera->ButtonsOnLeft) w->move(230, 0);
+	if(camera->ButtonsOnLeft) w->move(201, 0);
 	ui->cmdSaveSettings->setEnabled(false);
 	ui->cmdClose->setEnabled(false);
 	connect(w, SIGNAL(destroyed()), this, SLOT(saveSettingsClosed()));
@@ -449,6 +459,14 @@ void playbackWindow::updateStatusText()
 	ui->lblInfo->setText(text);
 }
 
+void playbackWindow::updateSWText(){
+	QString statusWindowText;
+	statusWindowText.operator = ("Aborting save.");
+	if(saveAbortedAutomatically) statusWindowText.prepend("Storage is now full; ");
+	addDotsToString(&statusWindowText);
+	sw->setText(statusWindowText);
+}
+
 //Periodically check if the play frame is updated
 void playbackWindow::updatePlayFrame()
 {
@@ -467,7 +485,7 @@ void playbackWindow::checkForSaveDone()
 		saveDoneTimer->stop();
 		delete saveDoneTimer;
 		*/
-
+		
 	}
 	else {
 		char tmp[64];
@@ -494,9 +512,11 @@ void playbackWindow::checkForSaveDone()
 				(ui->cmdSave->isEnabled() ||
 				getSaveFormat() != SAVE_MODE_H264)
 		   ) {
+			saveAbortedAutomatically = true;
 			on_cmdSave_clicked();
-			sw->setText("Storage is now full; Aborting...");			
 		}
+		
+		if(saveAborted) updateSWText();
 	}
 }
 

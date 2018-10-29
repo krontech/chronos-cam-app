@@ -104,6 +104,7 @@ private slots:
 	
 	void on_cmdClose_4_clicked();
 	
+	int updateSoftware(char *updateLocation);
 private:
 	Ui::UtilWindow *ui;
 	Camera * camera;

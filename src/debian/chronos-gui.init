@@ -1,0 +1,49 @@
+#! /bin/sh
+### BEGIN INIT INFO
+# Provides:          chronos-gui
+# Required-Start:    ti81xx-video chronos-upower
+# Required-Stop:     ti81xx-video chronos-upower
+# Should-Start:
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: User interface for the Chronos Camera
+# Description:       User interface for the Chronos Camera
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+DATADIR=/var/camera
+DAEMON=/usr/bin/camApp
+test -x $DAEMON || exit 5
+
+export PATH=/sbin:/usr/sbin:/bin:/usr/bin
+export TSLIB_TSDEVICE=/dev/input/event0
+export QWS_MOUSE_PROTO="Tslib:/dev/input/event0"
+##export QWS_DISPLAY="Transformed:Rot0"
+
+case "$1" in
+	start)
+		log_daemon_msg "Starting Camera GUI" "chronos-gui"
+		start-stop-daemon --start --oknodo \
+			--chdir /var/camera --background \
+			--exec $DAEMON  -- -qws
+		status=$?
+		log_end_msg $?
+	  	;;
+  
+	stop)
+		log_daemon_msg "Stopping Camera GUI" "chronos-gui"
+		start-stop-daemon --stop --quiet --exec $DAEMON
+		log_end_msg $?
+		;;
+
+	status)
+		start-stop-daemon --status --exec $DAEMON "Camera GUI"
+		;;
+
+	*)
+		echo "Usage: $0 {start|stop|status}"
+		exit 2
+		;;
+esac
+

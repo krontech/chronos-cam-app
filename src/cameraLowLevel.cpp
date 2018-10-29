@@ -31,15 +31,20 @@ extern "C" {
 
 void Camera::setLiveOutputTiming(UInt32 hRes, UInt32 vRes, UInt32 hOutRes, UInt32 vOutRes, UInt32 maxFps)
 {
-    const UInt32 pxClock = 100000000;
-    const UInt32 hSync = 50;
-    const UInt32 hPorch = 166;
-    const UInt32 vSync = 3;
-    const UInt32 vPorch = 38;
+	const UInt32 hSync = 1;
+	const UInt32 hPorch = 32;
+	const UInt32 vSync = 1;
+	const UInt32 vPorch = 1;
+	UInt32 pxClock = 100000000;
 	UInt32 minHPeriod;
 	UInt32 hPeriod;
 	UInt32 vPeriod;
 	UInt32 fps;
+
+	/* FPGA revision 3.14 and higher use a 133MHz video clock. */
+	if ((getFPGAVersion() > 3) || (getFPGASubVersion() >= 14)) {
+		pxClock = 133333333;
+	}
 
 	hPeriod = hOutRes + hSync + hPorch + hSync;
 
