@@ -19,12 +19,12 @@ test -x $DAEMON || exit 5
 export PATH=/sbin:/usr/sbin:/bin:/usr/bin
 export TSLIB_TSDEVICE=/dev/input/event0
 export QWS_MOUSE_PROTO="Tslib:/dev/input/event0"
-##export QWS_DISPLAY="Transformed:Rot0"
+export QWS_DISPLAY="Transformed:Rot0"
 
 case "$1" in
 	start)
 		log_daemon_msg "Starting Camera GUI" "chronos-gui"
-		start-stop-daemon --start --oknodo \
+		start-stop-daemon --start --oknodo --no-close \
 			--chdir /var/camera --background \
 			--exec $DAEMON  -- -qws
 		status=$?
@@ -33,7 +33,7 @@ case "$1" in
   
 	stop)
 		log_daemon_msg "Stopping Camera GUI" "chronos-gui"
-		start-stop-daemon --stop --quiet --exec $DAEMON
+		start-stop-daemon --stop --quiet --oknodo --exec $DAEMON
 		log_end_msg $?
 		;;
 
