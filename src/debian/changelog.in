@@ -1,6 +1,0 @@
-$${DEBPACKAGE} (0.3.1~beta) unstable; urgency=medium
-
-  * Packaged for Debian.
-
- -- Owen Kirby <oskirby@gmail.com>  Sat, 20 Oct 2018 18:10:35 -0700
-
