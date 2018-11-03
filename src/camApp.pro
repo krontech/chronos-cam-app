@@ -40,7 +40,7 @@ LIBS += -lm -lpthread -lrt -static-libstdc++
 
 ## Some other stuff to install.
 datafiles.path = /opt/camera
-datafiles.files = data/*
+datafiles.files = $$files(data/*)
 INSTALLS += datafiles
 
 ## Tweaks for Debian builds.
