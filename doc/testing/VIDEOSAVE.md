@@ -168,12 +168,24 @@ space left on the filesystem, as the camapp adds 2 extra frames to the estimate 
 5. Tap the 'Save' button to try and save the file.
     * The camera should display a pop up warning the user that the file size is bigger than the free space available.
 6. Tap the "No" button to close the pop up warning.
-7. Decrease the mark out position by two frames and tap the 'Mark End' button. This should now give a file size that
+    * The camera should not attempt to save the video file.
+7. Tap the 'Save' button to try and save the file.
+    * The camera should display a pop up warning the user that the file size is bigger than the free space available.
+8. Tap the "Yes" button to save anyway.
+    * The camera should abort the save just before the end of the marked region. 
+9. Set the marked region to be one frame long and tap the 'save' button again. 
+    * The camera should complain that a video cannot be saved due to lack of free space. Tap the "Yes" button.
+10. As soon as the "Saving" text is cleared, remove the storage media from the camera, and insert it into a
+    laptop for review.
+    * Do *NOT* hit the "Safely Remove" button on the save settings window, or the Eject buttons on the Util window.
+    * The amount of free space remaining on the SD card should be less than 20MB, but more than 0.
+11. Delete the video from the SD card and reinsert it into the camera.
+12. Decrease the mark out position by two frames and tap the 'Mark End' button. This should now give a file size that
 is just slightly smaller than the available space on the SD card.
-8. Tap the 'Save' button to try and save the file.
-    * The camera should begin recording the file to the SD card. Depending on the perofrmance of the card, the
+13. Tap the 'Save' button to try and save the file.
+    * The camera should begin recording the file to the SD card. Depending on the performance of the card, the
     camera should average around 3-4fps while saving the video file.
-9. Wait for the video to complete saving, remove the SD card and insert it into a laptop for review.
+14. Wait for the video to complete saving, remove the SD card and insert it into a laptop for review.
     * There should be less than 2MB of free space remaining on the SD card.
 
 ---
