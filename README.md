@@ -1,7 +1,7 @@
 # Chronos Cam App
-This repository contains the code for the built-in user interface of the Chronos Camera from [Kron Technologies](http://www.krontech.ca/). The following instructions detail how to build the Chronos Camera UI.
-
-
+This repository contains the code for the built-in user interface of the Chronos Camera
+from [Kron Technologies](http://www.krontech.ca/). The following instructions detail how
+to build the Chronos Camera UI.
 
 # Prerequisites
 The recommended development environment for the Chronos camera application is
@@ -9,20 +9,25 @@ supported on Ubuntu 16.04 LTS. On a base Ubuntu installations, we will also need
 to add the following packages:
 
 ```
-    sudo apt install qtcreator gcc-arm-linux-gnueabi g++-arm-linux-gnueabi gdb-multiarch libdbus-1-dev git
+    sudo apt install qtcreator gcc-arm-linux-gnueabi g++-arm-linux-gnueabi gdb-multiarch \
+        libdbus-1-dev git
 ```
 
 (Newer version of Ubuntu can also be used to build the camera application, but the instructions
 may need to be modified to use GCC version 5 or older. This is usually done by substituting
 `gcc-5` in place of `gcc`.)
 
-You will also need a MicroSD card reader, to copy some files off the MicroSD card located in the bottom of the camera.
+You will also need a MicroSD card reader, to copy some files off the MicroSD card located in
+the bottom of the camera. Or by creating a new root filesystem using the Debian debootstrap
+tool (instructions TBD).
 
 # Building and Installing QT
-The Chronos camera application is built using QT version 4.8, and must
-be cross compiled for a Cortex-A8 target. To do this, the generic ARM linux targets
-need to be modified. First, grab the [QT4.8 source](https://download.qt.io/archive/qt/4.8/4.8.7/qt-everywhere-opensource-src-4.8.7.tar.gz) and extract it. I put the resulting folder in `~/Work/`, but you can put it anywhere you like. (Just remember to use your path when I reference my `~/Work` folder.) Next, in `~/Work/`, we'll create a
-new linux-omap2-g++ target by running the following script:
+The Chronos camera application is built using QT version 4.8, and must be cross compiled for
+a Cortex-A8 target. To do this, the generic ARM linux targets need to be modified. First, grab
+the [QT4.8 source](https://download.qt.io/archive/qt/4.8/4.8.7/qt-everywhere-opensource-src-4.8.7.tar.gz)
+and extract it. I put the resulting folder in `~/Work/`, but you can put it anywhere you like.
+(Just remember to use your path when I reference my `~/Work` folder.) Next, in `~/Work/`, we'll
+create a new linux-omap2-g++ target by running the following script:
 
 ```bash
 tar -xzf qt-everywhere-opensource-src-4.8.7.tar.gz
@@ -53,17 +58,26 @@ QMAKE_LINK_SHLIB        = arm-linux-gnueabi-g++
 QMAKE_AR                = arm-linux-gnueabi-ar cqs
 QMAKE_OBJCOPY           = arm-linux-gnueabi-objcopy
 QMAKE_STRIP             = arm-linux-gnueabi-strip
-QMAKE_LIBS		+= -lts
+
+QMAKE_LIBS              += -lts
+DEFINES                 += QT_KEYPAD_NAVIGATION
 
 load(qt_config)
 EOF
 ```
-You should now have a folder called `~/Work/qt-everywhere-opensource-src-4.8.7`, or whatever you called it.
+You should now have a folder called `~/Work/qt-everywhere-opensource-src-4.8.7`, or
+whatever you called it.
 
-Next, we need to copy in our `targetfs` folder. We'll take the MicroSD card from the bottom of our Chronos camera and copy everything on it, in ROOTFS, to `~/Work/chronos-sdk/targetfs/`. Some copy errors will pop up, but those files are not needed and you can safely ignore them. 🙂`targetfs` should now contain something that looks like a Linux root filesystem.
+Next, we need to copy in our `targetfs` folder. We'll take the MicroSD card from the
+bottom of the Chronos camera and copy everything from the in ROOTFS, partition and save
+it to to `~/Work/chronos-sdk/targetfs/`. You may encounter some copy errors for files
+that are owned by root, but those files are not needed and you can safely ignore them.
+`targetfs` should now contain something that looks like a Linux root filesystem.
 
-The following shell script demonstrates the configuration provided to QT
-when used with the Chronos SDK. Assuming you put everything where I did. Copy the below content into a shell script, `~/Work/qt4-install/conf.sh`. (`qt4-install` will become our install directory. Again, you may use a different directory, but you'll have to update my paths.)
+The following shell script demonstrates the configuration provided to QT when used with
+the Chronos SDK. Assuming you put everything where I did. Copy the below content into a
+shell script, `~/Work/qt4-install/conf.sh`. (`qt4-install` will become our install
+directory. Again, you may use a different directory, but you'll have to update my paths.)
 
 ```bash
 #!/bin/bash
@@ -72,30 +86,40 @@ QTPATH=~/Work/qt-everywhere-opensource-src-${QTVER}/
 SYSROOT=~/Work/chronos-sdk/targetfs
 
 ## All the configure arguments.
-${QTPATH}configure -prefix $(pwd)/install -embedded arm \
+${QTPATH}configure -opensource -fast \
+        -hostprefix ${QTINSTALL} \
+        -embedded arm -qtlibinfix E -prefix /usr \
+        -libdir /usr/lib/qt4 \
+        -plugindir /usr/lib/qt4/plugins \
+        -importdir /usr/lib/qt4/imports \
+        -translationdir /usr/share/qt4/translations \
         -sysroot ${SYSROOT} -xplatform qws/linux-omap2-g++ \
-        -depths 16,24,32 -no-mmx -no-3dnow -no-sse -no-sse2 -no-glib -no-cups \
-        -no-largefile -no-accessibility -no-openssl -no-gtkstyle \
-        -qt-mouse-pc -qt-mouse-linuxtp -qt-mouse-linuxinput -qt-mouse-tslib \
-        -dbus -ldbus-1 -I${SYSROOT}/usr/include/dbus-1.0 -I${SYSROOT}/usr/lib/dbus-1.0/include \
-        -plugin-mouse-linuxtp -plugin-mouse-pc \
-        -qtlibinfix E -fast -lpthread
+        -nomake demos -nomake examples \
+        -system-zlib -system-libtiff -system-libpng -system-libjpeg \
+        -no-rpath -no-largefile -no-accessibility -no-openssl \
+        -no-gtkstyle -no-glib -no-cups -no-multimedia \
+        -no-webkit -no-javascript-jit \
+        -plugin-mouse-linuxtp -plugin-mouse-pc -plugin-mouse-tslib \
+        -qt-gfx-linuxfb -plugin-gfx-transformed \
+        -dbus -ldbus-1 -lpthread \
+        -I${SYSROOT}/usr/include/dbus-1.0 \
+        -I${SYSROOT}/usr/lib/dbus-1.0/include \
+        -I${SYSROOT}/usr/lib/arm-linux-gnueabi/dbus-1.0/include
 ```
 
 Run the shell script from `~/Work/qt4-install`. Select "open source" when prompted.
 
-To solve a "tslib functionality test failed" error, you'll need to modify the include and library search paths by editing `QMAKE_INCDIR` and `QMAKE_LIBDIR` in `~/Work/qt-everywhere-opensource-src-4.8.7/mkspecs/qws/linux-omap2-g++`.
-
-After configuration is complete, make and install QT by running `make && make install`. This will take 1 to 4ish hours, depending on how fast your computer is.
+After configuration is complete, make and install QT by running `make && make install`.
+This will take 1 to 4ish hours, depending on how fast your computer is.
 
 # ![qt-icon](/doc/images/qt_icon.png) Setting up QT Creator
-To actually *build* the Chronos Cam App, we'll use QT Creator. (Which we installed at the beginning of this document.)
+To actually *build* the Chronos Cam App, we'll use QT Creator.
 
-To set up QT creator, the first step is to
-add the ARM cross compiler to QT. Run the program, and navigate to `Tools -> Options`, select
-`Build & Run` on the left column, and add a new compiler under the
-`Compilers` tab. The path of your G++ and GCC compiler can be found by
-running the commands `which arm-linux-gnueabi-g++` and `which arm-linux-gnueabi-gcc` respectively. 
+To set up QT creator, the first step is to add the ARM cross compiler to
+QT. Run the program, and navigate to `Tools -> Options`, select `Build & Run`
+on the left column, and add a new compiler under the `Compilers` tab. The
+path of your G++ and GCC compiler can be found by running the commands 
+`which arm-linux-gnueabi-g++` and `which arm-linux-gnueabi-gcc` respectively. 
 
 ![QT Creator compiler configuration](/doc/images/qtcreator_compilers.png)
 
@@ -166,16 +190,18 @@ Next, we will need to configure how the camera application is deployed
 and executed on the camera. Start by selecting the `Projects` button from
 the left column of QT Creator, and clicking on the `Run` toggle button.
 
-From the Deploy Steps, remove the `Check for Available Disk Space` step,
-and then replace it with a new `Run custom remote command` step instead.
-Set the command line to `killall camApp; sleep 1` and sort it ahead of
-`Upload files via SFTP`. This will ensure that the `camApp` is always
-terminated gracefully.
+In the Deployment Steps, use the `Add Deploy Step` dropdown menu to add a
+new `Run custom remote command` step, set the command line of our new step
+to `killall camApp; sleep 1`, and sort it head of the `Upload files via SFTP`
+step. Then, depending on your target operating system, you will need to make
+the following adjustmnets to your Run configuration:
 
-We also need to set the command line arguments and the application
-working directory in the Run section. Set the `Arguments` field to
-`-qws -display transformed:rot0` and set the `Working directory` to
-`/opt/camera`
+| Change            | Arago                            | Debian                           |
+|-------------------|----------------------------------|----------------------------------|
+| Arguments         | `-qws -display transformed:rot0` | `-qws -display transformed:rot0` |
+| Working Directory | `/opt/camera`                    | `/var/camera`                    |
+| Deploy Steps      | Remove `Check for Available Disk Space` | No Changes                |
+| Environment `QWS_MOUSE_PROTO` | Unset                | `Tslib:/dev/input/event0`        |
 
 ![QT Creator Run Settings](/doc/images/qtcreator_run_settings.png)
 
