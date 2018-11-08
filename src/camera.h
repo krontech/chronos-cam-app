@@ -33,7 +33,7 @@
 #include "types.h"
 
 #define RECORD_DATA_LENGTH		2048		//Number of record data entries for the record sequencer data
-#define MAX_FRAME_WORDS			0xf000
+#define MAX_FRAME_WORDS			0x10000
 #define CAL_REGION_START		0x0
 #define CAL_REGION_FRAMES		3
 #define LIVE_REGION_START		(CAL_REGION_START + MAX_FRAME_WORDS * CAL_REGION_FRAMES)
@@ -209,6 +209,7 @@ public:
 	UInt16 readPixelBuf12(UInt8 * buf, UInt32 pixel);
 	void writePixelBuf12(UInt8 * buf, UInt32 pixel, UInt16 value);
 	void computeFPNCorrection(FrameGeometry *geometry, UInt32 wordAddress, UInt32 framesToAverage, bool writeToFile = false, bool factory = false);
+	void computeFPNColumns(FrameGeometry *geometry, UInt32 wordAddress);
 	UInt32 autoFPNCorrection(UInt32 framesToAverage, bool writeToFile = false, bool noCap = false, bool factory = false);
 	Int32 fastFPNCorrection();
 	Int32 loadFPNFromFile(void);
@@ -254,7 +255,7 @@ public:
 	UInt32 getMaxRecordRegionSizeFrames(FrameGeometry *geometry);
 
 private:
-	void setLiveOutputTiming(UInt32 hRes, UInt32 vRes, UInt32 hOutRes, UInt32 vOutRes, UInt32 maxFps);
+	void setLiveOutputTiming(FrameGeometry *geometry, UInt32 maxFps);
 	bool getRecDataFifoIsEmpty(void);
 	UInt32 readRecDataFifo(void);
 	bool getRecording(void);

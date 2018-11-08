@@ -29,7 +29,7 @@ extern "C" {
 }
 #include "defines.h"
 
-void Camera::setLiveOutputTiming(UInt32 hRes, UInt32 vRes, UInt32 hOutRes, UInt32 vOutRes, UInt32 maxFps)
+void Camera::setLiveOutputTiming(FrameGeometry *geometry, UInt32 maxFps)
 {
 	const UInt32 hSync = 1;
 	const UInt32 hBackPorch = 64;
@@ -48,17 +48,18 @@ void Camera::setLiveOutputTiming(UInt32 hRes, UInt32 vRes, UInt32 hOutRes, UInt3
 		pxClock = 133333333;
 	}
 
-	hPeriod = hSync + hBackPorch + hOutRes + hFrontPorch;
+	hPeriod = hSync + hBackPorch + geometry->hRes + hFrontPorch;
 
 	// calculate minimum hPeriod to fit within the 1024 max vertical resolution
 	// and make sure hPeriod is equal or larger
 	minHPeriod = (pxClock / ((1024+vBackPorch+vSync+vFrontPorch) * maxFps)) + 1; // the +1 is just to round up
+
 	if (hPeriod < minHPeriod) hPeriod = minHPeriod;
 
 	// calculate vPeriod and make sure it's large enough for the frame
 	vPeriod = pxClock / (hPeriod * maxFps);
-	if (vPeriod < (vOutRes + vBackPorch + vSync + vFrontPorch)) {
-		vPeriod = (vOutRes + vBackPorch + vSync + vFrontPorch);
+	if (vPeriod < (geometry->vRes + vBackPorch + vSync + vFrontPorch)) {
+		vPeriod = (geometry->vRes + vBackPorch + vSync + vFrontPorch);
 	}
 
 	// calculate FPS for debug output
@@ -66,12 +67,12 @@ void Camera::setLiveOutputTiming(UInt32 hRes, UInt32 vRes, UInt32 hOutRes, UInt3
 	qDebug("setLiveOutputTiming: %d*%d@%d (%d*%d max: %d)",
 		   (hPeriod - hBackPorch - hSync - hFrontPorch),
 		   (vPeriod - vBackPorch - vSync - vFrontPorch),
-		   fps, hOutRes, vOutRes, maxFps);
+		   fps, geometry->hRes, geometry->vRes + geometry->vDarkRows, maxFps);
 	
-	gpmc->write16(DISPLAY_H_RES_ADDR, hRes);
-	gpmc->write16(DISPLAY_H_OUT_RES_ADDR, hOutRes);
-	gpmc->write16(DISPLAY_V_RES_ADDR, vRes);
-	gpmc->write16(DISPLAY_V_OUT_RES_ADDR, vOutRes);
+	gpmc->write16(DISPLAY_H_RES_ADDR, geometry->hRes);
+	gpmc->write16(DISPLAY_H_OUT_RES_ADDR, geometry->hRes);
+	gpmc->write16(DISPLAY_V_RES_ADDR, geometry->vRes + geometry->vDarkRows);
+	gpmc->write16(DISPLAY_V_OUT_RES_ADDR, geometry->vRes + geometry->vDarkRows);
 
 	gpmc->write16(DISPLAY_H_PERIOD_ADDR, hPeriod - 1);
 	gpmc->write16(DISPLAY_H_SYNC_LEN_ADDR, hSync);
@@ -237,7 +238,7 @@ void Camera::writeAcqMem(UInt32 * buf, UInt32 offsetWords, UInt32 length)
 
 void Camera::writeDGCMem(double gain, UInt32 column)
 {
-	gpmc->write16(DCG_MEM_START_ADDR+2*column, gain*4096.0);
+	gpmc->write16(COL_GAIN_MEM_START_ADDR+2*column, gain*4096.0);
 }
 
 /* Camera::readIsColor
