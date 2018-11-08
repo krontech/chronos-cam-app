@@ -3,6 +3,11 @@ src/camApp.pro.user
 build-camApp-*-Debug/
 build-camApp-*-Release/
 
+## Ignore Debian packages we may have built
+chronos-gui_*.build
+chronos-gui_*.changes
+chronos-gui_*.deb
+
 ## Ignore common temporary files.
 .DS_Store
 *\~
