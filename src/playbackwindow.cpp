@@ -31,6 +31,7 @@
 #include <QSettings>
 #include <QKeyEvent>
 
+#define USE_AUTONAME_FOR_SAVE ""
 #define MIN_FREE_SPACE 20000000
 
 playbackWindow::playbackWindow(QWidget *parent, Camera * cameraInst, bool autosave) :
@@ -84,7 +85,11 @@ playbackWindow::playbackWindow(QWidget *parent, Camera * cameraInst, bool autosa
 	settingsWindowIsOpen = false;
 
 	if(autoSaveFlag) {
+		strcpy(camera->vinst->filename, USE_AUTONAME_FOR_SAVE);
+
 		on_cmdSave_clicked();
+	} else {
+		strcpy(camera->vinst->filename, appSettings.value("recorder/filename", "").toString().toAscii());
 	}
 	
 	if(camera->vinst->getOverlayStatus())	camera->vinst->setOverlay("%.6h/%.6z Sg=%g/%i T=%.8Ss");
@@ -153,6 +158,7 @@ void playbackWindow::videoEnded(VideoState state, QString err)
 		sw->close();
 		ui->cmdSave->setText("Save");
 		saveAborted = false;
+		autoSaveFlag = false;
 		updatePlayRateLabel();
 		ui->verticalSlider->setHighlightRegion(markInFrame, markOutFrame);
 		
@@ -363,7 +369,6 @@ void playbackWindow::on_cmdSave_clicked()
 		ui->verticalSlider->removeLastRegionFromList();
 		ui->verticalSlider->setHighlightRegion(markInFrame, markOutFrame);
 		saveAborted = true;
-		autoSaveFlag = false;
 		autoRecordFlag = false;
 		updateSWText();
 	}
