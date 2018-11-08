@@ -187,9 +187,7 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
     imagerSettings.segmentLengthFrames = imagerSettings.recRegionSizeFrames;
     imagerSettings.segments = 1;
 
-	setLiveOutputTiming(imagerSettings.geometry.hRes, imagerSettings.geometry.vRes,
-						imagerSettings.geometry.hRes, imagerSettings.geometry.vRes,
-						MAX_LIVE_FRAMERATE);
+	setLiveOutputTiming(&imagerSettings.geometry, MAX_LIVE_FRAMERATE);
 
 	vinst->init();
 
@@ -315,6 +313,7 @@ UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 
 	qDebug()	<< "\nSet imager settings:\nhRes" << imagerSettings.geometry.hRes
 				<< "vRes" << imagerSettings.geometry.vRes
+				<< "vDark" << imagerSettings.geometry.vDarkRows
 				<< "hOffset" << imagerSettings.geometry.hOffset
 				<< "vOffset" << imagerSettings.geometry.vOffset
 				<< "exposure" << imagerSettings.exposure
@@ -424,9 +423,7 @@ UInt32 Camera::setDisplaySettings(bool encoderSafe, UInt32 maxFps)
 	if(!sensor->isValidResolution(&imagerSettings.geometry))
 		return CAMERA_INVALID_IMAGER_SETTINGS;
 
-	setLiveOutputTiming(imagerSettings.geometry.hRes, imagerSettings.geometry.vRes,
-			imagerSettings.geometry.hRes, imagerSettings.geometry.vRes,
-			maxFps);
+	setLiveOutputTiming(&imagerSettings.geometry, maxFps);
 
 	vinst->reload();
 
@@ -1220,7 +1217,7 @@ Int32 Camera::computeColGainCorrection(UInt32 framesToAverage, bool writeToFile)
 	}
 
 	for(i = 0; i < recordingData.is.geometry.hRes; i++)
-		gpmc->write16(DCG_MEM_START_ADDR+2*i, gainCorrection[i % 16]*4096.0);
+		gpmc->write16(COL_GAIN_MEM_START_ADDR+(2*i), gainCorrection[i % 16]*4096.0);
 
 computeColGainCorrectionCleanup:
 	delete[] buffer;
@@ -1556,9 +1553,6 @@ checkForDeadPixelsCleanup:
 	return retVal;
 }
 
-
-
-
 UInt32 Camera::adcOffsetCorrection(UInt32 iterations, bool writeToFile)
 {
 	//Zero the offsets
@@ -1614,6 +1608,27 @@ void Camera::offsetCorrectionIteration(FrameGeometry *geometry, UInt32 wordAddre
 	}
 }
 
+void Camera::computeFPNColumns(FrameGeometry *geometry, UInt32 wordAddress)
+{
+	UInt32 rowSize = (geometry->hRes * BITS_PER_PIXEL) / 8;
+	UInt32 *pxBuffer = (UInt32 *)malloc(rowSize * geometry->vDarkRows);
+	UInt32 *fpnColumns = (UInt32 *)calloc(geometry->hRes, sizeof(UInt32));
+
+	/* Read and sum the dark columns */
+	readAcqMem(pxBuffer, wordAddress, rowSize * geometry->vDarkRows);
+	for (int row = 0; row < geometry->vDarkRows; row++) {
+		for(int i = 0; i < geometry->hRes; i++) {
+			fpnColumns[i] += readPixelBuf12((UInt8 *)pxBuffer, row * geometry->hRes + i);
+		}
+	}
+	/* Write the average value for each column */
+	for (int col = 0; col < geometry->hRes; col++) {
+		gpmc->write16(COL_OFFSET_MEM_START_ADDR + (2*col), fpnColumns[col] / geometry->vDarkRows);
+	}
+	free(pxBuffer);
+	free(fpnColumns);
+}
+
 Int32 Camera::liveAdcOffsetCalibration(unsigned int iterations)
 {
 	ImagerSettings_t isPrev = imagerSettings;
@@ -1623,14 +1638,16 @@ Int32 Camera::liveAdcOffsetCalibration(unsigned int iterations)
 
 	/* Swap the black rows into the top of the frame. */
 	memcpy(&isDark, &isPrev, sizeof(isDark));
-	//isDark.geometry.vRes -= LUX1310_MAX_V_DARK;
-	//isDark.geometry.vOffset += LUX1310_MAX_V_DARK;
-	//isDark.geometry.vDarkRows = LUX1310_MAX_V_DARK;
-	isDark.recRegionSizeFrames = getMaxRecordRegionSizeFrames(&isDark.geometry);
+	if (!isDark.geometry.vDarkRows) {
+		isDark.geometry.vDarkRows = LUX1310_MAX_V_DARK;
+		isDark.geometry.vRes -= isDark.geometry.vDarkRows;
+		isDark.geometry.vOffset += isDark.geometry.vDarkRows;
+	}
+	isDark.recRegionSizeFrames = CAL_REGION_FRAMES;
 	isDark.disableRingBuffer = 0;
 	isDark.mode = RECORD_MODE_NORMAL;
 	isDark.prerecordFrames = 1;
-	isDark.segmentLengthFrames = imagerSettings.recRegionSizeFrames;
+	isDark.segmentLengthFrames = CAL_REGION_FRAMES;
 	isDark.segments = 1;
 	isDark.temporary = 1;
 	retVal = setImagerSettings(isDark);
@@ -1663,6 +1680,8 @@ Int32 Camera::liveAdcOffsetCalibration(unsigned int iterations)
 		nanosleep(&tRefresh, NULL);
 		offsetCorrectionIteration(&isDark.geometry, CAL_REGION_START);
 	}
+	/* And update the FPN column calibration while we're at it. */
+	computeFPNColumns(&isDark.geometry, CAL_REGION_START);
 
 	terminateRecord();
 	ui->setRecLEDFront(false);

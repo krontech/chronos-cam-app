@@ -101,11 +101,9 @@
 #define	SYSTEM_RESET				0x300
 #define FPGA_VERSION				0x302
 #define FPGA_SUBVERSION             0x304
-#define	DCG_MEM_START				0x800
+#define	COL_GAIN_MEM_START			0x800
+#define COL_OFFSET_MEM_START		0x2800
 
-
-
-                                      
 //Image sensor control register
 #define	IMAGE_SENSOR_CONTROL_ADDR		0
 
@@ -261,7 +259,8 @@
 #define FPGA_VERSION_ADDR				(FPGA_VERSION * 2)
 #define FPGA_SUBVERSION_ADDR            (FPGA_SUBVERSION * 2)
 
-#define	DCG_MEM_START_ADDR				(DCG_MEM_START * 2)
+#define	COL_GAIN_MEM_START_ADDR			(COL_GAIN_MEM_START * 2)
+#define COL_OFFSET_MEM_START_ADDR		(COL_OFFSET_MEM_START * 2)
 
 
 

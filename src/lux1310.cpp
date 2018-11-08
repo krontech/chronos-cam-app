@@ -277,6 +277,7 @@ CameraErrortype LUX1310::initSensor()
 	do {
 		//Return to normal data mode
 		if (!SCIWrite(0x4C, 0x0F00, true)) break;	//pclk channel output during vertical blanking
+		if (!SCIWrite(0x4E, 0x0FC0, true)) break;	//pclk channel output during dark pixel readout
 		if (!SCIWrite(0x56, 0x0000, true)) break;	//Disable test pattern
 
 		//Set for 80 clock wavetable
@@ -575,7 +576,7 @@ void LUX1310::setResolution(FrameGeometry *size)
 	SCIWrite(0x06, 0x20 + (hStartBlocks + hWidthblocks) * LUX1310_HRES_INCREMENT - 1);//X End
 	SCIWrite(0x07, size->vOffset);							//Y Start
 	SCIWrite(0x08, size->vOffset + size->vRes - 1);	//Y End
-	SCIWrite(0x29, (size->vDarkRows << 12) + (LUX1310_MAX_V_RES + LUX1310_MAX_V_DARK - size->vDarkRows));
+	SCIWrite(0x29, (size->vDarkRows << 12) + (LUX1310_MAX_V_RES + LUX1310_MAX_V_DARK - size->vDarkRows + 4));
 
 	memcpy(&currentRes, size, sizeof(currentRes));
 }
