@@ -277,7 +277,6 @@ int Video::mkfilename(char *path, save_mode_type save_mode)
 		return RECORD_NO_DIRECTORY_SET;
 
 	strcpy(path, fileDirectory);
-
 	if(strlen(filename) == 0)
 	{
 		//Fill timeinfo structure with the current time
@@ -339,7 +338,7 @@ CameraErrortype Video::startRecording(UInt32 sizeX, UInt32 sizeY, UInt32 start, 
 	char path[1000];
 
 	/* Generate the desired filename, and check that we can write it. */
-	mkfilename(path, save_mode);
+	if(mkfilename(path, save_mode) == RECORD_FILE_EXISTS) return RECORD_FILE_EXISTS;
 	//fstatvfs(fd, &statBuf);
 	//UInt64 freeSpace = statBuf.f_bsize * statBuf.f_bfree;
 	UInt64 freeSpace = 0xffffffff; /* TODO: FIXME! */

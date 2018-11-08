@@ -34,6 +34,8 @@
 #include <QDebug>
 #include <QSettings>
 
+#define USE_AUTONAME_FOR_SAVE ""
+
 //Defining this here because something in the preprocessor undefines this somewhere up above
 #define min(a,b) \
    ({ __typeof__ (a) _a = (a); \
@@ -57,6 +59,11 @@ saveSettingsWindow::saveSettingsWindow(QWidget *parent, Camera * camInst) :
 	ui->spinFramerate->setValue(settings.value("recorder/framerate", camera->vinst->framerate).toUInt());
 	ui->lineFilename->setText(settings.value("recorder/filename", camera->vinst->filename).toString());
 
+	if(camera->autoSave){
+		ui->lineFilename->setEnabled(false);
+		ui->lineFilename->setText(USE_AUTONAME_FOR_SAVE);
+	}
+	
 	refreshDriveList();
 
 	ui->comboProfile->clear();
@@ -107,6 +114,7 @@ saveSettingsWindow::saveSettingsWindow(QWidget *parent, Camera * camInst) :
 	ui->comboSaveFormat->setCurrentIndex(settings.value("recorder/saveFormat", 0).toUInt());
 
 	ui->comboSaveFormat->setEnabled(true);
+	
 	
 	ui->chkEnableOverlay->setChecked(camera->vinst->getOverlayStatus());
 	//updateOverlayCheckboxCheckable();
@@ -405,6 +413,7 @@ void saveSettingsWindow::updateDrives(void)
 
 void saveSettingsWindow::on_lineFilename_textEdited(const QString &arg1)
 {
+	if(camera->autoSave) return; //Keep blank filename to use autoname
 	QSettings settings;
 	strcpy(camera->vinst->filename, ui->lineFilename->text().toStdString().c_str());
 	settings.setValue("recorder/filename", camera->vinst->filename);
@@ -443,7 +452,7 @@ void saveSettingsWindow::setControlEnable(bool en){
 	ui->spinBitrate->setEnabled(H264SettingsEnabled);
 	ui->spinFramerate->setEnabled(H264SettingsEnabled);
 	ui->spinMaxBitrate->setEnabled(H264SettingsEnabled);
-	ui->lineFilename->setEnabled(en);
+	if(!camera->autoSave) ui->lineFilename->setEnabled(en);
 	ui->comboSaveFormat->setEnabled(en);
 	ui->comboDrive->setEnabled(en);
 	ui->cmdRefresh->setEnabled(en);
