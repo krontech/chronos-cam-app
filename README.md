@@ -24,10 +24,10 @@ tool (instructions TBD).
 # Building and Installing QT
 The Chronos camera application is built using QT version 4.8, and must be cross compiled for
 a Cortex-A8 target. To do this, the generic ARM linux targets need to be modified. First, grab
-the [QT4.8 source](https://download.qt.io/archive/qt/4.8/4.8.7/qt-everywhere-opensource-src-4.8.7.tar.gz)
-and extract it. I put the resulting folder in `~/Work/`, but you can put it anywhere you like.
-(Just remember to use your path when I reference my `~/Work` folder.) Next, in `~/Work/`, we'll
-create a new linux-omap2-g++ target by running the following script:
+the [Qt 4.8.7 sources](https://download.qt.io/archive/qt/4.8/4.8.7/qt-everywhere-opensource-src-4.8.7.tar.gz)
+and extract them. We put the resulting folder in `~/Work/chronos-sdk`, but you can put them anywhere
+you like. (Just remember to use your path when I reference my `~/Work/chronos-sdk` folder.) Next,
+in `~/Work/chronos-sdk/`, we'll create a new linux-omap2-g++ target by running the following script:
 
 ```bash
 tar -xzf qt-everywhere-opensource-src-4.8.7.tar.gz
@@ -65,29 +65,36 @@ DEFINES                 += QT_KEYPAD_NAVIGATION
 load(qt_config)
 EOF
 ```
-You should now have a folder called `~/Work/qt-everywhere-opensource-src-4.8.7`, or
-whatever you called it.
 
-Next, we need to copy in our `targetfs` folder. We'll take the MicroSD card from the
-bottom of the Chronos camera and copy everything from the in ROOTFS, partition and save
-it to to `~/Work/chronos-sdk/targetfs/`. You may encounter some copy errors for files
-that are owned by root, but those files are not needed and you can safely ignore them.
-`targetfs` should now contain something that looks like a Linux root filesystem.
+Next, we need to create a copy of the root filesystem for the Chronos Camera. We'll
+take the MicroSD card from the bottom of the Chronos camera and copy everything from
+the ROOTFS partition and save it to to `~/Work/chronos-sdk/targetfs/`. You may
+encounter some copy errors for files that are owned by the root user, but those files
+are not needed and you can safely ignore them. The `targetfs` directory should now
+contain something that looks like a Linux root filesystem.
 
 The following shell script demonstrates the configuration provided to QT when used with
-the Chronos SDK. Assuming you put everything where I did. Copy the below content into a
-shell script, `~/Work/qt4-install/conf.sh`. (`qt4-install` will become our install
-directory. Again, you may use a different directory, but you'll have to update my paths.)
+the Chronos SDK. Copy the content below into a shell script that will be run from the
+QT build directory, such as `~/Work/chronos-sdk/qt4-build/qtconfing.sh`. Note that Qt
+must be built in a directory that is different from the source directory (this is sometimes
+referred to an out-of-tree build), and must be installed into a directory that is also
+different from the build directory.
 
 ```bash
 #!/bin/bash
 QTVER=4.8.7
-QTPATH=~/Work/qt-everywhere-opensource-src-${QTVER}/
+QTPATH=~/Work/chronos-sdk/qt-everywhere-opensource-src-${QTVER}/
+QTINSTALL=~/Work/chronos-sdk/qt4-install
 SYSROOT=~/Work/chronos-sdk/targetfs
 
+## Specialization for Debian targets
+if [ -e ${SYSROOT}/etc/debian_version ]; then
+        QTDEBOPTS="-no-rpath -system-zlib -system-libtiff -system-libpng -system-libjpeg"
+fi
+
 ## All the configure arguments.
-${QTPATH}configure -opensource -fast \
-        -hostprefix ${QTINSTALL} \
+eval ${QTPATH}configure -opensource -fast \
+        -hostprefix ${QTINSTALL} ${QTDEBOPTS} \
         -embedded arm -qtlibinfix E -prefix /usr \
         -libdir /usr/lib/qt4 \
         -plugindir /usr/lib/qt4/plugins \
@@ -95,8 +102,7 @@ ${QTPATH}configure -opensource -fast \
         -translationdir /usr/share/qt4/translations \
         -sysroot ${SYSROOT} -xplatform qws/linux-omap2-g++ \
         -nomake demos -nomake examples \
-        -system-zlib -system-libtiff -system-libpng -system-libjpeg \
-        -no-rpath -no-largefile -no-accessibility -no-openssl \
+        -no-largefile -no-accessibility -no-openssl \
         -no-gtkstyle -no-glib -no-cups -no-multimedia \
         -no-webkit -no-javascript-jit \
         -plugin-mouse-linuxtp -plugin-mouse-pc -plugin-mouse-tslib \
@@ -107,9 +113,8 @@ ${QTPATH}configure -opensource -fast \
         -I${SYSROOT}/usr/lib/arm-linux-gnueabi/dbus-1.0/include
 ```
 
-Run the shell script from `~/Work/qt4-install`. Select "open source" when prompted.
-
-After configuration is complete, make and install QT by running `make && make install`.
+Run the shell script from `~/Work/chronos-sdk/qt4-build` to configure Qt.
+When configuration is complete, make and install QT by running `make && make install`.
 This will take 1 to 4ish hours, depending on how fast your computer is.
 
 # ![qt-icon](/doc/images/qt_icon.png) Setting up QT Creator
@@ -126,7 +131,7 @@ path of your G++ and GCC compiler can be found by running the commands
 The second step requires adding our cross-compiled build of QT 4.8 to
 QT Creator. Select the `QT Versions` tab from the options, and add a new
 QT version. You should only need to locate the `qmake` tool, which should
-be in the `install/bin` directory in the prefix that was provided while
+be in the `bin` directory of the hostprefix that was provided while
 configuring QT.
 
 ![QT Creator QT version configuration](/doc/images/qtcreator_qtversion.png)
