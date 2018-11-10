@@ -12,10 +12,10 @@
 
 . /lib/lsb/init-functions
 
-DATADIR=/var/camera
 DAEMON=/usr/bin/camApp
 test -x $DAEMON || exit 5
 
+export HOME=/var/camera
 export PATH=/sbin:/usr/sbin:/bin:/usr/bin
 export TSLIB_TSDEVICE=/dev/input/event0
 export QWS_MOUSE_PROTO="Tslib:/dev/input/event0"
