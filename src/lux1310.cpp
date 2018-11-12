@@ -513,7 +513,11 @@ CameraErrortype LUX1310::autoPhaseCal(void)
 
 Int32 LUX1310::seqOnOff(bool on)
 {
-	gpmc->write32(IMAGER_INT_TIME_ADDR, 0);	//Disable integration
+	if (on) {
+		gpmc->write32(IMAGER_INT_TIME_ADDR, currentExposure);
+	} else {
+		gpmc->write32(IMAGER_INT_TIME_ADDR, 0);	//Disable integration
+	}
 	return SUCCESS;
 }
 

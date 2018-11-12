@@ -1024,7 +1024,7 @@ void Camera::computeFPNCorrection2(UInt32 framesToAverage, bool writeToFile, boo
 	UInt8 * rawBuffer = (UInt8 *)rawBuffer32;
 
 	// turn off the sensor
-	sensor->seqOnOff(true);
+	sensor->seqOnOff(false);
 
 	//Zero buffer
 	for(int i = 0; i < pixelsPerFrame; i++)
