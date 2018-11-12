@@ -114,6 +114,7 @@ void playbackWindow::videoStarted(VideoState state)
 	if (state == VIDEO_STATE_FILESAVE) {
 		qDebug()<<"state == VIDEO_STATE_FILESAVE";
 		camera->recordingData.hasBeenSaved = true;
+		camera->sensor->seqOnOff(false); /* Disable the sensor to reduce RAM contention */
 		camera->setDisplaySettings(true, MAX_RECORD_FRAMERATE);
 		ui->cmdSave->setText("Abort\nSave");
 		saveDoneTimer = new QTimer(this);
@@ -145,7 +146,8 @@ void playbackWindow::videoEnded(VideoState state, QString err)
 	if (state == VIDEO_STATE_FILESAVE) { //Filesave has just ended
 		QMessageBox msg;
 
-		/* When ending a filesave, return to live display timing. */
+		/* When ending a filesave, restart the sensor and return to live display timing. */
+		camera->sensor->seqOnOff(true);
 		camera->setDisplaySettings(false, MAX_LIVE_FRAMERATE);
 
 		/* If recording failed from an error. Tell the user about it. */
