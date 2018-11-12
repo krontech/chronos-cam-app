@@ -32,7 +32,7 @@ extern "C" {
 void Camera::setLiveOutputTiming(UInt32 hRes, UInt32 vRes, UInt32 hOutRes, UInt32 vOutRes, UInt32 maxFps)
 {
 	const UInt32 hSync = 1;
-	const UInt32 hBackPorch = 32;
+	const UInt32 hBackPorch = 64;
 	const UInt32 hFrontPorch = 4;
 	const UInt32 vSync = 1;
 	const UInt32 vBackPorch = 4;

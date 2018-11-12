@@ -542,9 +542,11 @@ CameraErrortype LUX2100::autoPhaseCal(void)
 
 Int32 LUX2100::seqOnOff(bool on)
 {
-    if(!on)
-        setReset(true);
-    //gpmc->write32(IMAGER_INT_TIME_ADDR, 0);	//Disable integration
+	if (on) {
+		gpmc->write32(IMAGER_INT_TIME_ADDR, currentExposure);
+	} else {
+		gpmc->write32(IMAGER_INT_TIME_ADDR, 0); //Disable integration
+	}
     return SUCCESS;
 }
 
