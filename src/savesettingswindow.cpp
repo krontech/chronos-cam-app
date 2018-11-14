@@ -110,6 +110,7 @@ saveSettingsWindow::saveSettingsWindow(QWidget *parent, Camera * camInst) :
 	ui->comboSaveFormat->addItem("Raw 12bit");  // SAVE_MODE_RAW12
 	ui->comboSaveFormat->addItem("CinemaDNG");  // SAVE_MODE_DNG
 	ui->comboSaveFormat->addItem("TIFF");       // SAVE_MODE_TIFF
+	ui->comboSaveFormat->addItem("TIFF Raw");   // SAVE_MODE_TIFF_RAW
 	
 	ui->comboSaveFormat->setCurrentIndex(settings.value("recorder/saveFormat", 0).toUInt());
 
@@ -340,7 +341,7 @@ void saveSettingsWindow::updateBitrate()
 	double bitsPerPixel;
 	char str[100];
 	
-	if (saveFormat == 0) {
+	if (saveFormat == SAVE_MODE_H264) {
 		UInt32 bitrate = min(ui->spinBitrate->value() * camera->recordingData.is.hRes * camera->recordingData.is.vRes * frameRate, min(60000000, (UInt32)(ui->spinMaxBitrate->value() * 1000000.0)) * frameRate / 60);	//Max of 60Mbps
 		
 		sprintf(str, "%4.2fMbps @\n%dx%d %dfps", (double)bitrate / 1000000.0, camera->recordingData.is.hRes, camera->recordingData.is.vRes, frameRate);
@@ -348,12 +349,20 @@ void saveSettingsWindow::updateBitrate()
 	}
 	else {
 		switch(saveFormat) {
-			// these must line up with the enum in video.h
-			case 1: // SAVE_MODE_RAW16
+			case SAVE_MODE_DNG:
+			case SAVE_MODE_TIFF_RAW:
+			case SAVE_MODE_RAW16:
 				bitsPerPixel = 16.0;
 				break;
-			case 2: // SAVE_MODE_RAW12
+			case SAVE_MODE_RAW12:
 				bitsPerPixel = 12.0;
+				break;
+			case SAVE_MODE_TIFF:
+				if (camera->getIsColor()) {
+					bitsPerPixel = 24.0;
+				} else {
+					bitsPerPixel = 8.0;
+				}
 				break;
 		}
 		sprintf(str, "%4.2fMbps @\n%dx%d %dfps", ((double)camera->recordingData.is.hRes * (double)camera->recordingData.is.vRes * (double)frameRate * bitsPerPixel) / 1000000.0, camera->recordingData.is.hRes, camera->recordingData.is.vRes, frameRate);

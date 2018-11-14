@@ -311,6 +311,7 @@ int Video::mkfilename(char *path, save_mode_type save_mode)
 		break;
 	case SAVE_MODE_DNG:
 	case SAVE_MODE_TIFF:
+	case SAVE_MODE_TIFF_RAW:
 		break;
 	}
 
@@ -339,9 +340,6 @@ CameraErrortype Video::startRecording(UInt32 sizeX, UInt32 sizeY, UInt32 start, 
 
 	/* Generate the desired filename, and check that we can write it. */
 	if(mkfilename(path, save_mode) == RECORD_FILE_EXISTS) return RECORD_FILE_EXISTS;
-	//fstatvfs(fd, &statBuf);
-	//UInt64 freeSpace = statBuf.f_bsize * statBuf.f_bfree;
-	UInt64 freeSpace = 0xffffffff; /* TODO: FIXME! */
 
 	/* Attempt to start the video recording process. */
 	map.insert("filename", QVariant(path));
@@ -373,8 +371,12 @@ CameraErrortype Video::startRecording(UInt32 sizeX, UInt32 sizeY, UInt32 start, 
 		estFileSize += (4096 * length);
 		map.insert("format", QVariant("tiff"));
 		break;
+	case SAVE_MODE_TIFF_RAW:
+		estFileSize = 16 * sizeX * sizeY * length / 8;
+		estFileSize += (4096 * length);
+		map.insert("format", QVariant("tiffraw"));
+		break;
 	}
-	qDebug() << "---- Video Record ---- Estimated file size:" << estFileSize << "bytes, free space:" << freeSpace << "bytes.";
 	printf("Saving video to %s\r\n", path);
 
 	/* Send the DBus command to be*/

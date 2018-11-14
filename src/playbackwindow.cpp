@@ -156,7 +156,7 @@ void playbackWindow::videoEnded(VideoState state, QString err)
 			msg.exec();
 			return;
 		}
-		
+
 		sw->close();
 		ui->cmdSave->setText("Save");
 		saveAborted = false;
@@ -169,7 +169,7 @@ void playbackWindow::videoEnded(VideoState state, QString err)
 			delete saveDoneTimer;
 			qDebug()<<"saveDoneTimer deleted";
 		} else qDebug("cannot delete saveDoneTimer because it is null");
-		
+
 		if(autoRecordFlag) {
 			qDebug()<<"autoRecordFlag is true.  closing";
 			emit finishedSaving();
@@ -246,45 +246,50 @@ void playbackWindow::on_cmdSave_clicked()
 		}
 
 		if (!statfs(camera->vinst->fileDirectory, &statfsBuf)) {
+			unsigned int numFrames = (markOutFrame - markInFrame + 3);
 			uint64_t freeSpace = statfsBuf.f_bsize * (uint64_t)statfsBuf.f_bfree;
+			uint64_t fileOverhead = 4096;
+			double bpp = appSettings.value("recorder/bitsPerPixel", camera->vinst->bitsPerPixel).toDouble();
 			bool fileOverMaxSize = (statfsBuf.f_type == 0x4d44); // Check for file size limits for FAT32 only.
 
-			// calculate estimated file size
-			estimatedSize = (markOutFrame - markInFrame + 3) * (hRes * vRes);
+			/* Estimate bits per pixel, by format. */
 			switch(format) {
 			case SAVE_MODE_H264:
-				// the *1.2 part is fudge factor
-				estimatedSize = (uint64_t) ((double)estimatedSize * appSettings.value("recorder/bitsPerPixel", camera->vinst->bitsPerPixel).toDouble() * 1.2);
-				qDebug("Bits/pixel: %0.3f", appSettings.value("recorder/bitsPerPixel", camera->vinst->bitsPerPixel).toDouble());
+				bpp *= 1.2;	/* Add a fudge factor. */
 				break;
 			case SAVE_MODE_DNG:
+			case SAVE_MODE_TIFF_RAW:
 				fileOverMaxSize = false;
+				fileOverhead *= numFrames;
 			case SAVE_MODE_RAW16:
-				qDebug("Bits/pixel: %d", 16);
-				estimatedSize *= 16;
-				estimatedSize += (4096<<8);
+				bpp = 16;
 				break;
 			case SAVE_MODE_RAW12:
-				qDebug("Bits/pixel: %d", 12);
-				estimatedSize *= 12;
-				estimatedSize += (4096<<8);
+				bpp = 12;
 				break;
 			case SAVE_MODE_TIFF:
 				fileOverMaxSize = false;
-				estimatedSize *= 24;
-				estimatedSize += (4096<<8);
+				fileOverhead *= numFrames;
+				if (camera->getIsColor()) {
+					bpp = 24;
+				} else {
+					bpp = 8;
+				}
 				break;
 
 			default:
-				// unknown format
-				qDebug("Bits/pixel: unknown - default: %d", 16);
-				estimatedSize *= 16;
+				bpp = 16;
+				break;
 			}
-			// convert to bytes
-			estimatedSize /= 8;
+
+			// calculate estimated file size
+			estimatedSize = (hRes * vRes * numFrames);
+			estimatedSize = ((double)estimatedSize * bpp) / 8;
+			estimatedSize += fileOverhead;
 
 			qDebug("===================================");
 			qDebug("Resolution: %d x %d", hRes, vRes);
+			qDebug("Bits/pixel: %f", bpp);
 			qDebug("Frames: %d", markOutFrame - markInFrame + 1);
 			qDebug("Free space: %llu", freeSpace);
 			qDebug("Estimated file size: %llu", estimatedSize);
@@ -492,7 +497,7 @@ void playbackWindow::checkForSaveDone()
 		saveDoneTimer->stop();
 		delete saveDoneTimer;
 		*/
-		
+
 	}
 	else {
 		char tmp[64];
@@ -594,6 +599,7 @@ save_mode_type playbackWindow::getSaveFormat()
 	case 2:  return SAVE_MODE_RAW12;
 	case 3:  return SAVE_MODE_DNG;
 	case 4:  return SAVE_MODE_TIFF;
+	case 5:  return SAVE_MODE_TIFF_RAW;
 	default: return SAVE_MODE_H264;
 	}
 }
@@ -609,6 +615,6 @@ void playbackWindow::on_cmdLoop_clicked()
 		unsigned int count = (markOutFrame - markInFrame + 1);
 		playLoop = true;
 		ui->cmdLoop->setText("Stop");
-		camera->vinst->loopPlayback(markInFrame, count, fps);
+		camera->vinst->loopPlayback(markInFrame - 1, count, fps);
 	}
 }
