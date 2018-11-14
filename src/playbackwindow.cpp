@@ -107,7 +107,6 @@ playbackWindow::~playbackWindow()
 
 void playbackWindow::videoStarted(VideoState state)
 {
-	qDebug()<<"videoStarted. status:" <<camera->vinst->getStatus(NULL);
 	ui->cmdSave->setEnabled(true);
 
 	/* When starting a filesave, increase the frame timing for maximum speed */
@@ -130,25 +129,34 @@ void playbackWindow::videoStarted(VideoState state)
 		else ui->cmdSave->setEnabled(true);
 		
 	} else {
-		qDebug()<<"state != VIDEO_STATE_FILESAVE";
 		ui->cmdSave->setText("Save");
 		ui->cmdSave->setEnabled(true);
 		setControlEnable(true);
 		emit enableSaveSettingsButtons(true);
 	}
-	qDebug()<<"videoStarted() - function finished";
 	/* TODO: Other start events might occur on HDMI hotplugs. */
 }
 
 void playbackWindow::videoEnded(VideoState state, QString err)
 {
-	qDebug()<<"videoEnded. status:" <<camera->vinst->getStatus(NULL);
 	if (state == VIDEO_STATE_FILESAVE) { //Filesave has just ended
 		QMessageBox msg;
 
 		/* When ending a filesave, restart the sensor and return to live display timing. */
 		camera->sensor->seqOnOff(true);
 		camera->setDisplaySettings(false, MAX_LIVE_FRAMERATE);
+
+		sw->close();
+		ui->cmdSave->setText("Save");
+		saveAborted = false;
+		autoSaveFlag = false;
+		updatePlayRateLabel();
+		
+		if(saveDoneTimer){
+			saveDoneTimer->stop();
+			delete saveDoneTimer;
+			qDebug()<<"saveDoneTimer deleted";
+		} else qDebug("cannot delete saveDoneTimer because it is null");
 
 		/* If recording failed from an error. Tell the user about it. */
 		if (!err.isNull()) {
@@ -157,19 +165,7 @@ void playbackWindow::videoEnded(VideoState state, QString err)
 			return;
 		}
 
-		sw->close();
-		ui->cmdSave->setText("Save");
-		saveAborted = false;
-		autoSaveFlag = false;
-		updatePlayRateLabel();
 		ui->verticalSlider->setHighlightRegion(markInFrame, markOutFrame);
-		
-		if(saveDoneTimer){
-			saveDoneTimer->stop();
-			delete saveDoneTimer;
-			qDebug()<<"saveDoneTimer deleted";
-		} else qDebug("cannot delete saveDoneTimer because it is null");
-
 		if(autoRecordFlag) {
 			qDebug()<<"autoRecordFlag is true.  closing";
 			emit finishedSaving();
@@ -491,15 +487,7 @@ void playbackWindow::updatePlayFrame()
 void playbackWindow::checkForSaveDone()
 {
 	VideoStatus st;
-	if(camera->vinst->getStatus(&st) != VIDEO_STATE_FILESAVE)
-	{
-		/* Now done in videoended()
-		saveDoneTimer->stop();
-		delete saveDoneTimer;
-		*/
-
-	}
-	else {
+	if(camera->vinst->getStatus(&st) != VIDEO_STATE_FILESAVE) {
 		char tmp[64];
 		sprintf(tmp, "%.1ffps", st.framerate);
 		ui->lblFrameRate->setText(tmp);
