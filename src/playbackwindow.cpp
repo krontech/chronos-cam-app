@@ -487,7 +487,7 @@ void playbackWindow::updatePlayFrame()
 void playbackWindow::checkForSaveDone()
 {
 	VideoStatus st;
-	if(camera->vinst->getStatus(&st) != VIDEO_STATE_FILESAVE) {
+	if(camera->vinst->getStatus(&st) == VIDEO_STATE_FILESAVE) {
 		char tmp[64];
 		sprintf(tmp, "%.1ffps", st.framerate);
 		ui->lblFrameRate->setText(tmp);
