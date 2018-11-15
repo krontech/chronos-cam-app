@@ -295,7 +295,7 @@ void IO::setExtShutterSrcEn(UInt32 extShutterSrcEn, Int32 flags)
 	QSettings appSettings;
 	if (flags & FLAG_USESAVED)
 		extShutterSrcEn = appSettings.value("io/extShutterSrcEn", 0).toUInt();
-	gpmc->write16(EXT_SHUTTER_CTL_ADDR, (gpmc->read16(EXT_SHUTTER_CTL_ADDR) & ~EXT_SH_SRC_EN_MASK) | ((extShutterSrcEn ? 1 : 0) << EXT_SH_SRC_EN_OFFSET));
+	gpmc->write16(EXT_SHUTTER_CTL_ADDR, (gpmc->read16(EXT_SHUTTER_CTL_ADDR) & ~EXT_SH_SRC_EN_MASK) | (extShutterSrcEn << EXT_SH_SRC_EN_OFFSET));
 	if (!(flags & FLAG_TEMPORARY) && !(flags & FLAG_USESAVED))
 		appSettings.setValue("io/extShutterSrcEn", extShutterSrcEn);
 }
