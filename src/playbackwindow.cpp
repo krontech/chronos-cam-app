@@ -111,11 +111,11 @@ void playbackWindow::videoStarted(VideoState state)
 
 	/* When starting a filesave, increase the frame timing for maximum speed */
 	if (state == VIDEO_STATE_FILESAVE) {
-		qDebug()<<"state == VIDEO_STATE_FILESAVE";
 		camera->recordingData.hasBeenSaved = true;
 		camera->sensor->seqOnOff(false); /* Disable the sensor to reduce RAM contention */
 		camera->setDisplaySettings(true, MAX_RECORD_FRAMERATE);
 		ui->cmdSave->setText("Abort\nSave");
+
 		saveDoneTimer = new QTimer(this);
 		connect(saveDoneTimer, SIGNAL(timeout()), this, SLOT(checkForSaveDone()));
 		saveDoneTimer->start(1000);
@@ -127,7 +127,6 @@ void playbackWindow::videoStarted(VideoState state)
 		 * that might not be called at all before the end of the video, so just disable the button right away.*/
 		if(markOutFrame - markInFrame < 25) ui->cmdSave->setEnabled(false);
 		else ui->cmdSave->setEnabled(true);
-		
 	} else {
 		ui->cmdSave->setText("Save");
 		ui->cmdSave->setEnabled(true);
@@ -373,23 +372,16 @@ void playbackWindow::on_cmdSave_clicked()
 		ui->verticalSlider->setHighlightRegion(markInFrame, markOutFrame);
 		saveAborted = true;
 		autoRecordFlag = false;
-		updateSWText();
 	}
-
 }
 
 void playbackWindow::addDotsToString(QString* abc)
 {
-	periodsToAdd++;
-	if(periodsToAdd > 2) periodsToAdd = 0;
-	if(periodsToAdd == 0) abc->append("  ");
-	if(periodsToAdd == 1) abc->append(". ");
-	if(periodsToAdd == 2) abc->append("..");
-}
-
-void playbackWindow::on_cmdStopSave_clicked()
-{
-
+	periodsToAdd = (periodsToAdd + 1) % 4;
+	if (periodsToAdd == 0)     abc->append("   ");
+	else if(periodsToAdd == 1) abc->append(".  ");
+	else if(periodsToAdd == 2) abc->append(".. ");
+	else if(periodsToAdd == 3) abc->append("...");
 }
 
 void playbackWindow::on_cmdSaveSettings_clicked()
@@ -469,8 +461,13 @@ void playbackWindow::updateStatusText()
 
 void playbackWindow::updateSWText(){
 	QString statusWindowText;
-	statusWindowText.operator = ("Aborting save.");
-	if(saveAbortedAutomatically) statusWindowText.prepend("Storage is now full; ");
+	if (!saveAborted) {
+		statusWindowText = QString("Saving");
+	} else if (saveAbortedAutomatically) {
+		statusWindowText = QString("Storage is now full; Aborting");
+	} else {
+		statusWindowText = QString("Aborting Save");
+	}
 	addDotsToString(&statusWindowText);
 	sw->setText(statusWindowText);
 }
@@ -516,7 +513,7 @@ void playbackWindow::checkForSaveDone()
 			on_cmdSave_clicked();
 		}
 		
-		if(saveAborted) updateSWText();
+		updateSWText();
 	}
 }
 
