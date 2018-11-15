@@ -84,7 +84,6 @@ private:
 	StatusWindow * sw;
 	void stopPlayLoop();
 	void updateStatusText();
-	void updatePlayRateLabel();
 	void setControlEnable(bool en);
 
 	UInt32 markInFrame;
