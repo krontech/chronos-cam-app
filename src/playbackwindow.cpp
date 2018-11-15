@@ -74,7 +74,6 @@ playbackWindow::playbackWindow(QWidget *parent, Camera * cameraInst, bool autosa
 	connect(camera->vinst, SIGNAL(ended(VideoState, QString)), this, SLOT(videoEnded(VideoState, QString)));
 
 	playbackExponent = 0;
-	updatePlayRateLabel();
 
 	timer = new QTimer(this);
 	connect(timer, SIGNAL(timeout()), this, SLOT(updatePlayFrame()));
@@ -149,7 +148,6 @@ void playbackWindow::videoEnded(VideoState state, QString err)
 		ui->cmdSave->setText("Save");
 		saveAborted = false;
 		autoSaveFlag = false;
-		updatePlayRateLabel();
 		
 		if(saveDoneTimer){
 			saveDoneTimer->stop();
@@ -475,19 +473,27 @@ void playbackWindow::updateSWText(){
 //Periodically check if the play frame is updated
 void playbackWindow::updatePlayFrame()
 {
-	playFrame = camera->vinst->getPosition();
-	ui->verticalSlider->setValue(playFrame);
+	VideoStatus st;
+	char playRateStr[100];
+	camera->vinst->getStatus(&st);
+
+	/* Update the position */
+	playFrame = st.position;
+	ui->verticalSlider->setValue(st.position);
 	updateStatusText();
+
+	/* Update the framerate. */
+	if (st.state != VIDEO_STATE_FILESAVE) {
+		st.framerate = (playbackExponent >= 0) ? (60 << playbackExponent) : 60.0 / (1 - playbackExponent);
+	}
+	sprintf(playRateStr, "%.1ffps", st.framerate);
+	ui->lblFrameRate->setText(playRateStr);
 }
 
 //Once save is done, re-enable the window
 void playbackWindow::checkForSaveDone()
 {
-	VideoStatus st;
-	if(camera->vinst->getStatus(&st) == VIDEO_STATE_FILESAVE) {
-		char tmp[64];
-		sprintf(tmp, "%.1ffps", st.framerate);
-		ui->lblFrameRate->setText(tmp);
+	if(camera->vinst->getStatus(NULL) == VIDEO_STATE_FILESAVE) {
 		setControlEnable(false);
 
 		struct statvfs statvfsBuf;
@@ -521,27 +527,12 @@ void playbackWindow::on_cmdRateUp_clicked()
 {
 	if(playbackExponent < 5)
 		playbackExponent++;
-
-	updatePlayRateLabel();
 }
 
 void playbackWindow::on_cmdRateDn_clicked()
 {
 	if(playbackExponent > -5)
 		playbackExponent--;
-
-	updatePlayRateLabel();
-}
-
-void playbackWindow::updatePlayRateLabel(void)
-{
-	char playRateStr[100];
-	double playRate;
-
-	playRate = (playbackExponent >= 0) ? (60 << playbackExponent) : 60.0 / (1 - playbackExponent);
-	sprintf(playRateStr, "%.1ffps", playRate);
-
-	ui->lblFrameRate->setText(playRateStr);
 }
 
 void playbackWindow::setControlEnable(bool en)
