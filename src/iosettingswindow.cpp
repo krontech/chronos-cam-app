@@ -44,8 +44,10 @@ IOSettingsWindow::IOSettingsWindow(QWidget *parent, Camera * cameraInst) :
 	ui->radioIO1TrigIn->setChecked(camera->io->getTriggerEnable() & (1 << 0));
 	ui->radioIO2TrigIn->setChecked(camera->io->getTriggerEnable() & (1 << 1));
 	ui->chkIO3TriggerInEn->setChecked(camera->io->getTriggerEnable() & (1 << 2));
-	ui->radioIO1TriggeredShutter->setChecked(camera->io->getTriggeredExpEnable() && (camera->io->getExtShutterSrcEn() & (1 << 0)));
-	ui->radioIO1ShutterGating->setChecked(camera->io->getShutterGatingEnable());
+	ui->radioIO1TriggeredShutter->setChecked(camera->io->getTriggeredExpEnable()  && (camera->io->getExtShutterSrcEn() & (1 << 0)));
+	ui->radioIO1ShutterGating->   setChecked(camera->io->getShutterGatingEnable() && (camera->io->getExtShutterSrcEn() & (1 << 0)));
+	ui->radioIO2TriggeredShutter->setChecked(camera->io->getTriggeredExpEnable()  && (camera->io->getExtShutterSrcEn() & (1 << 1)));
+	ui->radioIO2ShutterGating->   setChecked(camera->io->getShutterGatingEnable() && (camera->io->getExtShutterSrcEn() & (1 << 1)));
 
 	ui->chkIO1Debounce->setChecked(camera->io->getTriggerDebounceEn() & (1 << 0));
 	ui->chkIO2Debounce->setChecked(camera->io->getTriggerDebounceEn() & (1 << 1));
@@ -119,8 +121,10 @@ void IOSettingsWindow::on_cmdApply_clicked()
 	camera->io->setThreshold(2, ui->spinIO2Thresh->value());
 
 	camera->io->setTriggeredExpEnable(ui->radioIO2TriggeredShutter->isChecked() || ui->radioIO1TriggeredShutter->isChecked());
+	
 	camera->io->setExtShutterSrcEn(	((ui->radioIO2TriggeredShutter->isChecked() || ui->radioIO2ShutterGating->isChecked()) << 1) |
-									(ui->radioIO1TriggeredShutter->isChecked() || ui->radioIO1ShutterGating->isChecked()));
+								 (ui->radioIO1TriggeredShutter->isChecked() || ui->radioIO1ShutterGating->isChecked()));
+	
 	camera->io->setShutterGatingEnable(ui->radioIO2ShutterGating->isChecked() || ui->radioIO1ShutterGating->isChecked());
 
 	qDebug() << "Trig Ena" << camera->io->getTriggerEnable() << "Trig Inv" << camera->io->getTriggerInvert() << "Trig Deb" << camera->io->getTriggerDebounceEn();
