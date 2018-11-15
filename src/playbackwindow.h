@@ -51,8 +51,6 @@ private slots:
 
 	void on_cmdSave_clicked();
 
-	void on_cmdStopSave_clicked();
-
 	void on_cmdSaveSettings_clicked();
 
 	void on_cmdMarkIn_clicked();
