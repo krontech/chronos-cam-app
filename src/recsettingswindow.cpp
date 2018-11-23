@@ -169,9 +169,7 @@ RecSettingsWindow::RecSettingsWindow(QWidget *parent, Camera * cameraInst) :
 	ui->lineExp->setText(str);
 	ui->lineExp->setHasUnits(true);
 
-
-	ui->frameImage->setGeometry(QRect(ui->spinHOffset->value()/4, ui->spinVOffset->value()/4, ui->spinHRes->value()/4, ui->spinVRes->value()/4));
-
+	updateFramePreview();
 	updateInfoText();
 
     qDebug() << "---- Rec Settings Window ---- Init complete";
@@ -225,12 +223,13 @@ void RecSettingsWindow::on_spinHRes_valueChanged(int arg1)
 {
     if(windowInitComplete)
     {
-		FrameGeometry fSize = getResolution();
+		FrameGeometry fSize;
 
-		ui->frameImage->setGeometry(QRect(fSize.hOffset/4, fSize.vOffset/4, fSize.hRes/4, fSize.vRes/4));
-        updateInfoText();
 		updateOffsetLimits();
+		updateInfoText();
+		updateFramePreview();
 
+		fSize = getResolution();
 		is->recRegionSizeFrames = camera->getMaxRecordRegionSizeFrames(&fSize);
 		qDebug() << "---- Rec Settings Window ---- hres =" << fSize.hRes << "vres =" << fSize.vRes << "recRegionSizeFrames =" << is->recRegionSizeFrames;
     }
@@ -238,11 +237,9 @@ void RecSettingsWindow::on_spinHRes_valueChanged(int arg1)
 
 void RecSettingsWindow::on_spinHRes_editingFinished()
 {
-
 	ui->spinHRes->setValue(round((UInt32)ui->spinHRes->value(), camera->sensor->getHResIncrement()));
 
-	ui->frameImage->setGeometry(QRect(ui->spinHOffset->value()/4, ui->spinVOffset->value()/4, ui->spinHRes->value()/4, ui->spinVRes->value()/4));
-	qDebug() << "editing finished ";
+	updateFramePreview();
 	updateInfoText();
 }
 
@@ -250,11 +247,12 @@ void RecSettingsWindow::on_spinVRes_valueChanged(int arg1)
 {
     if(windowInitComplete)
     {
-		FrameGeometry fSize = getResolution();
-        updateOffsetLimits();
+		FrameGeometry fSize;
+		updateOffsetLimits();
+		updateInfoText();
+		updateFramePreview();
 
-		ui->frameImage->setGeometry(QRect(fSize.hOffset/4, fSize.vOffset/4, fSize.hRes/4, fSize.vRes/4));
-        updateInfoText();
+		fSize = getResolution();
 		is->recRegionSizeFrames = camera->getMaxRecordRegionSizeFrames(&fSize);
 		qDebug() << "---- Rec Settings Window ---- hres =" << fSize.hRes << "vres =" << fSize.vRes << "recRegionSizeFrames =" << is->recRegionSizeFrames;
     }
@@ -264,13 +262,13 @@ void RecSettingsWindow::on_spinVRes_editingFinished()
 {
 	ui->spinVRes->setValue(round((UInt32)ui->spinVRes->value(), camera->sensor->getVResIncrement()));
 
-	ui->frameImage->setGeometry(QRect(ui->spinHOffset->value()/4, ui->spinVOffset->value()/4, ui->spinHRes->value()/4, ui->spinVRes->value()/4));
+	updateFramePreview();
 	updateInfoText();
 }
 
 void RecSettingsWindow::on_spinHOffset_valueChanged(int arg1)
 {
-	ui->frameImage->setGeometry(QRect(ui->spinHOffset->value()/4, ui->spinVOffset->value()/4, ui->spinHRes->value()/4, ui->spinVRes->value()/4));
+	updateFramePreview();
 	updateInfoText();
 }
 
@@ -278,13 +276,13 @@ void RecSettingsWindow::on_spinHOffset_editingFinished()
 {
 	ui->spinHOffset->setValue(round((UInt32)ui->spinHOffset->value(), camera->sensor->getHResIncrement()));
 
-	ui->frameImage->setGeometry(QRect(ui->spinHOffset->value()/4, ui->spinVOffset->value()/4, ui->spinHRes->value()/4, ui->spinVRes->value()/4));
+	updateFramePreview();
 	updateInfoText();
 }
 
 void RecSettingsWindow::on_spinVOffset_valueChanged(int arg1)
 {
-	ui->frameImage->setGeometry(QRect(ui->spinHOffset->value()/4, ui->spinVOffset->value()/4, ui->spinHRes->value()/4, ui->spinVRes->value()/4));
+	updateFramePreview();
 	updateInfoText();
 }
 
@@ -292,7 +290,7 @@ void RecSettingsWindow::on_spinVOffset_editingFinished()
 {
 	ui->spinVOffset->setValue(round((UInt32)ui->spinVOffset->value(), camera->sensor->getVResIncrement()));
 
-	ui->frameImage->setGeometry(QRect(ui->spinHOffset->value()/4, ui->spinVOffset->value()/4, ui->spinHRes->value()/4, ui->spinVRes->value()/4));
+	updateFramePreview();
 	updateInfoText();
 }
 
@@ -452,6 +450,11 @@ void RecSettingsWindow::updateInfoText()
 	ui->lblInfo->setText(str);
 }
 
+void RecSettingsWindow::updateFramePreview()
+{
+	FrameGeometry fSize = getResolution();
+	ui->frameImage->setGeometry(QRect(fSize.hOffset/4, fSize.vOffset/4, fSize.hRes/4, fSize.vRes/4));
+}
 
 void RecSettingsWindow::setResFromText(char * str)
 {
