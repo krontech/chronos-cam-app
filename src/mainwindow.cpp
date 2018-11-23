@@ -365,19 +365,9 @@ void MainWindow::on_cmdGC_clicked()
 	camera->computeColGainCorrection(1, true);
 }
 
-void MainWindow::on_cmdOffsetCorrection_clicked()
-{
-	camera->adcOffsetCorrection(32, false);
-}
-
 void MainWindow::on_cmdSaveOC_clicked()
 {
 	camera->sensor->saveADCOffsetsToFile();
-}
-
-void MainWindow::on_cmdAutoBlack_clicked()
-{
-	camera->autoAdcOffsetCorrection();
 }
 
 void MainWindow::on_cmdSaveFrame_clicked()

@@ -858,24 +858,10 @@ p, li { white-space: pre-wrap; }
     <attribute name="title">
      <string>Factory</string>
     </attribute>
-    <widget class="QPushButton" name="cmdAdcOffset">
-     <property name="geometry">
-      <rect>
-       <x>180</x>
-       <y>170</y>
-       <width>91</width>
-       <height>51</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>ADC Offset
-Cal</string>
-     </property>
-    </widget>
     <widget class="QPushButton" name="cmdColumnGain">
      <property name="geometry">
       <rect>
-       <x>280</x>
+       <x>160</x>
        <y>170</y>
        <width>91</width>
        <height>51</height>
@@ -889,7 +875,7 @@ Cal</string>
     <widget class="QPushButton" name="cmdBlackCalAll">
      <property name="geometry">
       <rect>
-       <x>380</x>
+       <x>280</x>
        <y>170</y>
        <width>91</width>
        <height>51</height>
@@ -903,7 +889,7 @@ All Std Res</string>
     <widget class="QPushButton" name="cmdCloseApp">
      <property name="geometry">
       <rect>
-       <x>580</x>
+       <x>520</x>
        <y>170</y>
        <width>91</width>
        <height>51</height>
@@ -917,24 +903,23 @@ Application</string>
     <widget class="QPushButton" name="cmdAutoCal">
      <property name="geometry">
       <rect>
-       <x>70</x>
-       <y>170</y>
-       <width>91</width>
-       <height>51</height>
+       <x>420</x>
+       <y>90</y>
+       <width>131</width>
+       <height>61</height>
       </rect>
      </property>
      <property name="focusPolicy">
       <enum>Qt::WheelFocus</enum>
      </property>
      <property name="text">
-      <string>Auto Factory
-Cal</string>
+      <string>Factory Calibration</string>
      </property>
     </widget>
     <widget class="QPushButton" name="cmdWhiteRef">
      <property name="geometry">
       <rect>
-       <x>480</x>
+       <x>400</x>
        <y>170</y>
        <width>91</width>
        <height>51</height>
@@ -1043,7 +1028,7 @@ Number</string>
     <widget class="QPushButton" name="cmdRevertCalData">
      <property name="geometry">
       <rect>
-       <x>70</x>
+       <x>220</x>
        <y>90</y>
        <width>181</width>
        <height>61</height>
@@ -1092,7 +1077,6 @@ calibration data
   <tabstop>cmdWhiteRef</tabstop>
   <tabstop>cmdBlackCalAll</tabstop>
   <tabstop>cmdColumnGain</tabstop>
-  <tabstop>cmdAdcOffset</tabstop>
   <tabstop>cmdAutoCal</tabstop>
   <tabstop>cmdRevertCalData</tabstop>
   <tabstop>linePassword</tabstop>
