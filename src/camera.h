@@ -215,10 +215,8 @@ public:
 	Int32 loadFPNFromFile(void);
 	Int32 computeColGainCorrection(UInt32 framesToAverage, bool writeToFile = false);
 	Int32 loadColGainFromFile(void);
-	UInt32 adcOffsetCorrection(UInt32 iterations, bool writeToFile = true);
 	void offsetCorrectionIteration(FrameGeometry *geometry, UInt32 wordAddress, UInt32 framesToAverage = 1);
 	Int32 liveAdcOffsetCalibration(unsigned int iterations = 32);
-	int autoAdcOffsetCorrection(void);
 	Int32 autoColGainCorrection(void);
 	Int32 adjustExposureToValue(UInt32 level, UInt32 tolerance = 100, bool includeFPNCorrection = true);
 	Int32 recordFrames(UInt32 numframes);

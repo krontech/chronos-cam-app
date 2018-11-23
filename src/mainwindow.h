@@ -60,11 +60,7 @@ private slots:
 
 	void on_cmdGC_clicked();
 
-	void on_cmdOffsetCorrection_clicked();
-
 	void on_cmdSaveOC_clicked();
-
-	void on_cmdAutoBlack_clicked();
 
 	void on_cmdSaveFrame_clicked();
 
