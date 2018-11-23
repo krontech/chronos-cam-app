@@ -1561,35 +1561,6 @@ checkForDeadPixelsCleanup:
 	return retVal;
 }
 
-UInt32 Camera::adcOffsetCorrection(UInt32 iterations, bool writeToFile)
-{
-	//Zero the offsets
-	for(int i = 0; i < LUX1310_HRES_INCREMENT; i++)
-		sensor->setADCOffset(i, 0);
-
-	UInt32 retVal;
-	for(int i = 0; i < iterations; i++)
-	{
-		qDebug() << "Starting record for autoOffsetCorrection";
-
-		retVal = recordFrames(1);
-		if(SUCCESS != retVal)
-			return retVal;
-
-		qDebug() << "Record done, doing offset correction iteration";
-
-		offsetCorrectionIteration(&recordingData.is.geometry, REC_REGION_START);
-	}
-	qDebug() << "Offset correction done";
-
-	if (writeToFile) {
-		qDebug() << "Saving to file";
-		sensor->saveADCOffsetsToFile();
-	}
-
-	return SUCCESS;
-}
-
 void Camera::offsetCorrectionIteration(FrameGeometry *geometry, UInt32 wordAddress, UInt32 framesToAverage)
 {
 	UInt32 numRows = geometry->vDarkRows ? geometry->vDarkRows : 1;
@@ -1724,90 +1695,12 @@ Int32 Camera::liveAdcOffsetCalibration(unsigned int iterations)
 	nanosleep(&tRefresh, NULL);
 	computeFPNColumns(&isDark.geometry, CAL_REGION_START, CAL_REGION_FRAMES);
 #endif
-
 	terminateRecord();
 	ui->setRecLEDFront(false);
 	ui->setRecLEDBack(false);
 
 	/* Restore the sensor settings. */
 	return setImagerSettings(isPrev);
-}
-
-Int32 Camera::autoAdcOffsetCorrection(void)
-{
-	ImagerSettings_t _is;
-	Int32 retVal;
-	UInt32 gain;
-
-	_is.geometry = sensor->getMaxGeometry();
-	_is.geometry.vDarkRows = 0;	//inactive dark rows on top
-	_is.exposure = 100000;		//10ns increments
-	_is.period = 500000;		//Frame period in 10ns increments
-	_is.gain = LUX1310_GAIN_1;
-	_is.recRegionSizeFrames = getMaxRecordRegionSizeFrames(&_is.geometry);
-    _is.disableRingBuffer = 0;
-    _is.mode = RECORD_MODE_NORMAL;
-    _is.prerecordFrames = 1;
-    _is.segmentLengthFrames = imagerSettings.recRegionSizeFrames;
-    _is.segments = 1;
-    _is.temporary = 1;
-
-	retVal = setImagerSettings(_is);
-	if(SUCCESS != retVal)
-		return retVal;
-
-	//Zero out the FPN area
-	for(int i = 0; i < _is.geometry.size(); i = i + 4)
-	{
-		gpmc->writeRam32(i, 0);
-	}
-
-	//Do correction for 39 clock wavetable
-	//sensor->setWavetable(LUX1310_WAVETABLE_39);
-	for(gain = LUX1310_GAIN_1; gain <= LUX1310_GAIN_16; gain++)
-	{
-		qDebug() << "Doing correction for WT39 Gain" << gain;
-		_is.gain = gain;
-		sensor->wavetableSelect = LUX1310_WAVETABLE_39;
-		retVal = setImagerSettings(_is);
-		if(SUCCESS != retVal)
-			return retVal;
-
-		retVal = adcOffsetCorrection(32);
-		if(SUCCESS != retVal)
-			return retVal;
-
-		qDebug() << "Done";
-	}
-
-	//Do correction for 80 clock wavetable
-	//sensor->setWavetable(LUX1310_WAVETABLE_80);
-	for(gain = LUX1310_GAIN_1; gain <= LUX1310_GAIN_16; gain++)
-	{
-		qDebug() << "Doing correction for WT80 Gain" << gain;
-		_is.gain = gain;
-		sensor->wavetableSelect = LUX1310_WAVETABLE_80;
-
-		retVal = setImagerSettings(_is);
-		if(SUCCESS != retVal)
-			return retVal;
-
-		retVal = adcOffsetCorrection(32);
-		if(SUCCESS != retVal)
-			return retVal;
-
-		qDebug() << "Done";
-	}
-
-	sensor->wavetableSelect = LUX1310_WAVETABLE_AUTO;
-
-	_is.gain = LUX1310_GAIN_1;
-
-	retVal = setImagerSettings(_is);
-	if(SUCCESS != retVal)
-		return retVal;
-
-	return SUCCESS;
 }
 
 Int32 Camera::autoColGainCorrection(void)

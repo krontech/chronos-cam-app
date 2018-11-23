@@ -118,7 +118,6 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	aboutText.append(QString("FPGA Revision: %1.%2").arg(QString::number(camera->getFPGAVersion()), QString::number(camera->getFPGASubVersion())));
 	ui->lblAbout->setText(aboutText);
 	
-	ui->cmdAdcOffset->setVisible(false);
 	ui->cmdAutoCal->setVisible(false);
 	ui->cmdBlackCalAll->setVisible(false);
 	ui->cmdCloseApp->setVisible(false);
@@ -255,43 +254,6 @@ void UtilWindow::on_cmdSetClock_clicked()
 
 	if(retval == -1)
 		qDebug() << "Couldn't set time, errorno =" << errno;
-}
-
-void UtilWindow::on_cmdAdcOffset_clicked()
-{
-	StatusWindow sw;
-	Int32 retVal;
-	char text[100];
-
-	sw.setText("Performing ADC Offset calibration. Please wait...");
-	sw.show();
-	QCoreApplication::processEvents();
-
-	//Turn off calibration light
-	camera->io->setOutLevel(0);	//Turn off output drive
-
-	//ADC Offset calibration
-	retVal = camera->autoAdcOffsetCorrection();
-
-	if(SUCCESS != retVal)
-	{
-		sw.hide();
-		QMessageBox msg;
-		sprintf(text, "Error during ADC Offset calibration, error %d", retVal);
-		msg.setText(text);
-		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
-		msg.exec();
-		return;
-	}
-	else
-	{
-		sw.hide();
-		QMessageBox msg;
-		sprintf(text, "ADC Offset calibration was successful");
-		msg.setText(text);
-		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
-		msg.exec();
-	}
 }
 
 void UtilWindow::on_cmdColumnGain_clicked()
@@ -431,21 +393,6 @@ void UtilWindow::on_cmdAutoCal_clicked()
 	//Turn off calibration light
 	qDebug("cmdAutoCal: turn off cal light");
 	camera->io->setOutLevel(0);	//Turn off output drive
-
-	//ADC Offset calibration
-	qDebug("cmdAutoCal: autoAdcOffsetCorrection");
-	retVal = camera->autoAdcOffsetCorrection();
-
-	if(SUCCESS != retVal)
-	{
-		sw.hide();
-		QMessageBox msg;
-		sprintf(text, "Error during ADC Offset calibration, error %d", retVal);
-		msg.setText(text);
-		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
-		msg.exec();
-		return;
-	}
 
 	//Black cal all standard resolutions
 	qDebug("cmdAutoCal: blackCalAllStdRes");
@@ -743,7 +690,6 @@ void UtilWindow::on_linePassword_textEdited(const QString &arg1)
 {
 	if(0 == QString::compare(arg1, "4242"))
 	{
-		ui->cmdAdcOffset->setVisible(true);
 		ui->cmdAutoCal->setVisible(true);
 		ui->cmdBlackCalAll->setVisible(true);
 		ui->cmdCloseApp->setVisible(true);
