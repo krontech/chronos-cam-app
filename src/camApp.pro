@@ -101,7 +101,8 @@ SOURCES += main.cpp\
     chronosControlInterface.cpp \
     chronosVideoInterface.cpp \
     colorwindow.cpp \
-    colordoublespinbox.cpp
+    colordoublespinbox.cpp \
+    lux1310wt.cpp
 
 ## Generate version.cpp on every build
 versionTarget.target = version.cpp
