@@ -223,6 +223,7 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX2100 * senso
 		if(!fileDirFoundOnUSB) strcpy(vinst->fileDirectory, "/media/mmcblk1p1");
 	}
 
+	liveAdcOffsetCalibration();
 	loadColGainFromFile();
 
 	maxPostFramesRatio = 1;

@@ -74,20 +74,6 @@ enum {
 #define VRSTL_SCALE			(LUX1310_DAC_FS / LUX1310_DAC_VREF * (10.0 + 23.2) / 10.0)
 #define VRST_SCALE			(LUX1310_DAC_FS / LUX1310_DAC_VREF * 49.9 / (49.9 + 10.0))
 
-
-#define LUX1310_WAVETABLE_80		0
-#define LUX1310_WAVETABLE_39		1
-#define LUX1310_WAVETABLE_30		2
-#define LUX1310_WAVETABLE_25		3
-#define LUX1310_WAVETABLE_20		4
-#define LUX1310_WAVETABLE_AUTO		0x7FFFFFFF
-
-#define LUX1310_WAVETABLE_80_FN		"WT80"
-#define LUX1310_WAVETABLE_39_FN		"WT39"
-#define LUX1310_WAVETABLE_30_FN		"WT30"
-#define LUX1310_WAVETABLE_25_FN		"WT25"
-#define LUX1310_WAVETABLE_20_FN		"WT20"
-
 #define LUX1310_GAIN_1				0
 #define LUX1310_GAIN_2				1
 #define LUX1310_GAIN_4				2
@@ -101,22 +87,26 @@ enum {
 #define LUX1310_GAIN_8_FN			"G8"
 #define LUX1310_GAIN_16_FN			"G16"
 
-#define ABN_DELAY_WT80				25
-#define ABN_DELAY_WT39				30
-#define ABN_DELAY_WT30				29
-#define ABN_DELAY_WT25				27
-#define ABN_DELAY_WT20				25
-
 #define LUX1310_CHIP_ID				0xDA
 #define LUX1310_VERSION_1			1
 #define LUX1310_VERSION_2			2
 
 #define LUX1310_CLOCK_PERIOD	(1.0/90000000.0)
-#define LUX1310_MIN_WAVETABLE_SIZE	20
 
 #define FILTER_COLOR_RED	0
 #define FILTER_COLOR_GREEN	1
 #define FILTER_COLOR_BLUE	2
+
+/* LUX 1310 Sensor Wavetables */
+typedef struct {
+	unsigned int clocks;
+	unsigned int length;
+	unsigned int abnDelay;
+	const UInt8 *wavetab;
+} lux1310wavetab_t;
+
+/* Array of wavetables, sorted longest first, and terminated with a NULL */
+extern const lux1310wavetab_t *lux1310wt[];
 
 class LUX1310
 {
@@ -132,7 +122,7 @@ public:
 	void setResolution(FrameGeometry *frameSize);
 	bool isValidResolution(FrameGeometry *frameSize);
 	FrameGeometry getMaxGeometry(void);
-	UInt32 getMinFramePeriod(FrameGeometry *frameSize, UInt32 wtSize = LUX1310_MIN_WAVETABLE_SIZE);
+	UInt32 getMinFramePeriod(FrameGeometry *frameSize, UInt32 wtSize = 0);
 	double getMinMasterFramePeriod(FrameGeometry *frameSize);
 	double getActualFramePeriod(double targetPeriod, FrameGeometry *frameSize);
 	double setFramePeriod(double period, FrameGeometry *frameSize);
@@ -161,9 +151,9 @@ public:
 	int writeDACSPI(UInt16 data);
 	void setDACCS(bool on);
 	bool SCIWrite(UInt8 address, UInt16 data, bool readback = false);
-	void SCIWriteBuf(UInt8 address, UInt8 * data, UInt32 dataLen);
+	void SCIWriteBuf(UInt8 address, const UInt8 * data, UInt32 dataLen);
 	UInt16 SCIRead(UInt8 address);
-	void setWavetable(UInt8 mode);
+	void setWavetable(const lux1310wavetab_t *wt);
 	void updateWavetableSetting();
 	void setADCOffset(UInt8 channel, Int16 offset);
 	Int16 getADCOffset(UInt8 channel);
@@ -183,7 +173,6 @@ public:
 	Int32 dacCSFD;
 	UInt32 wavetableSize;
 	UInt32 gain;
-	UInt32 wavetableSelect;
 	UInt32 startDelaySensorClocks;
 	UInt32 sensorVersion;
 
