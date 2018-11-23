@@ -339,7 +339,8 @@ CameraErrortype Video::startRecording(UInt32 sizeX, UInt32 sizeY, UInt32 start, 
 	char path[1000];
 
 	/* Generate the desired filename, and check that we can write it. */
-	if(mkfilename(path, save_mode) == RECORD_FILE_EXISTS) return RECORD_FILE_EXISTS;
+	int ret = mkfilename(path, save_mode);
+	if(ret != SUCCESS) return (CameraErrortype)ret;
 
 	/* Attempt to start the video recording process. */
 	map.insert("filename", QVariant(path));
