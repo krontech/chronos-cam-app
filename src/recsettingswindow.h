@@ -75,6 +75,7 @@ private slots:
 
 private:
 	void updateOffsetLimits();
+	void updateFramePreview();
 	void updateInfoText();
 	void setResFromText(char * str);
 	Ui::RecSettingsWindow *ui;
