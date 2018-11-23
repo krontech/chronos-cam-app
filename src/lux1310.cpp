@@ -28,12 +28,15 @@
 #include "defines.h"
 #include "cameraRegisters.h"
 
-
-
 #include "types.h"
 #include "lux1310.h"
 
 #include <QSettings>
+
+/* Some Timing Constants */
+#define LUX1310_SOF_DELAY	0x0f	/* Delay from TXN rising edge to start of frame. */
+#define LUX1310_LV_DELAY	0x07	/* Linevalid delay to match ADC latency. */
+
 /*
  *
  * LUPA1300-2 defaults
@@ -187,7 +190,6 @@ UInt8 sram20Clk[122] = {0x81, 0xFF, 0x2F, 0xFA, 0x31, 0xE0, 0x7F, 0xCB, 0xFE, 0x
 LUX1310::LUX1310()
 {
 	spi = new SPI();
-	wavetableSelect = LUX1310_WAVETABLE_AUTO;
 	startDelaySensorClocks = LUX1310_MAGIC_ABN_DELAY;
 	//Zero out offsets
 	for(int i = 0; i < LUX1310_HRES_INCREMENT; i++)
@@ -285,14 +287,15 @@ CameraErrortype LUX1310::initSensor()
 		if (!SCIWrite(0x7A, 80, true)) break;	//wavetable size
 
 		//Set internal control registers to fine tune the performance of the sensor
-		if (!SCIWrite(0x71, 0x0007, true)) break; //line valid delay to match internal ADC latency
+		if (!SCIWrite(0x71, LUX1310_LV_DELAY, true)) break; //line valid delay to match internal ADC latency
 		if (!SCIWrite(0x2D, 0xE08E, true)) break; //state for idle controls
 		if (!SCIWrite(0x2E, 0xFC1F, true)) break; //state for idle controls
 		if (!SCIWrite(0x2F, 0x0003, true)) break; //state for idle controls
 
 		if (!SCIWrite(0x5C, 0x2202, true)) break; //ADC clock controls
-		if (!SCIWrite(0x62, 0x4B76, true)) break; //ADC range to match pixel saturation level
+		if (!SCIWrite(0x62, 0x5A76, true)) break; //ADC range to match pixel saturation level
 		if (!SCIWrite(0x74, 0x041F, true)) break; //internal clock timing
+		if (!SCIWrite(0x66, 0x0845, true)) break; //internal current control
 
 		//Load the appropriate values based on the silicon revision
 		if(LUX1310_VERSION_2 == sensorVersion) {
@@ -329,8 +332,8 @@ CameraErrortype LUX1310::initSensor()
 	SCIWrite(0x52, 0x007F);	//gain selection feedback cap (8) 7 bit
 	SCIWrite(0x53, 0x03);	//Serial gain
 
-	//Load the wavetable
-	SCIWriteBuf(0x7F, sram80Clk, 427 /*sizeof(sram80Clk)*/);
+	//Load the default wavetable
+	SCIWriteBuf(0x7F, lux1310wt[0]->wavetab, lux1310wt[0]->length);
 
 	//Enable internal timing engine
 	SCIWrite(0x01, 0x0001);
@@ -387,7 +390,7 @@ bool LUX1310::SCIWrite(UInt8 address, UInt16 data, bool readback)
 	return true;
 }
 
-void LUX1310::SCIWriteBuf(UInt8 address, UInt8 * data, UInt32 dataLen)
+void LUX1310::SCIWriteBuf(UInt8 address, const UInt8 * data, UInt32 dataLen)
 {
 	//Clear RW and reset FIFO
 	gpmc->write16(SENSOR_SCI_CONTROL_ADDR, 0x8000 | (gpmc->read16(SENSOR_SCI_CONTROL_ADDR) & ~SENSOR_SCI_CONTROL_RW_MASK));
@@ -395,8 +398,9 @@ void LUX1310::SCIWriteBuf(UInt8 address, UInt8 * data, UInt32 dataLen)
 	//Set up address, transfer length and put data into FIFO
 	gpmc->write16(SENSOR_SCI_ADDRESS_ADDR, address);
 	gpmc->write16(SENSOR_SCI_DATALEN_ADDR, dataLen);
-	for(UInt32 i = 0; i < dataLen; i++)
+	for(UInt32 i = 0; i < dataLen; i++) {
 		gpmc->write16(SENSOR_SCI_FIFO_WR_ADDR_ADDR, data[i]);
+	}
 
 	//Start transfer
 	gpmc->write16(SENSOR_SCI_CONTROL_ADDR, gpmc->read16(SENSOR_SCI_CONTROL_ADDR) | SENSOR_SCI_CONTROL_RUN_MASK);
@@ -616,8 +620,9 @@ UInt32 LUX1310::getMinFramePeriod(FrameGeometry *frameSize, UInt32 wtSize)
 	if(!isValidResolution(frameSize))
 		return 0;
 
-	if(frameSize->hRes == 1280)
-		wtSize = 80;
+	if (wtSize == 0) {
+		wtSize = frameSize->hRes / LUX1310_HRES_INCREMENT;
+	}
 
 	double tRead = (double)(frameSize->hRes / LUX1310_HRES_INCREMENT) * LUX1310_CLOCK_PERIOD;
 	double tHBlank = 2.0 * LUX1310_CLOCK_PERIOD;
@@ -861,99 +866,30 @@ void LUX1310::setDACCS(bool on)
 	write(dacCSFD, on ? "1" : "0", 1);
 }
 
-
-void LUX1310::setWavetable(UInt8 mode)
-{
-	switch(mode)
-	{
-	case LUX1310_WAVETABLE_80:
-		SCIWrite(0x01, 0x0000);	//Disable internal timing engine
-		SCIWrite(0x37, 80); //non-overlapping readout delay
-		SCIWrite(0x7A, 80); //wavetable size
-		SCIWriteBuf(0x7F, sram80Clk, sizeof(sram80Clk));
-		SCIWrite(0x01, 0x0001);	//Enable internal timing engine
-		wavetableSize = 80;
-		setABNDelayClocks(ABN_DELAY_WT80);
-		break;
-
-	case LUX1310_WAVETABLE_39:
-		SCIWrite(0x01, 0x0000);	//Disable internal timing engine
-		SCIWrite(0x37, 39); //non-overlapping readout delay
-		SCIWrite(0x7A, 39); //wavetable size
-		SCIWriteBuf(0x7F, sram39Clk, sizeof(sram39Clk));
-		SCIWrite(0x01, 0x0001);	//Enable internal timing engine
-		wavetableSize = 39;
-		setABNDelayClocks(ABN_DELAY_WT39);
-		break;
-
-	case LUX1310_WAVETABLE_30:
-		SCIWrite(0x01, 0x0000);	//Disable internal timing engine
-		SCIWrite(0x37, 30); //non-overlapping readout delay
-		SCIWrite(0x7A, 30); //wavetable size
-		SCIWriteBuf(0x7F, sram30Clk, sizeof(sram30Clk));
-		SCIWrite(0x01, 0x0001);	//Enable internal timing engine
-		wavetableSize = 30;
-		setABNDelayClocks(ABN_DELAY_WT30);
-		break;
-
-	case LUX1310_WAVETABLE_25:
-		SCIWrite(0x01, 0x0000);	//Disable internal timing engine
-		SCIWrite(0x37, 25); //non-overlapping readout delay
-		SCIWrite(0x7A, 25); //wavetable size
-		SCIWriteBuf(0x7F, sram25Clk, sizeof(sram25Clk));
-		SCIWrite(0x01, 0x0001);	//Enable internal timing engine
-		wavetableSize = 25;
-		setABNDelayClocks(ABN_DELAY_WT25);
-		break;
-
-	case LUX1310_WAVETABLE_20:
-		SCIWrite(0x01, 0x0000);	//Disable internal timing engine
-		SCIWrite(0x37, 20); //non-overlapping readout delay
-		SCIWrite(0x7A, 20); //wavetable size
-		SCIWriteBuf(0x7F, sram20Clk, sizeof(sram20Clk));
-		SCIWrite(0x01, 0x0001);	//Enable internal timing engine
-		wavetableSize = 20;
-		setABNDelayClocks(ABN_DELAY_WT20);
-		break;
-
-
-	}
-	qDebug() << "Wavetable size set to" << wavetableSize;
-}
-
-
 void LUX1310::updateWavetableSetting()
 {
-	if(wavetableSelect == LUX1310_WAVETABLE_AUTO)
-	{
-		qDebug() << "currentPeriod" << currentPeriod << "Min period" << getMinFramePeriod(&currentRes, 80);
-		if(currentPeriod < getMinFramePeriod(&currentRes, 80))
-		{
-			if(currentPeriod < getMinFramePeriod(&currentRes, 39))
-			{
-				if(currentPeriod < getMinFramePeriod(&currentRes, 30))
-				{
-					if(currentPeriod < getMinFramePeriod(&currentRes, 25))
-					{
-						setWavetable(LUX1310_WAVETABLE_20);
-					}
-					else
-						setWavetable(LUX1310_WAVETABLE_25);
-				}
-				else
-					setWavetable(LUX1310_WAVETABLE_30);
-			}
-			else
-				setWavetable(LUX1310_WAVETABLE_39);
-		}
-		else
-		{
-			setWavetable(LUX1310_WAVETABLE_80);
-		}
+	/* Search for the longest wavetable that it shorter than the current frame period. */
+	const lux1310wavetab_t *wt = NULL;
+	int i;
+
+	qDebug() << "Selecting wavetable for period of" << currentPeriod;
+
+	for (i = 0; lux1310wt[i] != NULL; i++) {
+		wt = lux1310wt[i];
+		if (currentPeriod >= getMinFramePeriod(&currentRes, wt->clocks)) break;
 	}
-	else
-	{
-		setWavetable(wavetableSelect);
+
+	/* Update the wavetable. */
+	if (wt) {
+		SCIWrite(0x01, 0x0000);         //Disable internal timing engine
+		SCIWrite(0x37, wt->clocks);     //non-overlapping readout delay
+		SCIWrite(0x7A, wt->clocks);     //wavetable size
+		SCIWriteBuf(0x7F, wt->wavetab, wt->length);
+		SCIWrite(0x01, 0x0001);         //Enable internal timing engine
+		wavetableSize = wt->clocks;
+		setABNDelayClocks(wt->abnDelay);
+
+		qDebug() << "Wavetable size set to" << wavetableSize;
 	}
 }
 
@@ -1054,7 +990,8 @@ Int32 LUX1310::saveADCOffsetsToFile(void)
 //Generate a filename string used for calibration values that is specific to the current gain and wavetable settings
 std::string LUX1310::getFilename(const char * filename, const char * extension)
 {
-	const char * gName, * wtName;
+	const char *gName = "";
+	char wtName[16];
 
 	switch(gain)
 	{
@@ -1063,20 +1000,10 @@ std::string LUX1310::getFilename(const char * filename, const char * extension)
 		case LUX1310_GAIN_4:		gName = LUX1310_GAIN_4_FN;		break;
 		case LUX1310_GAIN_8:		gName = LUX1310_GAIN_8_FN;		break;
 		case LUX1310_GAIN_16:		gName = LUX1310_GAIN_16_FN;		break;
-	default:						gName = "";						break;
-
+		default:					gName = "";						break;
 	}
 
-	switch(wavetableSize)
-	{
-		case 80:	wtName = LUX1310_WAVETABLE_80_FN; break;
-		case 39:	wtName = LUX1310_WAVETABLE_39_FN; break;
-		case 30:	wtName = LUX1310_WAVETABLE_30_FN; break;
-		case 25:	wtName = LUX1310_WAVETABLE_25_FN; break;
-		case 20:	wtName = LUX1310_WAVETABLE_20_FN; break;
-		default:	wtName = "";					  break;
-	}
-
+	snprintf(wtName, sizeof(wtName), "WT%d", wavetableSize);
 	return std::string(filename) + "_" + gName + "_" + wtName + extension;
 }
 

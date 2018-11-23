@@ -87,6 +87,7 @@ SOURCES += main.cpp\
     camtextedit.cpp \
     camdoublespinbox.cpp \
     lux1310.cpp \
+    lux1310wt.cpp \
     utilwindow.cpp \
     statuswindow.cpp \
     eeprom.c \
