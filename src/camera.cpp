@@ -882,8 +882,13 @@ void Camera::computeFPNCorrection(FrameGeometry *geometry, UInt32 wordAddress, U
 	/* Read frames out of the recorded region and sum their pixels. */
 	for(int frame = 0; frame < framesToAverage; frame++) {
 		readAcqMem((UInt32 *)pixBuffer, wordAddress, geometry->size());
-		for(int i = 0; i < pixelsPerFrame; i++) {
-			fpnBuffer[i] += readPixelBuf12(pixBuffer, i);
+		for(int row = 0; row < geometry->vRes; row++) {
+			for(int col = 0; col < geometry->hRes; col++) {
+				int i = row * geometry->hRes + col;
+				UInt16 pix = readPixelBuf12(pixBuffer, i);
+				UInt16 colfpn = gpmc->read16(COL_OFFSET_MEM_START_ADDR + (col * 2));
+				fpnBuffer[i] += (pix > colfpn) ? pix - colfpn : 0;
+			}
 		}
 
 		/* Advance to the next frame. */
@@ -1032,7 +1037,7 @@ Int32 Camera::loadFPNFromFile(void)
 	fn = sensor->getFilename("", ".raw");
 	filename.append(fn.c_str());
 	QFileInfo fpnResFile(filename);
-	if (fpnResFile.exists() && fpnResFile.isFile()) 
+	if (fpnResFile.exists() && fpnResFile.isFile())
 		fn = fpnResFile.absoluteFilePath().toLocal8Bit().constData();
 	else {
 		qDebug("loadFPNFromFile: File not found %s", filename.toLocal8Bit().constData());
@@ -1585,48 +1590,77 @@ UInt32 Camera::adcOffsetCorrection(UInt32 iterations, bool writeToFile)
 	return SUCCESS;
 }
 
-void Camera::offsetCorrectionIteration(FrameGeometry *geometry, UInt32 wordAddress)
+void Camera::offsetCorrectionIteration(FrameGeometry *geometry, UInt32 wordAddress, UInt32 framesToAverage)
 {
+	UInt32 numRows = geometry->vDarkRows ? geometry->vDarkRows : 1;
 	UInt32 rowSize = (geometry->hRes * BITS_PER_PIXEL) / 8;
-	UInt32 adcMinVal[LUX1310_HRES_INCREMENT];
+	UInt32 samples = (numRows * framesToAverage * geometry->hRes / LUX1310_HRES_INCREMENT);
+	UInt32 adcAverage[LUX1310_HRES_INCREMENT];
+	UInt32 adcStdDev[LUX1310_HRES_INCREMENT];
 
-	UInt32 *pxbuffer = (UInt32 *)malloc(rowSize);
+	UInt32 *pxbuffer = (UInt32 *)malloc(rowSize * numRows * framesToAverage);
 	Int16 *offsets = sensor->offsetsA;
-	readAcqMem(pxbuffer, wordAddress, rowSize);
 
-	//Set to max value prior to finding the minimum
 	for(int i = 0; i < LUX1310_HRES_INCREMENT; i++) {
-		adcMinVal[i] = (1 << BITS_PER_PIXEL);
+		adcAverage[i] = 0;
+		adcStdDev[i] = 0;
 	}
-	for(int i = 0; i < geometry->hRes; i++) {
-		UInt16 pix = readPixelBuf12((UInt8 *)pxbuffer, i);
-		adcMinVal[i % LUX1310_HRES_INCREMENT] = min(pix, adcMinVal[i % LUX1310_HRES_INCREMENT]);
+	/* Read out the black regions from all frames. */
+	for (int i = 0; i < framesToAverage; i++) {
+		UInt32 *rowbuffer = pxbuffer + (rowSize * numRows * i) / sizeof(UInt32);
+		readAcqMem(rowbuffer, wordAddress, rowSize * numRows);
+		wordAddress += getFrameSizeWords(geometry);
+	}
+
+	/* Find the per-ADC averages and standard deviation */
+	for (int row = 0; row < (numRows * framesToAverage); row++) {
+		for (int col = 0; col < geometry->hRes; col++) {
+			adcAverage[col % LUX1310_HRES_INCREMENT] += readPixelBuf12((UInt8 *)pxbuffer, row * geometry->hRes + col);
+		}
+	}
+	for (int row = 0; row < (numRows * framesToAverage); row++) {
+		for (int col = 0; col < geometry->hRes; col++) {
+			UInt16 pix = readPixelBuf12((UInt8 *)pxbuffer, row * geometry->hRes + col);
+			UInt16 avg = adcAverage[col % LUX1310_HRES_INCREMENT] / samples;
+			adcStdDev[col % LUX1310_HRES_INCREMENT] += (pix - avg) * (pix - avg);
+		}
+	}
+	for(int col = 0; col < LUX1310_HRES_INCREMENT; col++) {
+		adcStdDev[col] = sqrt(adcStdDev[col % LUX1310_HRES_INCREMENT] / (samples - 1));
+		adcAverage[col] /= samples;
 	}
 	free(pxbuffer);
 
-	for(int i = 0; i < LUX1310_HRES_INCREMENT; i++) {
-		offsets[i] = offsets[i] - (adcMinVal[i]-30)/2;
-		offsets[i] = within(offsets[i], -1023, 1023);
-		sensor->setADCOffset(i, offsets[i]);
+	/* Train the ADC for a target of: Average = 30 + StandardDeviation */
+	for(int col = 0; col < LUX1310_HRES_INCREMENT; col++) {
+		UInt16 avg = adcAverage[col % LUX1310_HRES_INCREMENT];
+		UInt16 dev = adcStdDev[col % LUX1310_HRES_INCREMENT];
+
+		offsets[col] = offsets[col] - (avg - dev - 30) / 2;
+		offsets[col] = within(offsets[col], -1023, 1023);
+		sensor->setADCOffset(col, offsets[col]);
 	}
 }
 
-void Camera::computeFPNColumns(FrameGeometry *geometry, UInt32 wordAddress)
+void Camera::computeFPNColumns(FrameGeometry *geometry, UInt32 wordAddress, UInt32 framesToAverage)
 {
 	UInt32 rowSize = (geometry->hRes * BITS_PER_PIXEL) / 8;
 	UInt32 *pxBuffer = (UInt32 *)malloc(rowSize * geometry->vDarkRows);
 	UInt32 *fpnColumns = (UInt32 *)calloc(geometry->hRes, sizeof(UInt32));
 
 	/* Read and sum the dark columns */
-	readAcqMem(pxBuffer, wordAddress, rowSize * geometry->vDarkRows);
-	for (int row = 0; row < geometry->vDarkRows; row++) {
-		for(int i = 0; i < geometry->hRes; i++) {
-			fpnColumns[i] += readPixelBuf12((UInt8 *)pxBuffer, row * geometry->hRes + i);
+	for (int i = 0; i < framesToAverage; i++) {
+		readAcqMem(pxBuffer, wordAddress, rowSize * geometry->vDarkRows);
+		for (int row = 0; row < geometry->vDarkRows; row++) {
+			for(int col = 0; col < geometry->hRes; col++) {
+				fpnColumns[col] += readPixelBuf12((UInt8 *)pxBuffer, row * geometry->hRes + col);
+			}
 		}
+		wordAddress += getFrameSizeWords(geometry);
 	}
 	/* Write the average value for each column */
 	for (int col = 0; col < geometry->hRes; col++) {
-		gpmc->write16(COL_OFFSET_MEM_START_ADDR + (2*col), fpnColumns[col] / geometry->vDarkRows);
+		gpmc->write16(COL_OFFSET_MEM_START_ADDR + (2 * col), fpnColumns[col] / (geometry->vDarkRows * framesToAverage));
 	}
 	free(pxBuffer);
 	free(fpnColumns);
@@ -1642,7 +1676,7 @@ Int32 Camera::liveAdcOffsetCalibration(unsigned int iterations)
 	/* Swap the black rows into the top of the frame. */
 	memcpy(&isDark, &isPrev, sizeof(isDark));
 	if (!isDark.geometry.vDarkRows) {
-		isDark.geometry.vDarkRows = LUX1310_MAX_V_DARK;
+		isDark.geometry.vDarkRows = LUX1310_MAX_V_DARK / 2;
 		isDark.geometry.vRes -= isDark.geometry.vDarkRows;
 		isDark.geometry.vOffset += isDark.geometry.vDarkRows;
 	}
@@ -1669,7 +1703,7 @@ Int32 Camera::liveAdcOffsetCalibration(unsigned int iterations)
 	ui->setRecLEDFront(true);
 	ui->setRecLEDBack(true);
 
-	/* Compute the life display worst-case frame refresh time. */
+	/* Compute the live display worst-case frame refresh time. */
 	tRefresh.tv_sec = 0;
 	tRefresh.tv_nsec = (CAL_REGION_FRAMES+1) * isDark.period * 10;
 
@@ -1681,10 +1715,15 @@ Int32 Camera::liveAdcOffsetCalibration(unsigned int iterations)
 	/* Tune the ADC offset calibration. */
 	for (int i = 0; i < iterations; i++) {
 		nanosleep(&tRefresh, NULL);
-		offsetCorrectionIteration(&isDark.geometry, CAL_REGION_START);
+		offsetCorrectionIteration(&isDark.geometry, CAL_REGION_START, CAL_REGION_FRAMES);
 	}
+
+	/* Disabled for now, does not seem to produce a good cal. */
+#if 0
 	/* And update the FPN column calibration while we're at it. */
-	computeFPNColumns(&isDark.geometry, CAL_REGION_START);
+	nanosleep(&tRefresh, NULL);
+	computeFPNColumns(&isDark.geometry, CAL_REGION_START, CAL_REGION_FRAMES);
+#endif
 
 	terminateRecord();
 	ui->setRecLEDFront(false);

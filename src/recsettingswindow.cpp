@@ -186,14 +186,13 @@ RecSettingsWindow::~RecSettingsWindow()
 
 FrameGeometry RecSettingsWindow::getResolution(void)
 {
-	FrameGeometry size = {
-		.hRes = ui->spinHRes->value(),
-		.vRes = ui->spinVRes->value(),
-		.hOffset = ui->spinHOffset->value(),
-		.vOffset = ui->spinVOffset->value(),
-		.vDarkRows = 0,
-		.bitDepth = BITS_PER_PIXEL,
-	};
+	FrameGeometry size;
+	size.hRes = ui->spinHRes->value();
+	size.vRes = ui->spinVRes->value();
+	size.hOffset = ui->spinHOffset->value();
+	size.vOffset = ui->spinVOffset->value();
+	size.vDarkRows = 0;
+	size.bitDepth = BITS_PER_PIXEL;
 	return size;
 }
 
@@ -205,14 +204,14 @@ void RecSettingsWindow::on_cmdOK_clicked()
 	double framePeriod = camera->sensor->getActualFramePeriod(ui->linePeriod->siText(), &is->geometry);
 	double exp = camera->sensor->getActualIntegrationTime(ui->lineExp->siText(), framePeriod, &is->geometry);
 
-    is->period = framePeriod * 100000000.0;
-    is->exposure = exp * 100000000.0 - 20;
-    is->temporary = 0;
+	is->period = framePeriod * 100000000.0;
+	is->exposure = exp * 100000000.0 - 20;
+	is->temporary = 0;
 
-    camera->updateTriggerValues(*is);
+	camera->updateTriggerValues(*is);
 
-    camera->setImagerSettings(*is);
-    camera->setDisplaySettings(false, MAX_LIVE_FRAMERATE);
+	camera->setImagerSettings(*is);
+	camera->setDisplaySettings(false, MAX_LIVE_FRAMERATE);
 	camera->liveAdcOffsetCalibration();
 
 	if(CAMERA_FILE_NOT_FOUND == camera->loadFPNFromFile()) {
