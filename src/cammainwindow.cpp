@@ -34,6 +34,7 @@
 #include "ui_cammainwindow.h"
 #include "util.h"
 #include "whitebalancedialog.h"
+#include "lux1310.h"
 
 extern "C" {
 #include "siText.h"
@@ -42,7 +43,7 @@ extern "C" {
 #define DEF_SI_OPTS	SI_DELIM_SPACE | SI_SPACE_BEFORE_PREFIX
 
 GPMC * gpmc;
-LUX1310 * sensor;
+LUX2100 * sensor;
 Camera * camera;
 Video * vinst;
 UserInterface * userInterface;
@@ -60,7 +61,7 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	gpmc = new GPMC();
 	camera = new Camera();
 	vinst = new Video();
-	sensor = new LUX1310();
+    sensor = new LUX2100();
 	userInterface = new UserInterface();
 
 	battCapacityPercent = 0;

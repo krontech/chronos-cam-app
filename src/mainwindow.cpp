@@ -242,7 +242,7 @@ void MainWindow::on_cmdRam_clicked()
 		{
 			for(int x = 0; x < 1280; x++)
 			{
-				writePixel12(x+y*1280, 0, 2048);//(x == 0 || y == 0 || x == 1279 || y == 1023 || x == y) ? 0xFFF : 0);
+                writePixel12(x+y*1280, 0, (x == 0 || y == 0 || x == 1279 || y == 1023 || x == y) ? 0xFFF : 0);
 			}
 //			qDebug() << "line" << y;
 		}

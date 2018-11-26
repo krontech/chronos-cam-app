@@ -26,7 +26,8 @@
 #include "gpmc.h"
 #include "video.h"
 //#include "lupa1300.h"
-#include "lux1310.h"
+//#include "lux1310.h"
+#include "lux2100.h"
 #include "userInterface.h"
 #include "io.h"
 #include "string.h"
@@ -34,7 +35,7 @@
 
 #define RECORD_DATA_LENGTH		2048		//Number of record data entries for the record sequencer data
 #define FPN_ADDRESS				0x0
-#define MAX_FRAME_LENGTH		0xF000
+#define MAX_FRAME_LENGTH		0x17BC0
 #define	LIVE_FRAME_0_ADDRESS	MAX_FRAME_LENGTH
 #define	LIVE_FRAME_1_ADDRESS	(MAX_FRAME_LENGTH*2)
 #define	LIVE_FRAME_2_ADDRESS	(MAX_FRAME_LENGTH*3)
@@ -44,10 +45,10 @@
 #define RECORD_LENGTH_MIN       1           //Minimum number of frames in the record region
 #define SEGMENT_COUNT_MAX       (32*1024)   //Maximum number of record segments in segmented mode
 
-#define MAX_FRAME_SIZE_H		1280
-#define MAX_FRAME_SIZE_V		1024
+#define MAX_FRAME_SIZE_H		1952
+#define MAX_FRAME_SIZE_V		1080
 #define MAX_FRAME_SIZE          (MAX_FRAME_SIZE_H * MAX_FRAME_SIZE_V * 8 / 12)
-#define MAX_STRIDE				1280
+#define MAX_STRIDE				1920
 #define BITS_PER_PIXEL			12
 #define BYTES_PER_WORD			32
 
@@ -173,7 +174,7 @@ class Camera
 public:
 	Camera();
 	~Camera();
-	CameraErrortype init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * sensorInst, UserInterface * userInterface, UInt32 ramSizeVal, bool color);
+    CameraErrortype init(GPMC * gpmcInst, Video * vinstInst, LUX2100 * sensorInst, UserInterface * userInterface, UInt32 ramSizeVal, bool color);
 	Int32 startRecording(void);
 	Int32 setRecSequencerModeNormal();
 	Int32 setRecSequencerModeGatedBurst(UInt32 prerecord = 0);
@@ -184,7 +185,7 @@ public:
 	void * endOfRecCallbackArg;
 	GPMC * gpmc;
 	Video * vinst;
-	LUX1310 * sensor;
+    LUX2100 * sensor;
 	UserInterface * ui;
 	IO * io;
 
@@ -263,7 +264,7 @@ private:
 	void startSequencer(void);
 	void terminateRecord(void);
 	void writeSeqPgmMem(SeqPgmMemWord pgmWord, UInt32 address);
-	void setFrameSizeWords(UInt16 frameSize);
+    void setFrameSizeWords(UInt32 frameSize);
 	void setRecRegionStartWords(UInt32 start);
 	void setRecRegionEndWords(UInt32 end);
 public:

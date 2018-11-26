@@ -33,6 +33,7 @@
 #include "util.h"
 #include "types.h"
 #include "lux1310.h"
+#include "lux2100.h"
 #include "ecp5Config.h"
 #include "defines.h"
 #include <QWSDisplay>
@@ -66,7 +67,7 @@ Camera::~Camera()
 	pthread_join(recDataThreadID, NULL);
 }
 
-CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * sensorInst, UserInterface * userInterface, UInt32 ramSizeVal, bool color)
+CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX2100 * sensorInst, UserInterface * userInterface, UInt32 ramSizeVal, bool color)
 {
 	//int FRAME_SIZE = 1280*1024*12/8;
 	CameraErrortype retVal;
@@ -74,11 +75,11 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 	QSettings appSettings;
 
 	//Get the memory size
-	retVal = (CameraErrortype)getRamSizeGB(&ramSizeGBSlot0, &ramSizeGBSlot1);
+    retVal = (CameraErrortype)getRamSizeGB(&ramSizeGBSlot0, &ramSizeGBSlot1);
 
-	if(retVal != SUCCESS)
-		return retVal;
-
+//	if(retVal != SUCCESS)
+//		return retVal;
+/*
 	//Configure FPGA
 	Ecp5Config * config;
 	const char * configFileName;
@@ -97,7 +98,7 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 
 	if(retVal != SUCCESS)
 		return retVal;
-
+*/
 
 	//Read serial number in
 	retVal = (CameraErrortype)readSerialNumber(serialNumber);
@@ -109,8 +110,11 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 	sensor = sensorInst;
 	ui = userInterface;
 	ramSize = (ramSizeGBSlot0 + ramSizeGBSlot1)*1024/32*1024*1024;
-	isColor = readIsColor();
+    isColor = false;//readIsColor();
 	int err;
+
+
+    //retVal = sensor->init(gpmc);
 
 	//dummy read
 	if(getRecording())
@@ -129,12 +133,19 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 		delayms(200);
 	}
 
+    int fpgaVersion = getFPGAVersion();
+    qDebug() << "FPGA version is" << fpgaVersion;
+
+    gpmc->write16(CCM_11_ADDR, 0x0FFF);
+
+    qDebug() << "CCM Reads as:" << gpmc->read16(CCM_11_ADDR);
+
 	if(ACCEPTABLE_FPGA_VERSION != getFPGAVersion())
 	{
-		return CAMERA_WRONG_FPGA_VERSION;
+        return CAMERA_WRONG_FPGA_VERSION;
 	}
 
-	setLiveOutputTiming(1296, 1024, 1280, 1024, MAX_LIVE_FRAMERATE);
+    setLiveOutputTiming(1920, 1080, 1920, 1080, MAX_LIVE_FRAMERATE);
 
 	gpmc->write16(IMAGE_SENSOR_FIFO_START_W_THRESH_ADDR, 0x0100);
 	gpmc->write16(IMAGE_SENSOR_FIFO_STOP_W_THRESH_ADDR, 0x0100);
@@ -258,6 +269,12 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
     settings.segments               = appSettings.value("camera/segments", 1).toInt();
     settings.temporary              = 0;
 
+    //Test
+    settings.hRes = 1280;
+    settings.vRes = 1024;
+    settings.stride = 1280;
+    settings.period = sensor->getMinFramePeriod(settings.hRes, settings.vRes)+10000;//100000000/100;
+
 	setImagerSettings(settings);
     setDisplaySettings(false, MAX_LIVE_FRAMERATE);
 
@@ -292,8 +309,8 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 
 	maxPostFramesRatio = 1;
 
-	if(CAMERA_FILE_NOT_FOUND == loadFPNFromFile())
-		autoFPNCorrection(2, false, true);
+//	if(CAMERA_FILE_NOT_FOUND == loadFPNFromFile())
+//		autoFPNCorrection(2, false, true);
 	/*
 	//If the FPN file exists, read it in
 	if( access( "fpn.raw", R_OK ) != -1 )
