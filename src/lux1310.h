@@ -103,6 +103,7 @@ typedef struct {
 	unsigned int length;
 	unsigned int abnDelay;
 	const UInt8 *wavetab;
+	const UInt8 *gaincal;
 } lux1310wavetab_t;
 
 /* Array of wavetables, sorted longest first, and terminated with a NULL */
@@ -153,8 +154,7 @@ public:
 	bool SCIWrite(UInt8 address, UInt16 data, bool readback = false);
 	void SCIWriteBuf(UInt8 address, const UInt8 * data, UInt32 dataLen);
 	UInt16 SCIRead(UInt8 address);
-	void setWavetable(const lux1310wavetab_t *wt);
-	void updateWavetableSetting();
+	void updateWavetableSetting(bool gainCalMode = false);
 	void setADCOffset(UInt8 channel, Int16 offset);
 	Int16 getADCOffset(UInt8 channel);
 	Int32 loadADCOffsetsFromFile(void);
