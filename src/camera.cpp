@@ -1568,15 +1568,18 @@ void Camera::computeFPNColumns(FrameGeometry *geometry, UInt32 wordAddress, UInt
 void Camera::computeGainColumns(FrameGeometry *geometry, UInt32 wordAddress, const struct timespec *interval)
 {
 	UInt32 numRows = 64;
+	UInt32 scale = numRows * geometry->hRes / LUX1310_HRES_INCREMENT;
 	UInt32 pixFullScale = (1 << BITS_PER_PIXEL);
 	UInt32 rowStart = ((geometry->vRes - numRows) / 2) & ~0x1f;
 	UInt32 rowSize = (geometry->hRes * BITS_PER_PIXEL) / 8;
 	UInt32 *pxBuffer = (UInt32 *)malloc(numRows * rowSize);
 	UInt32 highColumns[LUX1310_HRES_INCREMENT] = {0};
+	UInt32 midColumns[LUX1310_HRES_INCREMENT] = {0};
 	UInt32 lowColumns[LUX1310_HRES_INCREMENT] = {0};
+	UInt16 colGain[LUX1310_HRES_INCREMENT];
+	Int16 colCurve[LUX1310_HRES_INCREMENT];
 	UInt32 maxColumn, minColumn;
-	unsigned int vhigh = 8;
-	unsigned int vlow = 0;
+	unsigned int vhigh, vlow, vmid;
 
 	/* Sample rows from somewhere around the middle of the frame. */
 	wordAddress += (rowSize * rowStart) / BYTES_PER_WORD;
@@ -1598,7 +1601,7 @@ void Camera::computeGainColumns(FrameGeometry *geometry, UInt32 wordAddress, con
 		for (int col = 0; col < LUX1310_HRES_INCREMENT; col++) {
 			if (highColumns[col] > maxColumn) maxColumn = highColumns[col];
 		}
-		maxColumn /= (numRows * geometry->hRes / LUX1310_HRES_INCREMENT);
+		maxColumn /= scale;
 
 		/* High voltage should be less than 7/8 of full scale */
 		if (maxColumn <= (pixFullScale - (pixFullScale / 8))) {
@@ -1623,34 +1626,100 @@ void Camera::computeGainColumns(FrameGeometry *geometry, UInt32 wordAddress, con
 		for (int col = 0; col < LUX1310_HRES_INCREMENT; col++) {
 			if (lowColumns[col] < minColumn) minColumn = lowColumns[col];
 		}
-		minColumn /= (numRows * geometry->hRes / LUX1310_HRES_INCREMENT);
+		minColumn /= scale;
 
 		/* Low voltage should be greater than 1/8th of full scale. */
 		if (minColumn >= (pixFullScale / 8)) {
 			break;
 		}
 	}
+
+	/* Sample the midpoint, which should be around quarter scale. */
+	vmid = (vhigh + 3*vlow) / 4;
+	sensor->SCIWrite(0x63, 0xC008 | (vmid << 5));
+	nanosleep(interval, NULL);
+	fprintf(stderr, "ADC Calibration voltages: vlow=%d vmid=%d vhigh=%d\n", vlow, vmid, vhigh);
+
+	/* Get the average pixel value. */
+	readAcqMem(pxBuffer, wordAddress, rowSize * numRows);
+	memset(midColumns, 0, sizeof(midColumns));
+	for (int row = 0; row < numRows; row++) {
+		for(int col = 0; col < geometry->hRes; col++) {
+			midColumns[col % LUX1310_HRES_INCREMENT] += readPixelBuf12((UInt8 *)pxBuffer, row * geometry->hRes + col);
+		}
+	}
 	free(pxBuffer);
 
-	/* Apply per-ADC gain correction. */
+	/* Determine which column has the highest gain. */
 	maxColumn = 0;
 	for (int col = 0; col < LUX1310_HRES_INCREMENT; col++) {
 		UInt32 diff = highColumns[col] - lowColumns[col];
 		if (diff > maxColumn) maxColumn = diff;
 	}
-	/* If the ADC Gain calibration couldn't get a large enough delta, then load default gains. */
 	if (maxColumn < (pixFullScale / 8)) {
 		qWarning("Warning! ADC Auto calibration range error.");
 		for (int col = 0; col < geometry->hRes; col++) {\
 			gpmc->write16(COL_GAIN_MEM_START_ADDR + (2 * col) - 2, 4096);
 		}
+		return;
 	}
-	else {
-		for (int col = 0; col < geometry->hRes; col++) {
-			UInt32 diff = highColumns[col % LUX1310_HRES_INCREMENT] - lowColumns[col % LUX1310_HRES_INCREMENT];
-			if (!diff) diff = maxColumn; /* Use the default in case of divide by zero. */
-			gpmc->write16(COL_GAIN_MEM_START_ADDR + (2 * col) - 2, (4096ULL * maxColumn) / diff);
-		}
+
+	/* Compute the 3-point gain calibration coefficients. */
+	for (int col = 0; col < LUX1310_HRES_INCREMENT; col++) {
+		/* Compute the 2-point calibration coefficients. */
+		UInt32 diff = highColumns[col] - lowColumns[col];
+		UInt32 gain2pt = ((unsigned long long)maxColumn << COL_GAIN_FRAC_BITS) / diff;
+
+		/* Predict the ADC to be linear with dummy voltage and find the error. */
+		UInt32 predict = lowColumns[col] + (diff * (vmid - vlow)) / (vhigh - vlow);
+		Int32 err2pt = (int)(midColumns[col] - predict);
+
+		/*
+		 * Add a parabola to compensate for the curvature. This parabola should have
+		 * zeros at the high and low measurement points, and a curvature to compensate
+		 * for the error at the middle range. Such a parabola is therefore defined by:
+		 *
+		 *	f(X) = a*(X - Xlow)*(X - Xhigh), and
+		 *  f(Xmid) = -error
+		 *
+		 * Solving for the curvature gives:
+		 *
+		 *  a = error / ((Xmid - Xlow) * (Xhigh - Xmid))
+		 *
+		 * The resulting 3-point calibration function is therefore:
+		 *
+		 *  Y = a*X^2 + (b - a*Xhigh - a*Xlow)*X + c
+		 *  a = three-point curvature correction.
+		 *  b = two-point gain correction.
+		 *  c = some constant (black level).
+		 */
+#if 0
+		/* Compute the 3-point calibration coefficients (across the full sensor range) */
+		UInt32 pixMidScale = (pixFullScale * (vmid - vlow)) / (vhigh - vlow);
+		double curve3pt = (double)(err2pt / scale) / (double)(pixMidScale * (pixFullScale - pixMidScale));
+		UInt32 gain3pt = gain2pt - (4096.0 * curve3pt) * pixFullScale;
+#else
+		/* Compute the 3-point calibration coefficients (across the sampled range). */
+		Int64 divisor = (UInt64)(midColumns[col] - lowColumns[col]) * (UInt64)(highColumns[col] - midColumns[col]) / scale;
+		colCurve[col] = ((Int64)err2pt << COL_CURVE_FRAC_BITS) / divisor;
+		colGain[col] = gain2pt - (colCurve[col] * (highColumns[col] + lowColumns[col])) / (scale << (COL_CURVE_FRAC_BITS - COL_GAIN_FRAC_BITS));
+#endif
+
+		fprintf(stderr, "ADC Column %d 3-point values: 0x%03x, 0x%03x, 0x%03x\n",
+						col, lowColumns[col], midColumns[col], highColumns[col]);
+		fprintf(stderr, "ADC Column %d 2-point cal: gain2pt=%f predict=0x%03x err2pt=%d\n", col,
+						(double)gain2pt / (1 << COL_GAIN_FRAC_BITS), predict, err2pt);
+		fprintf(stderr, "ADC Column %d 3-point cal: gain3pt=%f curve3pt=%.9f\n", col,
+						(double)colGain[col] / (1 << COL_GAIN_FRAC_BITS),
+						(double)colCurve[col] / (1 << COL_CURVE_FRAC_BITS));
+	}
+
+	/* Load the column gains */
+	for (int col = 0; col < geometry->hRes; col++) {
+		UInt32 diff = highColumns[col % LUX1310_HRES_INCREMENT] - lowColumns[col % LUX1310_HRES_INCREMENT];
+		if (!diff) diff = maxColumn; /* Use the default in case of divide by zero. */
+		gpmc->write16(COL_GAIN_MEM_START_ADDR + (2 * col) - 2, ((unsigned long long)maxColumn << COL_GAIN_FRAC_BITS) / diff);
+		//gpmc->write16(COL_GAIN_MEM_START_ADDR + (2 * col), ((unsigned long long)maxColumn << COL_GAIN_FRAC_BITS) / diff);
 	}
 }
 
