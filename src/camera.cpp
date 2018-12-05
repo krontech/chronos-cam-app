@@ -1581,6 +1581,7 @@ void Camera::computeGainColumns(FrameGeometry *geometry, UInt32 wordAddress, con
 	UInt32 lowColumns[LUX1310_HRES_INCREMENT] = {0};
 	UInt16 colGain[LUX1310_HRES_INCREMENT];
 	Int16 colCurve[LUX1310_HRES_INCREMENT];
+	int col;
 	UInt32 maxColumn, minColumn;
 	unsigned int vhigh, vlow, vmid;
 
@@ -1601,13 +1602,13 @@ void Camera::computeGainColumns(FrameGeometry *geometry, UInt32 wordAddress, con
 			}
 		}
 		maxColumn = 0;
-		for (int col = 0; col < LUX1310_HRES_INCREMENT; col++) {
+		for (col = 0; col < LUX1310_HRES_INCREMENT; col++) {
 			if (highColumns[col] > maxColumn) maxColumn = highColumns[col];
 		}
 		maxColumn /= scale;
 
-		/* High voltage should be less than 7/8 of full scale */
-		if (maxColumn <= (pixFullScale - (pixFullScale / 8))) {
+		/* High voltage should be less than 3/4 of full scale */
+		if (maxColumn <= (pixFullScale - (pixFullScale / 4))) {
 			break;
 		}
 	}
@@ -1621,18 +1622,18 @@ void Camera::computeGainColumns(FrameGeometry *geometry, UInt32 wordAddress, con
 		readAcqMem(pxBuffer, wordAddress, rowSize * numRows);
 		memset(lowColumns, 0, sizeof(lowColumns));
 		for (int row = 0; row < numRows; row++) {
-			for(int col = 0; col < geometry->hRes; col++) {
+			for(col = 0; col < geometry->hRes; col++) {
 				lowColumns[col % LUX1310_HRES_INCREMENT] += readPixelBuf12((UInt8 *)pxBuffer, row * geometry->hRes + col);
 			}
 		}
 		minColumn = UINT32_MAX;
-		for (int col = 0; col < LUX1310_HRES_INCREMENT; col++) {
+		for (col = 0; col < LUX1310_HRES_INCREMENT; col++) {
 			if (lowColumns[col] < minColumn) minColumn = lowColumns[col];
 		}
 		minColumn /= scale;
 
-		/* Low voltage should be greater than 1/8th of full scale. */
-		if (minColumn >= (pixFullScale / 8)) {
+		/* Find the minimum voltage that does not clip. */
+		if (minColumn >= 30) { /* ADC Offset training target. */
 			break;
 		}
 	}
@@ -1653,16 +1654,20 @@ void Camera::computeGainColumns(FrameGeometry *geometry, UInt32 wordAddress, con
 	}
 	free(pxBuffer);
 
-	/* Determine which column has the highest gain. */
+	/* Determine which column has the highest response, and sanity check the gain measurements. */
 	maxColumn = 0;
-	for (int col = 0; col < LUX1310_HRES_INCREMENT; col++) {
+	for (col = 0; col < LUX1310_HRES_INCREMENT; col++) {
+		UInt32 minrange = (pixFullScale * scale / 16);
 		UInt32 diff = highColumns[col] - lowColumns[col];
+		if (highColumns[col] <= (midColumns[col] + minrange)) break;
+		if (midColumns[col] <= (lowColumns[col] + minrange)) break;
 		if (diff > maxColumn) maxColumn = diff;
 	}
-	if (maxColumn < (pixFullScale / 8)) {
+	if (col != LUX1310_HRES_INCREMENT) {
 		qWarning("Warning! ADC Auto calibration range error.");
 		for (int col = 0; col < geometry->hRes; col++) {\
-			gpmc->write16(COL_GAIN_MEM_START_ADDR + (2 * col) - 2, 4096);
+			gpmc->write16(COL_GAIN_MEM_START_ADDR + (2 * col), (1 << COL_GAIN_FRAC_BITS));
+			gpmc->write16(COL_CURVE_MEM_START_ADDR + (2 * col), 0);
 		}
 		return;
 	}
@@ -1672,7 +1677,7 @@ void Camera::computeGainColumns(FrameGeometry *geometry, UInt32 wordAddress, con
 		/* Compute the 2-point calibration coefficients. */
 		UInt32 diff = highColumns[col] - lowColumns[col];
 		UInt32 gain2pt = ((unsigned long long)maxColumn << COL_GAIN_FRAC_BITS) / diff;
-
+#if 1
 		/* Predict the ADC to be linear with dummy voltage and find the error. */
 		UInt32 predict = lowColumns[col] + (diff * (vmid - vlow)) / (vhigh - vlow);
 		Int32 err2pt = (int)(midColumns[col] - predict);
@@ -1696,18 +1701,13 @@ void Camera::computeGainColumns(FrameGeometry *geometry, UInt32 wordAddress, con
 		 *  b = two-point gain correction.
 		 *  c = some constant (black level).
 		 */
-#if 0
-		/* Compute the 3-point calibration coefficients (across the full sensor range) */
-		UInt32 pixMidScale = (pixFullScale * (vmid - vlow)) / (vhigh - vlow);
-		double curve3pt = (double)(err2pt / scale) / (double)(pixMidScale * (pixFullScale - pixMidScale));
-		UInt32 gain3pt = gain2pt - (4096.0 * curve3pt) * pixFullScale;
-#else
-		/* Compute the 3-point calibration coefficients (across the sampled range). */
 		Int64 divisor = (UInt64)(midColumns[col] - lowColumns[col]) * (UInt64)(highColumns[col] - midColumns[col]) / scale;
-		colCurve[col] = ((Int64)err2pt << COL_CURVE_FRAC_BITS) / divisor;
-		colGain[col] = gain2pt - (colCurve[col] * (highColumns[col] + lowColumns[col])) / (scale << (COL_CURVE_FRAC_BITS - COL_GAIN_FRAC_BITS));
-#endif
+		Int32 curve3pt = ((Int64)err2pt << COL_CURVE_FRAC_BITS) / divisor;
+		Int32 gainadj = ((Int64)curve3pt * (highColumns[col] + lowColumns[col])) / scale;
+		colGain[col] = gain2pt - (gainadj >> (COL_CURVE_FRAC_BITS - COL_GAIN_FRAC_BITS));
+		colCurve[col] = curve3pt;
 
+#if 0
 		fprintf(stderr, "ADC Column %d 3-point values: 0x%03x, 0x%03x, 0x%03x\n",
 						col, lowColumns[col], midColumns[col], highColumns[col]);
 		fprintf(stderr, "ADC Column %d 2-point cal: gain2pt=%f predict=0x%03x err2pt=%d\n", col,
@@ -1715,14 +1715,19 @@ void Camera::computeGainColumns(FrameGeometry *geometry, UInt32 wordAddress, con
 		fprintf(stderr, "ADC Column %d 3-point cal: gain3pt=%f curve3pt=%.9f\n", col,
 						(double)colGain[col] / (1 << COL_GAIN_FRAC_BITS),
 						(double)colCurve[col] / (1 << COL_CURVE_FRAC_BITS));
+		fprintf(stderr, "ADC Column %d 3-point registers: gainadj=%d gain=0x%04x curve=0x%04x\n", col, gainadj, colGain[col], (unsigned)colCurve[col] & 0xffff);
+#endif
+#else
+		/* Apply 2-point calibration */
+		colGain[col] = gain2pt;
+		colCurve[col] = 0;
+#endif
 	}
 
 	/* Load the column gains */
 	for (int col = 0; col < geometry->hRes; col++) {
-		UInt32 diff = highColumns[col % LUX1310_HRES_INCREMENT] - lowColumns[col % LUX1310_HRES_INCREMENT];
-		if (!diff) diff = maxColumn; /* Use the default in case of divide by zero. */
-		gpmc->write16(COL_GAIN_MEM_START_ADDR + (2 * col) - 2, ((unsigned long long)maxColumn << COL_GAIN_FRAC_BITS) / diff);
-		//gpmc->write16(COL_GAIN_MEM_START_ADDR + (2 * col), ((unsigned long long)maxColumn << COL_GAIN_FRAC_BITS) / diff);
+		gpmc->write16(COL_GAIN_MEM_START_ADDR + (2 * col), colGain[col % LUX1310_HRES_INCREMENT]);
+		gpmc->write16(COL_CURVE_MEM_START_ADDR + (2 * col), colCurve[col % LUX1310_HRES_INCREMENT]);
 	}
 }
 
