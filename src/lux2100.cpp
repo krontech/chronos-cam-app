@@ -108,6 +108,7 @@ UInt8 LUX2100_sram66Clk[414] = {0x80, 0x00, 0x00, 0x20, 0x08, 0xD0, 0x80, 0x08, 
 
 
 #define round(x) (floor(x + 0.5))
+//#define SCI_DEBUG_PRINTS
 
 LUX2100::LUX2100()
 {
@@ -237,6 +238,16 @@ CameraErrortype LUX2100::initSensor()
     //Load the wavetable
     SCIWriteBuf(0x7F, LUX2100_sram66Clk, 414 /*sizeof(sram80Clk)*/);
 
+    for(int i = 0; i < LUX2100_HRES_INCREMENT; i++)
+        setADCOffset(i, 0);
+
+    SCIWrite(0x04, 0x0001); // switch to datapath register space
+    SCIWrite(0x0E, 0x0001); // Enable application of ADC offsets during v blank
+    SCIWrite(0x04, 0x0000); // switch back to sensor register space
+
+    SCIWrite(0x04, 0x0000); // switch to sensor register space
+
+
     //Enable timing engine
     SCIWrite(0x01, 0x0011); // enable the internal timing engine
 
@@ -280,6 +291,7 @@ void LUX2100::SCIWrite(UInt8 address, UInt16 data)
 	while(gpmc->read16(SENSOR_SCI_CONTROL_ADDR) & SENSOR_SCI_CONTROL_RUN_MASK)
 		i++;
 
+#ifdef SCI_DEBUG_PRINTS
 	if(!first && i != 0)
 		qDebug() << "First busy was missed, address:" << address;
 	else if(i == 0)
@@ -290,6 +302,7 @@ void LUX2100::SCIWrite(UInt8 address, UInt16 data)
 	int readback3 = SCIRead(address);
 	if(data != readback)
 		qDebug() << "SCI readback wrong, address: " << address << " expected: " << data << " got: " << readback << readback2 << readback3;
+#endif
 }
 
 void LUX2100::SCIWriteBuf(UInt8 address, UInt8 * data, UInt32 dataLen)
@@ -329,11 +342,12 @@ UInt16 LUX2100::SCIRead(UInt8 address)
 	while(gpmc->read16(SENSOR_SCI_CONTROL_ADDR) & SENSOR_SCI_CONTROL_RUN_MASK)
 		i++;
 
+#ifdef SCI_DEBUG_PRINTS
 	if(!first && i != 0)
 		qDebug() << "Read First busy was missed, address:" << address;
 	else if(i == 0)
 		qDebug() << "Read No busy detected, something is probably very wrong, address:" << address;
-
+#endif
 
 	//Wait for completion
 //	while(gpmc->read16(SENSOR_SCI_CONTROL_ADDR) & SENSOR_SCI_CONTROL_RUN_MASK)
@@ -878,18 +892,31 @@ void LUX2100::updateWavetableSetting()
 	}
 }
 
+//Remaps data channels to ADC channel index
+const char adcChannelRemap[] = {0, 8, 16, 24, 4, 12,20, 28,  2,10, 18, 26,  6, 14, 22, 30, 1, 9,  17, 25, 5, 13, 21, 29, 3, 11, 19, 27, 7, 15, 23, 31};
 
 //Sets ADC offset for one channel
 //Converts the input 2s complement value to the sensors's weird sign bit plus value format (sort of like float, with +0 and -0)
 void LUX2100::setADCOffset(UInt8 channel, Int16 offset)
 {
+    UInt8 intChannel = adcChannelRemap[channel];
 	offsetsA[channel] = offset;
 
-    return;
+
+    SCIWrite(0x04, 0x0001); // switch to datapath register space
+
 	if(offset < 0)
-		SCIWrite(0x3a+channel, 0x400 | (-offset & 0x3FF));
+    {
+        SCIWrite(0x10 + (intChannel >= 16 ? 0x40 + intChannel - 16 : intChannel), (-offset & 0x3FF));
+        SCIWrite(0x0F + (intChannel >= 16 ? 0x40 : 0x0), SCIRead(0x0F + (intChannel >= 16 ? 0x40 : 0x0)) | (1 << (intChannel & 0xF)));
+    }
 	else
-		SCIWrite(0x3a+channel, offset);
+    {
+        SCIWrite(0x10 + (intChannel >= 16 ? 0x40 + intChannel - 16 : intChannel), offset & 0x3FF);
+        SCIWrite(0x0F + (intChannel >= 16 ? 0x40 : 0x0), SCIRead(0x0F + (intChannel >= 16 ? 0x40 : 0x0)) & ~(1 << (intChannel & 0xF)));
+    }
+
+    SCIWrite(0x04, 0x0000); // switch back to sensor register space
 
 }
 
@@ -905,6 +932,30 @@ Int16 LUX2100::getADCOffset(UInt8 channel)
 		return -(val & 0x3FF);
 	else
 		return val & 0x3FF;
+}
+
+
+//This doesn't seem to work. Sensor locks up
+Int32 LUX2100::doAutoADCOffsetCalibration(void)
+{
+    /*
+    SCIWrite(0x01, 0x0010); // disable the internal timing engine
+
+    //SCIWrite(0x2A, 0x89A); // Address of first dark row to read out (half way through dark rows)
+    //SCIWrite(0x2B, 1); // Readout 5 dark rows
+    delayms(10);
+    SCIWrite(0x01, 0x0011); // enable the internal timing engine
+    delayms(10);
+    */
+    SCIWrite(0x04, 0x0001); // switch to datapath register space
+    SCIWrite(0x0E, 0x0001); // Enable application of ADC offsets during v blank
+    SCIWrite(0x0D, 0x0020); // ADC offset target
+    SCIWrite(0x0A, 0x0001); // Start ADC Offset calibration
+    delayms(2000);
+    SCIWrite(0x04, 0x0000); // switch back to sensor register space
+
+    return SUCCESS;
+
 }
 
 Int32 LUX2100::loadADCOffsetsFromFile(void)

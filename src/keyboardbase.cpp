@@ -10,7 +10,7 @@ keyboardBase::keyboardBase(QWidget *parent) :
 
 keyboardBase::~keyboardBase()
 {
-	delete this;
+    //delete this;
 }
 
 void keyboardBase::show()
@@ -21,7 +21,7 @@ void keyboardBase::show()
 	QWidget::show();
 	//Moving after showing because window height isn't set until show()
 	this->move(0,QApplication::desktop()->screenGeometry().height() - height());
-	QTimer::singleShot(1, this, SLOT(selectAllInFocusedWidget()));
+    QTimer::singleShot(1, this, SLOT(selectAllInFocusedWidget()));
 }
 
 void keyboardBase::selectAllInFocusedWidget(){

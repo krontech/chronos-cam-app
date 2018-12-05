@@ -269,9 +269,9 @@ private:
 	void setRecRegionEndWords(UInt32 end);
 public:
 	void readAcqMem(UInt32 * buf, UInt32 offsetWords, UInt32 length);
-private:
 	void writeAcqMem(UInt32 * buf, UInt32 offsetWords, UInt32 length);
-	void writeDGCMem(double gain, UInt32 column);
+private:
+    void writeDGCMem(double gain, UInt32 column);
 	bool readIsColor(void);
 public:
 	bool getFocusPeakEnableLL(void);

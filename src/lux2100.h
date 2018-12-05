@@ -32,7 +32,7 @@
 #define LUX2100_MAGIC_ABN_DELAY	26
 
 #define LUX2100_TIMING_CLOCK_FREQ		100000000.0	//Hz
-#define LUX2100_SENSOR_CLOCK	40000000.0	//Hz
+#define LUX2100_SENSOR_CLOCK	75000000.0	//Hz
 
 
 #define LUX2100_MIN_INT_TIME	0.000001	//1us
@@ -116,7 +116,7 @@ enum {
 #define LUX2100_VERSION_1			1
 #define LUX2100_VERSION_2			2
 
-#define LUX2100_CLOCK_PERIOD	(1.0/40000000.0)
+#define LUX2100_CLOCK_PERIOD	(1.0/LUX2100_SENSOR_CLOCK)
 #define LUX2100_MIN_WAVETABLE_SIZE	66
 
 #define LUX2100_DAC_NOP_COMMAND     0x9000      //Write through mode is used as a NOP command since the DAC doesn't have NOP
@@ -176,6 +176,7 @@ public:
 	void updateWavetableSetting();
 	void setADCOffset(UInt8 channel, Int16 offset);
 	Int16 getADCOffset(UInt8 channel);
+    Int32 doAutoADCOffsetCalibration(void);
 	Int32 loadADCOffsetsFromFile(void);
 	Int32 saveADCOffsetsToFile(void);
 	std::string getFilename(const char * filename, const char * extension);

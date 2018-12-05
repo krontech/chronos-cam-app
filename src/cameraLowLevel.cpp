@@ -80,7 +80,13 @@ void Camera::setLiveOutputTiming(UInt32 hRes, UInt32 vRes, UInt32 hOutRes, UInt3
 	gpmc->write16(DISPLAY_V_PERIOD_ADDR, vPeriod - 1);
 	gpmc->write16(DISPLAY_V_SYNC_LEN_ADDR, vSync);
 	gpmc->write16(DISPLAY_V_BACK_PORCH_ADDR, vBackPorch);
-}
+
+    qDebug() << "--- Video --- Timings set to:";
+    qDebug() << "--- Video --- hRes:" << hRes << "vRes:" << vRes;
+    qDebug() << "--- Video --- hOutputRes:" << hOutRes << "vOutputRes:" << vOutRes;
+    qDebug() << "--- Video --- hPeriod:" << hPeriod << "hSync:" << hSync << "hBackPorch" << hBackPorch;
+    qDebug() << "--- Video --- vPeriod:" << vPeriod << "vSync:" << vSync << "vBackPorch" << vBackPorch;
+ }
 
 bool Camera::getRecDataFifoIsEmpty(void)
 {

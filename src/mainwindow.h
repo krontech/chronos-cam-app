@@ -68,6 +68,8 @@ private slots:
 
 	void on_cmdSaveFrame_clicked();
 
+    void on_cmdClearFPN_clicked();
+
 private:
     Ui::MainWindow *ui;
 	friend void endOfRecCallback(void * arg);

@@ -79,7 +79,7 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX2100 * senso
 
 //	if(retVal != SUCCESS)
 //		return retVal;
-/*
+
 	//Configure FPGA
 	Ecp5Config * config;
 	const char * configFileName;
@@ -98,7 +98,7 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX2100 * senso
 
 	if(retVal != SUCCESS)
 		return retVal;
-*/
+
 
 	//Read serial number in
 	retVal = (CameraErrortype)readSerialNumber(serialNumber);
@@ -269,12 +269,13 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX2100 * senso
     settings.segments               = appSettings.value("camera/segments", 1).toInt();
     settings.temporary              = 0;
 
-    //Test
+/*    //Test
     settings.hRes = 1280;
     settings.vRes = 1024;
     settings.stride = 1280;
     settings.period = sensor->getMinFramePeriod(settings.hRes, settings.vRes)+10000;//100000000/100;
 
+    */
 	setImagerSettings(settings);
     setDisplaySettings(false, MAX_LIVE_FRAMERATE);
 
@@ -1077,6 +1078,7 @@ void Camera::computeFPNCorrection2(UInt32 framesToAverage, bool writeToFile, boo
 	setIntegrationTime(0.0, imagerSettings.hRes, imagerSettings.vRes, SETTING_FLAG_USESAVED);
 
 	imgGain = 4096.0 / (double)(4096 - getMaxFPNValue(buffer, pixelsPerFrame)) * IMAGE_GAIN_FUDGE_FACTOR;
+    imgGain = 1;
 	qDebug() << "imgGain set to" << imgGain;
 	setWhiteBalance(whiteBalMatrix);
 
@@ -1247,8 +1249,8 @@ Int32 Camera::computeColGainCorrection(UInt32 framesToAverage, bool writeToFile)
 
 	int i;
 	double minVal = 0;
-	double valueSum[16] = {0.0};
-	double gainCorrection[16];
+    double valueSum[sensor->getHResIncrement()] = {0.0};
+    double gainCorrection[sensor->getHResIncrement()];
 	
 	// If writing to file - generate the filename and open for writing
 	if(writeToFile)
@@ -1309,7 +1311,7 @@ Int32 Camera::computeColGainCorrection(UInt32 framesToAverage, bool writeToFile)
 		{
 			bool isGreen = sensor->getFilterColor(i, recordingData.is.vRes/2) == FILTER_COLOR_GREEN;
 			UInt32 y = recordingData.is.vRes/2 + (isGreen ? 0 : 1);	//Zig sag to we only look at green pixels
-			valueSum[i % 16] += (double)buffer[i+recordingData.is.stride*y] / (double)framesToAverage;
+            valueSum[i % sensor->getHResIncrement()] += (double)buffer[i+recordingData.is.stride*y] / (double)framesToAverage;
 		}
 	}
 	else
@@ -1317,14 +1319,14 @@ Int32 Camera::computeColGainCorrection(UInt32 framesToAverage, bool writeToFile)
 		//Divide by number summed to get average and write to FPN area
 		for(i = 0; i < recordingData.is.stride; i++)
 		{
-			valueSum[i % 16] += (double)buffer[i+recordingData.is.stride*recordingData.is.vRes/2] / (double)framesToAverage;
+            valueSum[i % sensor->getHResIncrement()] += (double)buffer[i+recordingData.is.stride*recordingData.is.vRes/2] / (double)framesToAverage;
 		}
 	}
 
-	for(i = 0; i < 16; i++)
+    for(i = 0; i < sensor->getHResIncrement(); i++)
 	{
 		//divide by number of values summed to get pixel value
-		valueSum[i] /= ((double)recordingData.is.stride/16.0);
+        valueSum[i] /= ((double)recordingData.is.stride/((double)sensor->getHResIncrement()));
 
 		//Find min value
 		if(valueSum[i] > minVal)
@@ -1332,7 +1334,7 @@ Int32 Camera::computeColGainCorrection(UInt32 framesToAverage, bool writeToFile)
 	}
 
 	qDebug() << "Gain correction values:";
-	for(i = 0; i < 16; i++)
+    for(i = 0; i < sensor->getHResIncrement(); i++)
 	{
 		gainCorrection[i] =  minVal / valueSum[i];
 
@@ -1342,7 +1344,7 @@ Int32 Camera::computeColGainCorrection(UInt32 framesToAverage, bool writeToFile)
 	}
 
 	//Check that values are within a sane range
-	for(i = 0; i < 16; i++)
+    for(i = 0; i < sensor->getHResIncrement(); i++)
 	{
 		if(gainCorrection[i] < LUX1310_GAIN_CORRECTION_MIN || gainCorrection[i] > LUX1310_GAIN_CORRECTION_MAX) {
 			retVal = CAMERA_GAIN_CORRECTION_ERROR;
@@ -1353,16 +1355,16 @@ Int32 Camera::computeColGainCorrection(UInt32 framesToAverage, bool writeToFile)
 	if(writeToFile)
 	{
 		quint64 retVal64;
-		retVal64 = fp.write((const char*)gainCorrection, sizeof(gainCorrection[0])*LUX1310_HRES_INCREMENT);
-		if (retVal64 != (sizeof(gainCorrection[0])*LUX1310_HRES_INCREMENT)) {
-			qDebug("Error writing colGain data to file: %s (%d vs %d)", fp.errorString().toUtf8().data(), (UInt32) retVal64, sizeof(gainCorrection[0])*LUX1310_HRES_INCREMENT);
+        retVal64 = fp.write((const char*)gainCorrection, sizeof(gainCorrection[0])*sensor->getHResIncrement());
+        if (retVal64 != (sizeof(gainCorrection[0])*sensor->getHResIncrement())) {
+            qDebug("Error writing colGain data to file: %s (%d vs %d)", fp.errorString().toUtf8().data(), (UInt32) retVal64, sizeof(gainCorrection[0])*sensor->getHResIncrement());
 		}
 		fp.flush();
 		fp.close();
 	}
 
 	for(i = 0; i < recordingData.is.stride; i++)
-		gpmc->write16(DCG_MEM_START_ADDR+2*i, gainCorrection[i % 16]*4096.0);
+        gpmc->write16(DCG_MEM_START_ADDR+2*i, gainCorrection[(i+1) % sensor->getHResIncrement()]*4096.0);   //i+1 is a hack to deal with FPGA off by one error
 
 computeColGainCorrectionCleanup:
 	delete[] buffer;
@@ -1374,10 +1376,10 @@ computeColGainCorrectionCleanup:
 
 Int32 Camera::loadColGainFromFile(void)
 {
-	double gainCorrection[16];
+    double gainCorrection[LUX2100_HRES_INCREMENT];
 	size_t count = 0;
 
-	QString filename;
+    QString filename;
 	QFile fp;
 	bool colGainError = false;
 	int i;
@@ -1399,17 +1401,17 @@ Int32 Camera::loadColGainFromFile(void)
 		}
 	
 		//If the column gain file exists, read it in
-		count = fp.read((char*) gainCorrection, sizeof(gainCorrection[0]) * LUX1310_HRES_INCREMENT);
+        count = fp.read((char*) gainCorrection, sizeof(gainCorrection[0]) * LUX2100_HRES_INCREMENT);
 		if (count > 0) count /= sizeof(gainCorrection[0]);
 		fp.close();
 
-		if (count < LUX1310_HRES_INCREMENT) {
+        if (count < sensor->getHResIncrement()) {
 			colGainError = true;
 			qDebug("Error: col gain read error");
 		}
 		else {
 			//If all read in gain corrections are not within a sane range, set them all to 1.0
-			for(i = 0; i < 16; i++) {
+            for(i = 0; i < sensor->getHResIncrement(); i++) {
 				if(gainCorrection[i] < 0.5 || gainCorrection[i] > 2.0) {
 					colGainError = true;
 					qDebug("Error: col gain outside range 0.5 to 2.0");
@@ -1425,14 +1427,14 @@ Int32 Camera::loadColGainFromFile(void)
 
 	if(colGainError) {
 		qDebug("Error while loading cal gain - resetting to 1.0");
-		for(i = 0; i < 16; i++) {
+        for(i = 0; i < sensor->getHResIncrement(); i++) {
 			gainCorrection[i] = 1.0;
 		}
 	}
 	
 	//Write the values into the display column gain memory
-	for(i = 0; i < LUX1310_MAX_H_RES; i++)
-		writeDGCMem(gainCorrection[i % 16], i);
+    for(i = 0; i < LUX2100_MAX_H_RES; i++)
+        writeDGCMem(gainCorrection[(i+1) % sensor->getHResIncrement()], i); //(i+1) is a hack to deal with FPGA off by one error
 
 	return SUCCESS;
 }
@@ -1707,7 +1709,7 @@ checkForDeadPixelsCleanup:
 UInt32 Camera::adcOffsetCorrection(UInt32 iterations, bool writeToFile)
 {
 	//Zero the offsets
-	for(int i = 0; i < LUX1310_HRES_INCREMENT; i++)
+    for(int i = 0; i < LUX2100_HRES_INCREMENT; i++)
 		sensor->setADCOffset(i, 0);
 
 	UInt32 retVal;
@@ -1735,37 +1737,48 @@ UInt32 Camera::adcOffsetCorrection(UInt32 iterations, bool writeToFile)
 
 void Camera::offsetCorrectionIteration(UInt32 wordAddress)
 {
-	Int32 buffer[16];
+    Int32 buffer[LUX2100_HRES_INCREMENT];
 	//static Int16 offsets[16] = {0};
 	Int16 * offsets = sensor->offsetsA;
 	gpmc->write32(GPMC_PAGE_OFFSET_ADDR, wordAddress);
 
 	//Set to max value prior to finding the minimum
-	for(int i = 0; i < 16; i++)
+    for(int i = 0; i < LUX2100_HRES_INCREMENT; i++)
 		buffer[i] = 0x7FFFFFFF;
 
 	for(int i = 0; i < recordingData.is.hRes; i++)
 	{
 		UInt16 pix = readPixel12(i, 0);
 
-		buffer[i % 16] = min(pix, buffer[i % 16]);
+        buffer[i % LUX2100_HRES_INCREMENT] = min(pix, buffer[i % LUX2100_HRES_INCREMENT]);
 
 	}
-	qDebug() << "Min values"
-			 << buffer[0] << buffer[1] << buffer[2] << buffer[3]
-			 << buffer[4] << buffer[5] << buffer[6] << buffer[7]
-			 << buffer[8] << buffer[9] << buffer[10] << buffer[11]
-			 << buffer[12] << buffer[13] << buffer[14] << buffer[15];
-	qDebug() << "Offsets"
-			 << offsets[0] << offsets[1] << offsets[2] << offsets[3]
-			 << offsets[4] << offsets[5] << offsets[6] << offsets[7]
-			 << offsets[8] << offsets[9] << offsets[10] << offsets[11]
-			 << offsets[12] << offsets[12] << offsets[13] << offsets[14];
+    int j = 0;
+    qDebug()    << "Min values"
+                << buffer[j++] << buffer[j++] << buffer[j++] << buffer[j++]
+                << buffer[j++] << buffer[j++] << buffer[j++] << buffer[j++]
+                << buffer[j++] << buffer[j++] << buffer[j++] << buffer[j++]
+                << buffer[j++] << buffer[j++] << buffer[j++] << buffer[j++]
+                << buffer[j++] << buffer[j++] << buffer[j++] << buffer[j++]
+                << buffer[j++] << buffer[j++] << buffer[j++] << buffer[j++]
+                << buffer[j++] << buffer[j++] << buffer[j++] << buffer[j++]
+                << buffer[j++] << buffer[j++] << buffer[j++] << buffer[j++];
 
-	for(int i = 0; i < 16; i++)
+    j = 0;
+	qDebug() << "Offsets"
+             << offsets[j++] << offsets[j++] << offsets[j++] << offsets[j++]
+             << offsets[j++] << offsets[j++] << offsets[j++] << offsets[j++]
+             << offsets[j++] << offsets[j++] << offsets[j++] << offsets[j++]
+             << offsets[j++] << offsets[j++] << offsets[j++] << offsets[j++]
+             << offsets[j++] << offsets[j++] << offsets[j++] << offsets[j++]
+             << offsets[j++] << offsets[j++] << offsets[j++] << offsets[j++]
+             << offsets[j++] << offsets[j++] << offsets[j++] << offsets[j++]
+             << offsets[j++] << offsets[j++] << offsets[j++] << offsets[j++];
+
+    for(int i = 0; i < LUX2100_HRES_INCREMENT; i++)
 	{
 		//Int16 val = sensor->getADCOffset(i);
-		offsets[i] = offsets[i] - 0.5*(buffer[i]-30);
+        offsets[i] = offsets[i] - 0.5*(buffer[i]-128);
 		offsets[i] = within(offsets[i], -1023, 1023);
 		sensor->setADCOffset(i, offsets[i]);
 	}
