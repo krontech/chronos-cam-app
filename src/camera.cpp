@@ -807,62 +807,16 @@ void Camera::writePixelBuf12(UInt8 * buf, UInt32 pixel, UInt16 value)
 	buf[address+1] = dataH;
 }
 
-void Camera::computeFPNCorrection(FrameGeometry *geometry, UInt32 wordAddress, UInt32 framesToAverage, bool writeToFile, bool factory)
+void Camera::loadFPNCorrection(FrameGeometry *geometry, const UInt16 *fpnBuffer, UInt32 framesToAverage)
 {
-	UInt32 pixelsPerFrame = geometry->pixels();
-	const char *formatStr;
-	UInt16 maxColumn;
-	QString filename;
-	std::string fn;
-	QFile fp;
+	UInt32 *fpnColumns = (UInt32 *)calloc(geometry->hRes, sizeof(UInt32));
+	UInt8  *pixBuffer = (UInt8  *)calloc(1, geometry->size());
+	UInt32 maxColumn = 0;
 
-	// If writing to file - generate the filename and open for writing
-	if(writeToFile)
-	{
-		//Generate the filename for this particular resolution and offset
-		if(factory) {
-			formatStr = "cal/factoryFPN/fpn_%dx%doff%dx%d";
+	for(int row = 0; row < geometry->vRes; row++) {
+		for(int col = 0; col < geometry->hRes; col++) {
+			fpnColumns[col] += fpnBuffer[row * geometry->hRes + col];
 		}
-		else {
-			formatStr = "userFPN/fpn_%dx%doff%dx%d";
-		}
-		
-		filename.sprintf(formatStr, geometry->hRes, geometry->vRes, geometry->hOffset, geometry->vOffset);
-		fn = sensor->getFilename("", ".raw");
-		filename.append(fn.c_str());
-		
-		qDebug("Writing FPN to file %s", filename.toUtf8().data());
-
-		fp.setFileName(filename);
-		fp.open(QIODevice::WriteOnly);
-		if(!fp.isOpen())
-		{
-			qDebug() << "Error: File couldn't be opened";
-			return;
-		}
-	}
-
-	UInt16 * fpnBuffer = (UInt16 *)calloc(pixelsPerFrame, sizeof(UInt16));
-	UInt32 * fpnColumns = (UInt32 *)calloc(geometry->hRes, sizeof(UInt32));
-	UInt8  * pixBuffer = (UInt8  *)malloc(geometry->size());
-
-	// turn off the sensor
-	sensor->seqOnOff(false);
-
-	/* Read frames out of the recorded region and sum their pixels. */
-	for(int frame = 0; frame < framesToAverage; frame++) {
-		readAcqMem((UInt32 *)pixBuffer, wordAddress, geometry->size());
-		for(int row = 0; row < geometry->vRes; row++) {
-			for(int col = 0; col < geometry->hRes; col++) {
-				int i = row * geometry->hRes + col;
-				UInt16 pix = readPixelBuf12(pixBuffer, i);
-				fpnBuffer[i] += pix;
-				fpnColumns[col] += pix;
-			}
-		}
-
-		/* Advance to the next frame. */
-		wordAddress += getFrameSizeWords(geometry);
 	}
 
 	/*
@@ -870,7 +824,6 @@ void Camera::computeFPNCorrection(FrameGeometry *geometry, UInt32 wordAddress, U
 	 * gets applied to the column calibration as the constant term, and
 	 * should take ADC gain and curvature into consideration.
 	 */
-	maxColumn = 0;
 	for (int col = 0; col < geometry->hRes; col++) {
 		UInt32 scale = (geometry->vRes * framesToAverage);
 		Int64 square = (Int64)fpnColumns[col] * (Int64)fpnColumns[col];
@@ -917,9 +870,69 @@ void Camera::computeFPNCorrection(FrameGeometry *geometry, UInt32 wordAddress, U
 	writeAcqMem((UInt32 *)pixBuffer, FPN_ADDRESS, geometry->size());
 
 	/* Update the image gain to compensate for dynamic range lost to the FPN. */
-	imgGain = 4096.0 / (double)((1 << BITS_PER_PIXEL) - maxColumn) * IMAGE_GAIN_FUDGE_FACTOR;
+	imgGain = 4096.0 / (double)((1 << geometry->bitDepth) - maxColumn) * IMAGE_GAIN_FUDGE_FACTOR;
 	qDebug() << "imgGain set to" << imgGain;
 	setWhiteBalance(whiteBalMatrix);
+
+	free(fpnColumns);
+	free(pixBuffer);
+}
+
+void Camera::computeFPNCorrection(FrameGeometry *geometry, UInt32 wordAddress, UInt32 framesToAverage, bool writeToFile, bool factory)
+{
+	UInt32 pixelsPerFrame = geometry->pixels();
+	const char *formatStr;
+	QString filename;
+	std::string fn;
+	QFile fp;
+
+	// If writing to file - generate the filename and open for writing
+	if(writeToFile)
+	{
+		//Generate the filename for this particular resolution and offset
+		if(factory) {
+			formatStr = "cal/factoryFPN/fpn_%dx%doff%dx%d";
+		}
+		else {
+			formatStr = "userFPN/fpn_%dx%doff%dx%d";
+		}
+		
+		filename.sprintf(formatStr, geometry->hRes, geometry->vRes, geometry->hOffset, geometry->vOffset);
+		fn = sensor->getFilename("", ".raw");
+		filename.append(fn.c_str());
+		
+		qDebug("Writing FPN to file %s", filename.toUtf8().data());
+
+		fp.setFileName(filename);
+		fp.open(QIODevice::WriteOnly);
+		if(!fp.isOpen())
+		{
+			qDebug() << "Error: File couldn't be opened";
+			return;
+		}
+	}
+
+	UInt16 * fpnBuffer = (UInt16 *)calloc(pixelsPerFrame, sizeof(UInt16));
+	UInt8  * pixBuffer = (UInt8  *)malloc(geometry->size());
+
+	// turn off the sensor
+	sensor->seqOnOff(false);
+
+	/* Read frames out of the recorded region and sum their pixels. */
+	for(int frame = 0; frame < framesToAverage; frame++) {
+		readAcqMem((UInt32 *)pixBuffer, wordAddress, geometry->size());
+		for(int row = 0; row < geometry->vRes; row++) {
+			for(int col = 0; col < geometry->hRes; col++) {
+				int i = row * geometry->hRes + col;
+				UInt16 pix = readPixelBuf12(pixBuffer, i);
+				fpnBuffer[i] += pix;
+			}
+		}
+
+		/* Advance to the next frame. */
+		wordAddress += getFrameSizeWords(geometry);
+	}
+	loadFPNCorrection(geometry, fpnBuffer, framesToAverage);
 
 	// restart the sensor
 	sensor->seqOnOff(true);
@@ -940,7 +953,6 @@ void Camera::computeFPNCorrection(FrameGeometry *geometry, UInt32 wordAddress, U
 	}
 
 	free(fpnBuffer);
-	free(fpnColumns);
 	free(pixBuffer);
 }
 
@@ -1044,7 +1056,6 @@ UInt32 Camera::autoFPNCorrection(UInt32 framesToAverage, bool writeToFile, bool 
 
 Int32 Camera::loadFPNFromFile(void)
 {
-#if 0
 	QString filename;
 	QFile fp;
 	UInt32 retVal = SUCCESS;
@@ -1074,50 +1085,20 @@ Int32 Camera::loadFPNFromFile(void)
 	}
 
 	UInt32 pixelsPerFrame = imagerSettings.geometry.pixels();
-	UInt32 bytesPerFrame = imagerSettings.geometry.size();
-
 	UInt16 * buffer = new UInt16[pixelsPerFrame];
-	UInt32 * packedBuf32 = new UInt32[bytesPerFrame / 4];
-	UInt8 * packedBuf = (UInt8 *)packedBuf32;
-
-	UInt32 mx;
 
 	//Read in the active region of the FPN data file.
 	if (fp.read((char*) buffer, pixelsPerFrame * sizeof(buffer[0])) < (pixelsPerFrame * sizeof(buffer[0]))) {
 		retVal = CAMERA_FILE_ERROR;
 		goto loadFPNFromFileCleanup;
 	}
+	loadFPNCorrection(&imagerSettings.geometry, buffer, 1);
 	fp.close();
-
-	mx = getMaxFPNValue(buffer, pixelsPerFrame);
-	imgGain = 4096.0 / (double)(4096 - mx) * IMAGE_GAIN_FUDGE_FACTOR;
-	qDebug() << "imgGain set to" << imgGain << "Max FPN value found" << mx;
-	setWhiteBalance(whiteBalMatrix);
-
-	//zero the buffer
-	memset(packedBuf, 0, bytesPerFrame);
-
-	//Generate packed buffer
-	for(UInt32 i = 0; i < pixelsPerFrame; i++)
-	{
-		writePixelBuf12(packedBuf, i, buffer[i]);
-	}
-
-	//Write packed buffer to RAM
-	writeAcqMem(packedBuf32, FPN_ADDRESS, bytesPerFrame);
 
 loadFPNFromFileCleanup:
 	delete buffer;
-	delete packedBuf32;
 
 	return retVal;
-#else
-	UInt32 bytesPerFrame = imagerSettings.geometry.size();
-	UInt32 *bufz = (UInt32 *)calloc(1, bytesPerFrame);
-	writeAcqMem(bufz, FPN_ADDRESS, bytesPerFrame);
-	free(bufz);
-	return SUCCESS;
-#endif
 }
 
 Int32 Camera::computeColGainCorrection(UInt32 framesToAverage, bool writeToFile)
