@@ -1,8 +1,8 @@
 #! /bin/sh
 ### BEGIN INIT INFO
 # Provides:          chronos-gui
-# Required-Start:    ti81xx-video chronos-upower
-# Required-Stop:     ti81xx-video chronos-upower
+# Required-Start:    chronos-upower
+# Required-Stop:     chronos-upower
 # Should-Start:
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
