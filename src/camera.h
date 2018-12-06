@@ -60,6 +60,7 @@
 #define COLOR_MATRIX_INT_BITS	3
 
 #define IMAGE_GAIN_FUDGE_FACTOR 1.0		//Multiplier to make sure clipped ADC value actually clips image
+#define COL_OFFSET_FOOTROOM		32		// Train ADC to not-quite zero to give footroom for noise.
 #define COL_GAIN_FRAC_BITS		12		// 2-point column gain fractional bits.
 #define COL_CURVE_FRAC_BITS		21		// 3-point column curvature factional bits.
 
@@ -216,6 +217,7 @@ public:
 	UInt32 autoFPNCorrection(UInt32 framesToAverage, bool writeToFile = false, bool noCap = false, bool factory = false);
 	Int32 fastFPNCorrection();
 	Int32 loadFPNFromFile(void);
+	void loadFPNCorrection(FrameGeometry *geometry, const UInt16 *fpnBuffer, UInt32 framesToAverage);
 	Int32 computeColGainCorrection(UInt32 framesToAverage, bool writeToFile = false);
 	void offsetCorrectionIteration(FrameGeometry *geometry, UInt32 wordAddress, UInt32 framesToAverage = 1);
 	Int32 liveColumnCalibration(unsigned int iterations = 32);
