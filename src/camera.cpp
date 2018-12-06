@@ -811,7 +811,7 @@ void Camera::computeFPNCorrection(FrameGeometry *geometry, UInt32 wordAddress, U
 {
 	UInt32 pixelsPerFrame = geometry->pixels();
 	const char *formatStr;
-	UInt16 maxFpn;
+	UInt16 maxColumn;
 	QString filename;
 	std::string fn;
 	QFile fp;
@@ -843,6 +843,7 @@ void Camera::computeFPNCorrection(FrameGeometry *geometry, UInt32 wordAddress, U
 	}
 
 	UInt16 * fpnBuffer = (UInt16 *)calloc(pixelsPerFrame, sizeof(UInt16));
+	UInt32 * fpnColumns = (UInt32 *)calloc(geometry->hRes, sizeof(UInt32));
 	UInt8  * pixBuffer = (UInt8  *)malloc(geometry->size());
 
 	// turn off the sensor
@@ -855,8 +856,8 @@ void Camera::computeFPNCorrection(FrameGeometry *geometry, UInt32 wordAddress, U
 			for(int col = 0; col < geometry->hRes; col++) {
 				int i = row * geometry->hRes + col;
 				UInt16 pix = readPixelBuf12(pixBuffer, i);
-				UInt16 colfpn = gpmc->read16(COL_OFFSET_MEM_START_ADDR + (col * 2));
-				fpnBuffer[i] += (pix > colfpn) ? pix - colfpn : 0;
+				fpnBuffer[i] += pix;
+				fpnColumns[col] += pix;
 			}
 		}
 
@@ -864,26 +865,72 @@ void Camera::computeFPNCorrection(FrameGeometry *geometry, UInt32 wordAddress, U
 		wordAddress += getFrameSizeWords(geometry);
 	}
 
-	/* Divide by number summed to get average and write to FPN area */
-	maxFpn = 0;
-	for(int i = 0; i < pixelsPerFrame; i++) {
-		fpnBuffer[i] /= framesToAverage;
-		if (fpnBuffer[i] > maxFpn) maxFpn = fpnBuffer[i];
-		writePixelBuf12(pixBuffer, i, fpnBuffer[i]);
+	/*
+	 * For each column, the sum gives the DC component of the FPN, which
+	 * gets applied to the column calibration as the constant term, and
+	 * should take ADC gain and curvature into consideration.
+	 */
+	maxColumn = 0;
+	for (int col = 0; col < geometry->hRes; col++) {
+		UInt32 scale = (geometry->vRes * framesToAverage);
+		Int64 square = (Int64)fpnColumns[col] * (Int64)fpnColumns[col];
+		UInt16 gain = gpmc->read16(COL_GAIN_MEM_START_ADDR + (2 * col));
+		Int16 curve = gpmc->read16(COL_CURVE_MEM_START_ADDR + (2 * col));
+
+		/* Column calibration is denoted by:
+		 *  f(x) = a*x^2 + b*x + c
+		 *
+		 * For FPN to output black, f(fpn) = 0 and therefore:
+		 *  c = -a*fpn^2 - b*fpn
+		 */
+		Int64 fpnLinear = (COL_OFFSET_FOOTROOM * scale) - ((Int64)fpnColumns[col] * gain);
+		Int64 fpnCurved = -(square * curve) / (scale << (COL_CURVE_FRAC_BITS - COL_GAIN_FRAC_BITS));
+		Int16 offset = (fpnLinear + fpnCurved) / (scale << COL_GAIN_FRAC_BITS);
+		gpmc->write16(COL_OFFSET_MEM_START_ADDR + (2 * col), offset);
+
+#if 0
+		fprintf(stderr, "FPN Column %d: gain=%f curve=%f sum=%d, offset=%d\n", col,
+				(double)gain / (1 << COL_GAIN_FRAC_BITS),
+				(double)curve / (1 << COL_CURVE_FRAC_BITS),
+				fpnColumns[col], offset);
+#endif
+
+		/* Keep track of the maximum column FPN while we're at it. */
+		if ((fpnColumns[col] / scale) > maxColumn) maxColumn = (fpnColumns[col] / scale);
+	}
+
+	/*
+	 * The AC component of each column remains as the per-pixel FPN. However,
+	 * since the FPGA interprets the FPN as an unsigned quantity, we must be
+	 * sure to bias the per-pixel FPN to keep it positive.
+	 */
+	for(int row = 0; row < geometry->vRes; row++) {
+		for(int col = 0; col < geometry->hRes; col++) {
+			int i = row * geometry->hRes + col;
+			Int32 fpn = fpnBuffer[i] + (COL_OFFSET_FOOTROOM * framesToAverage) - (fpnColumns[col] / geometry->vRes);
+			if (fpn < 0) {
+				fprintf(stderr, "FPN Pixel %dx%d clipped (%d)\n", col, row, fpn);
+			}
+			writePixelBuf12(pixBuffer, i, (fpn >= 0) ? fpn / framesToAverage : 0);
+		}
 	}
 	writeAcqMem((UInt32 *)pixBuffer, FPN_ADDRESS, geometry->size());
-	imgGain = 4096.0 / (double)(4096 - maxFpn) * IMAGE_GAIN_FUDGE_FACTOR;
-	imgGain = 1;
+
+	/* Update the image gain to compensate for dynamic range lost to the FPN. */
+	imgGain = 4096.0 / (double)((1 << BITS_PER_PIXEL) - maxColumn) * IMAGE_GAIN_FUDGE_FACTOR;
 	qDebug() << "imgGain set to" << imgGain;
 	setWhiteBalance(whiteBalMatrix);
 
 	// restart the sensor
-	setIntegrationTime(0.0, &imagerSettings.geometry, SETTING_FLAG_USESAVED);
+	sensor->seqOnOff(true);
 
 	qDebug() << "About to write file...";
 	if(writeToFile)
 	{
 		quint64 retVal;
+		for (int i = 0; i < pixelsPerFrame; i++) {
+			fpnBuffer[i] /= framesToAverage;
+		}
 		retVal = fp.write((const char*)fpnBuffer, sizeof(fpnBuffer[0])*pixelsPerFrame);
 		if (retVal != (sizeof(fpnBuffer[0])*pixelsPerFrame)) {
 			qDebug("Error writing FPN data to file: %s", fp.errorString().toUtf8().data());
@@ -893,6 +940,7 @@ void Camera::computeFPNCorrection(FrameGeometry *geometry, UInt32 wordAddress, U
 	}
 
 	free(fpnBuffer);
+	free(fpnColumns);
 	free(pixBuffer);
 }
 
@@ -996,6 +1044,7 @@ UInt32 Camera::autoFPNCorrection(UInt32 framesToAverage, bool writeToFile, bool 
 
 Int32 Camera::loadFPNFromFile(void)
 {
+#if 0
 	QString filename;
 	QFile fp;
 	UInt32 retVal = SUCCESS;
@@ -1030,7 +1079,7 @@ Int32 Camera::loadFPNFromFile(void)
 	UInt16 * buffer = new UInt16[pixelsPerFrame];
 	UInt32 * packedBuf32 = new UInt32[bytesPerFrame / 4];
 	UInt8 * packedBuf = (UInt8 *)packedBuf32;
-	
+
 	UInt32 mx;
 
 	//Read in the active region of the FPN data file.
@@ -1039,7 +1088,7 @@ Int32 Camera::loadFPNFromFile(void)
 		goto loadFPNFromFileCleanup;
 	}
 	fp.close();
-	
+
 	mx = getMaxFPNValue(buffer, pixelsPerFrame);
 	imgGain = 4096.0 / (double)(4096 - mx) * IMAGE_GAIN_FUDGE_FACTOR;
 	qDebug() << "imgGain set to" << imgGain << "Max FPN value found" << mx;
@@ -1062,6 +1111,13 @@ loadFPNFromFileCleanup:
 	delete packedBuf32;
 
 	return retVal;
+#else
+	UInt32 bytesPerFrame = imagerSettings.geometry.size();
+	UInt32 *bufz = (UInt32 *)calloc(1, bytesPerFrame);
+	writeAcqMem(bufz, FPN_ADDRESS, bytesPerFrame);
+	free(bufz);
+	return SUCCESS;
+#endif
 }
 
 Int32 Camera::computeColGainCorrection(UInt32 framesToAverage, bool writeToFile)
@@ -1506,12 +1562,12 @@ void Camera::offsetCorrectionIteration(FrameGeometry *geometry, UInt32 wordAddre
 	}
 	free(pxbuffer);
 
-	/* Train the ADC for a target of: Average = 30 + StandardDeviation */
+	/* Train the ADC for a target of: Average = Footroom + StandardDeviation */
 	for(int col = 0; col < LUX2100_HRES_INCREMENT; col++) {
 		UInt16 avg = adcAverage[col % LUX2100_HRES_INCREMENT];
 		UInt16 dev = adcStdDev[col % LUX2100_HRES_INCREMENT];
 
-		offsets[col] = offsets[col] - (avg - dev - 30) / 2;
+		offsets[col] = offsets[col] - (avg - dev - COL_OFFSET_FOOTROOM) / 2;
 		offsets[col] = within(offsets[col], -1023, 1023);
 		sensor->setADCOffset(col, offsets[col]);
 	}
@@ -1520,13 +1576,14 @@ void Camera::offsetCorrectionIteration(FrameGeometry *geometry, UInt32 wordAddre
 void Camera::computeFPNColumns(FrameGeometry *geometry, UInt32 wordAddress, UInt32 framesToAverage)
 {
 	UInt32 rowSize = (geometry->hRes * BITS_PER_PIXEL) / 8;
-	UInt32 *pxBuffer = (UInt32 *)malloc(rowSize * geometry->vDarkRows);
+	UInt32 scale = (geometry->vRes * framesToAverage);
+	UInt32 *pxBuffer = (UInt32 *)malloc(rowSize * geometry->vRes);
 	UInt32 *fpnColumns = (UInt32 *)calloc(geometry->hRes, sizeof(UInt32));
 
 	/* Read and sum the dark columns */
 	for (int i = 0; i < framesToAverage; i++) {
-		readAcqMem(pxBuffer, wordAddress, rowSize * geometry->vDarkRows);
-		for (int row = 0; row < geometry->vDarkRows; row++) {
+		readAcqMem(pxBuffer, wordAddress, rowSize * geometry->vRes);
+		for (int row = 0; row < geometry->vRes; row++) {
 			for(int col = 0; col < geometry->hRes; col++) {
 				fpnColumns[col] += readPixelBuf12((UInt8 *)pxBuffer, row * geometry->hRes + col);
 			}
@@ -1535,8 +1592,14 @@ void Camera::computeFPNColumns(FrameGeometry *geometry, UInt32 wordAddress, UInt
 	}
 	/* Write the average value for each column */
 	for (int col = 0; col < geometry->hRes; col++) {
-		gpmc->write16(COL_OFFSET_MEM_START_ADDR + (2 * col), fpnColumns[col] / (geometry->vDarkRows * framesToAverage));
+		UInt16 gain = gpmc->read16(COL_GAIN_MEM_START_ADDR + (2 * col));
+		Int32 offset = ((UInt64)fpnColumns[col] * gain) / (scale << COL_GAIN_FRAC_BITS);
+		fprintf(stderr, "FPN Column %d: fpn=%d, gain=%f correction=%d\n", col, fpnColumns[col], (double)gain / (1 << COL_GAIN_FRAC_BITS), -offset);
+		gpmc->write16(COL_OFFSET_MEM_START_ADDR + (2 * col), -offset & 0xffff);
 	}
+	/* Clear out the per-pixel FPN (for now). */
+	memset(pxBuffer, 0, rowSize * geometry->vRes);
+	writeAcqMem(pxBuffer, FPN_ADDRESS, rowSize * geometry->vRes);
 	free(pxBuffer);
 	free(fpnColumns);
 }
@@ -1610,7 +1673,7 @@ void Camera::computeGainColumns(FrameGeometry *geometry, UInt32 wordAddress, con
 		minColumn /= scale;
 
 		/* Find the minimum voltage that does not clip. */
-		if (minColumn >= 30) { /* ADC Offset training target. */
+		if (minColumn >= COL_OFFSET_FOOTROOM) {
 			break;
 		}
 	}
@@ -1760,13 +1823,6 @@ Int32 Camera::liveColumnCalibration(unsigned int iterations)
 		nanosleep(&tRefresh, NULL);
 		offsetCorrectionIteration(&isDark.geometry, CAL_REGION_START, CAL_REGION_FRAMES);
 	}
-
-	/* Disabled for now, does not seem to produce a good cal. */
-#if 0
-	/* And update the FPN column calibration while we're at it. */
-	nanosleep(&tRefresh, NULL);
-	computeFPNColumns(&isDark.geometry, CAL_REGION_START, CAL_REGION_FRAMES);
-#endif
 
 	sensor->seqOnOff(false);
 	delayms(10);
