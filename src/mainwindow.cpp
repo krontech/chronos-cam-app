@@ -415,14 +415,20 @@ void MainWindow::on_cmdSaveFrame_clicked()
         rawUnpacked[i] = rawUnpackedCopy[i] = camera->readPixelBuf12(rawBuffer, i);
     }
 
+    camera->sensor->LUX2100ADCBugCorrection(rawUnpacked, hRes, vRes);
+/*
     //Correct the offset error
     for(unsigned int i = 0; i < pixelsPerFrame; i++)
     {
-        if(!((rawUnpackedCopy[i] + 0x80) & 0x100))
-            rawUnpacked[i+64] -= 0x8;
-        //rawUnpacked[i+64] = 0xFFF;
-    }
 
+        if(!((rawUnpackedCopy[i] + 0x80) & 0x100) && rawUnpackedCopy[i] >= 0x80)
+                rawUnpacked[i+64] -= 0x8;
+
+        if(!((rawUnpackedCopy[i] + 0x20) & 0x40) && rawUnpackedCopy[i] >= 0x20)
+            rawUnpacked[i+96] -= 0x2;
+
+    }
+*/
     qDebug() << "Packing frame";
     //Pack the frame data
     for(unsigned int i = 0; i < pixelsPerFrame; i++)

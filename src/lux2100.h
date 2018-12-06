@@ -183,6 +183,7 @@ public:
 	Int32 setGain(UInt32 gainSetting);
 	UInt8 getFilterColor(UInt32 h, UInt32 v);
 	Int32 setABNDelayClocks(UInt32 ABNOffset);
+    Int32 LUX2100ADCBugCorrection(UInt16 * rawUnpackedFrame, UInt32 hRes, UInt32 vRes);
 
 
 	bool masterMode;

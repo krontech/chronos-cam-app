@@ -432,8 +432,8 @@ UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 
     setFrameSizeWords(imagerSettings.frameSizeWords);
 
-	qDebug() << "About to sensor->loadADCOffsetsFromFile";
-	sensor->loadADCOffsetsFromFile();
+    qDebug() << "About to sensor->loadADCOffsetsFromFile";
+    sensor->loadADCOffsetsFromFile();
 
 	loadColGainFromFile();
 
@@ -1778,7 +1778,7 @@ void Camera::offsetCorrectionIteration(UInt32 wordAddress)
     for(int i = 0; i < LUX2100_HRES_INCREMENT; i++)
 	{
 		//Int16 val = sensor->getADCOffset(i);
-        offsets[i] = offsets[i] - 0.5*(buffer[i]-128);
+        offsets[i] = offsets[i] - 0.8*(buffer[i]-32);
 		offsets[i] = within(offsets[i], -1023, 1023);
 		sensor->setADCOffset(i, offsets[i]);
 	}

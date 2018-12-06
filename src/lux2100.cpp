@@ -1132,3 +1132,35 @@ Int32 LUX2100::setABNDelayClocks(UInt32 ABNOffset)
 	gpmc->write16(SENSOR_MAGIC_START_DELAY_ADDR, ABNOffset);
 	return SUCCESS;
 }
+
+Int32 LUX2100::LUX2100ADCBugCorrection(UInt16 * rawUnpackedFrame, UInt32 hRes, UInt32 vRes)
+{
+    UInt16 line[LUX2100_MAX_H_RES];
+
+    for(unsigned int y = 0; y < vRes; y++)
+    {
+        memcpy(line, rawUnpackedFrame + y*hRes, sizeof(line)); //Copy the current line
+
+        for(unsigned int x = 0; x < hRes; x++)
+        {
+            //Correct for first order effects 64 pixels out
+            if(!((line[x] + 0x80) & 0x100) && line[x] >= 0x80 && x < (hRes - 64))
+            {
+                    rawUnpackedFrame[x+64+y*hRes] -= 0x8;
+                    if(rawUnpackedFrame[x+64+y*hRes] > 4095)    //If it underflowed, clip to zero
+                        rawUnpackedFrame[x+64+y*hRes] = 0;
+            }
+
+            //Correct for second order effects 96 pixels out
+            if(!((line[x] + 0x20) & 0x40) && line[x] >= 0x20 && x < (hRes - 96))
+            {
+                    rawUnpackedFrame[x+96+y*hRes] -= 0x2;
+                    if(rawUnpackedFrame[x+96+y*hRes] > 4095)    //If it underflowed, clip to zero
+                        rawUnpackedFrame[x+96+y*hRes] = 0;
+            }
+        }
+    }
+
+    return SUCCESS;
+}
+
