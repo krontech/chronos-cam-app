@@ -1653,7 +1653,7 @@ void Camera::computeGainColumns(FrameGeometry *geometry, UInt32 wordAddress, con
 		maxColumn /= scale;
 
 		/* High voltage should be less than 3/4 of full scale */
-		if (maxColumn <= (pixFullScale - (pixFullScale / 4))) {
+		if (maxColumn <= (pixFullScale - (pixFullScale / 8))) {
 			break;
 		}
 	}
