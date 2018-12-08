@@ -212,7 +212,7 @@ void RecSettingsWindow::on_cmdOK_clicked()
 														  ui->spinVRes->value());
 
 
-    is->exposure = exp * 100000000.0 - 20;
+    is->exposure = exp * 100000000.0;
 
     is->temporary = 0;
 
@@ -224,6 +224,8 @@ void RecSettingsWindow::on_cmdOK_clicked()
 	if(CAMERA_FILE_NOT_FOUND == camera->loadFPNFromFile())
 		camera->autoFPNCorrection(2, false, true);
 
+	emit settingsChanged();
+	
 	close();
 }
 
@@ -503,7 +505,6 @@ void RecSettingsWindow::setResFromText(char * str)
 
 void RecSettingsWindow::closeEvent(QCloseEvent *event)
 {
-	emit settingsChanged();
 	QEvent ev(QEvent::CloseSoftwareInputPanel);
 	QApplication::sendEvent((QObject *)qApp->inputContext(), &ev);
 	event->accept();
