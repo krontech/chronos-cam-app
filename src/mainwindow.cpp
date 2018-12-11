@@ -42,8 +42,6 @@ extern "C" {
 #include "eeprom.h"
 }
 
-void endOfRecCallback(void * arg);
-
 MainWindow::MainWindow(QWidget *parent) :
 	QMainWindow(parent),
 	ui(new Ui::MainWindow)
@@ -112,16 +110,6 @@ void MainWindow::on_cmdWrite_clicked()
 	Msgbox.setText(msg);
 	Msgbox.exec();
 
-}
-
-
-void endOfRecCallback(void * arg)
-{
-	char st[100];
-	MainWindow * mw = (MainWindow*)arg;
-	sprintf(st, "Recording Ended!\n");
-	mw->ui->lblStatus->setText(st);
-	qApp->processEvents();
 }
 
 void MainWindow::on_cmdAdvPhase_clicked()
@@ -372,63 +360,9 @@ void MainWindow::on_cmdSaveOC_clicked()
 
 void MainWindow::on_cmdSaveFrame_clicked()
 {
-	UInt32 hRes = camera->getImagerSettings().geometry.hRes;
-	UInt32 vRes = camera->getImagerSettings().geometry.vRes;
-	int bytesPerFrame = camera->getImagerSettings().geometry.size();
-	UInt32 pixelsPerFrame = camera->getImagerSettings().geometry.pixels();
-	UInt32 frameSizeWords = camera->getFrameSizeWords(&camera->recordingData.is.geometry);
-
-    UInt32 * rawBuffer32 = new UInt32[bytesPerFrame / 4];
-    UInt8 * rawBuffer = (UInt8 *)rawBuffer32;
-    UInt16 * rawUnpacked = new UInt16[pixelsPerFrame];
-    UInt16 * rawUnpackedCopy = new UInt16[pixelsPerFrame];
-
-    qDebug() << "Reading frame";
-    //Get one frame into the raw buffer
-    camera->readAcqMem(rawBuffer32,
-			   REC_REGION_START + (0) * frameSizeWords,
-               bytesPerFrame);
-
-    qDebug() << "Unpacking frame";
-    //Unpack the frame data
-    for(unsigned int i = 0; i < pixelsPerFrame; i++)
-    {
-        rawUnpacked[i] = rawUnpackedCopy[i] = camera->readPixelBuf12(rawBuffer, i);
-    }
-
-    camera->sensor->LUX2100ADCBugCorrection(rawUnpacked, hRes, vRes);
-/*
-    //Correct the offset error
-    for(unsigned int i = 0; i < pixelsPerFrame; i++)
-    {
-
-        if(!((rawUnpackedCopy[i] + 0x80) & 0x100) && rawUnpackedCopy[i] >= 0x80)
-                rawUnpacked[i+64] -= 0x8;
-
-        if(!((rawUnpackedCopy[i] + 0x20) & 0x40) && rawUnpackedCopy[i] >= 0x20)
-            rawUnpacked[i+96] -= 0x2;
-
-    }
-*/
-    qDebug() << "Packing frame";
-    //Pack the frame data
-    for(unsigned int i = 0; i < pixelsPerFrame; i++)
-    {
-        camera->writePixelBuf12((unsigned char *)rawBuffer32, i, rawUnpacked[i]);
-    }
-
-    qDebug() << "Writing frame";
-    camera->writeAcqMem(rawBuffer32,
-			   REC_REGION_START + (1) * frameSizeWords,
-               bytesPerFrame);
-
     // nothing to see here.
     // TODO: Do the same thing with the following shell command.
     //      cat /tmp/cam-screencap.jpg > /media/sda1/somefilename.jpg
-
-    delete rawBuffer32;
-    delete rawUnpacked;
-    delete rawUnpackedCopy;
 }
 
 void MainWindow::on_cmdClearFPN_clicked()

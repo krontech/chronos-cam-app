@@ -49,7 +49,6 @@ Camera::Camera()
 	lastRecording = false;
 	playbackMode = false;
 	recording = false;
-	endOfRecCallback = NULL;
 	imgGain = 1.0;
 	recordingData.hasBeenSaved = true;		//Nothing in RAM at power up so there's nothing to lose
 	unsavedWarnEnabled = getUnsavedWarnEnable();
@@ -595,44 +594,6 @@ Int32 Camera::stopRecording(void)
 	//recording = false;
 
 	return SUCCESS;
-}
-
-//Find the earliest fully valid block
-
-void Camera::endOfRec(void)
-{
-    qDebug("EndOfRec");
-
-    qDebug() << "--- Sequencer --- Total record region size:" << imagerSettings.recRegionSizeFrames;
-
-    /* TODO: Need to check with the video pipeline if there were actually frames captured, but there is
-     * a possible race condition since both the UI and the pipeline are just polling the sequencer.
-     *
-     * For now, just assume that we always captured something.
-     */
-#if 0
-	if(0 == recDataLength)
-	{
-		recordingData.valid = false;
-		recordingData.hasBeenSaved = true;		//We didn't record anything so there's nothing to lose by overwriting
-	}
-#endif
-
-    recordingData.is = imagerSettings;
-    recordingData.valid = true;
-    recordingData.hasBeenSaved = false;
-    ui->setRecLEDFront(false);
-    ui->setRecLEDBack(false);
-    recording = false;
-}
-
-UInt16 Camera::getMaxFPNValue(UInt16 * buf, UInt32 count)
-{
-	UInt16 maximum = 0;
-	for(int i = 0; i < count; i++)
-		if(buf[i] > maximum)
-			maximum = buf[i];
-	return maximum;
 }
 
 bool Camera::getIsRecording(void)
@@ -2874,11 +2835,9 @@ void* recDataThread(void *arg)
 		if(!recording && (cInst->lastRecording || cInst->recording))	//Take care of situtation where recording goes low->high-low between two interrutps by checking the cInst->recording flag
 		{
 			recording = false;
-			cInst->endOfRec();
-
-			if(cInst->endOfRecCallback)
-				(*cInst->endOfRecCallback)(cInst->endOfRecCallbackArg);	//Call user callback
-
+			cInst->ui->setRecLEDFront(false);
+			cInst->ui->setRecLEDBack(false);
+			cInst->recording = false;
 		}
 		cInst->lastRecording = recording;
 
