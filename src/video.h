@@ -82,6 +82,8 @@ struct VideoStatus {
 	VideoState	state;
 	UInt32 totalFrames;
 	UInt32 position;
+	UInt32 totalSegments;
+	UInt32 segment;
 	double framerate;
 };
 
@@ -98,7 +100,7 @@ public:
 	void setOverlay(const char *format);
 	void seekFrame(int delta);
 	void clearOverlay(void);
-	void setPosition(unsigned int position, int rate);
+	void setPosition(unsigned int position);
 	void setPlayback(int rate);
 	void loopPlayback(unsigned int start, unsigned int length, int rate);
 	void setDisplayOptions(bool zebra, bool peaking);
@@ -127,6 +129,7 @@ public:
 signals:
 	void started(VideoState state);
 	void ended(VideoState state, QString error);
+	void newSegment(VideoStatus *status);
 
 private:
 	int pid;
@@ -142,9 +145,11 @@ private:
 	UInt32 displayWindowXOff;
 	UInt32 displayWindowYOff;
 
+	/* D-Bus signal handlers. */
 private slots:
 	void sof(const QVariantMap &args);
 	void eof(const QVariantMap &args);
+	void segment(const QVariantMap &args);
 };
 
 #endif // VIDEO_H

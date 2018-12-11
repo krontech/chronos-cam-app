@@ -61,6 +61,7 @@ private slots:
 	void on_cmdIOSettings_clicked();
 
 	void on_MainWindowTimer();
+	void on_newVideoSegment(VideoStatus *st);
 
 	void on_chkFocusAid_clicked(bool focusAidEnabled);
 

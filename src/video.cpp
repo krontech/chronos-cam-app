@@ -87,11 +87,21 @@ static VideoState parseVideoState(const QVariantMap &args)
 	}
 }
 
+static VideoStatus *parseVideoStatus(const QVariantMap &args, VideoStatus *st)
+{
+	st->state = parseVideoState(args);
+	st->totalFrames = args["totalFrames"].toUInt();
+	st->position = args["position"].toUInt();
+	st->totalSegments = args["totalSegments"].toUInt();
+	st->segment = args["segment"].toUInt();
+	st->framerate = args["framerate"].toDouble();
+	return st;
+}
+
 VideoState Video::getStatus(VideoStatus *st)
 {
 	QDBusPendingReply<QVariantMap> reply;
 	QVariantMap map;
-	VideoState state;
 
 	if (st) memset(st, 0, sizeof(VideoState));
 
@@ -105,14 +115,10 @@ VideoState Video::getStatus(VideoStatus *st)
 	}
 
 	map = reply.value();
-	state = parseVideoState(map);
-	if (st) {
-		st->state = state;
-		st->totalFrames = map["totalFrames"].toUInt();
-		st->position = map["position"].toUInt();
-		st->framerate = map["framerate"].toDouble();
-	}
-	return state;
+	if (!st) return parseVideoState(map);
+
+	parseVideoStatus(map, st);
+	return st->state;
 }
 
 UInt32 Video::getPosition(void)
@@ -131,11 +137,11 @@ UInt32 Video::getPosition(void)
 	return map["position"].toUInt();
 }
 
-void Video::setPosition(unsigned int position, int rate)
+void Video::setPosition(unsigned int position)
 {
 	QVariantMap args;
 	QDBusPendingReply<QVariantMap> reply;
-	args.insert("framerate", QVariant(rate));
+	args.insert("framerate", QVariant(0));
 	args.insert("position", QVariant(position));
 
 	pthread_mutex_lock(&mutex);
@@ -444,6 +450,12 @@ void Video::eof(const QVariantMap &args)
 	}
 }
 
+void Video::segment(const QVariantMap &args)
+{
+	static VideoStatus st;
+	emit newSegment(parseVideoStatus(args, &st));
+}
+
 Video::Video() : iface("com.krontech.chronos.video", "/com/krontech/chronos/video", QDBusConnection::systemBus())
 {
 	QDBusConnection conn = iface.connection();
@@ -483,6 +495,8 @@ Video::Video() : iface("com.krontech.chronos.video", "/com/krontech/chronos/vide
 				 "sof", this, SLOT(sof(const QVariantMap&)));
 	conn.connect("com.krontech.chronos.video", "/com/krontech/chronos/video", "com.krontech.chronos.video",
 				 "eof", this, SLOT(eof(const QVariantMap&)));
+	conn.connect("com.krontech.chronos.video", "/com/krontech/chronos/video", "com.krontech.chronos.video",
+				 "segment", this, SLOT(segment(const QVariantMap&)));
 }
 
 Video::~Video()
