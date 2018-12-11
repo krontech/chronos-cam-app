@@ -73,7 +73,7 @@ void getSIText(char * buf, double val, UInt32 sigfigs, UInt32 options, Int32 res
 	if(negative)
 		val = -val;
 
-	sprintf(buf, "%.*f%c%c", decPlaces, val, options & SI_SPACE_BEFORE_PREFIX ? ' ' : '\0',  prefixes[ex/3+8]);
+	sprintf(buf, "%.*f%s%c", decPlaces, val, options & SI_SPACE_BEFORE_PREFIX ? " " : "",  prefixes[ex/3+8]);
 
 	//Instert thousands separators if needed
 	if(	options & SI_DELIM_SPACE ||

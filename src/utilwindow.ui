@@ -35,25 +35,11 @@
     <attribute name="title">
      <string>Main</string>
     </attribute>
-    <widget class="QPushButton" name="cmdSWUpdate">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>390</y>
-       <width>121</width>
-       <height>51</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Apply
-Software Update</string>
-     </property>
-    </widget>
     <widget class="QGroupBox" name="groupBoxClock">
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>110</y>
+       <y>10</y>
        <width>431</width>
        <height>81</height>
       </rect>
@@ -125,7 +111,7 @@ Time</string>
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>240</y>
+       <y>100</y>
        <width>331</width>
        <height>131</height>
       </rect>
@@ -264,7 +250,7 @@ Time</string>
      <property name="geometry">
       <rect>
        <x>480</x>
-       <y>220</y>
+       <y>120</y>
        <width>191</width>
        <height>41</height>
       </rect>
@@ -287,94 +273,11 @@ Time</string>
       <bool>false</bool>
      </property>
     </widget>
-    <widget class="QPushButton" name="cmdSaveCal">
-     <property name="geometry">
-      <rect>
-       <x>160</x>
-       <y>390</y>
-       <width>121</width>
-       <height>51</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Backup
-Calibration Data</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="cmdRestoreCal">
-     <property name="geometry">
-      <rect>
-       <x>310</x>
-       <y>390</y>
-       <width>121</width>
-       <height>51</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Restore
-Calibration Data</string>
-     </property>
-    </widget>
-    <widget class="QGroupBox" name="grpEject">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>10</y>
-       <width>251</width>
-       <height>81</height>
-      </rect>
-     </property>
-     <property name="title">
-      <string>Removable Storage</string>
-     </property>
-     <widget class="QPushButton" name="cmdEjectSD">
-      <property name="geometry">
-       <rect>
-        <x>140</x>
-        <y>20</y>
-        <width>101</width>
-        <height>51</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>16</pointsize>
-        <weight>75</weight>
-        <bold>true</bold>
-       </font>
-      </property>
-      <property name="text">
-       <string>Eject
-SD</string>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="cmdEjectUSB">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>20</y>
-        <width>101</width>
-        <height>51</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>16</pointsize>
-        <weight>75</weight>
-        <bold>true</bold>
-       </font>
-      </property>
-      <property name="text">
-       <string>Eject
-USB</string>
-      </property>
-     </widget>
-    </widget>
     <widget class="QCheckBox" name="chkAutoSave">
      <property name="geometry">
       <rect>
        <x>480</x>
-       <y>170</y>
+       <y>70</y>
        <width>161</width>
        <height>41</height>
       </rect>
@@ -401,7 +304,7 @@ USB</string>
      <property name="geometry">
       <rect>
        <x>480</x>
-       <y>120</y>
+       <y>20</y>
        <width>181</width>
        <height>41</height>
       </rect>
@@ -427,8 +330,8 @@ USB</string>
     <widget class="QLabel" name="lblUnsavedVideoLabel">
      <property name="geometry">
       <rect>
-       <x>300</x>
-       <y>40</y>
+       <x>10</x>
+       <y>240</y>
        <width>211</width>
        <height>61</height>
       </rect>
@@ -450,7 +353,7 @@ unsaved video in RAM</string>
      <property name="geometry">
       <rect>
        <x>480</x>
-       <y>320</y>
+       <y>220</y>
        <width>191</width>
        <height>41</height>
       </rect>
@@ -477,7 +380,7 @@ unsaved video in RAM</string>
      <property name="geometry">
       <rect>
        <x>480</x>
-       <y>360</y>
+       <y>260</y>
        <width>171</width>
        <height>61</height>
       </rect>
@@ -504,8 +407,8 @@ Display</string>
     <widget class="QComboBox" name="comboDisableUnsavedWarning">
      <property name="geometry">
       <rect>
-       <x>480</x>
-       <y>50</y>
+       <x>200</x>
+       <y>250</y>
        <width>201</width>
        <height>41</height>
       </rect>
@@ -535,7 +438,7 @@ Display</string>
      <property name="geometry">
       <rect>
        <x>480</x>
-       <y>270</y>
+       <y>170</y>
        <width>171</width>
        <height>41</height>
       </rect>
@@ -556,52 +459,10 @@ Display</string>
      </property>
     </widget>
    </widget>
-   <widget class="QWidget" name="tabSettings">
+   <widget class="QWidget" name="tabStorage">
     <attribute name="title">
-     <string>Settings</string>
+     <string>Storage</string>
     </attribute>
-    <widget class="QPushButton" name="cmdDefaults">
-     <property name="geometry">
-      <rect>
-       <x>440</x>
-       <y>70</y>
-       <width>121</width>
-       <height>51</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Revert
-to defaults</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="cmdBackupSettings">
-     <property name="geometry">
-      <rect>
-       <x>80</x>
-       <y>70</y>
-       <width>121</width>
-       <height>51</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Backup
-Settings Data</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="cmdRestoreSettings">
-     <property name="geometry">
-      <rect>
-       <x>230</x>
-       <y>70</y>
-       <width>121</width>
-       <height>51</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Restore Settings
-from backup</string>
-     </property>
-    </widget>
     <widget class="QPushButton" name="cmdClose_2">
      <property name="geometry">
       <rect>
@@ -619,6 +480,302 @@ from backup</string>
      <property name="text">
       <string>Close</string>
      </property>
+    </widget>
+    <widget class="QGroupBox" name="gbUserSettings">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>10</y>
+       <width>401</width>
+       <height>91</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string>User Settings</string>
+     </property>
+     <widget class="QPushButton" name="cmdBackupSettings">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>30</y>
+        <width>121</width>
+        <height>51</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Backup
+Settings Data</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="cmdRestoreSettings">
+      <property name="geometry">
+       <rect>
+        <x>140</x>
+        <y>30</y>
+        <width>121</width>
+        <height>51</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Restore Settings
+from backup</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="cmdDefaults">
+      <property name="geometry">
+       <rect>
+        <x>270</x>
+        <y>30</y>
+        <width>121</width>
+        <height>51</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Revert
+to defaults</string>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QGroupBox" name="gbCalData">
+     <property name="geometry">
+      <rect>
+       <x>420</x>
+       <y>10</y>
+       <width>271</width>
+       <height>91</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string>Calibration Data</string>
+     </property>
+     <widget class="QPushButton" name="cmdSaveCal">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>30</y>
+        <width>121</width>
+        <height>51</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Backup
+Calibration Data</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="cmdRestoreCal">
+      <property name="geometry">
+       <rect>
+        <x>140</x>
+        <y>30</y>
+        <width>121</width>
+        <height>51</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Restore
+Calibration Data</string>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QGroupBox" name="gbDisk">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>110</y>
+       <width>681</width>
+       <height>91</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string>USB/SATA Storage</string>
+     </property>
+     <widget class="QPushButton" name="cmdEjectDisk">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>30</y>
+        <width>101</width>
+        <height>51</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>16</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>Eject
+Disk</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="cmdFormatDisk">
+      <property name="geometry">
+       <rect>
+        <x>120</x>
+        <y>30</y>
+        <width>101</width>
+        <height>51</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>16</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>Format
+Disk</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="lblStatusDisk">
+      <property name="geometry">
+       <rect>
+        <x>240</x>
+        <y>30</y>
+        <width>431</width>
+        <height>51</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>DejaVu Sans Mono</family>
+       </font>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QGroupBox" name="gbSDCard">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>210</y>
+       <width>681</width>
+       <height>91</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string>SD Card Storage</string>
+     </property>
+     <widget class="QPushButton" name="cmdEjectSD">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>30</y>
+        <width>101</width>
+        <height>51</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>16</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>Eject
+SD Card</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="cmdFormatSD">
+      <property name="geometry">
+       <rect>
+        <x>120</x>
+        <y>30</y>
+        <width>101</width>
+        <height>51</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>16</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>Format
+SD Card</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="lblStatusSD">
+      <property name="geometry">
+       <rect>
+        <x>240</x>
+        <y>30</y>
+        <width>431</width>
+        <height>51</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>DejaVu Sans Mono</family>
+       </font>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QPushButton" name="cmdSWUpdate">
+     <property name="geometry">
+      <rect>
+       <x>610</x>
+       <y>320</y>
+       <width>121</width>
+       <height>51</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Apply
+Software Update</string>
+     </property>
+    </widget>
+    <widget class="QGroupBox" name="gbMountedDevices">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>310</y>
+       <width>581</width>
+       <height>131</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string>Mounted Devices</string>
+     </property>
+     <widget class="QLabel" name="lblMountedDevices">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>20</y>
+        <width>561</width>
+        <height>101</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>DejaVu Sans Mono</family>
+       </font>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+      </property>
+     </widget>
     </widget>
    </widget>
    <widget class="QWidget" name="tabAbout">
@@ -664,9 +821,9 @@ from backup</string>
      </property>
     </widget>
    </widget>
-   <widget class="QWidget" name="tab">
+   <widget class="QWidget" name="tabKickstarter">
     <attribute name="title">
-     <string>Kickstarter Backers</string>
+     <string>Kickstarter</string>
     </attribute>
     <widget class="QTextEdit" name="textKickstarter">
      <property name="geometry">
@@ -1083,6 +1240,13 @@ calibration data
   <tabstop>textKickstarter</tabstop>
   <tabstop>cmdClose_3</tabstop>
   <tabstop>cmdClose_2</tabstop>
+  <tabstop>cmdSWUpdate</tabstop>
+  <tabstop>cmdFormatSD</tabstop>
+  <tabstop>cmdEjectSD</tabstop>
+  <tabstop>cmdFormatDisk</tabstop>
+  <tabstop>cmdEjectDisk</tabstop>
+  <tabstop>cmdRestoreCal</tabstop>
+  <tabstop>cmdSaveCal</tabstop>
   <tabstop>cmdDefaults</tabstop>
   <tabstop>cmdRestoreSettings</tabstop>
   <tabstop>cmdBackupSettings</tabstop>
@@ -1094,9 +1258,6 @@ calibration data
   <tabstop>chkAutoSave</tabstop>
   <tabstop>chkAutoRecord</tabstop>
   <tabstop>comboDisableUnsavedWarning</tabstop>
-  <tabstop>cmdRestoreCal</tabstop>
-  <tabstop>cmdSaveCal</tabstop>
-  <tabstop>cmdSWUpdate</tabstop>
   <tabstop>radioFPSensHigh</tabstop>
   <tabstop>radioFPSensMed</tabstop>
   <tabstop>radioFPSensLow</tabstop>
@@ -1104,8 +1265,6 @@ calibration data
   <tabstop>chkFPEnable</tabstop>
   <tabstop>cmdSetClock</tabstop>
   <tabstop>dateTimeEdit</tabstop>
-  <tabstop>cmdEjectSD</tabstop>
-  <tabstop>cmdEjectUSB</tabstop>
  </tabstops>
  <resources/>
  <connections/>

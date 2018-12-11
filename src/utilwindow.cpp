@@ -17,20 +17,30 @@
 #include "utilwindow.h"
 #include "ui_utilwindow.h"
 #include "statuswindow.h"
+
 #include <QDebug>
 #include <QMessageBox>
 #include <QTimer>
 #include <QSettings>
+#include <QDBusInterface>
+#include <QProgressDialog>
+
 #include <stdio.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <errno.h>
 #include <time.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <sys/mount.h>
-#include "sys/sendfile.h"
-#include <QDBusInterface>
+#include <sys/sendfile.h>
+#include <mntent.h>
+
+extern "C" {
+#include "siText.h"
+}
+
+#include "util.h"
 #include "chronosControlInterface.h"
 
 #define FOCUS_PEAK_THRESH_LOW	35
@@ -42,6 +52,7 @@
 extern const char* git_version_str;
 
 bool copyFile(const char * fromfile, const char * tofile);
+QString listStorageDevice(const char *blkdev);
 
 static char *readReleaseString(char *buf, size_t len)
 {
@@ -242,6 +253,26 @@ void UtilWindow::onUtilWindowTimer()
 		else
 			ui->dateTimeEdit->setDateTime(QDateTime::currentDateTime());
 	}
+
+	/* If on the storage tab, update the drive and network status. */
+	if (ui->tabWidget->currentWidget() == ui->tabStorage) {
+		char line[128];
+		FILE *fp;
+
+		QString mText = "";
+		fp = popen("df -h | sed -n \'1p;/\\/media\\/\\(sd\\|mmcblk1\\)/p\'", "r");
+		if (fp) {
+			while (fgets(line, sizeof(line), fp) != NULL) {
+				mText.append(line);
+			}
+			pclose(fp);
+		}
+		ui->lblMountedDevices->setText(mText);
+
+		/* Update the disk status text. */
+		ui->lblStatusDisk->setText(listStorageDevice("sda"));
+		ui->lblStatusSD->setText(listStorageDevice("mmcblk1"));
+	}
 }
 
 void UtilWindow::on_cmdSetClock_clicked()
@@ -416,8 +447,7 @@ void UtilWindow::on_cmdAutoCal_clicked()
 	qDebug("cmdAutoCal: autoColGainCorrection");
 	retVal = camera->autoColGainCorrection();
 
-	if(SUCCESS != retVal)
-	{
+	if(SUCCESS != retVal) {
 		sw.hide();
 		QMessageBox msg;
 		sprintf(text, "Error during gain calibration, error %d", retVal);
@@ -426,28 +456,13 @@ void UtilWindow::on_cmdAutoCal_clicked()
 		msg.exec();
 		return;
 	}
-/*
-	retVal = camera->takeWhiteReferences();
-
-	if(SUCCESS != retVal)
-	{
-		QMessageBox msg;
-		sprintf(text, "Error during white reference calibration, error %d", retVal);
-		msg.setText(text);
-		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
-		msg.exec();
-	}
-	else*/
-	{
+	else {
 		sw.hide();
 		QMessageBox msg;
 		msg.setText("Done!");
 		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
 		msg.exec();
 	}
-
-
-
 }
 
 
@@ -520,9 +535,6 @@ void UtilWindow::on_cmdWhiteRef_clicked()
 		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
 		msg.exec();
 	}
-
-
-
 }
 
 void UtilWindow::on_cmdSetSN_clicked()
@@ -721,7 +733,208 @@ void UtilWindow::on_cmdEjectSD_clicked()
 	}
 }
 
-void UtilWindow::on_cmdEjectUSB_clicked()
+/* Quick and dirty wrapper to run a command and get the output. */
+char *getCommandOutput(char *dest, size_t maxlen, const char *format, ...)
+{
+	char command[PATH_MAX+64];
+	size_t readsz;
+	FILE *fp;
+
+	va_list args;
+	va_start(args, format);
+	vsnprintf(command, sizeof(command), format, args);
+	va_end(args);
+
+	fp = popen(command, "r");
+	if (!fp) {
+		return strcpy(dest, "");
+	}
+	readsz = fread(dest, 1, maxlen-1, fp);
+	fclose(fp);
+	dest[readsz] = '\0';
+	return dest;
+}
+
+char *stripNewlines(char *s)
+{
+	char *newline = strpbrk(s, "\r\n");
+	if (newline) *newline = '\0';
+	return s;
+}
+
+QString listStorageDevice(const char *blkdev)
+{
+	char line[128];
+	struct stat st;
+	int fd;
+	FILE *fp;
+
+	char diskPath[PATH_MAX] = "/dev/";
+	char command[PATH_MAX+64];
+	QString diskText = "";
+
+	/* Try opening the block device. */
+	strcat(diskPath, blkdev);
+	fd = open(diskPath, O_RDONLY);
+	if (fd < 0) {
+		return diskText;
+	}
+	while (fstat(fd, &st) == 0) {
+		if (!S_ISBLK(st.st_mode)) break;
+#ifdef DEBIAN
+		sprintf(command, "lsblk --output NAME,SIZE,FSTYPE,LABEL,VENDOR,MODEL %s", diskPath);
+		fp = popen(command, "r");
+		if (!fp) break;
+		while (fgets(line, sizeof(line), fp) != NULL) {
+			diskText.append(line);
+		}
+		pclose(fp);
+#else
+		long blksize = 0;
+		char partname[128];
+		char fstype[16];
+		char label[16];
+		char szbuf[16];
+		ioctl(fd, BLKGETSIZE, &blksize);
+
+		/* Print the header */
+		sprintf(line, "%-10s %7s %-6s %-10s %-8s %s\n", "NAME", "SIZE", "FSTYPE", "LABEL", "VENDOR", "MODEL");
+		diskText.append(line);
+
+		/* Print the block device info. */
+		getSIText(szbuf, (double)blksize * 512, 4, 0, 4);
+		sprintf(line, "%-10s %7s %-6s %-10s %-8s %s\n", blkdev, szbuf, "", "", "", "");
+		diskText.append(line);
+
+		/* Get the list of partitions. */
+		sprintf(command, "blkid -o device %s?*", diskPath);
+		fp = popen(command, "r");
+		if (!fp) break;
+		while (fgets(partname, sizeof(partname), fp) != NULL) {
+			stripNewlines(partname);
+			getCommandOutput(fstype, sizeof(fstype), "blkid -o value -s TYPE %s", partname);
+			getCommandOutput(label, sizeof(label), "blkid -o value -s LABEL %s", partname);
+			getCommandOutput(szbuf, sizeof(szbuf), "blockdev --getsz %s", partname);
+			blksize = strtoul(szbuf, NULL, 0);
+			getSIText(szbuf, (double)blksize * 512, 4, 0, 4);
+
+			sprintf(line, "%-10s %7s %-6s %-10s %-8s %s\n", partname+5, szbuf, stripNewlines(fstype), stripNewlines(label), "", "");
+			diskText.append(line);
+		}
+		pclose(fp);
+#endif
+		break;
+	}
+	close(fd);
+	return diskText;
+}
+
+void UtilWindow::formatStorageDevice(const char *blkdev)
+{
+	QMessageBox::StandardButton reply;
+	QProgressDialog *progress;
+	FILE * mtab = setmntent("/etc/mtab", "r");
+	struct mntent mnt;
+	char tempbuf[4096];		//Temp buffer used by mntent
+	char command[128];
+	char filepath[128];
+	char partpath[128];
+	char diskname[128];
+	int filepathlen;
+	FILE *fp;
+	int ret;
+
+	/* Read the disk name from sysfs. */
+	sprintf(filepath, "/sys/block/%s/device/model", blkdev);
+	if ((fp = fopen(filepath, "r")) != NULL) {
+		int len = fread(diskname, 1, sizeof(diskname)-1, fp);
+		diskname[len] = '\0';
+		fclose(fp);
+	}
+	else {
+		sprintf(filepath, "/sys/block/%s/device/name", blkdev);
+		if ((fp = fopen(filepath, "r")) != NULL) {
+			int len = fread(diskname, 1, sizeof(diskname)-1, fp);
+			diskname[len] = '\0';
+			fclose(fp);
+		}
+		else {
+			strcpy(diskname, blkdev);
+		}
+	}
+
+	/* Prompt the user for confirmation */
+	reply = QMessageBox::question(this, QString("Format Device: %1").arg(diskname),
+								  "This will erase all data on the device, are you sure you want to continue?",
+								  QMessageBox::Yes|QMessageBox::No);
+	if(QMessageBox::Yes != reply)
+		return;
+
+	progress = new QProgressDialog(this);
+	progress->setWindowTitle(QString("Format Device: %1").arg(diskname));
+	progress->setMaximum(4);
+	progress->setMinimumDuration(0);
+	progress->setWindowModality(Qt::WindowModal);
+	progress->show();
+
+	/* Unmount the block device and any of its partitions */
+	progress->setLabelText("Unmounting devices");
+	progress->setValue(0);
+	filepathlen = sprintf(filepath, "/dev/%s", blkdev);
+	sprintf(partpath, "/dev/%s%s", blkdev, isdigit(filepath[filepathlen-1]) ? "p1" : "1");
+	while (getmntent_r(mtab, &mnt, tempbuf, sizeof(tempbuf)) != NULL) {
+		if (strncmp(filepath, mnt.mnt_fsname, filepathlen) != 0) continue;
+		qDebug("Unmounting %s", mnt.mnt_dir);
+		umount2(mnt.mnt_dir, 0);
+	}
+	endmntent(mtab);
+
+	/* Overwrite the first 4kB with zeros and then rebuild the partition table. */
+	progress->setLabelText("Wiping partition table");
+	if (progress->wasCanceled()) {
+		delete progress;
+		return;
+	}
+	progress->setValue(1);
+	fp = fopen(filepath, "wb");
+	if (fp) {
+		fwrite(memset(tempbuf, 0, sizeof(tempbuf)), sizeof(tempbuf), 1, fp);
+		fflush(fp);
+		fclose(fp);
+	}
+
+	progress->setLabelText("Writing partition table");
+	if (progress->wasCanceled()) {
+		delete progress;
+		return;
+	}
+	progress->setValue(2);
+	sprintf(command, "echo \"0 - c -\" | sfdisk -Dq %s && sleep 1", filepath);
+	system(command);
+
+	/* Delay for a second to give the kernel some time to reload the partitons, and then format the disk. */
+	progress->setLabelText("Formatting partition");
+	qDebug("Formatting %s", partpath);
+	if (progress->wasCanceled()) {
+		delete progress;
+		return;
+	}
+	progress->setValue(3);
+	sprintf(command, "mkfs.vfat -n CHRONOS %s && sleep 1 && blockdev --rereadpt %s", partpath, filepath);
+	system(command);
+
+	/* Turn the 'cancel' button into a 'done' button */
+	progress->setLabelText("Formatting complete");
+	progress->setValue(4);
+	delete progress;
+}
+
+void UtilWindow::on_cmdFormatSD_clicked()
+{
+	formatStorageDevice("mmcblk1");
+}
+
+void UtilWindow::on_cmdEjectDisk_clicked()
 {
 	if(umount2("/media/sda1", 0))
 	{ //Failed, show error
@@ -739,6 +952,11 @@ void UtilWindow::on_cmdEjectUSB_clicked()
 		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
 		msg.exec();
 	}
+}
+
+void UtilWindow::on_cmdFormatDisk_clicked()
+{
+	formatStorageDevice("sda");
 }
 
 void UtilWindow::on_chkAutoSave_stateChanged(int arg1)
@@ -960,4 +1178,13 @@ void UtilWindow::on_cmdRevertCalData_pressed()
 void UtilWindow::on_comboDisableUnsavedWarning_currentIndexChanged(int index)
 {
 	camera->setUnsavedWarnEnable(index);
+}
+
+void UtilWindow::on_tabWidget_currentChanged(int index)
+{
+#ifdef QT_KEYPAD_NAVIGATION
+	if (index == ui->tabWidget->indexOf(ui->tabKickstarter)) {
+		ui->textKickstarter->setEditFocus(true);
+	}
+#endif
 }
