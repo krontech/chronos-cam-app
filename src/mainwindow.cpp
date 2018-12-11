@@ -42,8 +42,6 @@ extern "C" {
 #include "eeprom.h"
 }
 
-void endOfRecCallback(void * arg);
-
 MainWindow::MainWindow(QWidget *parent) :
 	QMainWindow(parent),
 	ui(new Ui::MainWindow)
@@ -112,16 +110,6 @@ void MainWindow::on_cmdWrite_clicked()
 	Msgbox.setText(msg);
 	Msgbox.exec();
 
-}
-
-
-void endOfRecCallback(void * arg)
-{
-	char st[100];
-	MainWindow * mw = (MainWindow*)arg;
-	sprintf(st, "Recording Ended!\n");
-	mw->ui->lblStatus->setText(st);
-	qApp->processEvents();
 }
 
 void MainWindow::on_cmdAdvPhase_clicked()

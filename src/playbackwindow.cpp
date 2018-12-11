@@ -74,7 +74,7 @@ playbackWindow::playbackWindow(QWidget *parent, Camera * cameraInst, bool autosa
 	ui->verticalSlider->setFocusProxy(this);
 
 	camera->setPlayMode(true);
-	camera->vinst->setPosition(0, 0);
+	camera->vinst->setPosition(0);
 	connect(camera->vinst, SIGNAL(started(VideoState)), this, SLOT(videoStarted(VideoState)));
 	connect(camera->vinst, SIGNAL(ended(VideoState, QString)), this, SLOT(videoEnded(VideoState, QString)));
 
@@ -179,7 +179,7 @@ void playbackWindow::on_verticalSlider_sliderMoved(int position)
 {
 	/* Note that a rate of zero will also pause playback. */
 	stopPlayLoop();
-	camera->vinst->setPosition(position, 0);
+	camera->vinst->setPosition(position);
 }
 
 void playbackWindow::on_verticalSlider_valueChanged(int value)

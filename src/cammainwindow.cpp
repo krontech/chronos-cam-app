@@ -97,6 +97,8 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	connect(timer, SIGNAL(timeout()), this, SLOT(on_MainWindowTimer()));
 	timer->start(16);
 
+	connect(camera->vinst, SIGNAL(newSegment(VideoStatus *)), this, SLOT(on_newVideoSegment(VideoStatus *)));
+
 	if (appSettings.value("debug/hideDebug", true).toBool()) {
 		ui->cmdDebugWnd->setVisible(false);
 		ui->cmdClose->setVisible(false);
@@ -396,6 +398,17 @@ void CamMainWindow::on_MainWindowTimer()
 		ui->cmdDebugWnd->setVisible(true);
 		ui->cmdClose->setVisible(true);
 		ui->cmdDPCButton->setVisible(true);
+	}
+}
+
+void CamMainWindow::on_newVideoSegment(VideoStatus *st)
+{
+	/* Flag that we have unsaved video. */
+	qDebug("--- Sequencer --- Total recording size: %u", st->totalFrames);
+	if (st->totalFrames) {
+		camera->recordingData.is = camera->getImagerSettings();
+		camera->recordingData.valid = true;
+		camera->recordingData.hasBeenSaved = false;
 	}
 }
 

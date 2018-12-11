@@ -178,8 +178,6 @@ public:
 	Int32 setRecSequencerModeCalLoop();
 	Int32 stopRecording(void);
 	bool getIsRecording(void);
-	void (*endOfRecCallback)(void *);
-	void * endOfRecCallbackArg;
 	GPMC * gpmc;
 	Video * vinst;
 	LUX1310 * sensor;
@@ -265,9 +263,7 @@ private:
 	void terminateRecord(void);
 	void writeSeqPgmMem(SeqPgmMemWord pgmWord, UInt32 address);
 	void setRecRegion(UInt32 start, UInt32 count, FrameGeometry *geometry);
-public:
 	void readAcqMem(UInt32 * buf, UInt32 offsetWords, UInt32 length);
-private:
 	void writeAcqMem(UInt32 * buf, UInt32 offsetWords, UInt32 length);
 	void writeDGCMem(double gain, UInt32 column);
 	bool readIsColor(void);
@@ -281,10 +277,8 @@ public:
 	UInt16 getFPGASubVersion(void);
 	bool ButtonsOnLeft;
 	bool UpsideDownDisplay;
-private:
-	void endOfRec(void);
-	UInt16 getMaxFPNValue(UInt16 * buf, UInt32 count);
 
+private:
 	friend void* recDataThread(void *arg);
 
 	volatile bool recording;
