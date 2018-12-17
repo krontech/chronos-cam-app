@@ -51,6 +51,11 @@ playbackWindow::playbackWindow(QWidget *parent, Camera * cameraInst, bool autosa
 	saveAbortedAutomatically = false;
 	
 	camera->vinst->getStatus(&vStatus);
+	
+	if(camera->vinst->getOverlayStatus())	{
+		camera->vinst->setOverlay("%.6h/%.6z Sg=%g/%i T=%.8Ss");
+	}
+
 	playFrame = 0;
 	playLoop = false;
 	totalFrames = vStatus.totalFrames;
@@ -91,7 +96,6 @@ playbackWindow::playbackWindow(QWidget *parent, Camera * cameraInst, bool autosa
 		strcpy(camera->vinst->filename, appSettings.value("recorder/filename", "").toString().toAscii());
 	}
 	
-	if(camera->vinst->getOverlayStatus())	camera->vinst->setOverlay("%.6h/%.6z Sg=%g/%i T=%.8Ss");
 }
 
 playbackWindow::~playbackWindow()
