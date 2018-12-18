@@ -110,7 +110,7 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX2100 * senso
 	sensor = sensorInst;
 	ui = userInterface;
 	ramSize = (ramSizeGBSlot0 + ramSizeGBSlot1)*1024/32*1024*1024;
-    isColor = false;//readIsColor();
+    isColor = true;//readIsColor();
 	int err;
 
 

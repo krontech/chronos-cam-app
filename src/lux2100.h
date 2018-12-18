@@ -184,7 +184,9 @@ public:
 	UInt8 getFilterColor(UInt32 h, UInt32 v);
 	Int32 setABNDelayClocks(UInt32 ABNOffset);
     Int32 LUX2100ADCBugCorrection(UInt16 * rawUnpackedFrame, UInt32 hRes, UInt32 vRes);
-
+    Int32 initLUX2100(bool colorBinning = false);
+    Int32 initLUX8M(void);
+    Int32 initLUX8M_2(void);
 
 	bool masterMode;
 	UInt32 masterModeTotalLines;
