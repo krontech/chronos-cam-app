@@ -133,6 +133,9 @@
 #define DISPLAY_MANUAL_SYNC_ADDR        (DISPLAY_BASE_ADDR + 0x50)
 #define DISPLAY_MANUAL_SYNC_MASK			(1 << 0)
 
+#define DISPLAY_GAIN_CONTROL_ADDR		(DISPLAY_BASE_ADDR + 0x54)
+#define DISPLAY_GAIN_CONTROL_3POINT			(1 << 0)
+
 //---------------------------------- Color Correction Block --------------------------------------
 
 #define COLOR_BASE_ADDR					0x4C0

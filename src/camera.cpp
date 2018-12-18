@@ -822,7 +822,7 @@ void Camera::loadFPNCorrection(FrameGeometry *geometry, const UInt16 *fpnBuffer,
 		 * For FPN to output black, f(fpn) = 0 and therefore:
 		 *  c = -a*fpn^2 - b*fpn
 		 */
-		Int64 fpnLinear = (COL_OFFSET_FOOTROOM * scale) - ((Int64)fpnColumns[col] * gain);
+		Int64 fpnLinear = -((Int64)fpnColumns[col] * gain);
 		Int64 fpnCurved = -(square * curve) / (scale << (COL_CURVE_FRAC_BITS - COL_GAIN_FRAC_BITS));
 		Int16 offset = (fpnLinear + fpnCurved) / (scale << COL_GAIN_FRAC_BITS);
 		gpmc->write16(COL_OFFSET_MEM_START_ADDR + (2 * col), offset);
@@ -838,19 +838,12 @@ void Camera::loadFPNCorrection(FrameGeometry *geometry, const UInt16 *fpnBuffer,
 		if ((fpnColumns[col] / scale) > maxColumn) maxColumn = (fpnColumns[col] / scale);
 	}
 
-	/*
-	 * The AC component of each column remains as the per-pixel FPN. However,
-	 * since the FPGA interprets the FPN as an unsigned quantity, we must be
-	 * sure to bias the per-pixel FPN to keep it positive.
-	 */
+	/* The AC component of each column remains as the per-pixel FPN. */
 	for(int row = 0; row < geometry->vRes; row++) {
 		for(int col = 0; col < geometry->hRes; col++) {
 			int i = row * geometry->hRes + col;
-			Int32 fpn = fpnBuffer[i] + (COL_OFFSET_FOOTROOM * framesToAverage) - (fpnColumns[col] / geometry->vRes);
-			if (fpn < 0) {
-				fprintf(stderr, "FPN Pixel %dx%d clipped (%d)\n", col, row, fpn);
-			}
-			writePixelBuf12(pixBuffer, i, (fpn >= 0) ? fpn / framesToAverage : 0);
+			Int32 fpn = (fpnBuffer[i] - (fpnColumns[col] / geometry->vRes)) / framesToAverage;
+			writePixelBuf12(pixBuffer, i, (unsigned)fpn & 0xfff);
 		}
 	}
 	writeAcqMem((UInt32 *)pixBuffer, FPN_ADDRESS, geometry->size());
@@ -1031,7 +1024,7 @@ UInt32 Camera::autoFPNCorrection(UInt32 framesToAverage, bool writeToFile, bool 
 
     imagerSettings.mode = oldMode;
 
-	computeFPNCorrection(&recordingData.is.geometry, REC_REGION_START, framesToAverage, writeToFile, factory);
+	computeFPNCorrection(&imagerSettings.geometry, REC_REGION_START, framesToAverage, writeToFile, factory);
 
 	qDebug() << "FPN correction done";
 	recordingData.hasBeenSaved = true;
@@ -1727,7 +1720,8 @@ void Camera::computeGainColumns(FrameGeometry *geometry, UInt32 wordAddress, con
 #endif
 	}
 
-	/* Load the column gains */
+	/* Enable 3-point calibration and load the column gains */
+	gpmc->write16(DISPLAY_GAIN_CONTROL_ADDR, DISPLAY_GAIN_CONTROL_3POINT);
 	for (int col = 0; col < geometry->hRes; col++) {
 		gpmc->write16(COL_GAIN_MEM_START_ADDR + (2 * col), colGain[col % LUX1310_HRES_INCREMENT]);
 		gpmc->write16(COL_CURVE_MEM_START_ADDR + (2 * col), colCurve[col % LUX1310_HRES_INCREMENT]);
