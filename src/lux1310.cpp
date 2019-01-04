@@ -764,7 +764,7 @@ void LUX1310::setSlaveExposure(UInt32 exposure)
 	double targetExp = (double)exposure / 100000000.0;
 	UInt32 expLines = round(targetExp / linePeriod);
 
-	exposure = startDelay + (linePeriod * expLines * 100000000.0);
+	if(exposure > 500) exposure = startDelay + (linePeriod * expLines * 100000000.0);
 	//qDebug() << "linePeriod" << linePeriod << "startDelaySensorClocks" << startDelaySensorClocks << "startDelay" << startDelay
 	//		 << "targetExp" << targetExp << "expLines" << expLines << "exposure" << exposure;
 	gpmc->write32(IMAGER_INT_TIME_ADDR, exposure);
