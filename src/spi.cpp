@@ -101,12 +101,40 @@ void SPI::Close()
 	isOpen = false;
 }
 
-Int32 SPI::Transfer(uint64_t txBuf, uint64_t rxBuf, uint32_t len)
+CameraErrortype SPI::setMode(bool cpol, bool cpha)
+{
+    int ret;
+    uint8_t newMode =
+                (cpol ? 0x2 : 0) |
+                (cpha ? 0x1 : 0);
+
+    if(!isOpen)
+        return SPI_NOT_OPEN;
+
+    if(mode != newMode)
+    {
+        mode = newMode;
+        /*
+         * spi mode
+         */
+        ret = ioctl(fd, SPI_IOC_WR_MODE, &mode);
+        if (ret == -1)
+            return SPI_IOCTL_FAIL;
+
+        ret = ioctl(fd, SPI_IOC_RD_MODE, &mode);
+        if (ret == -1)
+            return SPI_IOCTL_FAIL;
+    }
+}
+
+Int32 SPI::Transfer(uint64_t txBuf, uint64_t rxBuf, uint32_t len, bool cpol, bool cpha)
 {
 	int ret;
 	struct spi_ioc_transfer tr;
 	if(!isOpen)
 		return SPI_NOT_OPEN;
+
+    setMode(cpol, cpha);
 
 	tr.tx_buf = txBuf;
 	tr.rx_buf = rxBuf;

@@ -102,7 +102,7 @@ SOURCES += main.cpp\
     chronosVideoInterface.cpp \
     colorwindow.cpp \
     colordoublespinbox.cpp \
-    lux2100.cpp
+    lux2810.cpp
 
 ## Generate version.cpp on every build
 versionTarget.target = version.cpp
@@ -158,7 +158,7 @@ HEADERS  += mainwindow.h \
     chronosVideoInterface.h \
     colorwindow.h \
     colordoublespinbox.h \
-    lux2100.h
+    lux2810.h
 
 FORMS    += mainwindow.ui \
     cammainwindow.ui \

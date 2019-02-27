@@ -30,7 +30,8 @@ public:
 	CameraErrortype Init(const char * dev, uint8_t bits_val, uint32_t speed_val, bool cpol = false, bool cpha = false);
 	CameraErrortype Open(const char * dev);
 	void Close(void);
-	Int32 Transfer(uint64_t txBuf, uint64_t rxBuf, uint32_t len);
+    CameraErrortype setMode(bool cpol, bool cpha);
+    Int32 Transfer(uint64_t txBuf, uint64_t rxBuf, uint32_t len, bool cpol = false, bool cpha = true);
 
 	int fd;
 

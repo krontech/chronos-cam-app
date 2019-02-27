@@ -27,7 +27,7 @@
 #include "video.h"
 //#include "lupa1300.h"
 //#include "lux1310.h"
-#include "lux2100.h"
+#include "lux2810.h"
 #include "userInterface.h"
 #include "io.h"
 #include "string.h"
@@ -45,7 +45,7 @@
 #define RECORD_LENGTH_MIN       1           //Minimum number of frames in the record region
 #define SEGMENT_COUNT_MAX       (32*1024)   //Maximum number of record segments in segmented mode
 
-#define MAX_FRAME_SIZE_H		1952
+#define MAX_FRAME_SIZE_H		1920
 #define MAX_FRAME_SIZE_V		1080
 #define MAX_FRAME_SIZE          (MAX_FRAME_SIZE_H * MAX_FRAME_SIZE_V * 8 / 12)
 #define MAX_STRIDE				1920

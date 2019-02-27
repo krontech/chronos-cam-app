@@ -33,7 +33,7 @@
 #include "util.h"
 #include "types.h"
 #include "lux1310.h"
-#include "lux2100.h"
+#include "lux2810.h"
 #include "ecp5Config.h"
 #include "defines.h"
 #include <QWSDisplay>
@@ -83,7 +83,7 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX2100 * senso
 	//Configure FPGA
 	Ecp5Config * config;
 	const char * configFileName;
-	QFileInfo fpgaConfigFile("fpga:FPGA.bit");
+    QFileInfo fpgaConfigFile("fpga:FPGAv4.bit");    //V3:without debug
 	if (fpgaConfigFile.exists() && fpgaConfigFile.isFile()) 
 		configFileName = fpgaConfigFile.absoluteFilePath().toLocal8Bit().constData();
 	else {
@@ -101,7 +101,7 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX2100 * senso
 
 
 	//Read serial number in
-	retVal = (CameraErrortype)readSerialNumber(serialNumber);
+    retVal = (CameraErrortype)readSerialNumber(serialNumber);
 	if(retVal != SUCCESS)
 		return retVal;
 
@@ -110,7 +110,7 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX2100 * senso
 	sensor = sensorInst;
 	ui = userInterface;
 	ramSize = (ramSizeGBSlot0 + ramSizeGBSlot1)*1024/32*1024*1024;
-    isColor = true;//readIsColor();
+    isColor = false;//readIsColor();
 	int err;
 
 
@@ -1069,7 +1069,7 @@ void Camera::computeFPNCorrection2(UInt32 framesToAverage, bool writeToFile, boo
 	for(int i = 0; i < pixelsPerFrame; i++)
 	{
 		buffer[i] /= framesToAverage;
-		writePixelBuf12(rawBuffer, i, buffer[i]);
+        writePixelBuf12(rawBuffer, i, buffer[i]);
 	}
 
 	writeAcqMem(rawBuffer32, FPN_ADDRESS, bytesPerFrame);

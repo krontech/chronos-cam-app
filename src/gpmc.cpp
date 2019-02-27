@@ -64,7 +64,7 @@ Int32 GPMC::init()
 	GPMC_CONFIG = GPMC_CONFIG | (3 << 8);
 
 	GPMC_TIMEOUT_CONTROL =	0x1FF << 4 |	/*TIMEOUTSTARTVALUE*/
-		0;				/*TIMEOUTENABLE*/      // <<<<<<<<<<<<<<<<<<<<<<<<<<< TIMEOUT ENABLE
+        0;				/*TIMEOUTENABLE*/      // <<<<<<<<<<<<<<<<<<<<<<<<<<< TIMEOUT ENABLE
 
 	//Disable CS0
 	GPMC_CONFIG7_i(0) = 0;
