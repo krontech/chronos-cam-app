@@ -20,51 +20,17 @@
 
 void catch_sigchild(int sig) { /* nop */ }
 
-Int32 Video::init(void)
+/* Check for the PID of the video daemon. */
+void Video::checkpid(void)
 {
-	signal(SIGCHLD, catch_sigchild);
-	return SUCCESS;
-}
-
-bool Video::setRunning(bool run)
-{
-	if(!running && run) {
-		int child = fork();
-		if (child < 0) {
-			/* Could not start the video pipeline. */
-			return false;
-		}
-		else if (child == 0) {
-			/* child process - start the pipeline */
-#ifdef DEBIAN
-			const char *path = "cam-pipeline";
-#else
-			const char *path = "/opt/camera/cam-pipeline";
-#endif
-			char display[64];
-			char offset[64];
-			snprintf(display, sizeof(display), "%ux%u", displayWindowXSize, displayWindowYSize);
-			snprintf(offset, sizeof(offset), "%ux%u", displayWindowXOff, displayWindowYOff);
-			execlp(path, path, display, "--offset", offset, NULL);
-			exit(EXIT_FAILURE);
-		}
-		pid = child;
-		running = true;
+	FILE *fp = popen("pidof cam-pipeline", "r");
+	char line[64];
+	if (fp == NULL) {
+		return;
 	}
-	else if(running && !run) {
-		int status;
-		kill(pid, SIGINT);
-		waitpid(pid, &status, 0);
-		running = false;
-	}
-	return true;
-}
+	if (fgets(line, sizeof(line), fp) != NULL) {
+		pid = strtol(line, NULL, 10);
 
-
-void Video::reload(void)
-{
-	if(running) {
-		kill(pid, SIGHUP);
 	}
 }
 
@@ -91,7 +57,7 @@ static VideoStatus *parseVideoStatus(const QVariantMap &args, VideoStatus *st)
 {
 	st->state = parseVideoState(args);
 	st->totalFrames = args["totalFrames"].toUInt();
-	st->position = args["position"].toUInt();
+	st->position = args["position"].toInt();
 	st->totalSegments = args["totalSegments"].toUInt();
 	st->segment = args["segment"].toUInt();
 	st->framerate = args["framerate"].toDouble();
@@ -175,7 +141,7 @@ void Video::setPlayback(int rate)
 
 void Video::seekFrame(int delta)
 {
-	if (delta && running) {
+	if (delta && (pid > 0)) {
 		union sigval val = { .sival_int = delta };
 		sigqueue(pid, SIGUSR1, val);
 	}
@@ -217,12 +183,15 @@ void Video::setDisplayOptions(bool zebra, bool peaking)
 	}
 }
 
-void Video::liveDisplay(void)
+void Video::liveDisplay(unsigned int hRes, unsigned int vRes)
 {
+	QVariantMap args;
 	QDBusPendingReply<QVariantMap> reply;
+	args.insert("hres", QVariant(hRes));
+	args.insert("vres", QVariant(vRes));
 
 	pthread_mutex_lock(&mutex);
-	reply = iface.livedisplay();
+	reply = iface.livedisplay(args);
 	reply.waitForFinished();
 	pthread_mutex_unlock(&mutex);
 }
@@ -417,12 +386,15 @@ CameraErrortype Video::stopRecording()
 	return SUCCESS;
 }
 
-void Video::setDisplayWindowStartX(bool videoOnRight){
+void Video::setDisplayPosition(bool videoOnRight)
+{
 	displayWindowXOff = videoOnRight ? 200 : 0;
 	displayWindowYOff = 0;
 
 	QVariantMap args;
 	QDBusPendingReply<QVariantMap> reply;
+	args.insert("hres", QVariant(displayWindowXSize));
+	args.insert("vres", QVariant(displayWindowYSize));
 	args.insert("xoff", QVariant(displayWindowXOff));
 	args.insert("yoff", QVariant(displayWindowYOff));
 
@@ -487,7 +459,6 @@ Video::Video() : iface("com.krontech.chronos.video", "/com/krontech/chronos/vide
 	}
 	strcpy(fileDirectory, "/media/mmcblk1p1");
 
-
 	pthread_mutex_init(&mutex, NULL);
 
 	/* Connect DBus signals */
@@ -497,11 +468,13 @@ Video::Video() : iface("com.krontech.chronos.video", "/com/krontech/chronos/vide
 				 "eof", this, SLOT(eof(const QVariantMap&)));
 	conn.connect("com.krontech.chronos.video", "/com/krontech/chronos/video", "com.krontech.chronos.video",
 				 "segment", this, SLOT(segment(const QVariantMap&)));
+
+	/* Try to get the PID of the video pipeline. */
+	checkpid();
 }
 
 Video::~Video()
 {
-	setRunning(false);
 	pthread_mutex_destroy(&mutex);
 }
 

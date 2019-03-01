@@ -66,7 +66,6 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	battCapacityPercent = 0;
 
 	gpmc->init();
-	vinst->init();
 	userInterface->init();
 	retVal = camera->init(gpmc, vinst, sensor, userInterface, 16*1024/32*1024*1024, true);
 
@@ -145,10 +144,6 @@ CamMainWindow::~CamMainWindow()
 	delete sw;
 
 	delete ui;
-	if(camera->vinst->isRunning())
-	{
-		camera->vinst->setRunning(false);
-	}
 	delete camera;
 }
 

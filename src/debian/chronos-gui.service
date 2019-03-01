@@ -1,0 +1,14 @@
+[Unit]
+Description=User interface for the Chronos Camera
+After=chronos-video.service chronos-fpga.service
+Requires=chronos-video.service chronos-fpga.service
+
+[Service]
+WorkingDirectory=/var/camera
+EnvironmentFile=/var/camera/chronos-gui.env
+ExecStart=/usr/bin/camApp -qws
+StandardOutput=journal+console
+StandardError=inherit
+
+[Install]
+WantedBy=multi-user.target

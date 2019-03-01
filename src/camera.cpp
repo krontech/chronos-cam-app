@@ -33,7 +33,6 @@
 #include "util.h"
 #include "types.h"
 #include "lux1310.h"
-#include "ecp5Config.h"
 #include "defines.h"
 #include <QWSDisplay>
 
@@ -76,26 +75,6 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 
 	if(retVal != SUCCESS)
 		return retVal;
-
-	//Configure FPGA
-	Ecp5Config * config;
-	const char * configFileName;
-	QFileInfo fpgaConfigFile("fpga:FPGA.bit");
-	if (fpgaConfigFile.exists() && fpgaConfigFile.isFile()) 
-		configFileName = fpgaConfigFile.absoluteFilePath().toLocal8Bit().constData();
-	else {
-		qDebug("Error: FPGA bitfile not found");
-		return CAMERA_FILE_NOT_FOUND;
-	}
-
-	config = new Ecp5Config();
-	config->init(IMAGE_SENSOR_SPI, FPGA_PROGRAMN_PATH, FPGA_INITN_PATH, FPGA_DONE_PATH, FPGA_SN_PATH, FPGA_HOLDN_PATH, 33000000);
-	retVal = (CameraErrortype)config->configure(configFileName);
-	delete config;
-
-	if(retVal != SUCCESS)
-		return retVal;
-
 
 	//Read serial number in
 	retVal = (CameraErrortype)readSerialNumber(serialNumber);
@@ -186,10 +165,6 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
     imagerSettings.segmentLengthFrames = imagerSettings.recRegionSizeFrames;
     imagerSettings.segments = 1;
 
-	setLiveOutputTiming(&imagerSettings.geometry, MAX_LIVE_FRAMERATE);
-
-	vinst->init();
-
 	//Set to full resolution
 	ImagerSettings_t settings;
 
@@ -211,15 +186,11 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
     settings.temporary              = 0;
 
 	setImagerSettings(settings);
-    setDisplaySettings(false, MAX_LIVE_FRAMERATE);
 
     io->setTriggerDelayFrames(0, FLAG_USESAVED);
     setTriggerDelayValues((double) io->getTriggerDelayFrames() / settings.recRegionSizeFrames,
 			     io->getTriggerDelayFrames() * ((double)settings.period / 100000000),
 			     io->getTriggerDelayFrames());
-
-
-	vinst->setRunning(true);
 
 	vinst->bitsPerPixel        = appSettings.value("recorder/bitsPerPixel", 0.7).toDouble();
 	vinst->maxBitrate          = appSettings.value("recorder/maxBitrate", 40.0).toDouble();
@@ -264,7 +235,8 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 	setZebraEnable(appSettings.value("camera/zebra", true).toBool());
 	setFocusPeakEnable(appSettings.value("camera/focusPeak", false).toBool());
 	vinst->setDisplayOptions(getZebraEnable(), getFocusPeakEnable());
-	vinst->liveDisplay();
+	vinst->setDisplayPosition(ButtonsOnLeft ^ UpsideDownDisplay);
+	vinst->liveDisplay(settings.geometry.hRes, settings.geometry.vRes);
 	setFocusPeakColorLL(getFocusPeakColor());
 	setFocusPeakThresholdLL(appSettings.value("camera/focusPeakThreshold", 25).toUInt());
 
@@ -417,21 +389,9 @@ UInt32 Camera::setIntegrationTime(double intTime, FrameGeometry *fSize, Int32 fl
 	return SUCCESS;
 }
 
-UInt32 Camera::setDisplaySettings(bool encoderSafe, UInt32 maxFps)
+void Camera::updateVideoPosition()
 {
-	if(!sensor->isValidResolution(&imagerSettings.geometry))
-		return CAMERA_INVALID_IMAGER_SETTINGS;
-
-	setLiveOutputTiming(&imagerSettings.geometry, maxFps);
-
-	vinst->reload();
-
-	return SUCCESS;
-}
-
-void Camera::updateVideoPosition(){
-	vinst->setDisplayWindowStartX(ButtonsOnLeft ^ UpsideDownDisplay); //if both of these are true, the video position should actually be 0
-	//qDebug()<< "updateVideoPosition() called. ButtonsOnLeft value:  " << ButtonsOnLeft;
+	vinst->setDisplayPosition(ButtonsOnLeft ^ UpsideDownDisplay);
 }
 
 
@@ -462,6 +422,7 @@ Int32 Camera::startRecording(void)
 	recordingData.valid = false;
 	recordingData.hasBeenSaved = false;
 	vinst->flushRegions();
+	vinst->liveDisplay(imagerSettings.geometry.hRes, imagerSettings.geometry.vRes);
 	startSequencer();
 	ui->setRecLEDFront(true);
 	ui->setRecLEDBack(true);
@@ -644,7 +605,7 @@ UInt32 Camera::setPlayMode(bool playMode)
 	}
 	else
 	{
-		vinst->liveDisplay();
+		vinst->liveDisplay(imagerSettings.geometry.hRes, imagerSettings.geometry.vRes);
 	}
 	return SUCCESS;
 }
@@ -2496,8 +2457,6 @@ Int32 Camera::blackCalAllStdRes(bool factory)
 	QString filename;
 	QByteArray line;
 
-	vinst->setRunning(false);
-
 	filename.append("camApp:resolutions");
 	QFileInfo resolutionsFile(filename);
 	if (resolutionsFile.exists() && resolutionsFile.isFile()) {
@@ -2578,19 +2537,11 @@ Int32 Camera::blackCalAllStdRes(bool factory)
 		return retVal;
 	}
 
-	retVal = setDisplaySettings(false, MAX_LIVE_FRAMERATE);
-	if(SUCCESS != retVal) {
-		qDebug("blackCalAllStdRes: Error during setDisplaySettings %d", retVal);
-		return retVal;
-	}
-
 	retVal = loadFPNFromFile();
 	if(SUCCESS != retVal) {
 		qDebug("blackCalAllStdRes: Error during loadFPNFromFile %d", retVal);
 		return retVal;
 	}
-
-	vinst->setRunning(true);
 
 	return SUCCESS;
 }

@@ -87,7 +87,6 @@ SOURCES += main.cpp\
     camtextedit.cpp \
     camdoublespinbox.cpp \
     lux1310.cpp \
-    ecp5Config.cpp \
     utilwindow.cpp \
     statuswindow.cpp \
     eeprom.c \
@@ -142,7 +141,6 @@ HEADERS  += mainwindow.h \
     camdoublespinbox.h \
     errorCodes.h \
     lux1310.h \
-    ecp5Config.h \
     utilwindow.h \
     statuswindow.h \
     i2c/i2c-dev.h \
