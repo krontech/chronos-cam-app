@@ -212,7 +212,7 @@ void RecSettingsWindow::on_cmdOK_clicked()
     camera->updateTriggerValues(*is);
 
     camera->setImagerSettings(*is);
-    camera->setDisplaySettings(false, MAX_LIVE_FRAMERATE);
+	camera->vinst->liveDisplay(is->geometry.hRes, is->geometry.vRes);
 
 	if(CAMERA_FILE_NOT_FOUND == camera->loadFPNFromFile())
 		camera->autoFPNCorrection(2, false, true);
