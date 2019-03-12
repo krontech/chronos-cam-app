@@ -87,9 +87,9 @@
 #define CCM_32						0x270
 #define CCM_33						0x272
 
-#define WBAL_RED					0x278
+#define WBAL_BLUE					0x278
 #define WBAL_GREEN					0x27A
-#define WBAL_BLUE					0x27C
+#define WBAL_RED					0x27C
 
 #define WL_DYNDLY_0					0x280
 #define WL_DYNDLY_1					0x282
