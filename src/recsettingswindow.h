@@ -82,6 +82,8 @@ private:
     ImagerSettings_t * is;
     bool windowInitComplete;
 
+	FrameGeometry getResolution(void);
+
 signals:
 	void settingsChanged();
 

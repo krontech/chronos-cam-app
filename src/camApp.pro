@@ -158,6 +158,7 @@ HEADERS  += mainwindow.h \
     chronosVideoInterface.h \
     colorwindow.h \
     colordoublespinbox.h \
+    frameGeometry.h \
     lux2100.h
 
 FORMS    += mainwindow.ui \

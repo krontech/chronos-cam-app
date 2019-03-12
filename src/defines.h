@@ -53,7 +53,6 @@
 #define CAMERA_APP_VERSION		"0.3.1-RC1"
 #define ACCEPTABLE_FPGA_VERSION	3
 
-
 #define FLAG_TEMPORARY  1
 #define FLAG_USESAVED   2
 

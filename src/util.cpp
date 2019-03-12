@@ -48,8 +48,6 @@ bool checkAndCreateDir(const char * dir)
 			return false;
 		}
 	}
-	else
-		qDebug() << "Folder" << dir << "found, no need to create";
 
 	return true;
 }

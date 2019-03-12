@@ -43,15 +43,15 @@ recModeWindow::recModeWindow(QWidget *parent, Camera * cameraInst, ImagerSetting
         break;
     }
 
-    ui->spinRecLengthFrames->setMaximum(camera->getMaxRecordRegionSizeFrames(is->hRes, is->vRes));
+	ui->spinRecLengthFrames->setMaximum(camera->getMaxRecordRegionSizeFrames(&is->geometry));
     ui->spinRecLengthFrames->setValue(is->recRegionSizeFrames);
 
-    ui->spinRecLengthSeconds->setMaximum((double)(camera->getMaxRecordRegionSizeFrames(is->hRes, is->vRes)) * ((double) is->period / 100000000.0));
+	ui->spinRecLengthSeconds->setMaximum((double)(camera->getMaxRecordRegionSizeFrames(&is->geometry)) * ((double) is->period / 100000000.0));
     ui->spinRecLengthSeconds->setValue((double)is->period / 100000000.0 * is->recRegionSizeFrames);
 
     ui->spinSegmentCount->setValue(is->segments);
 
-    ui->spinPrerecordFrames->setMaximum(camera->getMaxRecordRegionSizeFrames(is->hRes, is->vRes) / 2);
+	ui->spinPrerecordFrames->setMaximum(camera->getMaxRecordRegionSizeFrames(&is->geometry) / 2);
     ui->spinPrerecordSeconds->setMaximum(ui->spinPrerecordFrames->maximum() * (double)is->period / 100000000.0);
     ui->spinPrerecordSeconds->setMinimum((double)is->period / 100000000.0);
 
@@ -124,7 +124,7 @@ void recModeWindow::on_radioGated_clicked()
 
 void recModeWindow::on_cmdMax_clicked()
 {
-    UInt32 recLenFrames = camera->getMaxRecordRegionSizeFrames(is->hRes, is->vRes);
+	UInt32 recLenFrames = camera->getMaxRecordRegionSizeFrames(&is->geometry);
     ui->spinRecLengthFrames->setValue(recLenFrames);
     ui->spinRecLengthSeconds->setValue((double)recLenFrames * (double) is->period / 100000000.0);
     ui->spinSegmentCount->setMaximum(min(SEGMENT_COUNT_MAX, recLenFrames));
