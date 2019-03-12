@@ -61,13 +61,12 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	gpmc = new GPMC();
 	camera = new Camera();
 	vinst = new Video();
-    sensor = new LUX2100();
+	sensor = new LUX2100();
 	userInterface = new UserInterface();
 
 	battCapacityPercent = 0;
 
 	gpmc->init();
-	vinst->init();
 	userInterface->init();
 	retVal = camera->init(gpmc, vinst, sensor, userInterface, 16*1024/32*1024*1024, true);
 
@@ -147,10 +146,6 @@ CamMainWindow::~CamMainWindow()
 	delete sw;
 
 	delete ui;
-	if(camera->vinst->isRunning())
-	{
-		camera->vinst->setRunning(false);
-	}
 	delete camera;
 }
 

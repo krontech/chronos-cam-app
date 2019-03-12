@@ -94,5 +94,4 @@ void dm8148PWM::setDuty(double pw)
 void dm8148PWM::writeRegister(UInt32 offset, UInt32 data)
 {
 	*((volatile UInt32 *)(map_base + offset)) = data;
-
 }

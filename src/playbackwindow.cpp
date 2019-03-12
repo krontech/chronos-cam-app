@@ -69,7 +69,7 @@ playbackWindow::playbackWindow(QWidget *parent, Camera * cameraInst, bool autosa
 	ui->verticalSlider->setFocusProxy(this);
 
 	camera->setPlayMode(true);
-	camera->vinst->setPosition(0, 0);
+	camera->vinst->setPosition(0);
 	connect(camera->vinst, SIGNAL(started(VideoState)), this, SLOT(videoStarted(VideoState)));
 	connect(camera->vinst, SIGNAL(ended(VideoState, QString)), this, SLOT(videoEnded(VideoState, QString)));
 
@@ -112,7 +112,6 @@ void playbackWindow::videoStarted(VideoState state)
 	if (state == VIDEO_STATE_FILESAVE) {
 		camera->recordingData.hasBeenSaved = true;
 		camera->sensor->seqOnOff(false); /* Disable the sensor to reduce RAM contention */
-		camera->setDisplaySettings(true, MAX_RECORD_FRAMERATE);
 		ui->cmdSave->setText("Abort\nSave");
 
 		saveDoneTimer = new QTimer(this);
@@ -142,7 +141,6 @@ void playbackWindow::videoEnded(VideoState state, QString err)
 
 		/* When ending a filesave, restart the sensor and return to live display timing. */
 		camera->sensor->seqOnOff(true);
-		camera->setDisplaySettings(false, MAX_LIVE_FRAMERATE);
 
 		sw->close();
 		ui->cmdSave->setText("Save");
@@ -175,7 +173,7 @@ void playbackWindow::on_verticalSlider_sliderMoved(int position)
 {
 	/* Note that a rate of zero will also pause playback. */
 	stopPlayLoop();
-	camera->vinst->setPosition(position, 0);
+	camera->vinst->setPosition(position);
 }
 
 void playbackWindow::on_verticalSlider_valueChanged(int value)
