@@ -451,7 +451,7 @@ void CamMainWindow::on_chkFocusAid_clicked(bool focusAidEnabled)
 void CamMainWindow::on_expSlider_valueChanged(int shutterAngle)
 {
 	double eMaxPeriod = camera->sensor->getMaxCurrentIntegrationTime();
-	camera->setIntegrationTime((shutterAngle * eMaxPeriod) / 360, 0, 0, 0);
+	camera->setIntegrationTime((shutterAngle * eMaxPeriod) / 360, NULL, 0);
 	updateCurrentSettingsLabel();
 }
 
@@ -507,7 +507,7 @@ void CamMainWindow::updateCurrentSettingsLabel()
 		sprintf(battStr, "No Batt");
 	}
 
-	sprintf(str, "%s\r\n%ux%u %sfps\r\nExp %ss (%u\xb0)", battStr, camera->sensor->currentHRes, camera->sensor->currentVRes, fpsString, expString, shutterAngle);
+	sprintf(str, "%s\r\n%ux%u %sfps\r\nExp %ss (%u\xb0)", battStr, camera->sensor->currentRes.hRes, camera->sensor->currentRes.vRes, fpsString, expString, shutterAngle);
 	ui->lblCurrent->setText(str);
 }
 

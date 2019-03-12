@@ -217,10 +217,10 @@ UInt8 LUX8M_sram66ClkFRWindow[774] =
 LUX2100::LUX2100()
 {
 	spi = new SPI();
-    wavetableSelect = LUX2100_WAVETABLE_AUTO;
-    startDelaySensorClocks = LUX2100_MAGIC_ABN_DELAY;
+	wavetableSelect = LUX2100_WAVETABLE_AUTO;
+	startDelaySensorClocks = LUX2100_MAGIC_ABN_DELAY;
 	//Zero out offsets
-    for(int i = 0; i < LUX2100_HRES_INCREMENT; i++)
+	for(int i = 0; i < LUX2100_HRES_INCREMENT; i++)
 		offsetsA[i] = 0;
 
 }
@@ -239,7 +239,7 @@ CameraErrortype LUX2100::init(GPMC * gpmc_inst)
 
 	dacCSFD = open("/sys/class/gpio/gpio33/value", O_WRONLY);
 	if (-1 == dacCSFD)
-        return LUX1310_FILE_ERROR;
+		return LUX1310_FILE_ERROR;
 
 	gpmc = gpmc_inst;
 
@@ -253,11 +253,11 @@ CameraErrortype LUX2100::init(GPMC * gpmc_inst)
 
 CameraErrortype LUX2100::initSensor()
 {
-    wavetableSize = 66;
-    gain = LUX2100_GAIN_1;
+	wavetableSize = 66;
+	gain = LUX2100_GAIN_1;
 
-    gpmc->write32(IMAGER_FRAME_PERIOD_ADDR, 100*4000);	//Disable integration
-    gpmc->write32(IMAGER_INT_TIME_ADDR, 100*4100);
+	gpmc->write32(IMAGER_FRAME_PERIOD_ADDR, 100*4000);	//Disable integration
+	gpmc->write32(IMAGER_INT_TIME_ADDR, 100*4100);
 
 	initDAC();
 
@@ -267,7 +267,7 @@ CameraErrortype LUX2100::initSensor()
         initLUX8M();
 
 
-    delayms(10);
+	delayms(10);
 
     gpmc->write32(IMAGER_FRAME_PERIOD_ADDR, 100000000/100);	//Enable integration
     gpmc->write32(IMAGER_INT_TIME_ADDR, 100000000/200);
@@ -275,11 +275,15 @@ CameraErrortype LUX2100::initSensor()
 	delayms(50);
 
 
-    currentHRes = 1920;
-    currentVRes = 1080;
-	setFramePeriod(getMinFramePeriod(currentHRes, currentVRes)/100000000.0, currentHRes, currentVRes);
+	currentRes.hRes = LUX2100_MAX_H_RES;
+	currentRes.vRes = LUX2100_MAX_V_RES;
+	currentRes.hOffset = 0;
+	currentRes.vOffset = 0;
+	currentRes.vDarkRows = 0;
+	currentRes.bitDepth = LUX2100_BITS_PER_PIXEL;
+	setFramePeriod(getMinFramePeriod(&currentRes)/100000000.0, &currentRes);
 	//mem problem before this
-	setIntegrationTime((double)getMaxExposure(currentPeriod) / 100000000.0, currentHRes, currentVRes);
+	setIntegrationTime((double)getMaxExposure(currentPeriod) / 100000000.0, &currentRes);
 
 	return SUCCESS;
 }
@@ -390,7 +394,7 @@ CameraErrortype LUX2100::autoPhaseCal(void)
 	setClkPhase(0);
 
 
-    uint dataCorrect = getDataCorrect();
+	int dataCorrect = getDataCorrect();
 	qDebug() << "datacorrect" << dataCorrect;
 	return SUCCESS;
 
@@ -485,47 +489,68 @@ void LUX2100::setSyncToken(UInt16 token)
 {
 	gpmc->write16(IMAGE_SENSOR_SYNC_TOKEN_ADDR, token);
 }
+
+FrameGeometry LUX2100::getMaxGeometry(void)
+{
+	FrameGeometry size = {
+		.hRes = LUX2100_MAX_H_RES,
+		.vRes = LUX2100_MAX_V_RES,
+		.hOffset = 0,
+		.vOffset = 0,
+		.vDarkRows = LUX2100_MAX_V_DARK,
+		.bitDepth = LUX2100_BITS_PER_PIXEL,
+	};
+	return size;
+}
+
 /*
 void LUX2100::setResolution(UInt32 hStart, UInt32 hWidth, UInt32 vStart, UInt32 vEnd)
 {
-    UInt32 hStartBlocks = hStart / LUX2100_HRES_INCREMENT;
-    UInt32 hWidthblocks = hWidth / LUX2100_HRES_INCREMENT;
-    SCIWrite(0x06, 0x40 + hStartBlocks * LUX2100_HRES_INCREMENT * 2);//X Start
-    SCIWrite(0x07, 0x40 + (hStartBlocks + hWidthblocks) * LUX2100_HRES_INCREMENT * 2 - 1);//X End
-    SCIWrite(0x08, 0x10 + vStart * 2);//Y Start
-    SCIWrite(0x09, 0x10 + vEnd * 2);//Y End
+	UInt32 hStartBlocks = size->hOffset / LUX2100_HRES_INCREMENT;
+	UInt32 hWidthblocks = size->hRes / LUX2100_HRES_INCREMENT;
+	SCIWrite(0x06, 0x40 + hStartBlocks * LUX2100_HRES_INCREMENT * 2);//X Start
+	SCIWrite(0x07, 0x40 + (hStartBlocks + hWidthblocks) * LUX2100_HRES_INCREMENT * 2 - 1);//X End
+	SCIWrite(0x08, 0x10 + size->vOffset * 2);//Y Start
+	SCIWrite(0x09, 0x10 + (size->vOffset + size->vRes - 1) * 2);//Y End
 
-	currentHRes = hWidth;
-	currentVRes = vEnd - vStart + 1;
+	memcpy(&currentRes, size, sizeof(currentRes));
 }
 */
-void LUX2100::setResolution(UInt32 hStart, UInt32 hWidth, UInt32 vStart, UInt32 vEnd)
+void LUX2100::setResolution(FrameGeometry *size)
 {
-    UInt32 hStartBlocks = hStart / LUX2100_HRES_INCREMENT;
-    UInt32 hWidthblocks = hWidth / LUX2100_HRES_INCREMENT;
+	UInt32 hStartBlocks = size->hOffset / LUX2100_HRES_INCREMENT;
+	UInt32 hWidthblocks = size->hRes / LUX2100_HRES_INCREMENT;
 //    SCIWrite(0x06, 0x40 + hStartBlocks * LUX2100_HRES_INCREMENT);//X Start
 //    SCIWrite(0x07, 0x40 + (hStartBlocks + hWidthblocks) * LUX2100_HRES_INCREMENT - 1);//X End
 //    SCIWrite(0x08, 0x10 + vStart);//Y Start
 //    SCIWrite(0x09, 0x10 + vEnd);//Y End
 
-    currentHRes = hWidth;
-    currentVRes = vEnd - vStart + 1;
+	memcpy(&currentRes, size, sizeof(FrameGeometry));
 }
 
-bool LUX2100::isValidResolution(UInt32 hRes, UInt32 vRes, UInt32 hOffset, UInt32 vOffset)
+bool LUX2100::isValidResolution(FrameGeometry *size)
 {
 	/* Enforce resolution limits. */
-    if ((hRes < LUX2100_MIN_HRES) || (hRes + hOffset > LUX2100_MAX_H_RES)) {
+	if ((size->hRes < LUX2100_MIN_HRES) || (size->hRes + size->hOffset > LUX2100_MAX_H_RES)) {
 		return false;
 	}
-    if ((vRes < LUX2100_MIN_VRES) || (vRes + vOffset > LUX2100_MAX_V_RES)) {
+	if ((size->vRes < LUX2100_MIN_VRES) || (size->vRes + size->vOffset > LUX2100_MAX_V_RES)) {
+		return false;
+	}
+	if (size->vDarkRows > LUX2100_MAX_V_DARK) {
+		return false;
+	}
+	if (size->bitDepth != LUX2100_BITS_PER_PIXEL) {
 		return false;
 	}
 	/* Enforce minimum pixel increments. */
-    if ((hRes % LUX2100_HRES_INCREMENT) || (hOffset % LUX2100_HRES_INCREMENT)) {
+	if ((size->hRes % LUX2100_HRES_INCREMENT) || (size->hOffset % LUX2100_HRES_INCREMENT)) {
 		return false;
 	}
-    if ((vRes % LUX2100_VRES_INCREMENT) || (vOffset % LUX2100_VRES_INCREMENT)) {
+	if ((size->vRes % LUX2100_VRES_INCREMENT) || (size->vOffset % LUX2100_VRES_INCREMENT)) {
+		return false;
+	}
+	if (size->vDarkRows % LUX2100_VRES_INCREMENT) {
 		return false;
 	}
 	/* Otherwise, the resultion and offset are valid. */
@@ -533,49 +558,32 @@ bool LUX2100::isValidResolution(UInt32 hRes, UInt32 vRes, UInt32 hOffset, UInt32
 }
 
 //Used by init functions only
-UInt32 LUX2100::getMinFramePeriod(UInt32 hRes, UInt32 vRes, UInt32 wtSize)
+UInt32 LUX2100::getMinFramePeriod(FrameGeometry *frameSize, UInt32 wtSize)
 {
-	if(!isValidResolution(hRes, vRes, 0, 0))
+	if(!isValidResolution(frameSize))
 		return 0;
 
 //	if(hRes == 1280)
 //		wtSize = 80;
 
-    double tRead = (double)(hRes / LUX2100_HRES_INCREMENT) * LUX2100_CLOCK_PERIOD;
-    double tHBlank = 2.0 * LUX2100_CLOCK_PERIOD;
-    double tWavetable = wtSize * LUX2100_CLOCK_PERIOD;
-    double tRow = max(tRead+tHBlank, tWavetable+3*LUX2100_CLOCK_PERIOD);
-    double tTx = 50 * LUX2100_CLOCK_PERIOD;
-    double tFovf = 50 * LUX2100_CLOCK_PERIOD;
-    double tFovb = (50) * LUX2100_CLOCK_PERIOD;//Duration between PRSTN falling and TXN falling (I think)
-	double tFrame = tRow * vRes + tTx + tFovf + tFovb;
+	double tRead = (double)(frameSize->hRes / LUX2100_HRES_INCREMENT) * LUX2100_CLOCK_PERIOD;
+	double tHBlank = 2.0 * LUX2100_CLOCK_PERIOD;
+	double tWavetable = wtSize * LUX2100_CLOCK_PERIOD;
+	double tRow = max(tRead+tHBlank, tWavetable+3*LUX2100_CLOCK_PERIOD);
+	double tTx = 50 * LUX2100_CLOCK_PERIOD;
+	double tFovf = 50 * LUX2100_CLOCK_PERIOD;
+	double tFovb = (50) * LUX2100_CLOCK_PERIOD;//Duration between PRSTN falling and TXN falling (I think)
+	double tFrame = tRow * (frameSize->vRes + frameSize->vDarkRows) + tTx + tFovf + tFovb;
 	qDebug() << "getMinFramePeriod:" << tFrame;
 	return (UInt64)(ceil(tFrame * 100000000.0));
 }
 
-double LUX2100::getMinMasterFramePeriod(UInt32 hRes, UInt32 vRes)
+double LUX2100::getMinMasterFramePeriod(FrameGeometry *frameSize)
 {
-	if(!isValidResolution(hRes, vRes, 0, 0))
+	if(!isValidResolution(frameSize))
 		return 0.0;
 
-	return (double)getMinFramePeriod(hRes, vRes) / 100000000.0;
-	int wtSize;
-
-/*	if(hRes == 1280)
-		wtSize = 80;
-	else
-        wtSize = LUX2100_MIN_WAVETABLE_SIZE;
-*/
-    double tRead = (double)(hRes / LUX2100_HRES_INCREMENT) * LUX2100_CLOCK_PERIOD;
-    double tHBlank = 2.0 * LUX2100_CLOCK_PERIOD;
-    double tWavetable = wtSize * LUX2100_CLOCK_PERIOD;
-    double tRow = max(tRead+tHBlank, tWavetable+3*LUX2100_CLOCK_PERIOD);
-    double tTx = 50 * LUX2100_CLOCK_PERIOD;
-    double tFovf = 50 * LUX2100_CLOCK_PERIOD;
-    double tFovb = (50) * LUX2100_CLOCK_PERIOD;//Duration between PRSTN falling and TXN falling (I think)
-	double tFrame = tRow * vRes + tTx + tFovf + tFovb;
-	qDebug() << "getMinMasterFramePeriod:" << tFrame;
-	return tFrame;
+	return (double)getMinFramePeriod(frameSize) / 100000000.0;
 }
 
 UInt32 LUX2100::getMaxExposure(UInt32 period)
@@ -595,24 +603,24 @@ double LUX2100::getCurrentExposureDouble(void)
 	return (double)currentExposure / 100000000.0;
 }
 
-double LUX2100::getActualFramePeriod(double targetPeriod, UInt32 hRes, UInt32 vRes)
+double LUX2100::getActualFramePeriod(double targetPeriod, FrameGeometry *size)
 {
 	//Round to nearest 10ns period
 	targetPeriod = round(targetPeriod * (100000000.0)) / 100000000.0;
 
-	double minPeriod = getMinMasterFramePeriod(hRes, vRes);
-    double maxPeriod = LUX2100_MAX_SLAVE_PERIOD;
+	double minPeriod = getMinMasterFramePeriod(size);
+	double maxPeriod = LUX2100_MAX_SLAVE_PERIOD;
 
 	return within(targetPeriod, minPeriod, maxPeriod);
 }
 
-double LUX2100::setFramePeriod(double period, UInt32 hRes, UInt32 vRes)
+double LUX2100::setFramePeriod(double period, FrameGeometry *size)
 {
 	//Round to nearest 10ns period
 	period = round(period * (100000000.0)) / 100000000.0;
 	qDebug() << "Requested period" << period;
-	double minPeriod = getMinMasterFramePeriod(hRes, vRes);
-    double maxPeriod = LUX2100_MAX_SLAVE_PERIOD / 100000000.0;
+	double minPeriod = getMinMasterFramePeriod(size);
+	double maxPeriod = LUX2100_MAX_SLAVE_PERIOD / 100000000.0;
 
 	period = within(period, minPeriod, maxPeriod);
 	currentPeriod = period * 100000000.0;
@@ -629,7 +637,7 @@ double LUX2100::setFramePeriod(double period, UInt32 hRes, UInt32 vRes)
  *
  * returns: Maximum integration time
  */
-double LUX2100::getMaxIntegrationTime(double period, UInt32 hRes, UInt32 vRes)
+double LUX2100::getMaxIntegrationTime(double period, FrameGeometry *size)
 {
 	//Round to nearest 10ns period
 	period = round(period * (100000000.0)) / 100000000.0;
@@ -656,7 +664,7 @@ double LUX2100::getMaxCurrentIntegrationTime(void)
  *
  * returns: Actual closest integration time
  */
-double LUX2100::getActualIntegrationTime(double intTime, double period, UInt32 hRes, UInt32 vRes)
+double LUX2100::getActualIntegrationTime(double intTime, double period, FrameGeometry *size)
 {
 
 	//Round to nearest 10ns period
@@ -677,7 +685,7 @@ double LUX2100::getActualIntegrationTime(double intTime, double period, UInt32 h
  *
  * returns: Actual integration time that was set
  */
-double LUX2100::setIntegrationTime(double intTime, UInt32 hRes, UInt32 vRes)
+double LUX2100::setIntegrationTime(double intTime, FrameGeometry *size)
 {
 	//Round to nearest 10ns period
 	intTime = round(intTime * (100000000.0)) / 100000000.0;
@@ -712,8 +720,8 @@ void LUX2100::setSlavePeriod(UInt32 period)
 void LUX2100::setSlaveExposure(UInt32 exposure)
 {
 	//hack to fix line issue. Not perfect, need to properly register this on the sensor clock.
-    double linePeriod = max((currentHRes / LUX2100_HRES_INCREMENT)+2, (wavetableSize + 3)) * 1.0/LUX2100_SENSOR_CLOCK;	//Line period in seconds
-    UInt32 startDelay = (double)startDelaySensorClocks * LUX2100_TIMING_CLOCK_FREQ / LUX2100_SENSOR_CLOCK;
+	double linePeriod = max((currentRes.hRes / LUX2100_HRES_INCREMENT)+2, (wavetableSize + 3)) * 1.0/LUX2100_SENSOR_CLOCK;	//Line period in seconds
+	UInt32 startDelay = (double)startDelaySensorClocks * LUX2100_TIMING_CLOCK_FREQ / LUX2100_SENSOR_CLOCK;
 	double targetExp = (double)exposure / 100000000.0;
 	UInt32 expLines = round(targetExp / linePeriod);
 
@@ -733,7 +741,7 @@ void LUX2100::dumpRegisters(void)
 void LUX2100::initDAC()
 {
 	//Put DAC in Write through mode (DAC channels update immediately on register write)
-    writeDACSPI(0x9000, 0x9000);
+	writeDACSPI(0x9000, 0x9000);
 }
 
 //Write the data into the selected channel
@@ -796,18 +804,17 @@ void LUX2100::writeDACVoltage(UInt8 channel, float voltage)
 	}
 }
 
-
 //Performs an SPI write to the DAC
 int LUX2100::writeDACSPI(UInt16 data0, UInt16 data1)
 {
-    UInt8 tx[4];
+	UInt8 tx[4];
 	UInt8 rx[sizeof(tx)];
 	int retval;
 
-    tx[3] = data0 >> 8;
-    tx[2] = data0 & 0xFF;
-    tx[1] = data1 >> 8;
-    tx[0] = data1 & 0xFF;
+	tx[3] = data0 >> 8;
+	tx[2] = data0 & 0xFF;
+	tx[1] = data1 >> 8;
+	tx[0] = data1 & 0xFF;
 
 	setDACCS(false);
 	//delayms(1);
@@ -888,31 +895,31 @@ void LUX2100::setWavetable(UInt8 mode)
 
 void LUX2100::updateWavetableSetting()
 {
-    if(wavetableSelect == LUX2100_WAVETABLE_AUTO)
+	if(wavetableSelect == LUX2100_WAVETABLE_AUTO)
 	{
-		qDebug() << "currentPeriod" << currentPeriod << "Min period" << getMinFramePeriod(currentHRes, currentVRes, 80);
-		if(currentPeriod < getMinFramePeriod(currentHRes, currentVRes, 80))
+		qDebug() << "currentPeriod" << currentPeriod << "Min period" << getMinFramePeriod(&currentRes, 80);
+		if(currentPeriod < getMinFramePeriod(&currentRes, 80))
 		{
-			if(currentPeriod < getMinFramePeriod(currentHRes, currentVRes, 39))
+			if(currentPeriod < getMinFramePeriod(&currentRes, 39))
 			{
-				if(currentPeriod < getMinFramePeriod(currentHRes, currentVRes, 30))
+				if(currentPeriod < getMinFramePeriod(&currentRes, 30))
 				{
-					if(currentPeriod < getMinFramePeriod(currentHRes, currentVRes, 25))
+					if(currentPeriod < getMinFramePeriod(&currentRes, 25))
 					{
-                        setWavetable(LUX2100_WAVETABLE_20);
+						setWavetable(LUX2100_WAVETABLE_20);
 					}
 					else
-                        setWavetable(LUX2100_WAVETABLE_25);
+						setWavetable(LUX2100_WAVETABLE_25);
 				}
 				else
-                    setWavetable(LUX2100_WAVETABLE_30);
+					setWavetable(LUX2100_WAVETABLE_30);
 			}
 			else
-                setWavetable(LUX2100_WAVETABLE_39);
+				setWavetable(LUX2100_WAVETABLE_39);
 		}
 		else
 		{
-            setWavetable(LUX2100_WAVETABLE_80);
+			setWavetable(LUX2100_WAVETABLE_80);
 		}
 	}
 	else
@@ -989,12 +996,12 @@ Int32 LUX2100::doAutoADCOffsetCalibration(void)
 
 Int32 LUX2100::loadADCOffsetsFromFile(void)
 {
-    Int16 offsets[LUX2100_HRES_INCREMENT];
+	Int16 offsets[LUX2100_HRES_INCREMENT];
 
 	QString filename;
 	
 	//Generate the filename for this particular resolution and offset
-    filename.sprintf("cal:lux2100Offsets");
+	filename.sprintf("cal:lux2100Offsets");
 	
 	std::string fn;
 	fn = getFilename("", ".bin");
@@ -1016,11 +1023,11 @@ Int32 LUX2100::loadADCOffsetsFromFile(void)
 	if(!fp)
 		return CAMERA_FILE_ERROR;
 
-    fread(offsets, sizeof(offsets[0]), LUX2100_HRES_INCREMENT, fp);
+	fread(offsets, sizeof(offsets[0]), LUX2100_HRES_INCREMENT, fp);
 	fclose(fp);
 
 	//Write the values into the sensor
-    for(int i = 0; i < LUX2100_HRES_INCREMENT; i++)
+	for(int i = 0; i < LUX2100_HRES_INCREMENT; i++)
 		setADCOffset(i, offsets[i]);
 
 	return SUCCESS;
@@ -1028,10 +1035,10 @@ Int32 LUX2100::loadADCOffsetsFromFile(void)
 
 Int32 LUX2100::saveADCOffsetsToFile(void)
 {
-    Int16 offsets[LUX2100_HRES_INCREMENT];
+	Int16 offsets[LUX2100_HRES_INCREMENT];
 	std::string fn;
 
-    fn = getFilename("cal/lux2100Offsets", ".bin");
+	fn = getFilename("cal/lux2100Offsets", ".bin");
 	qDebug("writing ADC offsets to %s", fn.c_str());
 	
 	FILE * fp;
@@ -1039,7 +1046,7 @@ Int32 LUX2100::saveADCOffsetsToFile(void)
 	if(!fp)
 		return CAMERA_FILE_ERROR;
 
-    for(int i = 0; i < LUX2100_HRES_INCREMENT; i++)
+	for(int i = 0; i < LUX2100_HRES_INCREMENT; i++)
 		offsets[i] = offsetsA[i];
 
 	//Ugly print to keep it all on one line
@@ -1050,7 +1057,7 @@ Int32 LUX2100::saveADCOffsetsToFile(void)
 			 << offsets[12] << offsets[13] << offsets[14] << offsets[15];
 
 	//Store to file
-    fwrite(offsets, sizeof(offsets[0]), LUX2100_HRES_INCREMENT, fp);
+	fwrite(offsets, sizeof(offsets[0]), LUX2100_HRES_INCREMENT, fp);
 	fclose(fp);
 
 	return SUCCESS;
@@ -1063,22 +1070,22 @@ std::string LUX2100::getFilename(const char * filename, const char * extension)
 
 	switch(gain)
 	{
-        case LUX2100_GAIN_1:		gName = LUX2100_GAIN_1_FN;		break;
-        case LUX2100_GAIN_2:		gName = LUX2100_GAIN_2_FN;		break;
-        case LUX2100_GAIN_4:		gName = LUX2100_GAIN_4_FN;		break;
-        case LUX2100_GAIN_8:		gName = LUX2100_GAIN_8_FN;		break;
-        case LUX2100_GAIN_16:		gName = LUX2100_GAIN_16_FN;		break;
+		case LUX2100_GAIN_1:		gName = LUX2100_GAIN_1_FN;		break;
+		case LUX2100_GAIN_2:		gName = LUX2100_GAIN_2_FN;		break;
+		case LUX2100_GAIN_4:		gName = LUX2100_GAIN_4_FN;		break;
+		case LUX2100_GAIN_8:		gName = LUX2100_GAIN_8_FN;		break;
+		case LUX2100_GAIN_16:		gName = LUX2100_GAIN_16_FN;		break;
 	default:						gName = "";						break;
 
 	}
 
 	switch(wavetableSize)
 	{
-        case 80:	wtName = LUX2100_WAVETABLE_80_FN; break;
-        case 39:	wtName = LUX2100_WAVETABLE_39_FN; break;
-        case 30:	wtName = LUX2100_WAVETABLE_30_FN; break;
-        case 25:	wtName = LUX2100_WAVETABLE_25_FN; break;
-        case 20:	wtName = LUX2100_WAVETABLE_20_FN; break;
+		case 80:	wtName = LUX2100_WAVETABLE_80_FN; break;
+		case 39:	wtName = LUX2100_WAVETABLE_39_FN; break;
+		case 30:	wtName = LUX2100_WAVETABLE_30_FN; break;
+		case 25:	wtName = LUX2100_WAVETABLE_25_FN; break;
+		case 20:	wtName = LUX2100_WAVETABLE_20_FN; break;
 		default:	wtName = "";					  break;
 	}
 
@@ -1092,8 +1099,8 @@ Int32 LUX2100::setGain(UInt32 gainSetting)
 
 	switch(gainSetting)
 	{
-    case LUX2100_GAIN_1:	//1
-        writeDACVoltage(LUX2100_VRSTH_VOLTAGE, 3.6);
+	case LUX2100_GAIN_1:	//1
+		writeDACVoltage(LUX2100_VRSTH_VOLTAGE, 3.6);
 
 		//Set Gain
 		SCIWrite(0x51, 0x007F);	//gain selection sampling cap (11)	12 bit
@@ -1101,8 +1108,8 @@ Int32 LUX2100::setGain(UInt32 gainSetting)
 		SCIWrite(0x53, 0x03);	//Serial gain
 	break;
 
-    case LUX2100_GAIN_2:	//2
-        writeDACVoltage(LUX2100_VRSTH_VOLTAGE, 3.6);
+	case LUX2100_GAIN_2:	//2
+		writeDACVoltage(LUX2100_VRSTH_VOLTAGE, 3.6);
 
 		//Set Gain
 		SCIWrite(0x51, 0x0FFF);	//gain selection sampling cap (11)	12 bit
@@ -1110,8 +1117,8 @@ Int32 LUX2100::setGain(UInt32 gainSetting)
 		SCIWrite(0x53, 0x03);	//Serial gain
 	break;
 
-    case LUX2100_GAIN_4:	//4
-        writeDACVoltage(LUX2100_VRSTH_VOLTAGE, 3.6);
+	case LUX2100_GAIN_4:	//4
+		writeDACVoltage(LUX2100_VRSTH_VOLTAGE, 3.6);
 
 		//Set Gain
 		SCIWrite(0x51, 0x0FFF);	//gain selection sampling cap (11)	12 bit
@@ -1119,8 +1126,8 @@ Int32 LUX2100::setGain(UInt32 gainSetting)
 		SCIWrite(0x53, 0x00);	//Serial gain
 	break;
 
-    case LUX2100_GAIN_8:	//8
-        writeDACVoltage(LUX2100_VRSTH_VOLTAGE, 2.6);
+	case LUX2100_GAIN_8:	//8
+		writeDACVoltage(LUX2100_VRSTH_VOLTAGE, 2.6);
 
 		//Set Gain
 		SCIWrite(0x51, 0x0FFF);	//gain selection sampling cap (11)	12 bit
@@ -1128,8 +1135,8 @@ Int32 LUX2100::setGain(UInt32 gainSetting)
 		SCIWrite(0x53, 0x00);	//Serial gain
 	break;
 
-    case LUX2100_GAIN_16:	//16
-        writeDACVoltage(LUX2100_VRSTH_VOLTAGE, 2.6);
+	case LUX2100_GAIN_16:	//16
+		writeDACVoltage(LUX2100_VRSTH_VOLTAGE, 2.6);
 
 		//Set Gain
 		SCIWrite(0x51, 0x0FFF);	//gain selection sampling cap (11)	12 bit

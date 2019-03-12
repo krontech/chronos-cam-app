@@ -50,9 +50,9 @@ void Camera::setLiveOutputTiming(UInt32 hRes, UInt32 vRes, UInt32 hOutRes, UInt3
 
 	hPeriod = hSync + hBackPorch + hOutRes + hFrontPorch;
 
-	// calculate minimum hPeriod to fit within the 1024 max vertical resolution
+	// calculate minimum hPeriod to fit within the 2048 max vertical resolution
 	// and make sure hPeriod is equal or larger
-    minHPeriod = (pxClock / ((1080+vBackPorch+vSync+vFrontPorch) * maxFps)) + 1; // the +1 is just to round up
+	minHPeriod = (pxClock / ((2048+vBackPorch+vSync+vFrontPorch) * maxFps)) + 1; // the +1 is just to round up
 	if (hPeriod < minHPeriod) hPeriod = minHPeriod;
 
 	// calculate vPeriod and make sure it's large enough for the frame
@@ -123,9 +123,9 @@ void Camera::writeSeqPgmMem(SeqPgmMemWord pgmWord, UInt32 address)
 	gpmc->write32((SEQ_PGM_MEM_START_ADDR + address * 16)+0, pgmWord.data.low/*0x00282084*/);
 }
 
-void Camera::setFrameSizeWords(UInt32 frameSize)
+void Camera::setFrameGeometry(FrameGeometry *geometry)
 {
-    gpmc->write32(SEQ_FRAME_SIZE_ADDR, frameSize);
+	gpmc->write32(SEQ_FRAME_SIZE_ADDR, getFrameSizeWords(geometry));
 }
 
 void Camera::setRecRegionStartWords(UInt32 start)

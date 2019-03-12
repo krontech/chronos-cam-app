@@ -17,7 +17,9 @@
 #include "camLineEdit.h"
 #include <QApplication>
 #include <QDebug>
-
+extern "C" {
+#include "siText.h"
+}
 CamLineEdit::CamLineEdit(QWidget *parent) :
 	QLineEdit(parent)
 {
@@ -62,4 +64,9 @@ bool CamLineEdit::getHasUnits(){
 }
 void CamLineEdit::setHasUnits(bool value){
 	hasUnits = value;
+}
+
+double CamLineEdit::siText()
+{
+	return siText2Double(text().toAscii().data());
 }

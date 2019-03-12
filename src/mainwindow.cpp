@@ -158,7 +158,7 @@ void MainWindow::on_cmdSeqOff_clicked()
 void MainWindow::on_cmdSetOffset_clicked()
 {
 	FILE * fp;
-	UInt32 pixelsPerFrame = camera->recordingData.is.stride * camera->recordingData.is.vRes;
+	UInt32 pixelsPerFrame = camera->recordingData.is.geometry.hRes * camera->recordingData.is.geometry.vRes;
 
 	UInt16 * frameBuffer = new UInt16[pixelsPerFrame];
 	camera->getRawCorrectedFramesAveraged(0, 16, frameBuffer);
@@ -193,8 +193,8 @@ void MainWindow::on_cmdTrigger_clicked()
 
 void MainWindow::on_cmdRam_clicked()
 {
-    UInt32 hRes = camera->getImagerSettings().hRes;
-    UInt32 vRes = camera->getImagerSettings().vRes;
+	UInt32 hRes = camera->getImagerSettings().geometry.hRes;
+	UInt32 vRes = camera->getImagerSettings().geometry.vRes;
     int FRAME_SIZE = hRes*vRes*12/8;
 
     qDebug() << "--- Test Pattern --- Resolution is" << hRes << "x" << vRes;
@@ -391,21 +391,21 @@ void MainWindow::on_cmdAutoBlack_clicked()
 
 void MainWindow::on_cmdSaveFrame_clicked()
 {
-    UInt32 hRes = camera->getImagerSettings().hRes;
-    UInt32 vRes = camera->getImagerSettings().vRes;
-    int bytesPerFrame = hRes*vRes*12/8;
-    UInt32 pixelsPerFrame = hRes * vRes;
+	UInt32 hRes = camera->getImagerSettings().geometry.hRes;
+	UInt32 vRes = camera->getImagerSettings().geometry.vRes;
+	int bytesPerFrame = camera->getImagerSettings().geometry.size();
+	UInt32 pixelsPerFrame = camera->getImagerSettings().geometry.pixels();
+	UInt32 frameSizeWords = camera->getFrameSizeWords(&camera->recordingData.is.geometry);
 
     UInt32 * rawBuffer32 = new UInt32[bytesPerFrame / 4];
     UInt8 * rawBuffer = (UInt8 *)rawBuffer32;
     UInt16 * rawUnpacked = new UInt16[pixelsPerFrame];
     UInt16 * rawUnpackedCopy = new UInt16[pixelsPerFrame];
-    UInt16 pixel;
 
     qDebug() << "Reading frame";
     //Get one frame into the raw buffer
     camera->readAcqMem(rawBuffer32,
-               REC_REGION_START + (0) * camera->recordingData.is.frameSizeWords,
+			   REC_REGION_START + (0) * frameSizeWords,
                bytesPerFrame);
 
     qDebug() << "Unpacking frame";
@@ -438,7 +438,7 @@ void MainWindow::on_cmdSaveFrame_clicked()
 
     qDebug() << "Writing frame";
     camera->writeAcqMem(rawBuffer32,
-               REC_REGION_START + (1) * camera->recordingData.is.frameSizeWords,
+			   REC_REGION_START + (1) * frameSizeWords,
                bytesPerFrame);
 
     // nothing to see here.
@@ -452,9 +452,9 @@ void MainWindow::on_cmdSaveFrame_clicked()
 
 void MainWindow::on_cmdClearFPN_clicked()
 {
-    UInt32 hRes = camera->getImagerSettings().hRes;
-    UInt32 vRes = camera->getImagerSettings().vRes;
-    int FRAME_SIZE = hRes*vRes*12/8;
+	UInt32 hRes = camera->getImagerSettings().geometry.hRes;
+	UInt32 vRes = camera->getImagerSettings().geometry.vRes;
+	int FRAME_SIZE = camera->getImagerSettings().geometry.size();
 
     qDebug() << "--- Clear FPN --- Resolution is" << hRes << "x" << vRes;
 

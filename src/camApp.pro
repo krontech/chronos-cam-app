@@ -142,6 +142,8 @@ HEADERS  += mainwindow.h \
     camdoublespinbox.h \
     errorCodes.h \
     lux1310.h \
+    lux2100.h \
+    lux2810.h \
     ecp5Config.h \
     utilwindow.h \
     statuswindow.h \
@@ -158,7 +160,7 @@ HEADERS  += mainwindow.h \
     chronosVideoInterface.h \
     colorwindow.h \
     colordoublespinbox.h \
-    lux2810.h
+    frameGeometry.h
 
 FORMS    += mainwindow.ui \
     cammainwindow.ui \

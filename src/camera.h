@@ -48,7 +48,6 @@
 #define MAX_FRAME_SIZE_H		1920
 #define MAX_FRAME_SIZE_V		1080
 #define MAX_FRAME_SIZE          (MAX_FRAME_SIZE_H * MAX_FRAME_SIZE_V * 8 / 12)
-#define MAX_STRIDE				1920
 #define BITS_PER_PIXEL			12
 #define BYTES_PER_WORD			32
 
@@ -124,24 +123,19 @@ typedef union SeqPrmMemWord_t
 } SeqPgmMemWord;
 
 typedef struct {
-    UInt32 hRes;                //pixels
-    UInt32 vRes;                //pixels
-    UInt32 stride;              //Number of pixels per line (allows for dark pixels in the last column)
-    UInt32 hOffset;             //active area offset from left
-    UInt32 vOffset;             //Active area offset from top
-    UInt32 exposure;            //10ns increments
-    UInt32 period;              //Frame period in 10ns increments
+	FrameGeometry geometry;		//Frame geometry.
+	UInt32 exposure;            //10ns increments
+	UInt32 period;              //Frame period in 10ns increments
 	UInt32 gain;
-    UInt32 frameSizeWords;      //Number of words a frame takes up
-    UInt32 recRegionSizeFrames; //Number of frames in the entire record region
-    CameraRecordModeType mode;  //Recording mode
-    UInt32 segments;            //Number of segments in segmented mode
-    UInt32 segmentLengthFrames; //Length of segment in segmented mode
-    UInt32 prerecordFrames;     //Number of frames to record before each burst in Gated Burst mode
+	UInt32 recRegionSizeFrames; //Number of frames in the entire record region
+	CameraRecordModeType mode;  //Recording mode
+	UInt32 segments;            //Number of segments in segmented mode
+	UInt32 segmentLengthFrames; //Length of segment in segmented mode
+	UInt32 prerecordFrames;     //Number of frames to record before each burst in Gated Burst mode
 
 	struct {
 		unsigned temporary : 1; // set this to disable saving of state
-        unsigned disableRingBuffer : 1; //Set this to disable the ring buffer (record ends when at the end of memory rather than rolling over to the beginning)
+		unsigned disableRingBuffer : 1; //Set this to disable the ring buffer (record ends when at the end of memory rather than rolling over to the beginning)
 	};
 } ImagerSettings_t;
 
@@ -174,7 +168,7 @@ class Camera
 public:
 	Camera();
 	~Camera();
-    CameraErrortype init(GPMC * gpmcInst, Video * vinstInst, LUX2100 * sensorInst, UserInterface * userInterface, UInt32 ramSizeVal, bool color);
+	CameraErrortype init(GPMC * gpmcInst, Video * vinstInst, LUX2100 * sensorInst, UserInterface * userInterface, UInt32 ramSizeVal, bool color);
 	Int32 startRecording(void);
 	Int32 setRecSequencerModeNormal();
 	Int32 setRecSequencerModeGatedBurst(UInt32 prerecord = 0);
@@ -185,7 +179,7 @@ public:
 	void * endOfRecCallbackArg;
 	GPMC * gpmc;
 	Video * vinst;
-    LUX2100 * sensor;
+	LUX2100 * sensor;
 	UserInterface * ui;
 	IO * io;
 
@@ -204,7 +198,7 @@ public:
 	double maxPostFramesRatio;
 
 	UInt32 setImagerSettings(ImagerSettings_t settings);
-	UInt32 setIntegrationTime(double intTime, UInt32 hRes, UInt32 vRes, Int32 flags);
+	UInt32 setIntegrationTime(double intTime, FrameGeometry *geometry, Int32 flags);
 	UInt32 setDisplaySettings(bool encoderSafe, UInt32 maxFps);
 	UInt32 setPlayMode(bool playMode);
 	UInt16 readPixel(UInt32 pixel, UInt32 offset);
@@ -254,7 +248,9 @@ public:
 	char * getSerialNumber(void) {return serialNumber;}
 	void setSerialNumber(const char * sn) {strcpy(serialNumber, sn);}
 	bool getIsColor() {return isColor;}
-    UInt32 getMaxRecordRegionSizeFrames(UInt32 hSize, UInt32 vSize) {return (ramSize - REC_REGION_START) / (ROUND_UP_MULT((hSize * (vSize) * BITS_PER_PIXEL / 8 + (BYTES_PER_WORD-1)) / BYTES_PER_WORD, FRAME_ALIGN_WORDS));}
+
+	UInt32 getFrameSizeWords(FrameGeometry *geometry);
+	UInt32 getMaxRecordRegionSizeFrames(FrameGeometry *geometry);
 
 private:
 	void setLiveOutputTiming(UInt32 hRes, UInt32 vRes, UInt32 hOutRes, UInt32 vOutRes, UInt32 maxFps);
@@ -264,14 +260,14 @@ private:
 	void startSequencer(void);
 	void terminateRecord(void);
 	void writeSeqPgmMem(SeqPgmMemWord pgmWord, UInt32 address);
-    void setFrameSizeWords(UInt32 frameSize);
+	void setFrameGeometry(FrameGeometry *frameSize);
 	void setRecRegionStartWords(UInt32 start);
 	void setRecRegionEndWords(UInt32 end);
 public:
 	void readAcqMem(UInt32 * buf, UInt32 offsetWords, UInt32 length);
 	void writeAcqMem(UInt32 * buf, UInt32 offsetWords, UInt32 length);
 private:
-    void writeDGCMem(double gain, UInt32 column);
+	void writeDGCMem(double gain, UInt32 column);
 	bool readIsColor(void);
 public:
 	bool getFocusPeakEnableLL(void);
