@@ -184,7 +184,7 @@ void Camera::writeAcqMem(UInt32 * buf, UInt32 offsetWords, UInt32 length)
 
 void Camera::writeDGCMem(double gain, UInt32 column)
 {
-	gpmc->write16(DCG_MEM_START_ADDR+2*column, gain*4096.0);
+	gpmc->write16(COL_GAIN_MEM_START_ADDR+2*column, gain*4096.0);
 }
 
 /* Camera::readIsColor

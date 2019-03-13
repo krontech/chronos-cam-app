@@ -523,27 +523,21 @@ FrameGeometry LUX2100::getMaxGeometry(void)
 	return size;
 }
 
-/*
-void LUX2100::setResolution(UInt32 hStart, UInt32 hWidth, UInt32 vStart, UInt32 vEnd)
-{
-	UInt32 hStartBlocks = size->hOffset / LUX2100_HRES_INCREMENT;
-	UInt32 hWidthblocks = size->hRes / LUX2100_HRES_INCREMENT;
-	SCIWrite(0x06, 0x40 + hStartBlocks * LUX2100_HRES_INCREMENT * 2);//X Start
-	SCIWrite(0x07, 0x40 + (hStartBlocks + hWidthblocks) * LUX2100_HRES_INCREMENT * 2 - 1);//X End
-	SCIWrite(0x08, 0x10 + size->vOffset * 2);//Y Start
-	SCIWrite(0x09, 0x10 + (size->vOffset + size->vRes - 1) * 2);//Y End
-
-	memcpy(&currentRes, size, sizeof(currentRes));
-}
-*/
 void LUX2100::setResolution(FrameGeometry *size)
 {
-	UInt32 hStartBlocks = size->hOffset / LUX2100_HRES_INCREMENT;
-	UInt32 hWidthblocks = size->hRes / LUX2100_HRES_INCREMENT;
-//    SCIWrite(0x06, 0x40 + hStartBlocks * LUX2100_HRES_INCREMENT);//X Start
-//    SCIWrite(0x07, 0x40 + (hStartBlocks + hWidthblocks) * LUX2100_HRES_INCREMENT - 1);//X End
-//    SCIWrite(0x08, 0x10 + vStart);//Y Start
-//    SCIWrite(0x09, 0x10 + vEnd);//Y End
+	UInt32 hStart = (size->hOffset / LUX2100_HRES_INCREMENT) * LUX2100_HRES_INCREMENT;
+	UInt32 hEnd = hStart + size->hRes;
+	UInt32 vLastRow = LUX2100_MAX_V_RES + (LUX2100_BOUNDARY_ROWS*2) + LUX2100_HIGH_DARK_ROWS;
+
+	/* Windowed operation - add extra offset to put the readout at the centre. */
+	LUX2810RegWrite(0x06, (LUX2100_LEFT_DARK_COLUMNS + LUX2100_BOUNDARY_COLUMNS + 0x40) + hStart);
+	LUX2810RegWrite(0x07, (LUX2100_LEFT_DARK_COLUMNS + LUX2100_BOUNDARY_COLUMNS + 0x40) + hEnd - 1);
+	LUX2810RegWrite(0x08, (LUX2100_BOUNDARY_ROWS + 0x100) + size->vOffset);
+	LUX2810RegWrite(0x09, (LUX2100_BOUNDARY_ROWS + 0x100) + size->vOffset + size->vRes - 1);
+	if (size->vDarkRows) {
+		LUX2810RegWrite(0x0A, (vLastRow * 2) - size->vDarkRows);
+	}
+	SCIWrite(0x0B, size->vDarkRows);
 
 	memcpy(&currentRes, size, sizeof(FrameGeometry));
 }

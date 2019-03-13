@@ -43,6 +43,12 @@
 #define LUX2100_GAIN_CORRECTION_MIN 0.999
 #define LUX2100_GAIN_CORRECTION_MAX 1.2
 
+/* Addressable image sensor boundary regions */
+#define LUX2100_BOUNDARY_ROWS	16
+#define LUX2100_BOUNDARY_COLUMNS	32
+#define LUX2100_LEFT_DARK_COLUMNS	64
+#define LUX2100_HIGH_DARK_ROWS	40
+
 enum {
     // First DAC
     LUX2100_VDR1_VOLTAGE = 0,
