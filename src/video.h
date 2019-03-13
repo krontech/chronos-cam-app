@@ -123,6 +123,8 @@ public:
 	UInt32 level;
 	char filename[1000];
 	char fileDirectory[1000];
+	UInt32 displayWindowXOff;
+	UInt32 displayWindowYOff;
 
 signals:
 	void started(VideoState state);
@@ -139,8 +141,6 @@ private:
 
 	UInt32 displayWindowXSize;
 	UInt32 displayWindowYSize;
-	UInt32 displayWindowXOff;
-	UInt32 displayWindowYOff;
 
 private slots:
 	void sof(const QVariantMap &args);

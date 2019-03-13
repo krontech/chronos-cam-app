@@ -64,6 +64,7 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	userInterface = new UserInterface();
 
 	battCapacityPercent = 0;
+	vinst->displayWindowXOff = (camera->ButtonsOnLeft ^ camera->UpsideDownDisplay? 200 : 0);
 
 	gpmc->init();
 	vinst->init();
@@ -129,10 +130,6 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	if(camera->UpsideDownDisplay && camera->RotationArgumentIsSet()){
 		camera->upsideDownTransform(2);//2 for upside down, 0 for normal
 	} else  camera->UpsideDownDisplay = false;//if the rotation argument has not been added, this should be set to false
-
-	if( (camera->ButtonsOnLeft) ^ (camera->UpsideDownDisplay) ){
-		camera->updateVideoPosition();
-	}
 
 	//record the number of widgets that are open before any other windows can be opened
 	QWidgetList qwl = QApplication::topLevelWidgets();
