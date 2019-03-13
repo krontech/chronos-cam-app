@@ -34,7 +34,6 @@
 #include "ui_cammainwindow.h"
 #include "util.h"
 #include "whitebalancedialog.h"
-#include "lux1310.h"
 
 extern "C" {
 #include "siText.h"
@@ -275,7 +274,7 @@ void CamMainWindow::on_cmdFPNCal_clicked()//Black cal
 	sw->setText("Performing black calibration...");
 	sw->show();
 	QCoreApplication::processEvents();
-	camera->liveAdcOffsetCalibration();
+	camera->liveColumnCalibration();
 	camera->autoFPNCorrection(16, true);
 	sw->hide();
 }
@@ -464,7 +463,11 @@ void CamMainWindow::updateExpSliderLimits()
 	double eMaxPeriod = camera->sensor->getMaxCurrentIntegrationTime();
 	int eShutterAngle = (camera->sensor->getCurrentExposureDouble() * 360) / fPeriod;
 
+#ifdef LUX1310_MIN_INT_TIME
 	ui->expSlider->setMinimum((LUX1310_MIN_INT_TIME * 360) / fPeriod);
+#else
+	ui->expSlider->setMinimum((LUX2100_MIN_INT_TIME * 360) / fPeriod);
+#endif
 	ui->expSlider->setMaximum(((eMaxPeriod * 360) / fPeriod + 0.5));
 	ui->expSlider->setValue(eShutterAngle);
 

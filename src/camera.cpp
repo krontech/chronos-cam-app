@@ -223,8 +223,7 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX2100 * senso
 		if(!fileDirFoundOnUSB) strcpy(vinst->fileDirectory, "/media/mmcblk1p1");
 	}
 
-	liveAdcOffsetCalibration();
-	loadColGainFromFile();
+	liveColumnCalibration();
 
 	maxPostFramesRatio = 1;
 
@@ -267,8 +266,7 @@ UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 		return CAMERA_INVALID_IMAGER_SETTINGS;
 	}
 
-	//sensor->setSlaveExposure(0);	//Disable integration
-	gpmc->write32(IMAGER_INT_TIME_ADDR, 0);
+	sensor->seqOnOff(false);
 	delayms(10);
 	qDebug() << "Settings.period is" << settings.period;
 
@@ -295,8 +293,6 @@ UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 		imagerSettings.recRegionSizeFrames = settings.recRegionSizeFrames;
 	}
 	setRecRegion(REC_REGION_START, imagerSettings.recRegionSizeFrames, &imagerSettings.geometry);
-
-	loadColGainFromFile();
 
 	qDebug()	<< "\nSet imager settings:\nhRes" << imagerSettings.geometry.hRes
 				<< "vRes" << imagerSettings.geometry.vRes
@@ -1208,72 +1204,6 @@ computeColGainCorrectionCleanup:
 	return retVal;
 }
 
-
-Int32 Camera::loadColGainFromFile(void)
-{
-	double gainCorrection[LUX2100_HRES_INCREMENT];
-	size_t count = 0;
-
-	QString filename;
-	QFile fp;
-	bool colGainError = false;
-	int i;
-	
-	//Generate the filename for this particular resolution and offset
-	if(imagerSettings.gain >= LUX1310_GAIN_4)
-		filename.sprintf("cal:dcgH.bin");
-	else
-		filename.sprintf("cal:dcgL.bin");
-	
-	QFileInfo colGainFile(filename);
-	if (colGainFile.exists() && colGainFile.isFile()) {
-		qDebug("Found colGain file %s", colGainFile.absoluteFilePath().toLocal8Bit().constData());
-	
-		fp.setFileName(filename);
-		fp.open(QIODevice::ReadOnly);
-		if(!fp.isOpen()) {
-			qDebug("Error: File couldn't be opened");
-		}
-	
-		//If the column gain file exists, read it in
-		count = fp.read((char*) gainCorrection, sizeof(gainCorrection[0]) * LUX2100_HRES_INCREMENT);
-		if (count > 0) count /= sizeof(gainCorrection[0]);
-		fp.close();
-
-		if (count < sensor->getHResIncrement()) {
-			colGainError = true;
-			qDebug("Error: col gain read error");
-		}
-		else {
-			//If all read in gain corrections are not within a sane range, set them all to 1.0
-			for(i = 0; i < sensor->getHResIncrement(); i++) {
-				if(gainCorrection[i] < 0.5 || gainCorrection[i] > 2.0) {
-					colGainError = true;
-					qDebug("Error: col gain outside range 0.5 to 2.0");
-					break;
-				}
-			}
-		}
-	}
-	else {
-		qDebug("Error: colGain file %s not found", colGainFile.absoluteFilePath().toLocal8Bit().constData());
-		colGainError = true;
-	}
-
-	if(colGainError) {
-		qDebug("Error while loading cal gain - resetting to 1.0");
-		for(i = 0; i < sensor->getHResIncrement(); i++) {
-			gainCorrection[i] = 1.0;
-		}
-	}
-	
-	//Write the values into the display column gain memory
-	for(i = 0; i < LUX2100_MAX_H_RES; i++)
-		writeDGCMem(gainCorrection[i % sensor->getHResIncrement()], i);
-
-	return SUCCESS;
-}
-
 /*===============================================================
  * checkForDeadPixels
  *
@@ -1611,7 +1541,100 @@ void Camera::computeFPNColumns(FrameGeometry *geometry, UInt32 wordAddress, UInt
 	free(fpnColumns);
 }
 
-Int32 Camera::liveAdcOffsetCalibration(unsigned int iterations)
+void Camera::computeGainColumns(FrameGeometry *geometry, UInt32 wordAddress, const struct timespec *interval)
+{
+	UInt32 numRows = 64;
+	UInt32 pixFullScale = (1 << BITS_PER_PIXEL);
+	UInt32 rowStart = ((geometry->vRes - numRows) / 2) & ~0x1f;
+	UInt32 rowSize = (geometry->hRes * BITS_PER_PIXEL) / 8;
+	UInt32 *pxBuffer = (UInt32 *)malloc(numRows * rowSize);
+	UInt32 highColumns[LUX2100_HRES_INCREMENT] = {0};
+	UInt32 lowColumns[LUX2100_HRES_INCREMENT] = {0};
+	UInt32 maxColumn, minColumn;
+	unsigned int vhigh = 8;
+	unsigned int vlow = 0;
+
+	/* Sample rows from somewhere around the middle of the frame. */
+	wordAddress += (rowSize * rowStart) / BYTES_PER_WORD;
+
+	/* Search for a dummy voltage high reference point. */
+	for (vhigh = 31; vhigh > 0; vhigh--) {
+		/* FIXME: Needs an API for LUX1310 vs. LUX2100 */
+		//sensor->SCIWrite(0x63, 0xC008 | (vhigh << 5));
+		sensor->SCIWrite(0x67, 0x6011 | (vhigh << 8));
+		nanosleep(interval, NULL);
+
+		/* Get the average pixel value. */
+		readAcqMem(pxBuffer, wordAddress, rowSize * numRows);
+		memset(highColumns, 0, sizeof(highColumns));
+		for (int row = 0; row < numRows; row++) {
+			for(int col = 0; col < geometry->hRes; col++) {
+				highColumns[col % LUX2100_HRES_INCREMENT] += readPixelBuf12((UInt8 *)pxBuffer, row * geometry->hRes + col);
+			}
+		}
+		maxColumn = 0;
+		for (int col = 0; col < LUX2100_HRES_INCREMENT; col++) {
+			if (highColumns[col] > maxColumn) maxColumn = highColumns[col];
+		}
+		maxColumn /= (numRows * geometry->hRes / LUX2100_HRES_INCREMENT);
+
+		/* High voltage should be less than 7/8 of full scale */
+		if (maxColumn <= (pixFullScale - (pixFullScale / 8))) {
+			break;
+		}
+	}
+
+	/* Search for a dummy voltage low reference point. */
+	for (vlow = 0; vlow < vhigh; vlow++) {
+		/* FIXME: Needs an API for LUX1310 vs. LUX2100 */
+		//sensor->SCIWrite(0x63, 0xC008 | (vlow << 5));
+		sensor->SCIWrite(0x67, 0x6011 | (vlow << 8));
+		nanosleep(interval, NULL);
+
+		/* Get the average pixel value. */
+		readAcqMem(pxBuffer, wordAddress, rowSize * numRows);
+		memset(lowColumns, 0, sizeof(lowColumns));
+		for (int row = 0; row < numRows; row++) {
+			for(int col = 0; col < geometry->hRes; col++) {
+				lowColumns[col % LUX2100_HRES_INCREMENT] += readPixelBuf12((UInt8 *)pxBuffer, row * geometry->hRes + col);
+			}
+		}
+		minColumn = UINT32_MAX;
+		for (int col = 0; col < LUX2100_HRES_INCREMENT; col++) {
+			if (lowColumns[col] < minColumn) minColumn = lowColumns[col];
+		}
+		minColumn /= (numRows * geometry->hRes / LUX2100_HRES_INCREMENT);
+
+		/* Low voltage should be greater than 1/8th of full scale. */
+		if (minColumn >= (pixFullScale / 8)) {
+			break;
+		}
+	}
+	free(pxBuffer);
+
+	/* Apply per-ADC gain correction. */
+	maxColumn = 0;
+	for (int col = 0; col < LUX2100_HRES_INCREMENT; col++) {
+		UInt32 diff = highColumns[col] - lowColumns[col];
+		if (diff > maxColumn) maxColumn = diff;
+	}
+	/* If the ADC Gain calibration couldn't get a large enough delta, then load default gains. */
+	if (maxColumn < (pixFullScale / 8)) {
+		qWarning("Warning! ADC Auto calibration range error.");
+		for (int col = 0; col < geometry->hRes; col++) {\
+			gpmc->write16(COL_GAIN_MEM_START_ADDR + (2 * col) - 2, 4096);
+		}
+	}
+	else {
+		for (int col = 0; col < geometry->hRes; col++) {
+			UInt32 diff = highColumns[col % LUX2100_HRES_INCREMENT] - lowColumns[col % LUX2100_HRES_INCREMENT];
+			if (!diff) diff = maxColumn; /* Use the default in case of divide by zero. */
+			gpmc->write16(COL_GAIN_MEM_START_ADDR + (2 * col) - 2, (4096ULL * maxColumn) / diff);
+		}
+	}
+}
+
+Int32 Camera::liveColumnCalibration(unsigned int iterations)
 {
 	ImagerSettings_t isPrev = imagerSettings;
 	ImagerSettings_t isDark;
@@ -1669,6 +1692,13 @@ Int32 Camera::liveAdcOffsetCalibration(unsigned int iterations)
 	nanosleep(&tRefresh, NULL);
 	computeFPNColumns(&isDark.geometry, CAL_REGION_START, CAL_REGION_FRAMES);
 #endif
+
+	sensor->seqOnOff(false);
+	delayms(10);
+	sensor->updateWavetableSetting(true);
+	sensor->seqOnOff(true);
+	computeGainColumns(&isDark.geometry, CAL_REGION_START, &tRefresh);
+
 	terminateRecord();
 	ui->setRecLEDFront(false);
 	ui->setRecLEDBack(false);

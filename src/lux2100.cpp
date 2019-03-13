@@ -461,7 +461,11 @@ CameraErrortype LUX2100::autoPhaseCal(void)
 
 Int32 LUX2100::seqOnOff(bool on)
 {
-	gpmc->write32(IMAGER_INT_TIME_ADDR, 0);	//Disable integration
+	if (on) {
+		gpmc->write32(IMAGER_INT_TIME_ADDR, currentExposure);
+	} else {
+		gpmc->write32(IMAGER_INT_TIME_ADDR, 0);	//Disable integration
+	}
 	return SUCCESS;
 }
 
@@ -837,101 +841,17 @@ void LUX2100::setDACCS(bool on)
 	write(dacCSFD, on ? "1" : "0", 1);
 }
 
-
-void LUX2100::setWavetable(UInt8 mode)
+void LUX2100::updateWavetableSetting(bool gainCalMode)
 {
-    return;
-
-	switch(mode)
-	{
-    case LUX2100_WAVETABLE_80:
-		SCIWrite(0x01, 0x0000);	//Disable internal timing engine
-		SCIWrite(0x37, 80); //non-overlapping readout delay
-		SCIWrite(0x7A, 80); //wavetable size
-        //SCIWriteBuf(0x7F, LUX2100_sram80Clk, sizeof(LUX2100_sram80Clk));
-		SCIWrite(0x01, 0x0001);	//Enable internal timing engine
-		wavetableSize = 80;
-		setABNDelayClocks(ABN_DELAY_WT80);
-		break;
-
-    case LUX2100_WAVETABLE_39:
-		SCIWrite(0x01, 0x0000);	//Disable internal timing engine
-		SCIWrite(0x37, 39); //non-overlapping readout delay
-		SCIWrite(0x7A, 39); //wavetable size
-        //SCIWriteBuf(0x7F, LUX2100_sram39Clk, sizeof(LUX2100_sram39Clk));
-		SCIWrite(0x01, 0x0001);	//Enable internal timing engine
-		wavetableSize = 39;
-		setABNDelayClocks(ABN_DELAY_WT39);
-		break;
-
-    case LUX2100_WAVETABLE_30:
-		SCIWrite(0x01, 0x0000);	//Disable internal timing engine
-		SCIWrite(0x37, 30); //non-overlapping readout delay
-		SCIWrite(0x7A, 30); //wavetable size
-        //SCIWriteBuf(0x7F, LUX2100_sram30Clk, sizeof(LUX2100_sram30Clk));
-		SCIWrite(0x01, 0x0001);	//Enable internal timing engine
-		wavetableSize = 30;
-		setABNDelayClocks(ABN_DELAY_WT30);
-		break;
-
-    case LUX2100_WAVETABLE_25:
-		SCIWrite(0x01, 0x0000);	//Disable internal timing engine
-		SCIWrite(0x37, 25); //non-overlapping readout delay
-		SCIWrite(0x7A, 25); //wavetable size
-        //SCIWriteBuf(0x7F, LUX2100_sram25Clk, sizeof(LUX2100_sram25Clk));
-		SCIWrite(0x01, 0x0001);	//Enable internal timing engine
-		wavetableSize = 25;
-		setABNDelayClocks(ABN_DELAY_WT25);
-		break;
-
-    case LUX2100_WAVETABLE_20:
-		SCIWrite(0x01, 0x0000);	//Disable internal timing engine
-		SCIWrite(0x37, 20); //non-overlapping readout delay
-		SCIWrite(0x7A, 20); //wavetable size
-        //SCIWriteBuf(0x7F, LUX2100_sram20Clk, sizeof(LUX2100_sram20Clk));
-		SCIWrite(0x01, 0x0001);	//Enable internal timing engine
-		wavetableSize = 20;
-		setABNDelayClocks(ABN_DELAY_WT20);
-		break;
-
-
+	if (gainCalMode) {
+		SCIWrite(0x04, 0x0000);	/* Switch to main register space */
+		SCIWrite(0x56, 0xB001); /* Switch to analog test mode. */
+		SCIWrite(0x67, 0x6D11); /* Configure the desired test voltage. */
 	}
-	qDebug() << "Wavetable size set to" << wavetableSize;
-}
-
-
-void LUX2100::updateWavetableSetting()
-{
-	if(wavetableSelect == LUX2100_WAVETABLE_AUTO)
-	{
-		qDebug() << "currentPeriod" << currentPeriod << "Min period" << getMinFramePeriod(&currentRes, 80);
-		if(currentPeriod < getMinFramePeriod(&currentRes, 80))
-		{
-			if(currentPeriod < getMinFramePeriod(&currentRes, 39))
-			{
-				if(currentPeriod < getMinFramePeriod(&currentRes, 30))
-				{
-					if(currentPeriod < getMinFramePeriod(&currentRes, 25))
-					{
-						setWavetable(LUX2100_WAVETABLE_20);
-					}
-					else
-						setWavetable(LUX2100_WAVETABLE_25);
-				}
-				else
-					setWavetable(LUX2100_WAVETABLE_30);
-			}
-			else
-				setWavetable(LUX2100_WAVETABLE_39);
-		}
-		else
-		{
-			setWavetable(LUX2100_WAVETABLE_80);
-		}
-	}
-	else
-	{
-		setWavetable(wavetableSelect);
+	else {
+		SCIWrite(0x04, 0x0000); /* Switch to main register space. */
+		SCIWrite(0x67, 0x1E11); /* Disable the test voltage. */
+		SCIWrite(0x56, 0x9001); /* Disable analog test mode. */
 	}
 }
 
