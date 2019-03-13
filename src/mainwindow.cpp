@@ -367,21 +367,12 @@ void MainWindow::on_cmdGC_clicked()
 
 void MainWindow::on_cmdOffsetCorrection_clicked()
 {
-	//camera->offsetCorrectionIteration();
-    camera->adcOffsetCorrection(32);
-    //camera->sensor->SCIWrite(0x2B, 5); // Readout 5 dark rows
-    return;
-    for(int i = 0; i < 32; i++)
-        camera->sensor->setADCOffset(i, -1023 + 32*i);
+	camera->adcOffsetCorrection(32, false);
 }
 
 void MainWindow::on_cmdSaveOC_clicked()
 {
-    //camera->sensor->saveADCOffsetsToFile();
-    for(int i = 0; i < 1920; i++)
-
-        camera->gpmc->write16(DCG_MEM_START_ADDR+2*i, (((i+1) % 32) == 0) ? 8192.0 : 4096.0);
-        //camera->sensor->setADCOffset(i, -0);
+	camera->sensor->saveADCOffsetsToFile();
 }
 
 void MainWindow::on_cmdAutoBlack_clicked()
