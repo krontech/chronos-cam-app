@@ -270,9 +270,8 @@ UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 	qDebug() << "Settings.period is" << settings.period;
 
 	sensor->setResolution(&settings.geometry);
-	sensor->setFramePeriod((double)settings.period/100000000.0, &settings.geometry);
 	sensor->setGain(settings.gain);
-	sensor->updateWavetableSetting();
+	sensor->setFramePeriod((double)settings.period/100000000.0, &settings.geometry);
 	gpmc->write16(SENSOR_LINE_PERIOD_ADDR, max((sensor->currentRes.hRes / LUX1310_HRES_INCREMENT)+2, (sensor->wavetableSize + 3)) - 1);	//Set the timing generator to handle the line period
 	delayms(10);
 	qDebug() << "About to sensor->setSlaveExposure"; sensor->setSlaveExposure(settings.exposure);
@@ -1555,15 +1554,27 @@ void Camera::computeGainColumns(FrameGeometry *geometry, UInt32 wordAddress, con
 	int col;
 	UInt32 maxColumn, minColumn;
 	unsigned int vhigh, vlow, vmid;
+	unsigned int vmax;
+
+	/* Setup the default calibration */
+	for (col = 0; col < LUX2100_HRES_INCREMENT; col++) {
+		colGain[col] = (1 << COL_GAIN_FRAC_BITS);
+		colCurve[col] = 0;
+	}
+
+	/* Enable analog test mode. */
+	vmax = sensor->enableAnalogTestMode();
+	if (!vmax) {
+		qWarning("Warning! ADC Auto calibration not supported.");
+		goto cleanup;
+	}
 
 	/* Sample rows from somewhere around the middle of the frame. */
 	wordAddress += (rowSize * rowStart) / BYTES_PER_WORD;
 
 	/* Search for a dummy voltage high reference point. */
 	for (vhigh = 31; vhigh > 0; vhigh--) {
-		/* FIXME: Needs an API for LUX1310 vs. LUX2100 */
-		//sensor->SCIWrite(0x63, 0xC008 | (vhigh << 5));
-		sensor->SCIWrite(0x67, 0x6011 | (vhigh << 8));
+		sensor->setAnalogTestVoltage(vhigh);
 		nanosleep(interval, NULL);
 
 		/* Get the average pixel value. */
@@ -1588,9 +1599,7 @@ void Camera::computeGainColumns(FrameGeometry *geometry, UInt32 wordAddress, con
 
 	/* Search for a dummy voltage low reference point. */
 	for (vlow = 0; vlow < vhigh; vlow++) {
-		/* FIXME: Needs an API for LUX1310 vs. LUX2100 */
-		//sensor->SCIWrite(0x63, 0xC008 | (vlow << 5));
-		sensor->SCIWrite(0x67, 0x6011 | (vlow << 8));
+		sensor->setAnalogTestVoltage(vlow);
 		nanosleep(interval, NULL);
 
 		/* Get the average pixel value. */
@@ -1615,8 +1624,7 @@ void Camera::computeGainColumns(FrameGeometry *geometry, UInt32 wordAddress, con
 
 	/* Sample the midpoint, which should be around quarter scale. */
 	vmid = (vhigh + 3*vlow) / 4;
-	//sensor->SCIWrite(0x63, 0xC008 | (vmid << 5));
-	sensor->SCIWrite(0x67, 0x6011 | (vmid << 8));
+	sensor->setAnalogTestVoltage(vmid);
 	nanosleep(interval, NULL);
 	fprintf(stderr, "ADC Calibration voltages: vlow=%d vmid=%d vhigh=%d\n", vlow, vmid, vhigh);
 
@@ -1641,11 +1649,7 @@ void Camera::computeGainColumns(FrameGeometry *geometry, UInt32 wordAddress, con
 	}
 	if (col != LUX2100_HRES_INCREMENT) {
 		qWarning("Warning! ADC Auto calibration range error.");
-		for (int col = 0; col < geometry->hRes; col++) {\
-			gpmc->write16(COL_GAIN_MEM_START_ADDR + (2 * col), (1 << COL_GAIN_FRAC_BITS));
-			gpmc->write16(COL_CURVE_MEM_START_ADDR + (2 * col), 0);
-		}
-		return;
+		goto cleanup;
 	}
 
 	/* Compute the 3-point gain calibration coefficients. */
@@ -1699,6 +1703,9 @@ void Camera::computeGainColumns(FrameGeometry *geometry, UInt32 wordAddress, con
 		colCurve[col] = 0;
 #endif
 	}
+
+cleanup:
+	sensor->disableAnalogTestMode();
 
 	/* Enable 3-point calibration and load the column gains */
 	gpmc->write16(DISPLAY_GAIN_CONTROL_ADDR, DISPLAY_GAIN_CONTROL_3POINT);
@@ -1760,10 +1767,6 @@ Int32 Camera::liveColumnCalibration(unsigned int iterations)
 		offsetCorrectionIteration(&isDark.geometry, CAL_REGION_START, CAL_REGION_FRAMES);
 	}
 
-	sensor->seqOnOff(false);
-	delayms(10);
-	sensor->updateWavetableSetting(true);
-	sensor->seqOnOff(true);
 	computeGainColumns(&isDark.geometry, CAL_REGION_START, &tRefresh);
 
 	terminateRecord();
@@ -2233,7 +2236,6 @@ Int32 Camera::readCorrectedFrame(UInt32 frame, UInt16 * frameBuffer, UInt16 * fp
 }
 
 void setADCOffset(UInt8 channel, Int16 offset);
-Int16 getADCOffset(UInt8 channel);
 
 void Camera::loadCCMFromSettings(void)
 {

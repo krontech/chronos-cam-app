@@ -158,7 +158,8 @@ HEADERS  += mainwindow.h \
     colorwindow.h \
     colordoublespinbox.h \
     frameGeometry.h \
-    lux2100.h
+    lux2100.h \
+    sensor.h
 
 FORMS    += mainwindow.ui \
     cammainwindow.ui \
