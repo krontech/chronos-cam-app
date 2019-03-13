@@ -124,9 +124,9 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX2100 * senso
 	gpmc->write16(IMAGE_SENSOR_FIFO_START_W_THRESH_ADDR, 0x0100);
 	gpmc->write16(IMAGE_SENSOR_FIFO_STOP_W_THRESH_ADDR, 0x0100);
 
-	gpmc->write32(SEQ_LIVE_ADDR_0_ADDR, LIVE_FRAME_0_ADDRESS);
-	gpmc->write32(SEQ_LIVE_ADDR_1_ADDR, LIVE_FRAME_1_ADDRESS);
-	gpmc->write32(SEQ_LIVE_ADDR_2_ADDR, LIVE_FRAME_2_ADDRESS);
+	gpmc->write32(SEQ_LIVE_ADDR_0_ADDR, LIVE_REGION_START + MAX_FRAME_WORDS*0);
+	gpmc->write32(SEQ_LIVE_ADDR_1_ADDR, LIVE_REGION_START + MAX_FRAME_WORDS*1);
+	gpmc->write32(SEQ_LIVE_ADDR_2_ADDR, LIVE_REGION_START + MAX_FRAME_WORDS*2);
 
     if (ramSizeGBSlot1 != 0) {
 	if      (ramSizeGBSlot0 == 0)                         { gpmc->write16(MMU_CONFIG_ADDR, MMU_INVERT_CS);      qDebug("--- memory --- invert CS remap"); }
@@ -227,42 +227,9 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX2100 * senso
 
 	maxPostFramesRatio = 1;
 
-//	if(CAMERA_FILE_NOT_FOUND == loadFPNFromFile())
-//		autoFPNCorrection(2, false, true);
-	/*
-	//If the FPN file exists, read it in
-	if( access( "fpn.raw", R_OK ) != -1 )
-	{
-		FILE * fp;
-		fp = fopen("fpn.raw", "rb");
-		UInt16 * buffer = new UInt16[MAX_STRIDE*MAX_FRAME_SIZE_V];
-		fread(buffer, sizeof(buffer[0]), MAX_STRIDE*MAX_FRAME_SIZE_V, fp);
-		fclose(fp);
-
-		UInt32 * packedBuf = new UInt32[FRAME_SIZE*BYTES_PER_WORD/4];
-		memset(packedBuf, 0, FRAME_SIZE*BYTES_PER_WORD);
-
-		//Generate packed buffer
-		for(int i = 0; i < MAX_STRIDE*MAX_FRAME_SIZE_V; i++)
-		{
-			//writePixel(i, 0, buffer[i]);
-			writePixelBuf12((UInt8 *)packedBuf, i, buffer[i]);
-		}
-
-		//Write packed buffer to RAM
-		writeAcqMem(packedBuf, FPN_ADDRESS, FRAME_SIZE);
-
-		delete buffer;
-		delete packedBuf;
+	if(CAMERA_FILE_NOT_FOUND == loadFPNFromFile()) {
+		fastFPNCorrection();
 	}
-	else //if no file exists, zero out the FPN area
-	{
-	for(int i = 0; i < FRAME_SIZE; i = i + 4)
-		{
-			gpmc->writeRam32(i, 0);
-		}
-	}
-	*/
 
 	/* Load color matrix from settings */
 	if (isColor) {
@@ -327,9 +294,6 @@ UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 		imagerSettings.recRegionSizeFrames = settings.recRegionSizeFrames;
 	}
 	setRecRegion(REC_REGION_START, imagerSettings.recRegionSizeFrames, &imagerSettings.geometry);
-
-	qDebug() << "About to sensor->loadADCOffsetsFromFile";
-	sensor->loadADCOffsetsFromFile();
 
 	loadColGainFromFile();
 
@@ -615,7 +579,7 @@ Int32 Camera::setRecSequencerModeCalLoop(void)
 	pgmWord.settings.termBlkLow = 0;
 	pgmWord.settings.termBlkHigh = 0;
 	pgmWord.settings.termBlkFalling = 0;
-	pgmWord.settings.termBlkRising = 1;
+	pgmWord.settings.termBlkRising = 0;
 	pgmWord.settings.next = 0;
 	pgmWord.settings.blkSize = CAL_REGION_FRAMES - 1;
 	pgmWord.settings.pad = 0;
@@ -845,56 +809,11 @@ void Camera::writePixelBuf12(UInt8 * buf, UInt32 pixel, UInt16 value)
 	buf[address+1] = dataH;
 }
 
-void Camera::computeFPNCorrection()
+void Camera::computeFPNCorrection(FrameGeometry *geometry, UInt32 wordAddress, UInt32 framesToAverage, bool writeToFile, bool factory)
 {
-	FILE * fp;
-	fp = fopen("fpn.raw", "wb");
-
-	UInt16 * buffer = new UInt16[MAX_FRAME_SIZE_H * MAX_FRAME_SIZE_V];
-	UInt32 * rawBuffer32 = new UInt32[MAX_FRAME_LENGTH * BYTES_PER_WORD / 4];
-	UInt8 * rawBuffer = (UInt8 *)rawBuffer32;
-
-	qDebug() << "FPN Address: " << gpmc->read32(DISPLAY_FPN_ADDRESS_ADDR);
-
-	//Zero buffer
-	for(int i = 0; i < MAX_FRAME_SIZE_H * MAX_FRAME_SIZE_V; i++)
-	{
-		buffer[i] = 0;
-	}
-
-	//Sum pixel values across frames
-	for(int frame = 0; frame < FPN_AVERAGE_FRAMES; frame++)
-	{
-		//Get one frame into the raw buffer
-		readAcqMem(rawBuffer32, REC_REGION_START + frame * MAX_FRAME_LENGTH, MAX_FRAME_LENGTH*BYTES_PER_WORD);
-		//Retrieve pixels from the raw buffer and sum them
-		for(int i = 0; i < MAX_FRAME_SIZE_H * MAX_FRAME_SIZE_V; i++)
-		{
-			buffer[i] += readPixelBuf12(rawBuffer, i);
-		}
-	}
-
-	//Divide by number summed to get average and write to FPN area
-	for(int i = 0; i < MAX_FRAME_SIZE_H * MAX_FRAME_SIZE_V; i++)
-	{
-		buffer[i] /= FPN_AVERAGE_FRAMES;
-		writePixelBuf12(rawBuffer, i, buffer[i]);
-	}
-
-	writeAcqMem(rawBuffer32,  FPN_ADDRESS, MAX_FRAME_LENGTH*BYTES_PER_WORD);
-	fwrite(buffer, sizeof(buffer[0]), MAX_FRAME_SIZE_H * MAX_FRAME_SIZE_V, fp);
-
-	fclose(fp);
-
-	gpmc->write32(GPMC_PAGE_OFFSET_ADDR, 0);
-	delete buffer;
-	delete rawBuffer32;
-}
-
-void Camera::computeFPNCorrection2(UInt32 framesToAverage, bool writeToFile, bool factory)
-{
-	QSettings appSettings;
+	UInt32 pixelsPerFrame = geometry->pixels();
 	const char *formatStr;
+	UInt16 maxFpn;
 	QString filename;
 	std::string fn;
 	QFile fp;
@@ -910,7 +829,7 @@ void Camera::computeFPNCorrection2(UInt32 framesToAverage, bool writeToFile, boo
 			formatStr = "userFPN/fpn_%dx%doff%dx%d";
 		}
 		
-		filename.sprintf(formatStr, getImagerSettings().geometry.hRes, getImagerSettings().geometry.vRes, getImagerSettings().geometry.hOffset, getImagerSettings().geometry.vOffset);
+		filename.sprintf(formatStr, geometry->hRes, geometry->vRes, geometry->hOffset, geometry->vOffset);
 		fn = sensor->getFilename("", ".raw");
 		filename.append(fn.c_str());
 		
@@ -925,70 +844,89 @@ void Camera::computeFPNCorrection2(UInt32 framesToAverage, bool writeToFile, boo
 		}
 	}
 
-	UInt32 pixelsPerFrame = recordingData.is.geometry.pixels();
-	UInt32 bytesPerFrame = recordingData.is.geometry.size();
-
-	UInt16 * buffer = new UInt16[pixelsPerFrame];
-	UInt32 * rawBuffer32 = new UInt32[bytesPerFrame / 4];
-	UInt8 * rawBuffer = (UInt8 *)rawBuffer32;
+	UInt16 * fpnBuffer = (UInt16 *)calloc(pixelsPerFrame, sizeof(UInt16));
+	UInt8  * pixBuffer = (UInt8  *)malloc(geometry->size());
 
 	// turn off the sensor
 	sensor->seqOnOff(false);
 
-	//Zero buffer
-	for(int i = 0; i < pixelsPerFrame; i++)
-	{
-		buffer[i] = 0;
-	}
-
-	//Sum pixel values across frames
-	for(int frame = 0; frame < framesToAverage; frame++)
-	{
-		//Get one frame into the raw buffer
-		readAcqMem(rawBuffer32,
-				   REC_REGION_START + (frame + 1) * getFrameSizeWords(&recordingData.is.geometry),
-				   bytesPerFrame);
-
-		//Retrieve pixels from the raw buffer and sum them
-		for(int i = 0; i < pixelsPerFrame; i++)
-		{
-			buffer[i] += readPixelBuf12(rawBuffer, i);
+	/* Read frames out of the recorded region and sum their pixels. */
+	for(int frame = 0; frame < framesToAverage; frame++) {
+		readAcqMem((UInt32 *)pixBuffer, wordAddress, geometry->size());
+		for(int i = 0; i < pixelsPerFrame; i++) {
+			fpnBuffer[i] += readPixelBuf12(pixBuffer, i);
 		}
+
+		/* Advance to the next frame. */
+		wordAddress += getFrameSizeWords(geometry);
 	}
 
-	//Divide by number summed to get average and write to FPN area
-	for(int i = 0; i < pixelsPerFrame; i++)
-	{
-		buffer[i] /= framesToAverage;
-		writePixelBuf12(rawBuffer, i, buffer[i]);
+	/* Divide by number summed to get average and write to FPN area */
+	maxFpn = 0;
+	for(int i = 0; i < pixelsPerFrame; i++) {
+		fpnBuffer[i] /= framesToAverage;
+		if (fpnBuffer[i] > maxFpn) maxFpn = fpnBuffer[i];
+		writePixelBuf12(pixBuffer, i, fpnBuffer[i]);
 	}
-
-	writeAcqMem(rawBuffer32, FPN_ADDRESS, bytesPerFrame);
-
-	// restart the sensor
-	setIntegrationTime(0.0, &imagerSettings.geometry, SETTING_FLAG_USESAVED);
-
-	imgGain = 4096.0 / (double)(4096 - getMaxFPNValue(buffer, pixelsPerFrame)) * IMAGE_GAIN_FUDGE_FACTOR;
+	writeAcqMem((UInt32 *)pixBuffer, FPN_ADDRESS, geometry->size());
+	imgGain = 4096.0 / (double)(4096 - maxFpn) * IMAGE_GAIN_FUDGE_FACTOR;
 	imgGain = 1;
 	qDebug() << "imgGain set to" << imgGain;
 	setWhiteBalance(whiteBalMatrix);
+
+	// restart the sensor
+	setIntegrationTime(0.0, &imagerSettings.geometry, SETTING_FLAG_USESAVED);
 
 	qDebug() << "About to write file...";
 	if(writeToFile)
 	{
 		quint64 retVal;
-		retVal = fp.write((const char*)buffer, sizeof(buffer[0])*pixelsPerFrame);
-		if (retVal != (sizeof(buffer[0])*pixelsPerFrame)) {
+		retVal = fp.write((const char*)fpnBuffer, sizeof(fpnBuffer[0])*pixelsPerFrame);
+		if (retVal != (sizeof(fpnBuffer[0])*pixelsPerFrame)) {
 			qDebug("Error writing FPN data to file: %s", fp.errorString().toUtf8().data());
 		}
 		fp.flush();
 		fp.close();
 	}
 
-	delete buffer;
-	delete rawBuffer32;
+	free(fpnBuffer);
+	free(pixBuffer);
 }
 
+/* Perform zero-time black cal using the calibration recording region. */
+Int32 Camera::fastFPNCorrection(void)
+{
+	struct timespec tRefresh;
+	Int32 retVal;
+
+	io->setShutterGatingEnable(false, FLAG_TEMPORARY);
+	setIntegrationTime(0.0, &imagerSettings.geometry, SETTING_FLAG_TEMPORARY);
+	retVal = setRecSequencerModeCalLoop();
+	if (retVal != SUCCESS) {
+		io->setShutterGatingEnable(false, FLAG_USESAVED);
+		setIntegrationTime(0.0, &imagerSettings.geometry, SETTING_FLAG_USESAVED);
+		return retVal;
+	}
+
+	/* Activate the recording sequencer and wait for frames. */
+	startSequencer();
+	ui->setRecLEDFront(true);
+	ui->setRecLEDBack(true);
+	tRefresh.tv_sec = 0;
+	tRefresh.tv_nsec = ((CAL_REGION_FRAMES + 1) * imagerSettings.period) * 10;
+	nanosleep(&tRefresh, NULL);
+
+	/* Terminate the calibration recording. */
+	terminateRecord();
+	ui->setRecLEDFront(false);
+	ui->setRecLEDBack(false);
+	io->setShutterGatingEnable(false, FLAG_USESAVED);
+	setIntegrationTime(0.0, &imagerSettings.geometry, SETTING_FLAG_USESAVED);
+
+	/* Recalculate the black cal. */
+	computeFPNCorrection(&imagerSettings.geometry, CAL_REGION_START, CAL_REGION_FRAMES, false, false);
+	return SUCCESS;
+}
 
 UInt32 Camera::autoFPNCorrection(UInt32 framesToAverage, bool writeToFile, bool noCap, bool factory)
 {
@@ -1044,7 +982,7 @@ UInt32 Camera::autoFPNCorrection(UInt32 framesToAverage, bool writeToFile, bool 
 
     imagerSettings.mode = oldMode;
 
-	computeFPNCorrection2(framesToAverage, writeToFile, factory);
+	computeFPNCorrection(&recordingData.is.geometry, REC_REGION_START, framesToAverage, writeToFile, factory);
 
 	qDebug() << "FPN correction done";
 	recordingData.hasBeenSaved = true;
@@ -1641,25 +1579,6 @@ void Camera::offsetCorrectionIteration(FrameGeometry *geometry, UInt32 wordAddre
 	}
 	free(pxbuffer);
 
-	qDebug() << "Min values"
-			 << adcMinVal[0] << adcMinVal[1] << adcMinVal[2] << adcMinVal[3]
-			 << adcMinVal[4] << adcMinVal[5] << adcMinVal[6] << adcMinVal[7]
-			 << adcMinVal[8] << adcMinVal[9] << adcMinVal[10] << adcMinVal[11]
-			 << adcMinVal[12] << adcMinVal[13] << adcMinVal[14] << adcMinVal[15]
-			 << adcMinVal[16] << adcMinVal[17] << adcMinVal[18] << adcMinVal[19]
-			 << adcMinVal[20] << adcMinVal[21] << adcMinVal[22] << adcMinVal[23]
-			 << adcMinVal[24] << adcMinVal[25] << adcMinVal[26] << adcMinVal[27]
-			 << adcMinVal[28] << adcMinVal[29] << adcMinVal[30] << adcMinVal[31];
-	qDebug() << "Offsets"
-			 << offsets[0] << offsets[1] << offsets[2] << offsets[3]
-			 << offsets[4] << offsets[5] << offsets[6] << offsets[7]
-			 << offsets[8] << offsets[9] << offsets[10] << offsets[11]
-			 << offsets[12] << offsets[12] << offsets[13] << offsets[14]
-			 << offsets[16] << offsets[17] << offsets[18] << offsets[19]
-			 << offsets[20] << offsets[21] << offsets[22] << offsets[23]
-			 << offsets[24] << offsets[25] << offsets[26] << offsets[27]
-			 << offsets[28] << offsets[29] << offsets[30] << offsets[31];
-
 	for(int i = 0; i < LUX2100_HRES_INCREMENT; i++) {
 		offsets[i] = offsets[i] - 0.8*(adcMinVal[i]-32);
 		offsets[i] = within(offsets[i], -1023, 1023);
@@ -1704,7 +1623,7 @@ Int32 Camera::liveAdcOffsetCalibration(unsigned int iterations)
 
 	/* Compute the life display worst-case frame refresh time. */
 	tRefresh.tv_sec = 0;
-	tRefresh.tv_nsec = 2 * 100000000 / isDark.period;
+	tRefresh.tv_nsec = (CAL_REGION_FRAMES+1) * isDark.period * 10;
 
 	/* Clear out the ADC Offsets. */
 	for (int i = 0; i < LUX1310_HRES_INCREMENT; i++) {
@@ -2376,7 +2295,7 @@ Int32 Camera::autoWhiteBalance(UInt32 x, UInt32 y)
 		/* Even Rows - Green/Red Pixels */
 		for (j = 0; j < LUX1310_HRES_INCREMENT; j++) {
 			UInt16 fpn = readPixel12(offset + j, FPN_ADDRESS * BYTES_PER_WORD);
-			UInt16 pix = readPixel12(offset + j, LIVE_FRAME_0_ADDRESS * BYTES_PER_WORD);
+			UInt16 pix = readPixel12(offset + j, LIVE_REGION_START * BYTES_PER_WORD);
 			if (pix >= (4096 - 128)) {
 				return CAMERA_CLIPPED_ERROR;
 			}
@@ -2391,7 +2310,7 @@ Int32 Camera::autoWhiteBalance(UInt32 x, UInt32 y)
 		/* Odd Rows - Blue/Green Pixels */
 		for (j = 0; j < LUX1310_HRES_INCREMENT; j++) {
 			UInt16 fpn = readPixel12(offset + j, FPN_ADDRESS * BYTES_PER_WORD);
-			UInt16 pix = readPixel12(offset + j, LIVE_FRAME_0_ADDRESS * BYTES_PER_WORD);
+			UInt16 pix = readPixel12(offset + j, LIVE_REGION_START * BYTES_PER_WORD);
 			if (pix >= (4096 - 128)) {
 				return CAMERA_CLIPPED_ERROR;
 			}
