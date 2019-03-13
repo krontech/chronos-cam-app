@@ -34,17 +34,16 @@
 #include "types.h"
 
 #define RECORD_DATA_LENGTH		2048		//Number of record data entries for the record sequencer data
-#define FPN_ADDRESS				0x0
-#define MAX_FRAME_LENGTH		0x17BC0
-#define	LIVE_FRAME_0_ADDRESS	MAX_FRAME_LENGTH
-#define	LIVE_FRAME_1_ADDRESS	(MAX_FRAME_LENGTH*2)
-#define	LIVE_FRAME_2_ADDRESS	(MAX_FRAME_LENGTH*3)
-#define CAL_REGION_START		(MAX_FRAME_LENGTH*4)
-#define CAL_REGION_FRAMES		2
-#define REC_REGION_START		(CAL_REGION_START + (MAX_FRAME_LENGTH * CAL_REGION_FRAMES))
+#define MAX_FRAME_WORDS			0x17BC0
+#define CAL_REGION_START		0x0
+#define CAL_REGION_FRAMES		3
+#define LIVE_REGION_START		(CAL_REGION_START + MAX_FRAME_WORDS * CAL_REGION_FRAMES)
+#define LIVE_REGION_FRAMES		3
+#define REC_REGION_START		(LIVE_REGION_START + MAX_FRAME_WORDS * LIVE_REGION_FRAMES)
 #define FRAME_ALIGN_WORDS		64			//Align to 256 byte boundaries (8 32-byte words)
 #define RECORD_LENGTH_MIN       1           //Minimum number of frames in the record region
 #define SEGMENT_COUNT_MAX       (32*1024)   //Maximum number of record segments in segmented mode
+#define FPN_ADDRESS				CAL_REGION_START
 
 #define MAX_FRAME_SIZE_H		1920
 #define MAX_FRAME_SIZE_V		1080
@@ -209,14 +208,14 @@ public:
 	void writePixelBuf(UInt8 * buf, UInt32 pixel, UInt16 value);
 	UInt16 readPixelBuf12(UInt8 * buf, UInt32 pixel);
 	void writePixelBuf12(UInt8 * buf, UInt32 pixel, UInt16 value);
-	void computeFPNCorrection();
-	void computeFPNCorrection2(UInt32 framesToAverage, bool writeToFile = false, bool factory = false);
+	void computeFPNCorrection(FrameGeometry *geometry, UInt32 wordAddress, UInt32 framesToAverage, bool writeToFile = false, bool factory = false);
 	UInt32 autoFPNCorrection(UInt32 framesToAverage, bool writeToFile = false, bool noCap = false, bool factory = false);
+	Int32 fastFPNCorrection();
 	Int32 loadFPNFromFile(void);
 	Int32 computeColGainCorrection(UInt32 framesToAverage, bool writeToFile = false);
 	Int32 loadColGainFromFile(void);
 	UInt32 adcOffsetCorrection(UInt32 iterations, bool writeToFile = true);
-	void offsetCorrectionIteration(FrameGeometry *geometry, UInt32 wordAddress = LIVE_FRAME_0_ADDRESS);
+	void offsetCorrectionIteration(FrameGeometry *geometry, UInt32 wordAddress = LIVE_REGION_START);
 	Int32 liveAdcOffsetCalibration(unsigned int iterations = 32);
 	int autoAdcOffsetCorrection(void);
 	Int32 autoColGainCorrection(void);
