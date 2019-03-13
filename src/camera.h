@@ -210,13 +210,13 @@ public:
 	void writePixelBuf12(UInt8 * buf, UInt32 pixel, UInt16 value);
 	void computeFPNCorrection(FrameGeometry *geometry, UInt32 wordAddress, UInt32 framesToAverage, bool writeToFile = false, bool factory = false);
 	void computeFPNColumns(FrameGeometry *geometry, UInt32 wordAddress, UInt32 framesToAverage);
+	void computeGainColumns(FrameGeometry *geometry, UInt32 wordAddress, const struct timespec *interval);
 	UInt32 autoFPNCorrection(UInt32 framesToAverage, bool writeToFile = false, bool noCap = false, bool factory = false);
 	Int32 fastFPNCorrection();
 	Int32 loadFPNFromFile(void);
 	Int32 computeColGainCorrection(UInt32 framesToAverage, bool writeToFile = false);
-	Int32 loadColGainFromFile(void);
 	void offsetCorrectionIteration(FrameGeometry *geometry, UInt32 wordAddress, UInt32 framesToAverage = 1);
-	Int32 liveAdcOffsetCalibration(unsigned int iterations = 32);
+	Int32 liveColumnCalibration(unsigned int iterations = 32);
 	Int32 autoColGainCorrection(void);
 	Int32 adjustExposureToValue(UInt32 level, UInt32 tolerance = 100, bool includeFPNCorrection = true);
 	Int32 recordFrames(UInt32 numframes);

@@ -179,8 +179,7 @@ public:
 	void SCIWrite(UInt8 address, UInt16 data);
 	void SCIWriteBuf(UInt8 address, UInt8 * data, UInt32 dataLen);
 	UInt16 SCIRead(UInt8 address);
-	void setWavetable(UInt8 mode);
-	void updateWavetableSetting();
+	void updateWavetableSetting(bool gainCalMode = false);
 	void setADCOffset(UInt8 channel, Int16 offset);
 	Int16 getADCOffset(UInt8 channel);
     Int32 doAutoADCOffsetCalibration(void);
