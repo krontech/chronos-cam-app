@@ -275,6 +275,7 @@ void CamMainWindow::on_cmdFPNCal_clicked()//Black cal
 	sw->setText("Performing black calibration...");
 	sw->show();
 	QCoreApplication::processEvents();
+	camera->liveAdcOffsetCalibration();
 	camera->autoFPNCorrection(16, true);
 	sw->hide();
 }

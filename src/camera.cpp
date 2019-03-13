@@ -127,7 +127,6 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX2100 * senso
 	gpmc->write32(SEQ_LIVE_ADDR_0_ADDR, LIVE_FRAME_0_ADDRESS);
 	gpmc->write32(SEQ_LIVE_ADDR_1_ADDR, LIVE_FRAME_1_ADDRESS);
 	gpmc->write32(SEQ_LIVE_ADDR_2_ADDR, LIVE_FRAME_2_ADDRESS);
-	setRecRegionStartWords(REC_REGION_START);
 
     if (ramSizeGBSlot1 != 0) {
 	if      (ramSizeGBSlot0 == 0)                         { gpmc->write16(MMU_CONFIG_ADDR, MMU_INVERT_CS);      qDebug("--- memory --- invert CS remap"); }
@@ -327,8 +326,7 @@ UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 	else {
 		imagerSettings.recRegionSizeFrames = settings.recRegionSizeFrames;
 	}
-
-	setFrameGeometry(&imagerSettings.geometry);
+	setRecRegion(REC_REGION_START, imagerSettings.recRegionSizeFrames, &imagerSettings.geometry);
 
 	qDebug() << "About to sensor->loadADCOffsetsFromFile";
 	sensor->loadADCOffsetsFromFile();
@@ -493,8 +491,7 @@ Int32 Camera::setRecSequencerModeNormal()
 	if(playbackMode)
 		return CAMERA_IN_PLAYBACK_MODE;
 
-	//Set to one plus the last valid address in the record region
-	setRecRegionEndWords(REC_REGION_START + imagerSettings.recRegionSizeFrames * getFrameSizeWords(&imagerSettings.geometry));
+	setRecRegion(REC_REGION_START, imagerSettings.recRegionSizeFrames, &imagerSettings.geometry);
 
 	pgmWord.settings.termRecTrig = 0;
     pgmWord.settings.termRecMem = imagerSettings.disableRingBuffer ? 1 : 0;     //This currently doesn't work, bug in record sequencer hardware
@@ -514,22 +511,20 @@ Int32 Camera::setRecSequencerModeNormal()
 	     << imagerSettings.segments << "blkSize =" << pgmWord.settings.blkSize;
 	writeSeqPgmMem(pgmWord, 0);
 
-	setFrameGeometry(&imagerSettings.geometry);
-
 	return SUCCESS;
 }
 
 Int32 Camera::setRecSequencerModeGatedBurst(UInt32 prerecord)
 {
-    SeqPgmMemWord pgmWord;
+	SeqPgmMemWord pgmWord;
 
-    if(recording)
-	return CAMERA_ALREADY_RECORDING;
-    if(playbackMode)
-	return CAMERA_IN_PLAYBACK_MODE;
+	if(recording)
+		return CAMERA_ALREADY_RECORDING;
+	if(playbackMode)
+		return CAMERA_IN_PLAYBACK_MODE;
 
     //Set to one plus the last valid address in the record region
-	setRecRegionEndWords(REC_REGION_START + imagerSettings.recRegionSizeFrames * getFrameSizeWords(&imagerSettings.geometry));
+	setRecRegion(REC_REGION_START, imagerSettings.recRegionSizeFrames, &imagerSettings.geometry);
 
     //Two instruction program
     //Instruction 0 records to a single frame while trigger is inactive
@@ -566,8 +561,6 @@ Int32 Camera::setRecSequencerModeGatedBurst(UInt32 prerecord)
 
     writeSeqPgmMem(pgmWord, 1);
 
-	setFrameGeometry(&imagerSettings.geometry);
-
     return SUCCESS;
 }
 
@@ -584,7 +577,7 @@ Int32 Camera::setRecSequencerModeSingleBlock(UInt32 blockLength, UInt32 frameOff
 		blockLength = imagerSettings.recRegionSizeFrames - frameOffset;
 
 	//Set to one plus the last valid address in the record region
-	setRecRegionEndWords(REC_REGION_START + (imagerSettings.recRegionSizeFrames+frameOffset) * getFrameSizeWords(&imagerSettings.geometry));
+	setRecRegion(REC_REGION_START, imagerSettings.recRegionSizeFrames + frameOffset, &imagerSettings.geometry);
 
 	pgmWord.settings.termRecTrig = 0;
 	pgmWord.settings.termRecMem = 0;
@@ -600,8 +593,34 @@ Int32 Camera::setRecSequencerModeSingleBlock(UInt32 blockLength, UInt32 frameOff
 
 	writeSeqPgmMem(pgmWord, 0);
 
-	setFrameGeometry(&imagerSettings.geometry);
+	return SUCCESS;
+}
 
+Int32 Camera::setRecSequencerModeCalLoop(void)
+{
+	SeqPgmMemWord pgmWord;
+
+	if(recording)
+		return CAMERA_ALREADY_RECORDING;
+	if(playbackMode)
+		return CAMERA_IN_PLAYBACK_MODE;
+
+	//Set to one plus the last valid address in the record region
+	setRecRegion(CAL_REGION_START, CAL_REGION_FRAMES, &imagerSettings.geometry);
+
+	pgmWord.settings.termRecTrig = 0;
+	pgmWord.settings.termRecMem = 0;
+	pgmWord.settings.termRecBlkEnd = 1;
+	pgmWord.settings.termBlkFull = 0;
+	pgmWord.settings.termBlkLow = 0;
+	pgmWord.settings.termBlkHigh = 0;
+	pgmWord.settings.termBlkFalling = 0;
+	pgmWord.settings.termBlkRising = 1;
+	pgmWord.settings.next = 0;
+	pgmWord.settings.blkSize = CAL_REGION_FRAMES - 1;
+	pgmWord.settings.pad = 0;
+
+	writeSeqPgmMem(pgmWord, 0);
 	return SUCCESS;
 }
 
@@ -1591,7 +1610,7 @@ UInt32 Camera::adcOffsetCorrection(UInt32 iterations, bool writeToFile)
 
 		qDebug() << "Record done, doing offset correction iteration";
 
-		offsetCorrectionIteration(REC_REGION_START);
+		offsetCorrectionIteration(&recordingData.is.geometry, REC_REGION_START);
 	}
 	qDebug() << "Offset correction done";
 
@@ -1603,9 +1622,9 @@ UInt32 Camera::adcOffsetCorrection(UInt32 iterations, bool writeToFile)
 	return SUCCESS;
 }
 
-void Camera::offsetCorrectionIteration(UInt32 wordAddress)
+void Camera::offsetCorrectionIteration(FrameGeometry *geometry, UInt32 wordAddress)
 {
-	UInt32 rowSize = (recordingData.is.geometry.hRes * BITS_PER_PIXEL) / 8;
+	UInt32 rowSize = (geometry->hRes * BITS_PER_PIXEL) / 8;
 	Int32 adcMinVal[LUX2100_HRES_INCREMENT];
 
 	UInt32 *pxbuffer = (UInt32 *)malloc(rowSize);
@@ -1614,9 +1633,9 @@ void Camera::offsetCorrectionIteration(UInt32 wordAddress)
 
 	//Set to max value prior to finding the minimum
 	for(int i = 0; i < LUX2100_HRES_INCREMENT; i++) {
-		adcMinVal[i] = 0x7FFFFFFF;
+		adcMinVal[i] = (1 << BITS_PER_PIXEL);
 	}
-	for(int i = 0; i < recordingData.is.geometry.hRes; i++) {
+	for(int i = 0; i < geometry->hRes; i++) {
 		UInt16 pix = readPixelBuf12((UInt8 *)pxbuffer, i);
 		adcMinVal[i % LUX2100_HRES_INCREMENT] = min(pix, adcMinVal[i % LUX2100_HRES_INCREMENT]);
 	}
@@ -1642,11 +1661,68 @@ void Camera::offsetCorrectionIteration(UInt32 wordAddress)
 			 << offsets[28] << offsets[29] << offsets[30] << offsets[31];
 
 	for(int i = 0; i < LUX2100_HRES_INCREMENT; i++) {
-		//Int16 val = sensor->getADCOffset(i);
 		offsets[i] = offsets[i] - 0.8*(adcMinVal[i]-32);
 		offsets[i] = within(offsets[i], -1023, 1023);
 		sensor->setADCOffset(i, offsets[i]);
 	}
+}
+
+Int32 Camera::liveAdcOffsetCalibration(unsigned int iterations)
+{
+	ImagerSettings_t isPrev = imagerSettings;
+	ImagerSettings_t isDark;
+	struct timespec tRefresh;
+	Int32 retVal;
+
+	/* Swap the black rows into the top of the frame. */
+	memcpy(&isDark, &isPrev, sizeof(isDark));
+	//isDark.geometry.vRes -= LUX1310_MAX_V_DARK;
+	//isDark.geometry.vOffset += LUX1310_MAX_V_DARK;
+	//isDark.geometry.vDarkRows = LUX1310_MAX_V_DARK;
+	isDark.recRegionSizeFrames = getMaxRecordRegionSizeFrames(&isDark.geometry);
+	isDark.disableRingBuffer = 0;
+	isDark.mode = RECORD_MODE_NORMAL;
+	isDark.prerecordFrames = 1;
+	isDark.segmentLengthFrames = imagerSettings.recRegionSizeFrames;
+	isDark.segments = 1;
+	isDark.temporary = 1;
+	retVal = setImagerSettings(isDark);
+	if(SUCCESS != retVal) {
+		return retVal;
+	}
+
+	retVal = setRecSequencerModeCalLoop();
+	if (SUCCESS != retVal) {
+		setImagerSettings(isPrev);
+		return retVal;
+	}
+
+	/* Activate the recording sequencer. */
+	startSequencer();
+	ui->setRecLEDFront(true);
+	ui->setRecLEDBack(true);
+
+	/* Compute the life display worst-case frame refresh time. */
+	tRefresh.tv_sec = 0;
+	tRefresh.tv_nsec = 2 * 100000000 / isDark.period;
+
+	/* Clear out the ADC Offsets. */
+	for (int i = 0; i < LUX1310_HRES_INCREMENT; i++) {
+		sensor->setADCOffset(i, 0);
+	}
+
+	/* Tune the ADC offset calibration. */
+	for (int i = 0; i < iterations; i++) {
+		nanosleep(&tRefresh, NULL);
+		offsetCorrectionIteration(&isDark.geometry, CAL_REGION_START);
+	}
+
+	terminateRecord();
+	ui->setRecLEDFront(false);
+	ui->setRecLEDBack(false);
+
+	/* Restore the sensor settings. */
+	return setImagerSettings(isPrev);
 }
 
 Int32 Camera::autoAdcOffsetCorrection(void)
@@ -1845,6 +1921,7 @@ Int32 Camera::adjustExposureToValue(UInt32 level, UInt32 tolerance, bool include
 
 	return SUCCESS;
 }
+
 
 Int32 Camera::recordFrames(UInt32 numframes)
 {

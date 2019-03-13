@@ -39,8 +39,9 @@
 #define	LIVE_FRAME_0_ADDRESS	MAX_FRAME_LENGTH
 #define	LIVE_FRAME_1_ADDRESS	(MAX_FRAME_LENGTH*2)
 #define	LIVE_FRAME_2_ADDRESS	(MAX_FRAME_LENGTH*3)
-#define REC_REGION_START		(MAX_FRAME_LENGTH*4)
-#define REC_REGION_LEN			ramSize
+#define CAL_REGION_START		(MAX_FRAME_LENGTH*4)
+#define CAL_REGION_FRAMES		2
+#define REC_REGION_START		(CAL_REGION_START + (MAX_FRAME_LENGTH * CAL_REGION_FRAMES))
 #define FRAME_ALIGN_WORDS		64			//Align to 256 byte boundaries (8 32-byte words)
 #define RECORD_LENGTH_MIN       1           //Minimum number of frames in the record region
 #define SEGMENT_COUNT_MAX       (32*1024)   //Maximum number of record segments in segmented mode
@@ -173,6 +174,7 @@ public:
 	Int32 setRecSequencerModeNormal();
 	Int32 setRecSequencerModeGatedBurst(UInt32 prerecord = 0);
 	Int32 setRecSequencerModeSingleBlock(UInt32 blockLength, UInt32 frameOffset = 0);
+	Int32 setRecSequencerModeCalLoop();
 	Int32 stopRecording(void);
 	bool getIsRecording(void);
 	void (*endOfRecCallback)(void *);
@@ -214,7 +216,8 @@ public:
 	Int32 computeColGainCorrection(UInt32 framesToAverage, bool writeToFile = false);
 	Int32 loadColGainFromFile(void);
 	UInt32 adcOffsetCorrection(UInt32 iterations, bool writeToFile = true);
-	void offsetCorrectionIteration(UInt32 wordAddress = LIVE_FRAME_0_ADDRESS);
+	void offsetCorrectionIteration(FrameGeometry *geometry, UInt32 wordAddress = LIVE_FRAME_0_ADDRESS);
+	Int32 liveAdcOffsetCalibration(unsigned int iterations = 32);
 	int autoAdcOffsetCorrection(void);
 	Int32 autoColGainCorrection(void);
 	Int32 adjustExposureToValue(UInt32 level, UInt32 tolerance = 100, bool includeFPNCorrection = true);
@@ -258,9 +261,7 @@ private:
 	void startSequencer(void);
 	void terminateRecord(void);
 	void writeSeqPgmMem(SeqPgmMemWord pgmWord, UInt32 address);
-	void setFrameGeometry(FrameGeometry *frameSize);
-	void setRecRegionStartWords(UInt32 start);
-	void setRecRegionEndWords(UInt32 end);
+	void setRecRegion(UInt32 start, UInt32 count, FrameGeometry *geometry);
 public:
 	void readAcqMem(UInt32 * buf, UInt32 offsetWords, UInt32 length);
 	void writeAcqMem(UInt32 * buf, UInt32 offsetWords, UInt32 length);
