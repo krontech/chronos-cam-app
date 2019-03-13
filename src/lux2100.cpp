@@ -34,47 +34,9 @@
 #include "lux2100.h"
 
 #include <QSettings>
-/*
- *
- * LUPA1300-2 defaults
- * In granularity clock cycles(63MHz)
- * 126 clocks per line
- * 2.057415ms/frame
- *
- *Changing from 14 to 9 ROT setting changed it to 124 clocks per line
- *Changing rowselect_timer from 9 to 6 changed it to 121 clocks per line
- *
- *Changing x res by 24 changed period by 32.5082us = 2048 clocks
- *
- *1.9760493 1296 1024	124491.1059
- *1.0983273 648 1024	69194.6199
- *519.7825	648 480		32746.2975
- *165.4935	336 240		10426.0905
- *
- *Frame rate equation
- *periods = (2*ts+ROT)*(tint_timer+res_length) +	//Row readout time * number of rows
- *			2*(54-ts) +								//Emperically determined fudge factor (two extra clocks for every timeslot not read out)
- *			(54*2+ROT) +							//Black cal line
- *			FOT										//Frame overhead time
- *
- *Where
- *		ROT = rot_timer + 4
- *		FOT = fot_timer + 29
- *		tint_timer = tint_timer register setting
- *		res_length = res_length register setting
- *		ts = number of x timeslots in window
- *		MAX_TS = maximum number of timeslots (54)
- *
- *simplified
- *
- *periods = (tint_timer+res_length)*(2*ts+ROT) - 2*ts + ROT + FOT + 4*MAX_TS
- *
- *G B
-  R G
- *
- **/
 
-
+/* Select binning or windowed mode. */
+#define LUX2100_BINNING_MODE	1
 
 //1080p binned
 //Binned half length
@@ -261,10 +223,11 @@ CameraErrortype LUX2100::initSensor()
 
 	initDAC();
 
-    if(false)
-        initLUX2100(true);
-    else
-        initLUX8M();
+#if LUX2100_BINNING_MODE
+	initLUX2100(false);
+#else
+	initLUX8M();
+#endif
 
 
 	delayms(10);
@@ -513,28 +476,27 @@ void LUX2100::setResolution(FrameGeometry *size)
 	UInt32 hEndblocks = hStartBlocks + (size->hRes / LUX2100_HRES_INCREMENT);
 	UInt32 vLastRow = LUX2100_MAX_V_RES + LUX2100_LOW_BOUNDARY_ROWS + LUX2100_HIGH_BOUNDARY_ROWS + LUX2100_HIGH_DARK_ROWS;
 
-	if (false) {
-		/* Binned operation - everything is x2 because it's really a 4K sensor. */
-		SCIWrite(0x06, (LUX2100_LEFT_DARK_COLUMNS + hStartBlocks * LUX2100_HRES_INCREMENT) * 2);
-		SCIWrite(0x07, (LUX2100_LEFT_DARK_COLUMNS + hEndblocks * LUX2100_HRES_INCREMENT) * 2 - 1);
-		SCIWrite(0x08, (LUX2100_LOW_BOUNDARY_ROWS + size->vOffset * 2));
-		SCIWrite(0x09, (LUX2100_LOW_BOUNDARY_ROWS + size->vOffset + size->vRes) * 2 - 1);
-		if (size->vDarkRows) {
-			SCIWrite(0x2A, (vLastRow - size->vDarkRows) * 2);
-		}
-		SCIWrite(0x2B, size->vDarkRows * 2);
+#if LUX2100_BINNING_MODE
+	/* Binned operation - everything is x2 because it's really a 4K sensor. */
+	SCIWrite(0x06, (LUX2100_LEFT_DARK_COLUMNS + hStartBlocks * LUX2100_HRES_INCREMENT) * 2);
+	SCIWrite(0x07, (LUX2100_LEFT_DARK_COLUMNS + hEndblocks * LUX2100_HRES_INCREMENT) * 2 - 1);
+	SCIWrite(0x08, (LUX2100_LOW_BOUNDARY_ROWS + size->vOffset * 2));
+	SCIWrite(0x09, (LUX2100_LOW_BOUNDARY_ROWS + size->vOffset + size->vRes - 1) * 2);
+	if (size->vDarkRows) {
+		SCIWrite(0x2A, (vLastRow - size->vDarkRows) * 2);
 	}
-	else {
-		/* Windowed operation - add extra offset to put the readout at the centre. */
-		SCIWrite(0x06, (LUX2100_LEFT_DARK_COLUMNS * 2 + 0x3E0) + hStartBlocks * LUX2100_HRES_INCREMENT);
-		SCIWrite(0x07, (LUX2100_LEFT_DARK_COLUMNS * 2 + 0x3E0) + hEndblocks * LUX2100_HRES_INCREMENT - 1);
-		SCIWrite(0x08, (LUX2100_LOW_BOUNDARY_ROWS * 2 + 0x22C) + size->vOffset);
-		SCIWrite(0x09, (LUX2100_LOW_BOUNDARY_ROWS * 2 + 0x22C) + size->vOffset + size->vRes - 1);
-		if (size->vDarkRows) {
-			SCIWrite(0x2A, (vLastRow * 2) - size->vDarkRows);
-		}
-		SCIWrite(0x2B, size->vDarkRows);
+	SCIWrite(0x2B, size->vDarkRows * 2);
+#else
+	/* Windowed operation - add extra offset to put the readout at the centre. */
+	SCIWrite(0x06, (LUX2100_LEFT_DARK_COLUMNS * 2 + 0x3E0) + hStartBlocks * LUX2100_HRES_INCREMENT);
+	SCIWrite(0x07, (LUX2100_LEFT_DARK_COLUMNS * 2 + 0x3E0) + hEndblocks * LUX2100_HRES_INCREMENT - 1);
+	SCIWrite(0x08, (LUX2100_LOW_BOUNDARY_ROWS * 2 + 0x22C) + size->vOffset);
+	SCIWrite(0x09, (LUX2100_LOW_BOUNDARY_ROWS * 2 + 0x22C) + size->vOffset + size->vRes - 1);
+	if (size->vDarkRows) {
+		SCIWrite(0x2A, (vLastRow * 2) - size->vDarkRows);
 	}
+	SCIWrite(0x2B, size->vDarkRows);
+#endif
 
 	memcpy(&currentRes, size, sizeof(FrameGeometry));
 }
@@ -843,15 +805,29 @@ void LUX2100::setDACCS(bool on)
 
 void LUX2100::updateWavetableSetting(bool gainCalMode)
 {
+	SCIWrite(0x04, 0x0000);	/* Switch to main register space */
+
 	if (gainCalMode) {
-		SCIWrite(0x04, 0x0000);	/* Switch to main register space */
-		SCIWrite(0x56, 0xB001); /* Switch to analog test mode. */
-		SCIWrite(0x67, 0x6D11); /* Configure the desired test voltage. */
+		/* Switch to analog test mode. */
+#if LUX2100_BINNING_MODE
+		SCIWrite(0x56, 0xB121);
+#else
+		SCIWrite(0x56, 0xB001);
+#endif
+
+		/* Configure the desired test voltage. */
+		SCIWrite(0x67, 0x6D11);
 	}
 	else {
-		SCIWrite(0x04, 0x0000); /* Switch to main register space. */
-		SCIWrite(0x67, 0x1E11); /* Disable the test voltage. */
-		SCIWrite(0x56, 0x9001); /* Disable analog test mode. */
+		/* Disable the test voltage. */
+		SCIWrite(0x67, 0x1E11);
+
+		/* Disable analog test mode. */
+#if LUX2100_BINNING_MODE
+		SCIWrite(0x56, 0xA121);
+#else
+		SCIWrite(0x56, 0x9001);
+#endif
 	}
 }
 
