@@ -159,7 +159,8 @@ HEADERS  += mainwindow.h \
     chronosVideoInterface.h \
     colorwindow.h \
     colordoublespinbox.h \
-    frameGeometry.h
+    frameGeometry.h \
+    sensor.h
 
 FORMS    += mainwindow.ui \
     cammainwindow.ui \

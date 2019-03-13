@@ -17,6 +17,7 @@
 #ifndef LUX2100_H
 #define LUX2100_H
 #include "frameGeometry.h"
+#include "sensor.h"
 #include "errorCodes.h"
 #include "types.h"
 #include "spi.h"
@@ -155,21 +156,40 @@ enum {
 #define FILTER_COLOR_GREEN	1
 #define FILTER_COLOR_BLUE	2
 
-class LUX2100
+class LUX2100 : public ImageSensor
 {
 public:
     LUX2100();
     ~LUX2100();
 	CameraErrortype init(GPMC * gpmc_inst);
 	CameraErrortype initSensor();
+
+	/* Frame Geometry Functions. */
+	void setResolution(FrameGeometry *frameSize);
+	bool isValidResolution(FrameGeometry *frameSize);
+	FrameGeometry getMaxGeometry(void);
+	inline UInt32 getHResIncrement() { return LUX2100_HRES_INCREMENT; }
+	inline UInt32 getVResIncrement()  { return LUX2100_VRES_INCREMENT; }
+	inline UInt32 getMinHRes() { return LUX2100_MIN_HRES; }
+	inline UInt32 getMinVRes() { return LUX2100_MIN_VRES; }
+
+	/* Frame Timing Functions. */
+	UInt32 getFramePeriodClock(void) { return LUX2100_TIMING_CLOCK_FREQ; }
+	UInt32 getMinFramePeriod(FrameGeometry *frameSize);
+
+	/* Exposure Timing Functions */
+	UInt32 getIntegrationClock(void) { return LUX2100_TIMING_CLOCK_FREQ; }
+
+	/* Analog calibration APIs. */
+	unsigned int enableAnalogTestMode(void);
+	void disableAnalogTestMode(void);
+	void setAnalogTestVoltage(unsigned int);
+
+	/* The Junk */
 	Int32 setOffset(UInt16 * offsets);
 	CameraErrortype autoPhaseCal(void);
 	UInt32 getDataCorrect(void);
 	void setSyncToken(UInt16 token);
-	void setResolution(FrameGeometry *frameSize);
-	bool isValidResolution(FrameGeometry *frameSize);
-	FrameGeometry getMaxGeometry(void);
-	UInt32 getMinFramePeriod(FrameGeometry *frameSize, UInt32 wtSize = LUX2100_MIN_WAVETABLE_SIZE);
 	double getMinMasterFramePeriod(FrameGeometry *frameSize);
 	double getActualFramePeriod(double target, FrameGeometry *frameSize);
 	double setFramePeriod(double period, FrameGeometry *frameSize);
@@ -188,10 +208,6 @@ public:
 	UInt8 getClkPhase(void);
 	Int32 seqOnOff(bool on);
 	void dumpRegisters(void);
-	inline UInt32 getHResIncrement() { return LUX2100_HRES_INCREMENT; }
-	inline UInt32 getVResIncrement()  { return LUX2100_VRES_INCREMENT; }
-    inline UInt32 getMinHRes() { return LUX2100_MIN_HRES; }
-    inline UInt32 getMinVRes() { return LUX2100_MIN_VRES; }
 	void initDAC();
 	void writeDAC(UInt16 data, UInt8 channel);
 	void writeDACVoltage(UInt8 channel, float voltage);
@@ -206,8 +222,7 @@ public:
 	void SCIWrite(UInt8 address, UInt16 data);
 	void SCIWriteBuf(UInt8 address, UInt8 * data, UInt32 dataLen);
 	UInt16 SCIRead(UInt8 address);
-	void setWavetable(UInt8 mode);
-	void updateWavetableSetting();
+	void updateWavetableSetting(bool gainCalMode = false);
 	void setADCOffset(UInt8 channel, Int16 offset);
 	Int16 getADCOffset(UInt8 channel);
     Int32 doAutoADCOffsetCalibration(void);

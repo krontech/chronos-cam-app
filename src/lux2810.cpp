@@ -34,45 +34,6 @@
 #include "lux2810.h"
 
 #include <QSettings>
-/*
- *
- * LUPA1300-2 defaults
- * In granularity clock cycles(63MHz)
- * 126 clocks per line
- * 2.057415ms/frame
- *
- *Changing from 14 to 9 ROT setting changed it to 124 clocks per line
- *Changing rowselect_timer from 9 to 6 changed it to 121 clocks per line
- *
- *Changing x res by 24 changed period by 32.5082us = 2048 clocks
- *
- *1.9760493 1296 1024	124491.1059
- *1.0983273 648 1024	69194.6199
- *519.7825	648 480		32746.2975
- *165.4935	336 240		10426.0905
- *
- *Frame rate equation
- *periods = (2*ts+ROT)*(tint_timer+res_length) +	//Row readout time * number of rows
- *			2*(54-ts) +								//Emperically determined fudge factor (two extra clocks for every timeslot not read out)
- *			(54*2+ROT) +							//Black cal line
- *			FOT										//Frame overhead time
- *
- *Where
- *		ROT = rot_timer + 4
- *		FOT = fot_timer + 29
- *		tint_timer = tint_timer register setting
- *		res_length = res_length register setting
- *		ts = number of x timeslots in window
- *		MAX_TS = maximum number of timeslots (54)
- *
- *simplified
- *
- *periods = (tint_timer+res_length)*(2*ts+ROT) - 2*ts + ROT + FOT + 4*MAX_TS
- *
- *G B
-  R G
- *
- **/
 
 
 
@@ -480,7 +441,7 @@ Int32 LUX2100::seqOnOff(bool on)
 	if (on) {
 		gpmc->write32(IMAGER_INT_TIME_ADDR, currentExposure);
 	} else {
-		gpmc->write32(IMAGER_INT_TIME_ADDR, 0); //Disable integration
+		gpmc->write32(IMAGER_INT_TIME_ADDR, 0);	//Disable integration
 	}
 	return SUCCESS;
 }
@@ -572,13 +533,12 @@ bool LUX2100::isValidResolution(FrameGeometry *size)
 }
 
 //Used by init functions only
-UInt32 LUX2100::getMinFramePeriod(FrameGeometry *frameSize, UInt32 wtSize)
+UInt32 LUX2100::getMinFramePeriod(FrameGeometry *frameSize)
 {
+	UInt32 wtSize = 44; /* Only 1080p supported for now. */
+
 	if(!isValidResolution(frameSize))
 		return 0;
-
-//	if(hRes == 1280)
-//		wtSize = 80;
 
 	double tRead = (double)(frameSize->hRes / LUX2100_HRES_INCREMENT) * LUX2100_CLOCK_PERIOD;
 	double tHBlank = 2.0 * LUX2100_CLOCK_PERIOD;
@@ -911,101 +871,20 @@ int LUX2100::LUX2810LoadWavetable(UInt32 * wavetable, UInt32 length)
     return SUCCESS;
 }
 
-void LUX2100::setWavetable(UInt8 mode)
+unsigned int LUX2100::enableAnalogTestMode(void)
 {
-    return;
-
-	switch(mode)
-	{
-    case LUX2100_WAVETABLE_80:
-		SCIWrite(0x01, 0x0000);	//Disable internal timing engine
-		SCIWrite(0x37, 80); //non-overlapping readout delay
-		SCIWrite(0x7A, 80); //wavetable size
-        //SCIWriteBuf(0x7F, LUX2100_sram80Clk, sizeof(LUX2100_sram80Clk));
-		SCIWrite(0x01, 0x0001);	//Enable internal timing engine
-		wavetableSize = 80;
-		setABNDelayClocks(ABN_DELAY_WT80);
-		break;
-
-    case LUX2100_WAVETABLE_39:
-		SCIWrite(0x01, 0x0000);	//Disable internal timing engine
-		SCIWrite(0x37, 39); //non-overlapping readout delay
-		SCIWrite(0x7A, 39); //wavetable size
-        //SCIWriteBuf(0x7F, LUX2100_sram39Clk, sizeof(LUX2100_sram39Clk));
-		SCIWrite(0x01, 0x0001);	//Enable internal timing engine
-		wavetableSize = 39;
-		setABNDelayClocks(ABN_DELAY_WT39);
-		break;
-
-    case LUX2100_WAVETABLE_30:
-		SCIWrite(0x01, 0x0000);	//Disable internal timing engine
-		SCIWrite(0x37, 30); //non-overlapping readout delay
-		SCIWrite(0x7A, 30); //wavetable size
-        //SCIWriteBuf(0x7F, LUX2100_sram30Clk, sizeof(LUX2100_sram30Clk));
-		SCIWrite(0x01, 0x0001);	//Enable internal timing engine
-		wavetableSize = 30;
-		setABNDelayClocks(ABN_DELAY_WT30);
-		break;
-
-    case LUX2100_WAVETABLE_25:
-		SCIWrite(0x01, 0x0000);	//Disable internal timing engine
-		SCIWrite(0x37, 25); //non-overlapping readout delay
-		SCIWrite(0x7A, 25); //wavetable size
-        //SCIWriteBuf(0x7F, LUX2100_sram25Clk, sizeof(LUX2100_sram25Clk));
-		SCIWrite(0x01, 0x0001);	//Enable internal timing engine
-		wavetableSize = 25;
-		setABNDelayClocks(ABN_DELAY_WT25);
-		break;
-
-    case LUX2100_WAVETABLE_20:
-		SCIWrite(0x01, 0x0000);	//Disable internal timing engine
-		SCIWrite(0x37, 20); //non-overlapping readout delay
-		SCIWrite(0x7A, 20); //wavetable size
-        //SCIWriteBuf(0x7F, LUX2100_sram20Clk, sizeof(LUX2100_sram20Clk));
-		SCIWrite(0x01, 0x0001);	//Enable internal timing engine
-		wavetableSize = 20;
-		setABNDelayClocks(ABN_DELAY_WT20);
-		break;
-
-
-	}
-	qDebug() << "Wavetable size set to" << wavetableSize;
+	LUX2810RegWrite(0x6B, 0xB111);
+	return 64;
 }
 
-
-void LUX2100::updateWavetableSetting()
+void LUX2100::disableAnalogTestMode(void)
 {
-	if(wavetableSelect == LUX2100_WAVETABLE_AUTO)
-	{
-		qDebug() << "currentPeriod" << currentPeriod << "Min period" << getMinFramePeriod(&currentRes, 80);
-		if(currentPeriod < getMinFramePeriod(&currentRes, 80))
-		{
-			if(currentPeriod < getMinFramePeriod(&currentRes, 39))
-			{
-				if(currentPeriod < getMinFramePeriod(&currentRes, 30))
-				{
-					if(currentPeriod < getMinFramePeriod(&currentRes, 25))
-					{
-						setWavetable(LUX2100_WAVETABLE_20);
-					}
-					else
-						setWavetable(LUX2100_WAVETABLE_25);
-				}
-				else
-					setWavetable(LUX2100_WAVETABLE_30);
-			}
-			else
-				setWavetable(LUX2100_WAVETABLE_39);
-		}
-		else
-		{
-			setWavetable(LUX2100_WAVETABLE_80);
-		}
-	}
-	else
-	{
-		setWavetable(wavetableSelect);
-	}
+	LUX2810RegWrite(0x6B, 0xB101);
+}
+
+void LUX2100::setAnalogTestVoltage(unsigned int voltage)
+{
+	writeDACVoltage(LUX2100_VTSTH_VOLTAGE, 1.5 + (voltage / 64.0));
 }
 
 //Remaps data channels to ADC channel index

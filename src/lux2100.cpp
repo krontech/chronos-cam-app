@@ -531,13 +531,12 @@ bool LUX2100::isValidResolution(FrameGeometry *size)
 }
 
 //Used by init functions only
-UInt32 LUX2100::getMinFramePeriod(FrameGeometry *frameSize, UInt32 wtSize)
+UInt32 LUX2100::getMinFramePeriod(FrameGeometry *frameSize)
 {
+	UInt32 wtSize = 66; /* Only 1080p supported for now. */
+
 	if(!isValidResolution(frameSize))
 		return 0;
-
-//	if(hRes == 1280)
-//		wtSize = 80;
 
 	double tRead = (double)(frameSize->hRes / LUX2100_HRES_INCREMENT) * LUX2100_CLOCK_PERIOD;
 	double tHBlank = 2.0 * LUX2100_CLOCK_PERIOD;
@@ -803,32 +802,45 @@ void LUX2100::setDACCS(bool on)
 	write(dacCSFD, on ? "1" : "0", 1);
 }
 
-void LUX2100::updateWavetableSetting(bool gainCalMode)
+unsigned int LUX2100::enableAnalogTestMode(void)
 {
-	SCIWrite(0x04, 0x0000);	/* Switch to main register space */
+	seqOnOff(false);
+	delayms(10);
 
-	if (gainCalMode) {
-		/* Switch to analog test mode. */
+	/* Switch to analog test mode. */
+	SCIWrite(0x04, 0x0000);
 #if LUX2100_BINNING_MODE
-		SCIWrite(0x56, 0xB121);
+	SCIWrite(0x56, 0xB121);
 #else
-		SCIWrite(0x56, 0xB001);
+	SCIWrite(0x56, 0xB001);
 #endif
 
-		/* Configure the desired test voltage. */
-		SCIWrite(0x67, 0x6D11);
-	}
-	else {
-		/* Disable the test voltage. */
-		SCIWrite(0x67, 0x1E11);
+	/* Configure the desired test voltage. */
+	SCIWrite(0x67, 0x6D11);
 
-		/* Disable analog test mode. */
+	seqOnOff(true);
+	return 31;
+}
+
+void LUX2100::disableAnalogTestMode(void)
+{
+	seqOnOff(false);
+	delayms(10);
+
+	/* Disable the test voltage. */
+	SCIWrite(0x04, 0x0000);
+	SCIWrite(0x67, 0x1E11);
 #if LUX2100_BINNING_MODE
-		SCIWrite(0x56, 0xA121);
+	SCIWrite(0x56, 0xA121);
 #else
-		SCIWrite(0x56, 0x9001);
+	SCIWrite(0x56, 0x9001);
 #endif
-	}
+	seqOnOff(true);
+}
+
+void LUX2100::setAnalogTestVoltage(unsigned int voltage)
+{
+	SCIWrite(0x67, 0x6011 | (voltage << 8));
 }
 
 //Remaps data channels to ADC channel index
