@@ -503,27 +503,34 @@ FrameGeometry LUX2100::getMaxGeometry(void)
 	return size;
 }
 
-/*
-void LUX2100::setResolution(UInt32 hStart, UInt32 hWidth, UInt32 vStart, UInt32 vEnd)
-{
-	UInt32 hStartBlocks = size->hOffset / LUX2100_HRES_INCREMENT;
-	UInt32 hWidthblocks = size->hRes / LUX2100_HRES_INCREMENT;
-	SCIWrite(0x06, 0x40 + hStartBlocks * LUX2100_HRES_INCREMENT * 2);//X Start
-	SCIWrite(0x07, 0x40 + (hStartBlocks + hWidthblocks) * LUX2100_HRES_INCREMENT * 2 - 1);//X End
-	SCIWrite(0x08, 0x10 + size->vOffset * 2);//Y Start
-	SCIWrite(0x09, 0x10 + (size->vOffset + size->vRes - 1) * 2);//Y End
-
-	memcpy(&currentRes, size, sizeof(currentRes));
-}
-*/
 void LUX2100::setResolution(FrameGeometry *size)
 {
 	UInt32 hStartBlocks = size->hOffset / LUX2100_HRES_INCREMENT;
-	UInt32 hWidthblocks = size->hRes / LUX2100_HRES_INCREMENT;
-//    SCIWrite(0x06, 0x40 + hStartBlocks * LUX2100_HRES_INCREMENT);//X Start
-//    SCIWrite(0x07, 0x40 + (hStartBlocks + hWidthblocks) * LUX2100_HRES_INCREMENT - 1);//X End
-//    SCIWrite(0x08, 0x10 + vStart);//Y Start
-//    SCIWrite(0x09, 0x10 + vEnd);//Y End
+	UInt32 hEndblocks = hStartBlocks + (size->hRes / LUX2100_HRES_INCREMENT);
+	UInt32 vLastRow = LUX2100_MAX_V_RES + LUX2100_LOW_BOUNDARY_ROWS + LUX2100_HIGH_BOUNDARY_ROWS + LUX2100_HIGH_DARK_ROWS;
+
+	if (false) {
+		/* Binned operation - everything is x2 because it's really a 4K sensor. */
+		SCIWrite(0x06, (LUX2100_LEFT_DARK_COLUMNS + hStartBlocks * LUX2100_HRES_INCREMENT) * 2);
+		SCIWrite(0x07, (LUX2100_LEFT_DARK_COLUMNS + hEndblocks * LUX2100_HRES_INCREMENT) * 2 - 1);
+		SCIWrite(0x08, (LUX2100_LOW_BOUNDARY_ROWS + size->vOffset * 2));
+		SCIWrite(0x09, (LUX2100_LOW_BOUNDARY_ROWS + size->vOffset + size->vRes) * 2 - 1);
+		if (size->vDarkRows) {
+			SCIWrite(0x2A, (vLastRow - size->vDarkRows) * 2);
+		}
+		SCIWrite(0x2B, size->vDarkRows * 2);
+	}
+	else {
+		/* Windowed operation - add extra offset to put the readout at the centre. */
+		SCIWrite(0x06, (LUX2100_LEFT_DARK_COLUMNS * 2 + 0x3E0) + hStartBlocks * LUX2100_HRES_INCREMENT);
+		SCIWrite(0x07, (LUX2100_LEFT_DARK_COLUMNS * 2 + 0x3E0) + hEndblocks * LUX2100_HRES_INCREMENT - 1);
+		SCIWrite(0x08, (LUX2100_LOW_BOUNDARY_ROWS * 2 + 0x22C) + size->vOffset);
+		SCIWrite(0x09, (LUX2100_LOW_BOUNDARY_ROWS * 2 + 0x22C) + size->vOffset + size->vRes - 1);
+		if (size->vDarkRows) {
+			SCIWrite(0x2A, (vLastRow * 2) - size->vDarkRows);
+		}
+		SCIWrite(0x2B, size->vDarkRows);
+	}
 
 	memcpy(&currentRes, size, sizeof(FrameGeometry));
 }
@@ -1278,6 +1285,7 @@ Int32 LUX2100::initLUX2100(bool colorBinning)
 
     //Return to data valid mode
     SCIWrite(0x53, 0x0F00); // pclk channel output during vertical blanking
+    SCIWrite(0x55, 0x0FC0); // pclk channel output during optical black
     SCIWrite(0x04, 0x0001); // switch to datapath register space
     SCIWrite(0x03, 0x0AB8); // custom digital pattern for blanking output
     SCIWrite(0x05, 0x0007); // delay to match adc latency
@@ -1500,6 +1508,7 @@ Int32 LUX2100::initLUX8M()
 
     //Return to data valid mode
     SCIWrite(0x53, 0x0F00); // pclk channel output during vertical blanking
+    SCIWrite(0x55, 0x0FC0); // pclk channel output during optical black
     SCIWrite(0x04, 0x0001); // switch to datapath register space
     SCIWrite(0x03, 0x0AB8); // custom digital pattern for blanking output
     SCIWrite(0x05, 0x0007); // delay to match adc latency
