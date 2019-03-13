@@ -209,14 +209,14 @@ public:
 	UInt16 readPixelBuf12(UInt8 * buf, UInt32 pixel);
 	void writePixelBuf12(UInt8 * buf, UInt32 pixel, UInt16 value);
 	void computeFPNCorrection(FrameGeometry *geometry, UInt32 wordAddress, UInt32 framesToAverage, bool writeToFile = false, bool factory = false);
-	void computeFPNColumns(FrameGeometry *geometry, UInt32 wordAddress);
+	void computeFPNColumns(FrameGeometry *geometry, UInt32 wordAddress, UInt32 framesToAverage);
 	UInt32 autoFPNCorrection(UInt32 framesToAverage, bool writeToFile = false, bool noCap = false, bool factory = false);
 	Int32 fastFPNCorrection();
 	Int32 loadFPNFromFile(void);
 	Int32 computeColGainCorrection(UInt32 framesToAverage, bool writeToFile = false);
 	Int32 loadColGainFromFile(void);
 	UInt32 adcOffsetCorrection(UInt32 iterations, bool writeToFile = true);
-	void offsetCorrectionIteration(FrameGeometry *geometry, UInt32 wordAddress = LIVE_REGION_START);
+	void offsetCorrectionIteration(FrameGeometry *geometry, UInt32 wordAddress, UInt32 framesToAverage = 1);
 	Int32 liveAdcOffsetCalibration(unsigned int iterations = 32);
 	int autoAdcOffsetCorrection(void);
 	Int32 autoColGainCorrection(void);
