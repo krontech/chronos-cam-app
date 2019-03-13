@@ -60,6 +60,8 @@
 #define COLOR_MATRIX_INT_BITS	3
 
 #define IMAGE_GAIN_FUDGE_FACTOR 1.0		//Multiplier to make sure clipped ADC value actually clips image
+#define COL_GAIN_FRAC_BITS		12		// 2-point column gain fractional bits.
+#define COL_CURVE_FRAC_BITS		24		// 3-point column curvature factional bits.
 
 #define SETTING_FLAG_TEMPORARY  1
 #define SETTING_FLAG_USESAVED   2
