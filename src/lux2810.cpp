@@ -310,7 +310,7 @@ CameraErrortype LUX2100::initSensor()
 	currentRes.bitDepth = LUX2100_BITS_PER_PIXEL;
 	setFramePeriod(getMinFramePeriod(&currentRes), &currentRes);
 	//mem problem before this
-	setIntegrationTime((double)getMaxExposure(currentPeriod) / 100000000.0, &currentRes);
+	setIntegrationTime(getMaxIntegrationTime(currentPeriod, &currentRes), &currentRes);
 
 	return SUCCESS;
 }
@@ -552,21 +552,21 @@ UInt32 LUX2100::getMinFramePeriod(FrameGeometry *frameSize)
 	return (UInt64)(ceil(tFrame * 100000000.0));
 }
 
-UInt32 LUX2100::getMaxExposure(UInt32 period)
-{
-	return period - 500;
-}
-
 //Returns the period the sensor is set to in seconds
 double LUX2100::getCurrentFramePeriodDouble(void)
 {
-	return (double)currentPeriod / 100000000.0;
+	return (double)currentPeriod / LUX2100_TIMING_CLOCK_FREQ;
 }
 
 //Returns the exposure time the sensor is set to in seconds
 double LUX2100::getCurrentExposureDouble(void)
 {
-	return (double)currentExposure / 100000000.0;
+	return (double)currentExposure / LUX2100_TIMING_CLOCK_FREQ;
+}
+
+UInt32 LUX2100::getFramePeriod(void)
+{
+	return currentPeriod;
 }
 
 UInt32 LUX2100::getActualFramePeriod(double targetPeriod, FrameGeometry *size)
@@ -601,8 +601,7 @@ UInt32 LUX2100::setFramePeriod(UInt32 period, FrameGeometry *size)
  */
 UInt32 LUX2100::getMaxIntegrationTime(UInt32 period, FrameGeometry *size)
 {
-	return getMaxExposure(period);
-
+	return period - 500;
 }
 
 /* getMaxCurrentIntegrationTime
@@ -613,7 +612,7 @@ UInt32 LUX2100::getMaxIntegrationTime(UInt32 period, FrameGeometry *size)
  */
 double LUX2100::getMaxCurrentIntegrationTime(void)
 {
-	return (double)getMaxExposure(currentPeriod) / 100000000.0;
+	return (double)getMaxIntegrationTime(currentPeriod, &currentRes) / 100000000.0;
 }
 
 /* getActualIntegrationTime
@@ -624,38 +623,33 @@ double LUX2100::getMaxCurrentIntegrationTime(void)
  *
  * returns: Actual closest integration time
  */
-double LUX2100::getActualIntegrationTime(double intTime, UInt32 period, FrameGeometry *size)
+UInt32 LUX2100::getActualIntegrationTime(double target, UInt32 period, FrameGeometry *size)
 {
+	//Round to nearest timing clock period
+	UInt32 intTime = round(target * LUX2100_TIMING_CLOCK_FREQ);
+	UInt32 minIntTime = LUX2100_MIN_INT_TIME;
+	UInt32 maxIntTime = getMaxIntegrationTime(period, size);
 
-	//Round to nearest 10ns period
-	intTime = round(intTime * (100000000.0)) / 100000000.0;
-
-	double maxIntTime = (double)getMaxExposure(period) / 100000000.0;
-	double minIntTime = LUX2100_MIN_INT_TIME;
 	return within(intTime, minIntTime, maxIntTime);
-
 }
 
 /* setIntegrationTime
  *
  * Sets the integration time of the image sensor to a value as close as possible to requested
  *
- * intTime:	Desired integration time in seconds
+ * intTime:	Desired integration time in clocks
  *
  * returns: Actual integration time that was set
  */
-double LUX2100::setIntegrationTime(double intTime, FrameGeometry *size)
+UInt32 LUX2100::setIntegrationTime(UInt32 intTime, FrameGeometry *size)
 {
-	//Round to nearest 10ns period
-	intTime = round(intTime * (100000000.0)) / 100000000.0;
-
 	//Set integration time to within limits
-	double maxIntTime = (double)getMaxExposure(currentPeriod) / 100000000.0;
-	double minIntTime = LUX2100_MIN_INT_TIME;
-	intTime = within(intTime, minIntTime, maxIntTime);
-	currentExposure = intTime * 100000000.0;
+	UInt32 maxIntTime = getMaxIntegrationTime(currentPeriod, size);
+	UInt32 minIntTime = LUX2100_MIN_INT_TIME;
+	currentExposure = within(intTime, minIntTime, maxIntTime);
+
 	setSlaveExposure(currentExposure);
-	return intTime;
+	return currentExposure;
 }
 
 /* getIntegrationTime
@@ -664,12 +658,10 @@ double LUX2100::setIntegrationTime(double intTime, FrameGeometry *size)
  *
  * returns: Integration tim
  */
-double LUX2100::getIntegrationTime(void)
+UInt32 LUX2100::getIntegrationTime(void)
 {
-
-	return (double)currentExposure / 100000000.0;
+	return currentExposure;
 }
-
 
 void LUX2100::setSlavePeriod(UInt32 period)
 {

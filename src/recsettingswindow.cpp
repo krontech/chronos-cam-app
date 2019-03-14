@@ -164,7 +164,7 @@ RecSettingsWindow::RecSettingsWindow(QWidget *parent, Camera * cameraInst) :
 	ui->lineRate->setHasUnits(true);
 
 	//Set the exposure
-	double exposure = (camera->sensor->getIntegrationTime());
+	double exposure = camera->sensor->getCurrentExposureDouble();
 	getSIText(str, exposure, 10, DEF_SI_OPTS, 8);
 	ui->lineExp->setText(str);
 	ui->lineExp->setHasUnits(true);
@@ -200,10 +200,10 @@ void RecSettingsWindow::on_cmdOK_clicked()
 	is->geometry = getResolution();
 
 	UInt32 period = camera->sensor->getActualFramePeriod(ui->linePeriod->siText(), &is->geometry);
-	double exp = camera->sensor->getActualIntegrationTime(ui->lineExp->siText(), period, &is->geometry);
+	UInt32 intTime = camera->sensor->getActualIntegrationTime(ui->lineExp->siText(), period, &is->geometry);
 
 	is->period = period;
-	is->exposure = exp * 100000000.0 - 20;
+	is->exposure = intTime;
 	is->temporary = 0;
 
 	camera->updateTriggerValues(*is);
@@ -336,10 +336,10 @@ void RecSettingsWindow::on_cmdMax_clicked()
 	ui->lineRate->setText(str);
 
 	//Make sure exposure is within limits
-	double exp = camera->sensor->getActualIntegrationTime(ui->lineExp->siText(), period, &fSize);
+	UInt32 intTime = camera->sensor->getActualIntegrationTime(ui->lineExp->siText(), period, &fSize);
 
 	//Format the entered value nicely
-	getSIText(str, exp, 10, DEF_SI_OPTS, 8);
+	getSIText(str, (double)intTime / camera->sensor->getIntegrationClock(), 10, DEF_SI_OPTS, 8);
 	ui->lineExp->setText(str);
 
 }
@@ -361,10 +361,10 @@ void RecSettingsWindow::on_linePeriod_returnPressed()
 	ui->lineRate->setText(str);
 
 	//Make sure exposure is within limits
-	double exp = camera->sensor->getActualIntegrationTime(ui->lineExp->siText(), period, &fSize);
+	UInt32 intTime = camera->sensor->getActualIntegrationTime(ui->lineExp->siText(), period, &fSize);
 
 	//Format the entered value nicely
-	getSIText(str, exp, 10, DEF_SI_OPTS, 8);
+	getSIText(str, (double)intTime / camera->sensor->getIntegrationClock(), 10, DEF_SI_OPTS, 8);
 	ui->lineExp->setText(str);
 }
 
@@ -391,11 +391,10 @@ void RecSettingsWindow::on_lineRate_returnPressed()
 	ui->lineRate->setText(str);
 
 	//Make sure exposure is within limits
-	double exp = camera->sensor->getActualIntegrationTime(ui->lineExp->siText(), period, &frameSize);
+	UInt32 intTime = camera->sensor->getActualIntegrationTime(ui->lineExp->siText(), period, &frameSize);
 
 	//Format the entered value nicely
-	getSIText(str, exp, 10, DEF_SI_OPTS, 8);
-	qDebug() << exp;
+	getSIText(str, (double)intTime / camera->sensor->getIntegrationClock(), 10, DEF_SI_OPTS, 8);
 	ui->lineExp->setText(str);
 }
 
@@ -403,11 +402,11 @@ void RecSettingsWindow::on_lineExp_returnPressed()
 {
 	FrameGeometry frameSize = getResolution();
 	UInt32 period = camera->sensor->getActualFramePeriod(ui->linePeriod->siText(), &frameSize);
-	double exp = camera->sensor->getActualIntegrationTime(ui->lineExp->siText(), period, &frameSize);
+	UInt32 intTime = camera->sensor->getActualIntegrationTime(ui->lineExp->siText(), period, &frameSize);
 	char str[100];
 
 	//Format the entered value nicely
-	getSIText(str, exp, 10, DEF_SI_OPTS, 8);
+	getSIText(str, (double)intTime / camera->sensor->getIntegrationClock(), 10, DEF_SI_OPTS, 8);
 	qDebug() << exp;
 	ui->lineExp->setText(str);
 }
@@ -439,7 +438,7 @@ void RecSettingsWindow::updateInfoText()
 	UInt32 expclocks = camera->sensor->getMaxIntegrationTime(fclocks, &frameSize);
 
 	getSIText(minPeriodStr, fperiod, 10, DEF_SI_OPTS, 8);
-	getSIText(maxRateStr, 1.0/fperiod, ceil(log10(fperiod*100000000.0)+1), DEF_SI_OPTS, 1000);
+	getSIText(maxRateStr, 1.0/fperiod, ceil(log10(fclocks)+1), DEF_SI_OPTS, 1000);
 	getSIText(maxExposureStr, (double)expclocks / camera->sensor->getIntegrationClock(), 10, DEF_SI_OPTS, 8);
 
 	sprintf(str, "Max rate for this resolution:\r\n%sfps\r\nMin Period: %ss", maxRateStr, minPeriodStr);
@@ -493,10 +492,10 @@ void RecSettingsWindow::on_cmdRecMode_clicked()
 	is->gain = ui->comboGain->currentIndex();
 
 	UInt32 period = camera->sensor->getActualFramePeriod(ui->linePeriod->siText(), &is->geometry);
-	double exp = camera->sensor->getActualIntegrationTime(ui->lineExp->siText(), period, &is->geometry);
+	UInt32 intTime = camera->sensor->getActualIntegrationTime(ui->lineExp->siText(), period, &is->geometry);
 
 	is->period = period;
-    is->exposure = exp * 100000000.0;
+	is->exposure = intTime;
     is->temporary = 0;
 
     recModeWindow *w = new recModeWindow(NULL, camera, is);
