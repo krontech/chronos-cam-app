@@ -44,16 +44,15 @@ public:
 	virtual UInt32 getFramePeriodClock(void) = 0;
 	virtual UInt32 getMinFramePeriod(FrameGeometry *frameSize) = 0;
 	virtual UInt32 getActualFramePeriod(double target, FrameGeometry *frameSize) = 0;
+	virtual UInt32 getFramePeriod(void) = 0;
 	virtual UInt32 setFramePeriod(UInt32 period, FrameGeometry *frameSize) = 0;
 
 	/* Frame Exposure Functions. */
 	virtual UInt32 getIntegrationClock(void) = 0;
 	virtual UInt32 getMaxIntegrationTime(UInt32 period, FrameGeometry *frameSize) = 0;
-
-	virtual double getMaxCurrentIntegrationTime(void) = 0;
-	virtual double setIntegrationTime(double intTime, FrameGeometry *frameSize) = 0;
-	virtual double getIntegrationTime(void) = 0;
-	virtual double getActualIntegrationTime(double intTime, UInt32 period, FrameGeometry *frameSize) = 0;
+	virtual UInt32 getActualIntegrationTime(double target, UInt32 period, FrameGeometry *frameSize) = 0;
+	virtual UInt32 getIntegrationTime(void) = 0;
+	virtual UInt32 setIntegrationTime(UInt32 intTime, FrameGeometry *frameSize) = 0;
 
 	/* Analog Calibration APIs. */
 	/* TODO: The analog calibration algorithm ought to be private to the
@@ -63,19 +62,19 @@ public:
 	virtual unsigned int enableAnalogTestMode(void) { return 0; } /* Return number of voltage steps, or 0 if not supported. */
 	virtual void disableAnalogTestMode(void) {}
 	virtual void setAnalogTestVoltage(unsigned int) {}
+	virtual void setADCOffset(UInt8 channel, Int16 offset) = 0;
+
+	/* TODO: Need a better way to communicate what gains are valid to the GUI. */
+	virtual Int32 setGain(UInt32 gainSetting) = 0;
 
 	/* The junk APIs that need to go away. */
-	virtual UInt32 getMaxExposure(UInt32 period) = 0;
+	virtual double getMaxCurrentIntegrationTime(void) = 0;
 	virtual double getCurrentFramePeriodDouble(void) = 0;
 	virtual double getCurrentExposureDouble(void) = 0;
 
-	virtual void setSlaveExposure(UInt32 exposure) = 0;
 	virtual void setClkPhase(UInt8 phase) = 0;
-	virtual void SCIWrite(UInt8 address, UInt16 data) = 0;
 
-	virtual void setADCOffset(UInt8 channel, Int16 offset) = 0;
 	virtual std::string getFilename(const char * filename, const char * extension) = 0;
-	virtual Int32 setGain(UInt32 gainSetting) = 0;
 };
 
 #endif // IMAGE_SENSOR_H

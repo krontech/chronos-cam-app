@@ -162,6 +162,9 @@ public:
 	/* Exposure Timing Functions */
 	UInt32 getIntegrationClock(void) { return LUX2100_TIMING_CLOCK_FREQ; }
 	UInt32 getMaxIntegrationTime(UInt32 period, FrameGeometry *frameSize);
+	UInt32 getActualIntegrationTime(double intTime, UInt32 period, FrameGeometry *frameSize);
+	UInt32 getIntegrationTime(void);
+	UInt32 setIntegrationTime(UInt32 intTime, FrameGeometry *frameSize);
 
 	/* Analog calibration APIs. */
 	unsigned int enableAnalogTestMode(void);
@@ -174,10 +177,6 @@ public:
 	UInt32 getDataCorrect(void);
 	void setSyncToken(UInt16 token);
 	double getMaxCurrentIntegrationTime(void);
-	double getActualIntegrationTime(double intTime, UInt32 period, FrameGeometry *frameSize);
-	double setIntegrationTime(double intTime, FrameGeometry *frameSize);
-	double getIntegrationTime(void);
-	UInt32 getMaxExposure(UInt32 period);
 	double getCurrentFramePeriodDouble(void);
 	double getCurrentExposureDouble(void);
 	void setSlavePeriod(UInt32 period);

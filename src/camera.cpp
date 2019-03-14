@@ -274,7 +274,7 @@ UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 	sensor->setFramePeriod(settings.period, &settings.geometry);
 	gpmc->write16(SENSOR_LINE_PERIOD_ADDR, max((sensor->currentRes.hRes / LUX1310_HRES_INCREMENT)+2, (sensor->wavetableSize + 3)) - 1);	//Set the timing generator to handle the line period
 	delayms(10);
-	qDebug() << "About to sensor->setSlaveExposure"; sensor->setSlaveExposure(settings.exposure);
+	sensor->setIntegrationTime(settings.exposure, &settings.geometry);
 
 	memcpy(&imagerSettings, &settings, sizeof(settings));
 
@@ -383,13 +383,14 @@ UInt32 Camera::setIntegrationTime(double intTime, FrameGeometry *fSize, Int32 fl
 {
 	QSettings appSettings;
 	UInt32 validTime;
+	UInt32 defaultTime = sensor->getMaxCurrentIntegrationTime() * sensor->getIntegrationClock();
 	if (flags & SETTING_FLAG_USESAVED) {
-		validTime = appSettings.value("camera/exposure", sensor->getMaxCurrentIntegrationTime() * 100000000.0).toInt();
-		qDebug("--- Using old settings --- Exposure time: %d (default: %d)", validTime, (int)(sensor->getMaxCurrentIntegrationTime() * 100000000.0));
-		validTime = (UInt32) (sensor->setIntegrationTime((double)validTime / 100000000.0, fSize) * 100000000.0);
+		validTime = appSettings.value("camera/exposure", defaultTime).toInt();
+		qDebug("--- Using old settings --- Exposure time: %d (default: %d)", validTime, defaultTime);
+		validTime = sensor->setIntegrationTime(validTime, fSize);
 	}
 	else {
-		validTime = (UInt32) (sensor->setIntegrationTime(intTime, fSize) * 100000000.0);
+		validTime = sensor->setIntegrationTime(intTime * sensor->getIntegrationClock(), fSize);
 	}
 
 	if (!(flags & SETTING_FLAG_TEMPORARY)) {
