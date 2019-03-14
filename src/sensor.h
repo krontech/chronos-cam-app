@@ -39,7 +39,6 @@ public:
 	virtual UInt32 getMinVRes() = 0;
 
 	/* Frame Timing Functions. */
-	/* These are in need of some deduplication. */
 	virtual Int32 seqOnOff(bool on) = 0;
 	virtual UInt32 getFramePeriodClock(void) = 0;
 	virtual UInt32 getMinFramePeriod(FrameGeometry *frameSize) = 0;
@@ -63,18 +62,17 @@ public:
 	virtual void disableAnalogTestMode(void) {}
 	virtual void setAnalogTestVoltage(unsigned int) {}
 	virtual void setADCOffset(UInt8 channel, Int16 offset) = 0;
+	virtual std::string getFilename(const char * filename, const char * extension) = 0;
 
 	/* TODO: Need a better way to communicate what gains are valid to the GUI. */
 	virtual Int32 setGain(UInt32 gainSetting) = 0;
 
 	/* The junk APIs that need to go away. */
 	virtual double getMaxCurrentIntegrationTime(void) = 0;
-	virtual double getCurrentFramePeriodDouble(void) = 0;
-	virtual double getCurrentExposureDouble(void) = 0;
 
-	virtual void setClkPhase(UInt8 phase) = 0;
-
-	virtual std::string getFilename(const char * filename, const char * extension) = 0;
+	/* Some helpers to convert to real time. */
+	inline double getCurrentFramePeriodDouble() { return (double)getFramePeriod() / getFramePeriodClock(); }
+	inline double getCurrentExposureDouble() { return (double)getIntegrationTime() / getIntegrationClock(); }
 };
 
 #endif // IMAGE_SENSOR_H

@@ -112,24 +112,6 @@ void MainWindow::on_cmdWrite_clicked()
 
 }
 
-void MainWindow::on_cmdAdvPhase_clicked()
-{
-	char st[100];
-	camera->sensor->setClkPhase(++camera->sensor->clkPhase);
-
-	sprintf(st, "Set phase to %d\n", camera->sensor->clkPhase);
-	ui->lblStatus->setText(st);
-}
-
-void MainWindow::on_cmdDecPhase_clicked()
-{
-	char st[100];
-	camera->sensor->setClkPhase(--camera->sensor->clkPhase);
-
-	sprintf(st, "Set phase to %d\n", camera->sensor->clkPhase);
-	ui->lblStatus->setText(st);
-}
-
 void MainWindow::on_cmdSeqOn_clicked()
 {
 	static bool on = false;
@@ -351,11 +333,6 @@ void MainWindow::on_cmdFrameNumbers_clicked()
 void MainWindow::on_cmdGC_clicked()
 {
 	camera->computeColGainCorrection(1, true);
-}
-
-void MainWindow::on_cmdSaveOC_clicked()
-{
-	camera->sensor->saveADCOffsetsToFile();
 }
 
 void MainWindow::on_cmdSaveFrame_clicked()

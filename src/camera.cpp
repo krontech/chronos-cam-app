@@ -272,7 +272,6 @@ UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 	sensor->setResolution(&settings.geometry);
 	sensor->setGain(settings.gain);
 	sensor->setFramePeriod(settings.period, &settings.geometry);
-	gpmc->write16(SENSOR_LINE_PERIOD_ADDR, max((sensor->currentRes.hRes / LUX1310_HRES_INCREMENT)+2, (sensor->wavetableSize + 3)) - 1);	//Set the timing generator to handle the line period
 	delayms(10);
 	sensor->setIntegrationTime(settings.exposure, &settings.geometry);
 
@@ -1456,7 +1455,7 @@ checkForDeadPixelsCleanup:
 	return retVal;
 }
 
-void Camera::offsetCorrectionIteration(FrameGeometry *geometry, UInt32 wordAddress, UInt32 framesToAverage)
+void Camera::offsetCorrectionIteration(FrameGeometry *geometry, int *offsets, UInt32 wordAddress, UInt32 framesToAverage)
 {
 	UInt32 numRows = geometry->vDarkRows ? geometry->vDarkRows : 1;
 	UInt32 rowSize = (geometry->hRes * BITS_PER_PIXEL) / 8;
@@ -1465,7 +1464,6 @@ void Camera::offsetCorrectionIteration(FrameGeometry *geometry, UInt32 wordAddre
 	UInt32 adcStdDev[LUX2100_HRES_INCREMENT];
 
 	UInt32 *pxbuffer = (UInt32 *)malloc(rowSize * numRows * framesToAverage);
-	Int16 *offsets = sensor->offsetsA;
 
 	for(int i = 0; i < LUX2100_HRES_INCREMENT; i++) {
 		adcAverage[i] = 0;
@@ -1721,6 +1719,7 @@ Int32 Camera::liveColumnCalibration(unsigned int iterations)
 	ImagerSettings_t isPrev = imagerSettings;
 	ImagerSettings_t isDark;
 	struct timespec tRefresh;
+	int offsets[LUX2100_HRES_INCREMENT];
 	Int32 retVal;
 
 	/* Swap the black rows into the top of the frame. */
@@ -1759,13 +1758,14 @@ Int32 Camera::liveColumnCalibration(unsigned int iterations)
 
 	/* Clear out the ADC Offsets. */
 	for (int i = 0; i < LUX2100_HRES_INCREMENT; i++) {
+		offsets[i] = 0;
 		sensor->setADCOffset(i, 0);
 	}
 
 	/* Tune the ADC offset calibration. */
 	for (int i = 0; i < iterations; i++) {
 		nanosleep(&tRefresh, NULL);
-		offsetCorrectionIteration(&isDark.geometry, CAL_REGION_START, CAL_REGION_FRAMES);
+		offsetCorrectionIteration(&isDark.geometry, offsets, CAL_REGION_START, CAL_REGION_FRAMES);
 	}
 
 	computeGainColumns(&isDark.geometry, CAL_REGION_START, &tRefresh);

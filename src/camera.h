@@ -217,7 +217,7 @@ public:
 	Int32 loadFPNFromFile(void);
 	void loadFPNCorrection(FrameGeometry *geometry, const UInt16 *fpnBuffer, UInt32 framesToAverage);
 	Int32 computeColGainCorrection(UInt32 framesToAverage, bool writeToFile = false);
-	void offsetCorrectionIteration(FrameGeometry *geometry, UInt32 wordAddress, UInt32 framesToAverage = 1);
+	void offsetCorrectionIteration(FrameGeometry *geometry, int *offsets, UInt32 wordAddress, UInt32 framesToAverage = 1);
 	Int32 liveColumnCalibration(unsigned int iterations = 32);
 	Int32 autoColGainCorrection(void);
 	Int32 adjustExposureToValue(UInt32 level, UInt32 tolerance = 100, bool includeFPNCorrection = true);

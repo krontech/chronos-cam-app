@@ -339,13 +339,6 @@ UInt16 LUX2100::SCIRead(UInt8 address)
 	return gpmc->read16(SENSOR_SCI_READ_DATA_ADDR);
 }
 
-Int32 LUX2100::setOffset(UInt16 * offsets)
-{
-	return 0;
-	for(int i = 0; i < 16; i++)
-		SCIWrite(0x3a+i, offsets[i]); //internal control register
-}
-
 CameraErrortype LUX2100::autoPhaseCal(void)
 {
 	UInt16 valid = 0;
@@ -360,66 +353,6 @@ CameraErrortype LUX2100::autoPhaseCal(void)
 	int dataCorrect = getDataCorrect();
 	qDebug() << "datacorrect" << dataCorrect;
 	return SUCCESS;
-
-//	setSyncToken(0x32A);	//Set sync token to lock to the training pattern (0x32A or 1100101010)
-
-	for(int i = 0; i < 16; i++)
-	{
-		valid = (valid >> 1) | ((0x1FFFF == getDataCorrect()) ? 0x8000 : 0);
-
-		qDebug() << "datacorrect" << clkPhase << " " << getDataCorrect();
-		//advance clock phase
-		clkPhase = getClkPhase() + 1;
-		if(clkPhase >= 16)
-			clkPhase = 0;
-		setClkPhase(clkPhase);
-	}
-
-	if(0 == valid)
-	{
-		setClkPhase(4);
-		return LUPA1300_NO_DATA_VALID_WINDOW;
-	}
-
-	qDebug() << "Valid: " << valid;
-
-	valid32 = valid | (valid << 16);
-
-	//Determine the start and length of the window of clock phase values that produce valid outputs
-	UInt32 bestMargin = 0;
-	UInt32 bestStart = 0;
-
-	for(int i = 0; i < 16; i++)
-	{
-		UInt32 margin = 0;
-		if(valid32 & (1 << i))
-		{
-			//Scan starting at this valid point
-			for(int j = 0; j < 16; j++)
-			{
-				//Track the margin until we hit a non-valid point
-				if(valid32 & (1 << (i + j)))
-					margin++;
-				else
-				{
-					//Track the best
-					if(margin > bestMargin)
-					{
-						bestMargin = margin;
-						bestStart = i;
-					}
-				}
-			}
-		}
-	}
-
-	if(bestMargin <= 3)
-		return LUPA1300_INSUFFICIENT_DATA_VALID_WINDOW;
-
-	//Set clock phase to the best
-	clkPhase = (bestStart + bestMargin / 2) % 16;
-	setClkPhase(clkPhase);
-	qDebug() << "Valid Window start: " << bestStart << "Valid Window Length: " << bestMargin << "clkPhase: " << clkPhase;
 }
 
 Int32 LUX2100::seqOnOff(bool on)
@@ -550,18 +483,6 @@ UInt32 LUX2100::getMinFramePeriod(FrameGeometry *frameSize)
 	return (UInt64)(ceil(tFrame * 100000000.0));
 }
 
-//Returns the period the sensor is set to in seconds
-double LUX2100::getCurrentFramePeriodDouble(void)
-{
-	return (double)currentPeriod / LUX2100_TIMING_CLOCK_FREQ;
-}
-
-//Returns the exposure time the sensor is set to in seconds
-double LUX2100::getCurrentExposureDouble(void)
-{
-	return (double)currentExposure / LUX2100_TIMING_CLOCK_FREQ;
-}
-
 UInt32 LUX2100::getFramePeriod(void)
 {
 	return currentPeriod;
@@ -584,6 +505,9 @@ UInt32 LUX2100::setFramePeriod(UInt32 period, FrameGeometry *size)
 	UInt32 maxPeriod = LUX2100_MAX_SLAVE_PERIOD;
 
 	currentPeriod = within(period, minPeriod, maxPeriod);
+
+	// Set the timing generator to handle the line period
+	gpmc->write16(SENSOR_LINE_PERIOD_ADDR, max((size->hRes / LUX2100_HRES_INCREMENT)+2, (wavetableSize + 3)) - 1);
 
 	setSlavePeriod(currentPeriod);
 	return currentPeriod;

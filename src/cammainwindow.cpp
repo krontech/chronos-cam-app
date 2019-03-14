@@ -488,6 +488,7 @@ void CamMainWindow::updateExpSliderLimits()
 //Update the status textbox with the current settings
 void CamMainWindow::updateCurrentSettingsLabel()
 {
+	ImagerSettings_t is = camera->getImagerSettings();
 	double framePeriod = camera->sensor->getCurrentFramePeriodDouble();
 	double expPeriod = camera->sensor->getCurrentExposureDouble();
 	int shutterAngle = ui->expSlider->value();
@@ -516,7 +517,7 @@ void CamMainWindow::updateCurrentSettingsLabel()
 		sprintf(battStr, "No Batt");
 	}
 
-	sprintf(str, "%s\r\n%ux%u %sfps\r\nExp %ss (%u\xb0)", battStr, camera->sensor->currentRes.hRes, camera->sensor->currentRes.vRes, fpsString, expString, shutterAngle);
+	sprintf(str, "%s\r\n%ux%u %sfps\r\nExp %ss (%u\xb0)", battStr, is.geometry.hRes, is.geometry.vRes, fpsString, expString, shutterAngle);
 	ui->lblCurrent->setText(str);
 }
 

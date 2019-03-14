@@ -38,8 +38,6 @@ private slots:
 
 	void on_cmdWrite_clicked();
 
-	void on_cmdAdvPhase_clicked();
-
 	void on_cmdSeqOn_clicked();
 
 	void on_cmdSeqOff_clicked();
@@ -56,11 +54,7 @@ private slots:
 
 	void on_cmdFrameNumbers_clicked();
 
-	void on_cmdDecPhase_clicked();
-
 	void on_cmdGC_clicked();
-
-	void on_cmdSaveOC_clicked();
 
 	void on_cmdSaveFrame_clicked();
 
