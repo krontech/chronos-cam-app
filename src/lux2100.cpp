@@ -181,10 +181,6 @@ LUX2100::LUX2100()
 	spi = new SPI();
 	wavetableSelect = LUX2100_WAVETABLE_AUTO;
 	startDelaySensorClocks = LUX2100_MAGIC_ABN_DELAY;
-	//Zero out offsets
-	for(int i = 0; i < LUX2100_HRES_INCREMENT; i++)
-		offsetsA[i] = 0;
-
 }
 
 LUX2100::~LUX2100()
@@ -431,7 +427,7 @@ void LUX2100::setResolution(FrameGeometry *size)
 	SCIWrite(0x2B, size->vDarkRows);
 #endif
 
-	memcpy(&currentRes, size, sizeof(FrameGeometry));
+	memcpy(&currentRes, size, sizeof(currentRes));
 }
 
 bool LUX2100::isValidResolution(FrameGeometry *size)
@@ -506,10 +502,9 @@ UInt32 LUX2100::setFramePeriod(UInt32 period, FrameGeometry *size)
 
 	currentPeriod = within(period, minPeriod, maxPeriod);
 
-	// Set the timing generator to handle the line period
+	// Set the timing generator to handle the frame and line period
 	gpmc->write16(SENSOR_LINE_PERIOD_ADDR, max((size->hRes / LUX2100_HRES_INCREMENT)+2, (wavetableSize + 3)) - 1);
-
-	setSlavePeriod(currentPeriod);
+	gpmc->write32(IMAGER_FRAME_PERIOD_ADDR, period);
 	return currentPeriod;
 }
 
@@ -585,11 +580,6 @@ UInt32 LUX2100::getIntegrationTime(void)
 	return currentExposure;
 }
 
-void LUX2100::setSlavePeriod(UInt32 period)
-{
-	gpmc->write32(IMAGER_FRAME_PERIOD_ADDR, period);
-}
-
 void LUX2100::setSlaveExposure(UInt32 exposure)
 {
 	//hack to fix line issue. Not perfect, need to properly register this on the sensor clock.
@@ -603,11 +593,6 @@ void LUX2100::setSlaveExposure(UInt32 exposure)
 	//		 << "targetExp" << targetExp << "expLines" << expLines << "exposure" << exposure;
 	gpmc->write32(IMAGER_INT_TIME_ADDR, exposure);
 	currentExposure = exposure;
-}
-
-void LUX2100::dumpRegisters(void)
-{
-	return;
 }
 
 //Set up DAC
@@ -752,9 +737,6 @@ const char adcChannelRemap[] = {0, 8, 16, 24, 4, 12,20, 28,  2,10, 18, 26,  6, 1
 void LUX2100::setADCOffset(UInt8 channel, Int16 offset)
 {
     UInt8 intChannel = adcChannelRemap[channel];
-	offsetsA[channel] = offset;
-
-
     SCIWrite(0x04, 0x0001); // switch to datapath register space
 
 	if(offset < 0)
@@ -769,23 +751,7 @@ void LUX2100::setADCOffset(UInt8 channel, Int16 offset)
     }
 
     SCIWrite(0x04, 0x0000); // switch back to sensor register space
-
 }
-
-//Gets ADC offset for one channel
-//Don't use this, the values seem shifted right depending on the gain setting. Higher gain results in more shift. Seems to work fine at lower gains
-Int16 LUX2100::getADCOffset(UInt8 channel)
-{
-    return 0;
-
-	Int16 val = SCIRead(0x3a+channel);
-
-	if(val & 0x400)
-		return -(val & 0x3FF);
-	else
-		return val & 0x3FF;
-}
-
 
 //This doesn't seem to work. Sensor locks up
 Int32 LUX2100::doAutoADCOffsetCalibration(void)
@@ -807,76 +773,6 @@ Int32 LUX2100::doAutoADCOffsetCalibration(void)
     SCIWrite(0x04, 0x0000); // switch back to sensor register space
 
     return SUCCESS;
-
-}
-
-Int32 LUX2100::loadADCOffsetsFromFile(void)
-{
-	Int16 offsets[LUX2100_HRES_INCREMENT];
-
-	QString filename;
-	
-	//Generate the filename for this particular resolution and offset
-	filename.sprintf("cal:lux2100Offsets");
-	
-	std::string fn;
-	fn = getFilename("", ".bin");
-	filename.append(fn.c_str());
-	QFileInfo adcOffsetsFile(filename);
-	if (adcOffsetsFile.exists() && adcOffsetsFile.isFile()) 
-		fn = adcOffsetsFile.absoluteFilePath().toLocal8Bit().constData();
-	else 
-		return CAMERA_FILE_NOT_FOUND;
-
-	qDebug() << "attempting to load ADC offsets from" << fn.c_str();
-
-	//If the offsets file exists, read it in
-	if( access( fn.c_str(), R_OK ) == -1 )
-		return CAMERA_FILE_NOT_FOUND;
-
-	FILE * fp;
-	fp = fopen(fn.c_str(), "rb");
-	if(!fp)
-		return CAMERA_FILE_ERROR;
-
-	fread(offsets, sizeof(offsets[0]), LUX2100_HRES_INCREMENT, fp);
-	fclose(fp);
-
-	//Write the values into the sensor
-	for(int i = 0; i < LUX2100_HRES_INCREMENT; i++)
-		setADCOffset(i, offsets[i]);
-
-	return SUCCESS;
-}
-
-Int32 LUX2100::saveADCOffsetsToFile(void)
-{
-	Int16 offsets[LUX2100_HRES_INCREMENT];
-	std::string fn;
-
-	fn = getFilename("cal/lux2100Offsets", ".bin");
-	qDebug("writing ADC offsets to %s", fn.c_str());
-	
-	FILE * fp;
-	fp = fopen(fn.c_str(), "wb");
-	if(!fp)
-		return CAMERA_FILE_ERROR;
-
-	for(int i = 0; i < LUX2100_HRES_INCREMENT; i++)
-		offsets[i] = offsetsA[i];
-
-	//Ugly print to keep it all on one line
-	qDebug() << "Saving offsets to file" << fn.c_str() << "Offsets:"
-			 << offsets[0] << offsets[1] << offsets[2] << offsets[3]
-			 << offsets[4] << offsets[5] << offsets[6] << offsets[7]
-			 << offsets[8] << offsets[9] << offsets[10] << offsets[11]
-			 << offsets[12] << offsets[13] << offsets[14] << offsets[15];
-
-	//Store to file
-	fwrite(offsets, sizeof(offsets[0]), LUX2100_HRES_INCREMENT, fp);
-	fclose(fp);
-
-	return SUCCESS;
 }
 
 //Generate a filename string used for calibration values that is specific to the current gain and wavetable settings
@@ -977,12 +873,6 @@ UInt8 LUX2100::getFilterColor(UInt32 h, UInt32 v)
 	else	//Odd line
 		return ((h & 1) == 0) ? FILTER_COLOR_BLUE : FILTER_COLOR_GREEN;
 
-}
-
-Int32 LUX2100::setABNDelayClocks(UInt32 ABNOffset)
-{
-	gpmc->write16(SENSOR_MAGIC_START_DELAY_ADDR, ABNOffset);
-	return SUCCESS;
 }
 
 Int32 LUX2100::LUX2100ADCBugCorrection(UInt16 * rawUnpackedFrame, UInt32 hRes, UInt32 vRes)

@@ -407,7 +407,6 @@ void RecSettingsWindow::on_lineExp_returnPressed()
 
 	//Format the entered value nicely
 	getSIText(str, (double)intTime / camera->sensor->getIntegrationClock(), 10, DEF_SI_OPTS, 8);
-	qDebug() << exp;
 	ui->lineExp->setText(str);
 }
 
@@ -421,7 +420,6 @@ void RecSettingsWindow::on_cmdExpMax_clicked()
 
 	//Format the entered value nicely
 	getSIText(str, exp, 10, DEF_SI_OPTS, 8);
-	qDebug() << exp;
 	ui->lineExp->setText(str);
 }
 

@@ -183,12 +183,10 @@ private:
 	CameraErrortype autoPhaseCal(void);
 	UInt32 getDataCorrect(void);
 	void setSyncToken(UInt16 token);
-	void setSlavePeriod(UInt32 period);
 	void setSlaveExposure(UInt32 exposure);
 	void setReset(bool reset);
 	void setClkPhase(UInt8 phase);
 	UInt8 getClkPhase(void);
-	void dumpRegisters(void);
 	void initDAC();
 	void writeDAC(UInt16 data, UInt8 channel);
 	void writeDACVoltage(UInt8 channel, float voltage);
@@ -197,19 +195,11 @@ private:
 	void SCIWrite(UInt8 address, UInt16 data);
 	void SCIWriteBuf(UInt8 address, UInt8 * data, UInt32 dataLen);
 	UInt16 SCIRead(UInt8 address);
-	void updateWavetableSetting(bool gainCalMode = false);
-	Int16 getADCOffset(UInt8 channel);
-    Int32 doAutoADCOffsetCalibration(void);
-	Int32 loadADCOffsetsFromFile(void);
-	Int32 saveADCOffsetsToFile(void);
-	Int32 setABNDelayClocks(UInt32 ABNOffset);
-    Int32 LUX2100ADCBugCorrection(UInt16 * rawUnpackedFrame, UInt32 hRes, UInt32 vRes);
+	Int32 doAutoADCOffsetCalibration(void);
     Int32 initLUX2100(bool colorBinning = false);
     Int32 initLUX8M(void);
     Int32 initLUX8M_2(void);
 
-	bool masterMode;
-	UInt32 masterModeTotalLines;
 	FrameGeometry currentRes;
 	UInt32 currentPeriod;
 	UInt32 currentExposure;
@@ -222,8 +212,6 @@ private:
 
 	SPI * spi;
 	GPMC * gpmc;
-	UInt8 clkPhase;
-    Int16 offsetsA[LUX2100_HRES_INCREMENT];
 };
 
 #endif // LUX2100_H

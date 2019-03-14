@@ -25,9 +25,7 @@
 
 #include "gpmc.h"
 #include "video.h"
-//#include "lupa1300.h"
-//#include "lux1310.h"
-#include "lux2810.h"
+#include "sensor.h"
 #include "userInterface.h"
 #include "io.h"
 #include "string.h"
@@ -171,7 +169,7 @@ class Camera
 public:
 	Camera();
 	~Camera();
-	CameraErrortype init(GPMC * gpmcInst, Video * vinstInst, LUX2100 * sensorInst, UserInterface * userInterface, UInt32 ramSizeVal, bool color);
+	CameraErrortype init(GPMC * gpmcInst, Video * vinstInst, ImageSensor * sensorInst, UserInterface * userInterface, UInt32 ramSizeVal, bool color);
 	Int32 startRecording(void);
 	Int32 setRecSequencerModeNormal();
 	Int32 setRecSequencerModeGatedBurst(UInt32 prerecord = 0);
@@ -181,7 +179,7 @@ public:
 	bool getIsRecording(void);
 	GPMC * gpmc;
 	Video * vinst;
-	LUX2100 * sensor;
+	ImageSensor * sensor;
 	UserInterface * ui;
 	IO * io;
 
@@ -223,7 +221,6 @@ public:
 	Int32 adjustExposureToValue(UInt32 level, UInt32 tolerance = 100, bool includeFPNCorrection = true);
 	Int32 recordFrames(UInt32 numframes);
 	UInt32 getMiddlePixelValue(bool includeFPNCorrection = true);
-	Int32 readFrame(UInt32 frame, UInt16 * frameBuffer);
 	Int32 getRawCorrectedFrame(UInt32 frame, UInt16 * frameBuffer);
 	Int32 readDCG(double * gainCorrection);
 	Int32 readFPN(UInt16 * fpnUnpacked);
