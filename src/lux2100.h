@@ -147,12 +147,14 @@ public:
 	void setResolution(FrameGeometry *frameSize);
 	bool isValidResolution(FrameGeometry *frameSize);
 	FrameGeometry getMaxGeometry(void);
+	UInt8 getFilterColor(UInt32 h, UInt32 v);
 	UInt32 getHResIncrement() { return LUX2100_HRES_INCREMENT; }
 	UInt32 getVResIncrement()  { return LUX2100_VRES_INCREMENT; }
 	UInt32 getMinHRes() { return LUX2100_MIN_HRES; }
 	UInt32 getMinVRes() { return LUX2100_MIN_VRES; }
 
 	/* Frame Timing Functions. */
+	Int32 seqOnOff(bool on);
 	UInt32 getFramePeriodClock(void) { return LUX2100_TIMING_CLOCK_FREQ; }
 	UInt32 getMinFramePeriod(FrameGeometry *frameSize);
 	UInt32 getActualFramePeriod(double target, FrameGeometry *frameSize);
@@ -170,21 +172,22 @@ public:
 	unsigned int enableAnalogTestMode(void);
 	void disableAnalogTestMode(void);
 	void setAnalogTestVoltage(unsigned int);
+	void setADCOffset(UInt8 channel, Int16 offset);
+	std::string getFilename(const char * filename, const char * extension);
 
-	/* The Junk */
-	Int32 setOffset(UInt16 * offsets);
+	Int32 setGain(UInt32 gainSetting);
+
+	double getMaxCurrentIntegrationTime(void);
+
+private:
 	CameraErrortype autoPhaseCal(void);
 	UInt32 getDataCorrect(void);
 	void setSyncToken(UInt16 token);
-	double getMaxCurrentIntegrationTime(void);
-	double getCurrentFramePeriodDouble(void);
-	double getCurrentExposureDouble(void);
 	void setSlavePeriod(UInt32 period);
 	void setSlaveExposure(UInt32 exposure);
 	void setReset(bool reset);
 	void setClkPhase(UInt8 phase);
 	UInt8 getClkPhase(void);
-	Int32 seqOnOff(bool on);
 	void dumpRegisters(void);
 	void initDAC();
 	void writeDAC(UInt16 data, UInt8 channel);
@@ -195,14 +198,10 @@ public:
 	void SCIWriteBuf(UInt8 address, UInt8 * data, UInt32 dataLen);
 	UInt16 SCIRead(UInt8 address);
 	void updateWavetableSetting(bool gainCalMode = false);
-	void setADCOffset(UInt8 channel, Int16 offset);
 	Int16 getADCOffset(UInt8 channel);
     Int32 doAutoADCOffsetCalibration(void);
 	Int32 loadADCOffsetsFromFile(void);
 	Int32 saveADCOffsetsToFile(void);
-	std::string getFilename(const char * filename, const char * extension);
-	Int32 setGain(UInt32 gainSetting);
-	UInt8 getFilterColor(UInt32 h, UInt32 v);
 	Int32 setABNDelayClocks(UInt32 ABNOffset);
     Int32 LUX2100ADCBugCorrection(UInt16 * rawUnpackedFrame, UInt32 hRes, UInt32 vRes);
     Int32 initLUX2100(bool colorBinning = false);
