@@ -35,6 +35,9 @@
 #include "util.h"
 #include "whitebalancedialog.h"
 
+#include "lux1310.h"
+#include "lux2100.h"
+
 extern "C" {
 #include "siText.h"
 }
@@ -42,7 +45,7 @@ extern "C" {
 #define DEF_SI_OPTS	SI_DELIM_SPACE | SI_SPACE_BEFORE_PREFIX
 
 GPMC * gpmc;
-LUX2100 * sensor;
+ImageSensor * sensor;
 Camera * camera;
 Video * vinst;
 UserInterface * userInterface;
@@ -60,8 +63,13 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	gpmc = new GPMC();
 	camera = new Camera();
 	vinst = new Video();
-	sensor = new LUX2100();
 	userInterface = new UserInterface();
+
+	/* FIXME: We need a better method for detecting the attached sensor. */
+	if (true)
+		sensor = new LUX2100();
+	else
+		sensor = new LUX1310();
 
 	battCapacityPercent = 0;
 
@@ -350,7 +358,6 @@ void CamMainWindow::updateRecordingState(bool recording)
 			w->setAttribute(Qt::WA_DeleteOnClose);
 			w->show();
 		}
-
 	}
 }
 

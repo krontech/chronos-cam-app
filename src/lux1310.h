@@ -17,6 +17,7 @@
 #ifndef LUX1310_H
 #define LUX1310_H
 #include "frameGeometry.h"
+#include "sensor.h"
 #include "errorCodes.h"
 #include "types.h"
 #include "spi.h"
@@ -33,7 +34,7 @@
 #define LUX1310_MAX_V_DARK		8
 #define LUX1310_BITS_PER_PIXEL	12
 
-#define TIMING_CLOCK_FREQ		100000000.0	//Hz
+#define LUX1310_TIMING_CLOCK	100000000.0	//Hz
 #define LUX1310_SENSOR_CLOCK	90000000.0	//Hz
 
 #define LUX1310_ROT			(9+4)		//Granularity clock cycles (63MHz periods by default)
@@ -103,48 +104,67 @@ typedef struct {
 	unsigned int length;
 	unsigned int abnDelay;
 	const UInt8 *wavetab;
+	const UInt8 *gaincal;
 } lux1310wavetab_t;
 
 /* Array of wavetables, sorted longest first, and terminated with a NULL */
 extern const lux1310wavetab_t *lux1310wt[];
 
-class LUX1310
+class LUX1310 : public ImageSensor
 {
 public:
 	LUX1310();
 	~LUX1310();
 	CameraErrortype init(GPMC * gpmc_inst);
 	CameraErrortype initSensor();
-	Int32 setOffset(UInt16 * offsets);
-	CameraErrortype autoPhaseCal(void);
-	UInt32 getDataCorrect(void);
-	void setSyncToken(UInt16 token);
+
+	/* Frame Geometry Functions. */
 	void setResolution(FrameGeometry *frameSize);
 	bool isValidResolution(FrameGeometry *frameSize);
 	FrameGeometry getMaxGeometry(void);
-	UInt32 getMinFramePeriod(FrameGeometry *frameSize, UInt32 wtSize = 0);
-	double getMinMasterFramePeriod(FrameGeometry *frameSize);
-	double getActualFramePeriod(double targetPeriod, FrameGeometry *frameSize);
-	double setFramePeriod(double period, FrameGeometry *frameSize);
-	double getMaxIntegrationTime(double period, FrameGeometry *frameSize);
+	UInt8 getFilterColor(UInt32 h, UInt32 v);
+	UInt32 getHResIncrement() { return LUX1310_HRES_INCREMENT; }
+	UInt32 getVResIncrement()  { return LUX1310_VRES_INCREMENT; }
+	UInt32 getMinHRes() { return LUX1310_MIN_HRES; }
+	UInt32 getMinVRes() { return LUX1310_MIN_VRES; }
+
+	/* Frame Timing Functions. */
+	Int32 seqOnOff(bool on);
+	UInt32 getFramePeriodClock(void) { return LUX1310_TIMING_CLOCK; }
+	UInt32 getMinFramePeriod(FrameGeometry *frameSize);
+	UInt32 getActualFramePeriod(double target, FrameGeometry *frameSize);
+	UInt32 getFramePeriod(void);
+	UInt32 setFramePeriod(UInt32 period, FrameGeometry *frameSize);
+
+	/* Exposure Timing Functions */
+	UInt32 getIntegrationClock(void) { return LUX1310_TIMING_CLOCK; }
+	UInt32 getMaxIntegrationTime(UInt32 period, FrameGeometry *frameSize);
+	UInt32 getActualIntegrationTime(double intTime, UInt32 period, FrameGeometry *frameSize);
+	UInt32 getIntegrationTime(void);
+	UInt32 setIntegrationTime(UInt32 intTime, FrameGeometry *frameSize);
+
+	/* Analog calibration APIs. */
+	unsigned int enableAnalogTestMode(void);
+	void disableAnalogTestMode(void);
+	void setAnalogTestVoltage(unsigned int);
+	void setADCOffset(UInt8 channel, Int16 offset);
+	std::string getFilename(const char * filename, const char * extension);
+
+	Int32 setGain(UInt32 gainSetting);
+
 	double getMaxCurrentIntegrationTime(void);
-	double getActualIntegrationTime(double intTime, double period, FrameGeometry *frameSize);
-	double setIntegrationTime(double intTime, FrameGeometry *frameSize = NULL);
-	double getIntegrationTime(void);
-	UInt32 getMaxExposure(UInt32 period);
-	double getCurrentFramePeriodDouble(void);
-	double getCurrentExposureDouble(void);
-	void setSlavePeriod(UInt32 period);
+
+private:
+	CameraErrortype autoPhaseCal(void);
+	UInt32 getDataCorrect(void);
+	void setSyncToken(UInt16 token);
+
+	UInt32 getMinWavetablePeriod(FrameGeometry *frameSize, UInt32 wtSize);
+
 	void setSlaveExposure(UInt32 exposure);
 	void setReset(bool reset);
 	void setClkPhase(UInt8 phase);
 	UInt8 getClkPhase(void);
-	Int32 seqOnOff(bool on);
-	void dumpRegisters(void);
-	inline UInt32 getHResIncrement() { return LUX1310_HRES_INCREMENT; }
-	inline UInt32 getVResIncrement()  { return LUX1310_VRES_INCREMENT; }
-	inline UInt32 getMinHRes() { return LUX1310_MIN_HRES; }
-	inline UInt32 getMinVRes() { return LUX1310_MIN_VRES; }
 	void initDAC();
 	void writeDAC(UInt16 data, UInt8 channel);
 	void writeDACVoltage(UInt8 channel, float voltage);
@@ -153,20 +173,8 @@ public:
 	bool SCIWrite(UInt8 address, UInt16 data, bool readback = false);
 	void SCIWriteBuf(UInt8 address, const UInt8 * data, UInt32 dataLen);
 	UInt16 SCIRead(UInt8 address);
-	void setWavetable(const lux1310wavetab_t *wt);
-	void updateWavetableSetting();
-	void setADCOffset(UInt8 channel, Int16 offset);
-	Int16 getADCOffset(UInt8 channel);
-	Int32 loadADCOffsetsFromFile(void);
-	Int32 saveADCOffsetsToFile(void);
-	std::string getFilename(const char * filename, const char * extension);
-	Int32 setGain(UInt32 gainSetting);
-	UInt8 getFilterColor(UInt32 h, UInt32 v);
-	Int32 setABNDelayClocks(UInt32 ABNOffset);
+	void updateWavetableSetting(bool gainCalMode);
 
-
-	bool masterMode;
-	UInt32 masterModeTotalLines;
 	FrameGeometry currentRes;
 	UInt32 currentPeriod;
 	UInt32 currentExposure;
@@ -178,8 +186,6 @@ public:
 
 	SPI * spi;
 	GPMC * gpmc;
-	UInt8 clkPhase;
-	Int16 offsetsA[16];
 };
 
 #endif // LUX1310_H
