@@ -258,6 +258,7 @@ UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 	sensor->seqOnOff(false);
 	delayms(10);
 	qDebug() << "Settings.period is" << settings.period;
+	qDebug() << "Settings.exposure is" << settings.exposure;
 
 	sensor->setResolution(&settings.geometry);
 	sensor->setGain(settings.gain);
@@ -385,6 +386,7 @@ UInt32 Camera::setIntegrationTime(double intTime, FrameGeometry *fSize, Int32 fl
 	if (!(flags & SETTING_FLAG_TEMPORARY)) {
 		qDebug("--- Saving settings --- Exposure time: %d", validTime);
 		appSettings.setValue("camera/exposure", validTime);
+		imagerSettings.exposure = validTime;
 	}
 	return SUCCESS;
 }
