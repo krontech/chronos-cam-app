@@ -147,17 +147,21 @@ public:
 	void setResolution(FrameGeometry *frameSize);
 	bool isValidResolution(FrameGeometry *frameSize);
 	FrameGeometry getMaxGeometry(void);
-	inline UInt32 getHResIncrement() { return LUX2100_HRES_INCREMENT; }
-	inline UInt32 getVResIncrement()  { return LUX2100_VRES_INCREMENT; }
-	inline UInt32 getMinHRes() { return LUX2100_MIN_HRES; }
-	inline UInt32 getMinVRes() { return LUX2100_MIN_VRES; }
+	UInt32 getHResIncrement() { return LUX2100_HRES_INCREMENT; }
+	UInt32 getVResIncrement()  { return LUX2100_VRES_INCREMENT; }
+	UInt32 getMinHRes() { return LUX2100_MIN_HRES; }
+	UInt32 getMinVRes() { return LUX2100_MIN_VRES; }
 
 	/* Frame Timing Functions. */
 	UInt32 getFramePeriodClock(void) { return LUX2100_TIMING_CLOCK_FREQ; }
 	UInt32 getMinFramePeriod(FrameGeometry *frameSize);
+	UInt32 getActualFramePeriod(double target, FrameGeometry *frameSize);
+	UInt32 getFramePeriod(void);
+	UInt32 setFramePeriod(UInt32 period, FrameGeometry *frameSize);
 
 	/* Exposure Timing Functions */
 	UInt32 getIntegrationClock(void) { return LUX2100_TIMING_CLOCK_FREQ; }
+	UInt32 getMaxIntegrationTime(UInt32 period, FrameGeometry *frameSize);
 
 	/* Analog calibration APIs. */
 	unsigned int enableAnalogTestMode(void);
@@ -169,12 +173,8 @@ public:
 	CameraErrortype autoPhaseCal(void);
 	UInt32 getDataCorrect(void);
 	void setSyncToken(UInt16 token);
-	double getMinMasterFramePeriod(FrameGeometry *frameSize);
-	double getActualFramePeriod(double target, FrameGeometry *frameSize);
-	double setFramePeriod(double period, FrameGeometry *frameSize);
-	double getMaxIntegrationTime(double period, FrameGeometry *frameSize);
 	double getMaxCurrentIntegrationTime(void);
-	double getActualIntegrationTime(double intTime, double period, FrameGeometry *frameSize);
+	double getActualIntegrationTime(double intTime, UInt32 period, FrameGeometry *frameSize);
 	double setIntegrationTime(double intTime, FrameGeometry *frameSize);
 	double getIntegrationTime(void);
 	UInt32 getMaxExposure(UInt32 period);

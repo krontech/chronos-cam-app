@@ -43,18 +43,17 @@ public:
 	virtual Int32 seqOnOff(bool on) = 0;
 	virtual UInt32 getFramePeriodClock(void) = 0;
 	virtual UInt32 getMinFramePeriod(FrameGeometry *frameSize) = 0;
-	virtual double getActualFramePeriod(double target, FrameGeometry *frameSize) = 0;
-	virtual double setFramePeriod(double period, FrameGeometry *frameSize) = 0;
+	virtual UInt32 getActualFramePeriod(double target, FrameGeometry *frameSize) = 0;
+	virtual UInt32 setFramePeriod(UInt32 period, FrameGeometry *frameSize) = 0;
 
+	/* Frame Exposure Functions. */
 	virtual UInt32 getIntegrationClock(void) = 0;
+	virtual UInt32 getMaxIntegrationTime(UInt32 period, FrameGeometry *frameSize) = 0;
 
 	virtual double getMaxCurrentIntegrationTime(void) = 0;
-	virtual double getMaxIntegrationTime(double period, FrameGeometry *frameSize) = 0;
 	virtual double setIntegrationTime(double intTime, FrameGeometry *frameSize) = 0;
 	virtual double getIntegrationTime(void) = 0;
-	virtual double getActualIntegrationTime(double intTime, double period, FrameGeometry *frameSize) = 0;
-
-	virtual double getMinMasterFramePeriod(FrameGeometry *frameSize) = 0;
+	virtual double getActualIntegrationTime(double intTime, UInt32 period, FrameGeometry *frameSize) = 0;
 
 	/* Analog Calibration APIs. */
 	/* TODO: The analog calibration algorithm ought to be private to the

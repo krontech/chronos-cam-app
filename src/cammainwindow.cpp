@@ -350,7 +350,7 @@ void CamMainWindow::updateRecordingState(bool recording)
 			w->setAttribute(Qt::WA_DeleteOnClose);
 			w->show();
 		}
-		
+
 	}
 }
 

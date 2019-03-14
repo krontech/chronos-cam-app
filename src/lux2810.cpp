@@ -308,7 +308,7 @@ CameraErrortype LUX2100::initSensor()
 	currentRes.vOffset = 0;
 	currentRes.vDarkRows = 0;
 	currentRes.bitDepth = LUX2100_BITS_PER_PIXEL;
-	setFramePeriod(getMinFramePeriod(&currentRes)/100000000.0, &currentRes);
+	setFramePeriod(getMinFramePeriod(&currentRes), &currentRes);
 	//mem problem before this
 	setIntegrationTime((double)getMaxExposure(currentPeriod) / 100000000.0, &currentRes);
 
@@ -552,14 +552,6 @@ UInt32 LUX2100::getMinFramePeriod(FrameGeometry *frameSize)
 	return (UInt64)(ceil(tFrame * 100000000.0));
 }
 
-double LUX2100::getMinMasterFramePeriod(FrameGeometry *frameSize)
-{
-	if(!isValidResolution(frameSize))
-		return 0.0;
-
-	return (double)getMinFramePeriod(frameSize) / 100000000.0;
-}
-
 UInt32 LUX2100::getMaxExposure(UInt32 period)
 {
 	return period - 500;
@@ -577,30 +569,26 @@ double LUX2100::getCurrentExposureDouble(void)
 	return (double)currentExposure / 100000000.0;
 }
 
-double LUX2100::getActualFramePeriod(double targetPeriod, FrameGeometry *size)
+UInt32 LUX2100::getActualFramePeriod(double targetPeriod, FrameGeometry *size)
 {
-	//Round to nearest 10ns period
-	targetPeriod = round(targetPeriod * (100000000.0)) / 100000000.0;
+	//Round to nearest timing clock period
+	UInt32 clocks = round(targetPeriod * LUX2100_TIMING_CLOCK_FREQ);
+	UInt32 minPeriod = getMinFramePeriod(size);
+	UInt32 maxPeriod = LUX2100_MAX_SLAVE_PERIOD;
 
-	double minPeriod = getMinMasterFramePeriod(size);
-	double maxPeriod = LUX2100_MAX_SLAVE_PERIOD;
-
-	return within(targetPeriod, minPeriod, maxPeriod);
+	return within(clocks, minPeriod, maxPeriod);
 }
 
-double LUX2100::setFramePeriod(double period, FrameGeometry *size)
+UInt32 LUX2100::setFramePeriod(UInt32 period, FrameGeometry *size)
 {
-	//Round to nearest 10ns period
-	period = round(period * (100000000.0)) / 100000000.0;
 	qDebug() << "Requested period" << period;
-	double minPeriod = getMinMasterFramePeriod(size);
-	double maxPeriod = LUX2100_MAX_SLAVE_PERIOD / 100000000.0;
+	UInt32 minPeriod = getMinFramePeriod(size);
+	UInt32 maxPeriod = LUX2100_MAX_SLAVE_PERIOD;
 
-	period = within(period, minPeriod, maxPeriod);
-	currentPeriod = period * 100000000.0;
+	currentPeriod = within(period, minPeriod, maxPeriod);
 
 	setSlavePeriod(currentPeriod);
-	return period;
+	return currentPeriod;
 }
 
 /* getMaxIntegrationTime
@@ -611,11 +599,9 @@ double LUX2100::setFramePeriod(double period, FrameGeometry *size)
  *
  * returns: Maximum integration time
  */
-double LUX2100::getMaxIntegrationTime(double period, FrameGeometry *size)
+UInt32 LUX2100::getMaxIntegrationTime(UInt32 period, FrameGeometry *size)
 {
-	//Round to nearest 10ns period
-	period = round(period * (100000000.0)) / 100000000.0;
-	return (double)getMaxExposure(period * 100000000.0) / 100000000.0;
+	return getMaxExposure(period);
 
 }
 
@@ -638,14 +624,13 @@ double LUX2100::getMaxCurrentIntegrationTime(void)
  *
  * returns: Actual closest integration time
  */
-double LUX2100::getActualIntegrationTime(double intTime, double period, FrameGeometry *size)
+double LUX2100::getActualIntegrationTime(double intTime, UInt32 period, FrameGeometry *size)
 {
 
 	//Round to nearest 10ns period
-	period = round(period * (100000000.0)) / 100000000.0;
 	intTime = round(intTime * (100000000.0)) / 100000000.0;
 
-	double maxIntTime = (double)getMaxExposure(period * 100000000.0) / 100000000.0;
+	double maxIntTime = (double)getMaxExposure(period) / 100000000.0;
 	double minIntTime = LUX2100_MIN_INT_TIME;
 	return within(intTime, minIntTime, maxIntTime);
 
