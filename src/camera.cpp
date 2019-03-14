@@ -169,7 +169,7 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX2100 * senso
 	imagerSettings.geometry.vDarkRows = 0;
 	imagerSettings.recRegionSizeFrames = getMaxRecordRegionSizeFrames(&imagerSettings.geometry);
 	imagerSettings.period = sensor->getMinFramePeriod(&imagerSettings.geometry);
-	imagerSettings.exposure = sensor->getMaxExposure(imagerSettings.period);
+	imagerSettings.exposure = sensor->getMaxIntegrationTime(imagerSettings.period, &imagerSettings.geometry);
     imagerSettings.disableRingBuffer = 0;
     imagerSettings.mode = RECORD_MODE_NORMAL;
     imagerSettings.prerecordFrames = 1;
@@ -187,7 +187,7 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX2100 * senso
 	settings.geometry.bitDepth		= imagerSettings.geometry.bitDepth;
 	settings.gain                   = appSettings.value("camera/gain", 0).toInt();
 	settings.period                 = appSettings.value("camera/period", sensor->getMinFramePeriod(&settings.geometry)).toInt();
-    settings.exposure               = appSettings.value("camera/exposure", sensor->getMaxExposure(settings.period)).toInt();
+	settings.exposure               = appSettings.value("camera/exposure", sensor->getMaxIntegrationTime(settings.period, &settings.geometry)).toInt();
 	settings.recRegionSizeFrames    = appSettings.value("camera/recRegionSizeFrames", getMaxRecordRegionSizeFrames(&settings.geometry)).toInt();
     settings.disableRingBuffer      = appSettings.value("camera/disableRingBuffer", 0).toInt();
     settings.mode                   = (CameraRecordModeType)appSettings.value("camera/mode", RECORD_MODE_NORMAL).toInt();
@@ -271,7 +271,7 @@ UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 
 	sensor->setResolution(&settings.geometry);
 	sensor->setGain(settings.gain);
-	sensor->setFramePeriod((double)settings.period/100000000.0, &settings.geometry);
+	sensor->setFramePeriod(settings.period, &settings.geometry);
 	gpmc->write16(SENSOR_LINE_PERIOD_ADDR, max((sensor->currentRes.hRes / LUX1310_HRES_INCREMENT)+2, (sensor->wavetableSize + 3)) - 1);	//Set the timing generator to handle the line period
 	delayms(10);
 	qDebug() << "About to sensor->setSlaveExposure"; sensor->setSlaveExposure(settings.exposure);
@@ -2518,7 +2518,7 @@ Int32 Camera::blackCalAllStdRes(bool factory)
 			settings.gain = g;
 			settings.recRegionSizeFrames = getMaxRecordRegionSizeFrames(&settings.geometry);
 			settings.period = sensor->getMinFramePeriod(&settings.geometry);
-			settings.exposure = sensor->getMaxExposure(settings.period);
+			settings.exposure = sensor->getMaxIntegrationTime(settings.period, &settings.geometry);
 			settings.disableRingBuffer = 0;
 			settings.mode = RECORD_MODE_NORMAL;
 			settings.prerecordFrames = 1;
@@ -2547,7 +2547,7 @@ Int32 Camera::blackCalAllStdRes(bool factory)
 	settings.gain = LUX1310_GAIN_1;
 	settings.recRegionSizeFrames = getMaxRecordRegionSizeFrames(&settings.geometry);
 	settings.period = sensor->getMinFramePeriod(&settings.geometry);
-	settings.exposure = sensor->getMaxExposure(settings.period);
+	settings.exposure = sensor->getMaxIntegrationTime(settings.period, &settings.geometry);
 
 	retVal = setImagerSettings(settings);
 	if(SUCCESS != retVal) {

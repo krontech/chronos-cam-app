@@ -199,10 +199,10 @@ void RecSettingsWindow::on_cmdOK_clicked()
 	is->gain = ui->comboGain->currentIndex();
 	is->geometry = getResolution();
 
-	double framePeriod = camera->sensor->getActualFramePeriod(ui->linePeriod->siText(), &is->geometry);
-	double exp = camera->sensor->getActualIntegrationTime(ui->lineExp->siText(), framePeriod, &is->geometry);
+	UInt32 period = camera->sensor->getActualFramePeriod(ui->linePeriod->siText(), &is->geometry);
+	double exp = camera->sensor->getActualIntegrationTime(ui->lineExp->siText(), period, &is->geometry);
 
-	is->period = framePeriod * 100000000.0;
+	is->period = period;
 	is->exposure = exp * 100000000.0 - 20;
 	is->temporary = 0;
 
@@ -324,25 +324,22 @@ void RecSettingsWindow::on_chkCenter_toggled(bool checked)
 void RecSettingsWindow::on_cmdMax_clicked()
 {
 	FrameGeometry fSize = getResolution();
-	double framePeriod = camera->sensor->getMinMasterFramePeriod(&fSize);
+	UInt32 period = camera->sensor->getMinFramePeriod(&fSize);
 	char str[100];
 
-	getSIText(str, framePeriod, 10, DEF_SI_OPTS, 8);
-	qDebug() << framePeriod;
+	getSIText(str, (double)period / camera->sensor->getFramePeriodClock(), 10, DEF_SI_OPTS, 8);
 	ui->linePeriod->setText(str);
 
-	double frameRate = 1.0 / framePeriod;
-	qDebug() << frameRate;
-	getSIText(str, frameRate, ceil(log10(framePeriod * 100000000.0)+1), DEF_SI_OPTS, 1000);
+	double frameRate = (double)camera->sensor->getFramePeriodClock() / period;
+	getSIText(str, frameRate, ceil(log10(period)+1), DEF_SI_OPTS, 1000);
 
 	ui->lineRate->setText(str);
 
 	//Make sure exposure is within limits
-	double exp = camera->sensor->getActualIntegrationTime(ui->lineExp->siText(), framePeriod, &fSize);
+	double exp = camera->sensor->getActualIntegrationTime(ui->lineExp->siText(), period, &fSize);
 
 	//Format the entered value nicely
 	getSIText(str, exp, 10, DEF_SI_OPTS, 8);
-	qDebug() << exp;
 	ui->lineExp->setText(str);
 
 }
@@ -351,55 +348,50 @@ void RecSettingsWindow::on_linePeriod_returnPressed()
 {
 	char str[100];
 	FrameGeometry fSize = getResolution();
-	double framePeriod = camera->sensor->getActualFramePeriod(ui->linePeriod->siText(), &fSize);
+	UInt32 period = camera->sensor->getActualFramePeriod(ui->linePeriod->siText(), &fSize);
 
 	//format the entered value nicely
-	getSIText(str, framePeriod, 10, DEF_SI_OPTS, 8);
-	qDebug() << framePeriod;
+	getSIText(str, (double)period / camera->sensor->getFramePeriodClock(), 10, DEF_SI_OPTS, 8);
 	ui->linePeriod->setText(str);
 
 	//Set the frame rate
-	double frameRate = 1.0 / framePeriod;
-	qDebug() << frameRate;
-	getSIText(str, frameRate, ceil(log10(framePeriod*100000000.0)+1), DEF_SI_OPTS, 1000);
+	double frameRate = (double)camera->sensor->getFramePeriodClock() / period;
+	getSIText(str, frameRate, ceil(log10(period)+1), DEF_SI_OPTS, 1000);
 
 	ui->lineRate->setText(str);
 
 	//Make sure exposure is within limits
-	double exp = camera->sensor->getActualIntegrationTime(ui->lineExp->siText(), framePeriod, &fSize);
+	double exp = camera->sensor->getActualIntegrationTime(ui->lineExp->siText(), period, &fSize);
 
 	//Format the entered value nicely
 	getSIText(str, exp, 10, DEF_SI_OPTS, 8);
-	qDebug() << exp;
 	ui->lineExp->setText(str);
 }
 
 void RecSettingsWindow::on_lineRate_returnPressed()
 {
 	FrameGeometry frameSize = getResolution();
-	double framePeriod;
+	UInt32 period;
 	double frameRate = ui->lineRate->siText();
 	char str[100];
 
 	if(0.0 == frameRate)
 		return;
 
-	framePeriod = camera->sensor->getActualFramePeriod(1.0 / frameRate, &frameSize);
+	period = camera->sensor->getActualFramePeriod(1.0 / frameRate, &frameSize);
 
 	//Set the frame period box
-	getSIText(str, framePeriod, 10, DEF_SI_OPTS, 8);
-	qDebug() << framePeriod;
+	getSIText(str, (double)period / camera->sensor->getFramePeriodClock(), 10, DEF_SI_OPTS, 8);
 	ui->linePeriod->setText(str);
 
 	//Refill the frame rate box with the nicely formatted value
-	frameRate = 1.0 / framePeriod;
-	qDebug() << frameRate;
-	getSIText(str, frameRate, ceil(log10(framePeriod * 100000000.0)+1), DEF_SI_OPTS, 1000);
+	frameRate = (double)camera->sensor->getFramePeriodClock() / period;
+	getSIText(str, frameRate, ceil(log10(period)+1), DEF_SI_OPTS, 1000);
 
 	ui->lineRate->setText(str);
 
 	//Make sure exposure is within limits
-	double exp = camera->sensor->getActualIntegrationTime(ui->lineExp->siText(), framePeriod, &frameSize);
+	double exp = camera->sensor->getActualIntegrationTime(ui->lineExp->siText(), period, &frameSize);
 
 	//Format the entered value nicely
 	getSIText(str, exp, 10, DEF_SI_OPTS, 8);
@@ -410,8 +402,8 @@ void RecSettingsWindow::on_lineRate_returnPressed()
 void RecSettingsWindow::on_lineExp_returnPressed()
 {
 	FrameGeometry frameSize = getResolution();
-	double framePeriod = camera->sensor->getActualFramePeriod(ui->linePeriod->siText(), &frameSize);
-	double exp = camera->sensor->getActualIntegrationTime(ui->lineExp->siText(), framePeriod, &frameSize);
+	UInt32 period = camera->sensor->getActualFramePeriod(ui->linePeriod->siText(), &frameSize);
+	double exp = camera->sensor->getActualIntegrationTime(ui->lineExp->siText(), period, &frameSize);
 	char str[100];
 
 	//Format the entered value nicely
@@ -423,8 +415,9 @@ void RecSettingsWindow::on_lineExp_returnPressed()
 void RecSettingsWindow::on_cmdExpMax_clicked()
 {
 	FrameGeometry frameSize = getResolution();
-	double framePeriod = camera->sensor->getActualFramePeriod(ui->linePeriod->siText(), &frameSize);
-	double exp = camera->sensor->getMaxIntegrationTime(framePeriod, &frameSize);
+	UInt32 period = camera->sensor->getActualFramePeriod(ui->linePeriod->siText(), &frameSize);
+	UInt32 intTime = camera->sensor->getMaxIntegrationTime(period, &frameSize);
+	double exp = (double)intTime / camera->sensor->getIntegrationClock();
 	char str[100];
 
 	//Format the entered value nicely
@@ -441,10 +434,13 @@ void RecSettingsWindow::updateInfoText()
 	char minPeriodStr[30];
 	char maxExposureStr[30];
 
-	double fp = camera->sensor->getMinMasterFramePeriod(&frameSize);
-	getSIText(minPeriodStr, fp, 10, DEF_SI_OPTS, 8);
-	getSIText(maxRateStr, 1.0/fp, ceil(log10(fp*100000000.0)+1), DEF_SI_OPTS, 1000);
-	getSIText(maxExposureStr, (double)camera->sensor->getMaxExposure(fp*100000000.0) / 100000000.0, 10, DEF_SI_OPTS, 8);
+	UInt32 fclocks = camera->sensor->getMinFramePeriod(&frameSize);
+	double fperiod = (double)fclocks / camera->sensor->getFramePeriodClock();
+	UInt32 expclocks = camera->sensor->getMaxIntegrationTime(fclocks, &frameSize);
+
+	getSIText(minPeriodStr, fperiod, 10, DEF_SI_OPTS, 8);
+	getSIText(maxRateStr, 1.0/fperiod, ceil(log10(fperiod*100000000.0)+1), DEF_SI_OPTS, 1000);
+	getSIText(maxExposureStr, (double)expclocks / camera->sensor->getIntegrationClock(), 10, DEF_SI_OPTS, 8);
 
 	sprintf(str, "Max rate for this resolution:\r\n%sfps\r\nMin Period: %ss", maxRateStr, minPeriodStr);
 	ui->lblInfo->setText(str);
@@ -496,10 +492,10 @@ void RecSettingsWindow::on_cmdRecMode_clicked()
 	is->geometry = getResolution();
 	is->gain = ui->comboGain->currentIndex();
 
-	double framePeriod = camera->sensor->getActualFramePeriod(ui->linePeriod->siText(), &is->geometry);
-	double exp = camera->sensor->getActualIntegrationTime(ui->lineExp->siText(), framePeriod, &is->geometry);
+	UInt32 period = camera->sensor->getActualFramePeriod(ui->linePeriod->siText(), &is->geometry);
+	double exp = camera->sensor->getActualIntegrationTime(ui->lineExp->siText(), period, &is->geometry);
 
-    is->period = framePeriod * 100000000.0;
+	is->period = period;
     is->exposure = exp * 100000000.0;
     is->temporary = 0;
 
