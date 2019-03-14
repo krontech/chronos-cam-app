@@ -47,6 +47,7 @@ playbackWindow::playbackWindow(QWidget *parent, Camera * cameraInst, bool autosa
 	autoSaveFlag = autosave;
 	autoRecordFlag = camera->get_autoRecord();
 	this->move(camera->ButtonsOnLeft? 0:600, 0);
+	saveDoneTimer = NULL;
 	saveAborted = false;
 	saveAbortedAutomatically = false;
 	
@@ -150,6 +151,7 @@ void playbackWindow::videoEnded(VideoState state, QString err)
 		if(saveDoneTimer){
 			saveDoneTimer->stop();
 			delete saveDoneTimer;
+			saveDoneTimer = NULL;
 			qDebug()<<"saveDoneTimer deleted";
 		} else qDebug("cannot delete saveDoneTimer because it is null");
 
