@@ -126,7 +126,7 @@ int main(int argc, char *argv[])
 	
 #ifdef Q_WS_QWS
 //	app.setOverrideCursor( QCursor( Qt::BlankCursor ) );
-    QWSServer::setCursorVisible( true );
+	QWSServer::setCursorVisible( false );
 	//QWSServer::setBackground(QBrush(Qt::black));
 	QWSServer::setBackground(QBrush(Qt::transparent));  // have not tested
 #endif
