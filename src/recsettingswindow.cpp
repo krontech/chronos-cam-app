@@ -247,7 +247,7 @@ void RecSettingsWindow::on_spinHRes_valueChanged(int arg1)
 void RecSettingsWindow::on_spinHRes_editingFinished()
 {
 
-	ui->spinHRes->setValue(round((UInt32)ui->spinHRes->value(), camera->sensor->getHResIncrement()));
+	ui->spinHRes->setValue(max(camera->sensor->getMinHRes(), round((UInt32)ui->spinHRes->value(), camera->sensor->getHResIncrement())));
 
 	ui->frameImage->setGeometry(QRect(ui->spinHOffset->value()/4, ui->spinVOffset->value()/4, ui->spinHRes->value()/4, ui->spinVRes->value()/4));
 	qDebug() << "editing finished ";
@@ -268,7 +268,7 @@ void RecSettingsWindow::on_spinVRes_valueChanged(int arg1)
 
 void RecSettingsWindow::on_spinVRes_editingFinished()
 {
-	ui->spinVRes->setValue(round((UInt32)ui->spinVRes->value(), camera->sensor->getVResIncrement()));
+	ui->spinVRes->setValue(max(camera->sensor->getMinVRes(), round((UInt32)ui->spinVRes->value(), camera->sensor->getVResIncrement())));
 
 	ui->frameImage->setGeometry(QRect(ui->spinHOffset->value()/4, ui->spinVOffset->value()/4, ui->spinHRes->value()/4, ui->spinVRes->value()/4));
 	updateInfoText();
