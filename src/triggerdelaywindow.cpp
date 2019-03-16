@@ -64,16 +64,19 @@ void triggerDelayWindow::on_horizontalSlider_sliderMoved(int position)
 
 void triggerDelayWindow::on_cmdZeroPercent_clicked()
 {
+	ui->horizontalSlider->clearFocus();
     updateControls(recLenFrames);
 }
 
 void triggerDelayWindow::on_cmdFiftyPercent_clicked()
 {
+	ui->horizontalSlider->clearFocus();
     updateControls(recLenFrames / 2);
 }
 
 void triggerDelayWindow::on_cmdHundredPercent_clicked()
 {
+    ui->horizontalSlider->clearFocus();
     updateControls(0);
 }
 
@@ -140,4 +143,9 @@ void triggerDelayWindow::on_cmdMorePreRecTime_clicked()
 {
 	ui->horizontalSlider->setMaximum(ui->horizontalSlider->maximum() * 2);
 	ui->horizontalSlider->setHighlightRegion(0, recLenFrames);
+}
+
+void triggerDelayWindow::on_horizontalSlider_sliderReleased()
+{
+    ui->horizontalSlider->clearFocus();
 }
