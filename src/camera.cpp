@@ -373,7 +373,7 @@ UInt32 Camera::setIntegrationTime(double intTime, FrameGeometry *fSize, Int32 fl
 {
 	QSettings appSettings;
 	UInt32 validTime;
-	UInt32 defaultTime = sensor->getMaxCurrentIntegrationTime() * sensor->getIntegrationClock();
+	UInt32 defaultTime = sensor->getMaxIntegrationTime(sensor->getFramePeriod(), fSize);
 	if (flags & SETTING_FLAG_USESAVED) {
 		validTime = appSettings.value("camera/exposure", defaultTime).toInt();
 		qDebug("--- Using old settings --- Exposure time: %d (default: %d)", validTime, defaultTime);

@@ -37,8 +37,6 @@
 #define LUX2100_TIMING_CLOCK_FREQ		100000000.0	//Hz
 #define LUX2100_SENSOR_CLOCK	75000000.0	//Hz
 
-
-#define LUX2100_MIN_INT_TIME	0.000001	//1us
 #define LUX2100_MAX_SLAVE_PERIOD ((double)0xFFFFFFFF)
 
 #define LUX2100_GAIN_CORRECTION_MIN 0.999
@@ -145,7 +143,6 @@ public:
 
 	/* Frame Geometry Functions. */
 	void setResolution(FrameGeometry *frameSize);
-	bool isValidResolution(FrameGeometry *frameSize);
 	FrameGeometry getMaxGeometry(void);
 	UInt8 getFilterColor(UInt32 h, UInt32 v);
 	UInt32 getHResIncrement() { return LUX2100_HRES_INCREMENT; }
@@ -164,7 +161,7 @@ public:
 	/* Exposure Timing Functions */
 	UInt32 getIntegrationClock(void) { return LUX2100_TIMING_CLOCK_FREQ; }
 	UInt32 getMaxIntegrationTime(UInt32 period, FrameGeometry *frameSize);
-	UInt32 getActualIntegrationTime(double intTime, UInt32 period, FrameGeometry *frameSize);
+	UInt32 getMinIntegrationTime(UInt32 period, FrameGeometry *frameSize) { return LUX2100_TIMING_CLOCK_FREQ / 1000000; } /* 1us */
 	UInt32 getIntegrationTime(void);
 	UInt32 setIntegrationTime(UInt32 intTime, FrameGeometry *frameSize);
 
@@ -176,8 +173,6 @@ public:
 	std::string getFilename(const char * filename, const char * extension);
 
 	Int32 setGain(UInt32 gainSetting);
-
-	double getMaxCurrentIntegrationTime(void);
 
 private:
 	CameraErrortype autoPhaseCal(void);

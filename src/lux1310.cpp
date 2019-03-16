@@ -291,9 +291,6 @@ UInt16 LUX1310::SCIRead(UInt8 address)
 
 CameraErrortype LUX1310::autoPhaseCal(void)
 {
-	UInt16 valid = 0;
-	UInt32 valid32;
-
 	setClkPhase(0);
 	setClkPhase(1);
 
@@ -364,35 +361,6 @@ void LUX1310::setResolution(FrameGeometry *size)
 	SCIWrite(0x29, (size->vDarkRows << 12) + (LUX1310_MAX_V_RES + LUX1310_MAX_V_DARK - size->vDarkRows + 4));
 
 	memcpy(&currentRes, size, sizeof(currentRes));
-}
-
-bool LUX1310::isValidResolution(FrameGeometry *size)
-{
-	/* Enforce resolution limits. */
-	if ((size->hRes < LUX1310_MIN_HRES) || (size->hRes + size->hOffset > LUX1310_MAX_H_RES)) {
-		return false;
-	}
-	if ((size->vRes < LUX1310_MIN_VRES) || (size->vRes + size->vOffset > LUX1310_MAX_V_RES)) {
-		return false;
-	}
-	if (size->vDarkRows > LUX1310_MAX_V_DARK) {
-		return false;
-	}
-	if (size->bitDepth != LUX1310_BITS_PER_PIXEL) {
-		return false;
-	}
-	/* Enforce minimum pixel increments. */
-	if ((size->hRes % LUX1310_HRES_INCREMENT) || (size->hOffset % LUX1310_HRES_INCREMENT)) {
-		return false;
-	}
-	if ((size->vRes % LUX1310_VRES_INCREMENT) || (size->vOffset % LUX1310_VRES_INCREMENT)) {
-		return false;
-	}
-	if (size->vDarkRows % LUX1310_VRES_INCREMENT) {
-		return false;
-	}
-	/* Otherwise, the resultion and offset are valid. */
-	return true;
 }
 
 UInt32 LUX1310::getMinWavetablePeriod(FrameGeometry *frameSize, UInt32 wtSize)
@@ -476,35 +444,6 @@ UInt32 LUX1310::getMaxIntegrationTime(UInt32 period, FrameGeometry *size)
 	return period - 500;
 }
 
-/* getMaxCurrentIntegrationTime
- *
- * Gets the actual maximum integration for the current settings
- *
- * returns: Maximum integration time
- */
-double LUX1310::getMaxCurrentIntegrationTime(void)
-{
-	return (double)getMaxIntegrationTime(currentPeriod, &currentRes) / 100000000.0;
-}
-
-/* getActualIntegrationTime
- *
- * Gets the actual integration time that the sensor can be set to which is as close as possible to desired
- *
- * intTime:	Desired integration time in seconds
- *
- * returns: Actual closest integration time
- */
-UInt32 LUX1310::getActualIntegrationTime(double target, UInt32 period, FrameGeometry *size)
-{
-	//Round to nearest timing clock period
-	UInt32 intTime = round(target * LUX1310_TIMING_CLOCK);
-	UInt32 minIntTime = LUX1310_MIN_INT_TIME;
-	UInt32 maxIntTime = getMaxIntegrationTime(period, size);
-
-	return within(intTime, minIntTime, maxIntTime);
-}
-
 /* setIntegrationTime
  *
  * Sets the integration time of the image sensor to a value as close as possible to requested
@@ -517,7 +456,7 @@ UInt32 LUX1310::setIntegrationTime(UInt32 intTime, FrameGeometry *size)
 {
 	//Set integration time to within limits
 	UInt32 maxIntTime = getMaxIntegrationTime(currentPeriod, size);
-	UInt32 minIntTime = LUX1310_MIN_INT_TIME;
+	UInt32 minIntTime = getMinIntegrationTime(currentPeriod, size);
 	currentExposure = within(intTime, minIntTime, maxIntTime);
 
 	setSlaveExposure(currentExposure);
