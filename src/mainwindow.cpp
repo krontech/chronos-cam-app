@@ -229,7 +229,7 @@ void MainWindow::on_cmdRam_clicked()
 
 void MainWindow::on_cmdReset_clicked()
 {
-	camera->sensor->initSensor();
+	//camera->sensor->initSensor();
 	//camera->gpmc->write16(SYSTEM_RESET_ADDR, 1);
 }
 

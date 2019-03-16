@@ -25,12 +25,11 @@ class ImageSensor
 {
 public:
 	virtual CameraErrortype init(GPMC * gpmc_inst) = 0;
-	virtual CameraErrortype initSensor() = 0;
 
 	/* Frame Geometry Functions. */
 	virtual void setResolution(FrameGeometry *frameSize) = 0;
-	virtual bool isValidResolution(FrameGeometry *frameSize) = 0;
 	virtual FrameGeometry getMaxGeometry(void) = 0;
+	virtual bool isValidResolution(FrameGeometry *frameSize);
 	virtual UInt8 getFilterColor(UInt32 h, UInt32 v) = 0;
 	/* These APIs seem a bit sloppy. */
 	virtual UInt32 getHResIncrement() = 0;
@@ -49,7 +48,8 @@ public:
 	/* Frame Exposure Functions. */
 	virtual UInt32 getIntegrationClock(void) = 0;
 	virtual UInt32 getMaxIntegrationTime(UInt32 period, FrameGeometry *frameSize) = 0;
-	virtual UInt32 getActualIntegrationTime(double target, UInt32 period, FrameGeometry *frameSize) = 0;
+	virtual UInt32 getMinIntegrationTime(UInt32 period, FrameGeometry *frameSize) = 0;
+	virtual UInt32 getActualIntegrationTime(double target, UInt32 period, FrameGeometry *frameSize);
 	virtual UInt32 getIntegrationTime(void) = 0;
 	virtual UInt32 setIntegrationTime(UInt32 intTime, FrameGeometry *frameSize) = 0;
 
@@ -67,12 +67,10 @@ public:
 	/* TODO: Need a better way to communicate what gains are valid to the GUI. */
 	virtual Int32 setGain(UInt32 gainSetting) = 0;
 
-	/* The junk APIs that need to go away. */
-	virtual double getMaxCurrentIntegrationTime(void) = 0;
-
-	/* Some helpers to convert to real time. */
+	/* Helper Functions */
 	inline double getCurrentFramePeriodDouble() { return (double)getFramePeriod() / getFramePeriodClock(); }
 	inline double getCurrentExposureDouble() { return (double)getIntegrationTime() / getIntegrationClock(); }
+	inline double getCurrentExposureAngle() { return getCurrentExposureDouble() * 360.0 / getCurrentFramePeriodDouble(); }
 };
 
 #endif // IMAGE_SENSOR_H

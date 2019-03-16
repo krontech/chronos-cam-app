@@ -47,7 +47,6 @@
 #define FOT						(FOT_TIMER + 29)
 #define MAX_TS					54
 
-#define LUX1310_MIN_INT_TIME	0.000001	//1us
 #define LUX1310_MAX_SLAVE_PERIOD ((double)0xFFFFFFFF)
 
 #define LUX1310_GAIN_CORRECTION_MIN 0.999
@@ -116,11 +115,9 @@ public:
 	LUX1310();
 	~LUX1310();
 	CameraErrortype init(GPMC * gpmc_inst);
-	CameraErrortype initSensor();
 
 	/* Frame Geometry Functions. */
 	void setResolution(FrameGeometry *frameSize);
-	bool isValidResolution(FrameGeometry *frameSize);
 	FrameGeometry getMaxGeometry(void);
 	UInt8 getFilterColor(UInt32 h, UInt32 v);
 	UInt32 getHResIncrement() { return LUX1310_HRES_INCREMENT; }
@@ -139,7 +136,7 @@ public:
 	/* Exposure Timing Functions */
 	UInt32 getIntegrationClock(void) { return LUX1310_TIMING_CLOCK; }
 	UInt32 getMaxIntegrationTime(UInt32 period, FrameGeometry *frameSize);
-	UInt32 getActualIntegrationTime(double intTime, UInt32 period, FrameGeometry *frameSize);
+	UInt32 getMinIntegrationTime(UInt32 period, FrameGeometry *frameSize) { return LUX1310_TIMING_CLOCK / 1000000; }  /* 1us */
 	UInt32 getIntegrationTime(void);
 	UInt32 setIntegrationTime(UInt32 intTime, FrameGeometry *frameSize);
 
@@ -152,9 +149,8 @@ public:
 
 	Int32 setGain(UInt32 gainSetting);
 
-	double getMaxCurrentIntegrationTime(void);
-
 private:
+	CameraErrortype initSensor();
 	CameraErrortype autoPhaseCal(void);
 	UInt32 getDataCorrect(void);
 	void setSyncToken(UInt16 token);

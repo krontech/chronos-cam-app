@@ -139,7 +139,6 @@ public:
 
 	/* Frame Geometry Functions. */
 	void setResolution(FrameGeometry *frameSize);
-	bool isValidResolution(FrameGeometry *frameSize);
 	FrameGeometry getMaxGeometry(void);
 	UInt8 getFilterColor(UInt32 h, UInt32 v);
 	UInt32 getHResIncrement() { return LUX2810_HRES_INCREMENT; }
@@ -158,7 +157,7 @@ public:
 	/* Exposure Timing Functions */
 	UInt32 getIntegrationClock(void) { return LUX2810_TIMING_CLOCK; }
 	UInt32 getMaxIntegrationTime(UInt32 period, FrameGeometry *frameSize);
-	UInt32 getActualIntegrationTime(double intTime, UInt32 period, FrameGeometry *frameSize);
+	UInt32 getMinIntegrationTime(UInt32 period, FrameGeometry *frameSize) { return LUX2810_TIMING_CLOCK / 1000000; } /* 1us */
 	UInt32 getIntegrationTime(void);
 	UInt32 setIntegrationTime(UInt32 intTime, FrameGeometry *frameSize);
 
@@ -170,8 +169,6 @@ public:
 	std::string getFilename(const char * filename, const char * extension);
 
 	Int32 setGain(UInt32 gainSetting);
-
-	double getMaxCurrentIntegrationTime(void);
 
 private:
 	CameraErrortype autoPhaseCal(void);

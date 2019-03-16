@@ -181,9 +181,6 @@ void LUX2810::SCIWrite(UInt8 address, UInt16 data)
 
 CameraErrortype LUX2810::autoPhaseCal(void)
 {
-	UInt16 valid = 0;
-	UInt32 valid32;
-
 	setClkPhase(0);
 	setClkPhase(1);
 
@@ -262,35 +259,6 @@ void LUX2810::setResolution(FrameGeometry *size)
 	memcpy(&currentRes, size, sizeof(FrameGeometry));
 }
 
-bool LUX2810::isValidResolution(FrameGeometry *size)
-{
-	/* Enforce resolution limits. */
-	if ((size->hRes < LUX2810_MIN_HRES) || (size->hRes + size->hOffset > LUX2810_MAX_H_RES)) {
-		return false;
-	}
-	if ((size->vRes < LUX2810_MIN_VRES) || (size->vRes + size->vOffset > LUX2810_MAX_V_RES)) {
-		return false;
-	}
-	if (size->vDarkRows > LUX2810_MAX_V_DARK) {
-		return false;
-	}
-	if (size->bitDepth != LUX2810_BITS_PER_PIXEL) {
-		return false;
-	}
-	/* Enforce minimum pixel increments. */
-	if ((size->hRes % LUX2810_HRES_INCREMENT) || (size->hOffset % LUX2810_HRES_INCREMENT)) {
-		return false;
-	}
-	if ((size->vRes % LUX2810_VRES_INCREMENT) || (size->vOffset % LUX2810_VRES_INCREMENT)) {
-		return false;
-	}
-	if (size->vDarkRows % LUX2810_VRES_INCREMENT) {
-		return false;
-	}
-	/* Otherwise, the resultion and offset are valid. */
-	return true;
-}
-
 //Used by init functions only
 UInt32 LUX2810::getMinFramePeriod(FrameGeometry *frameSize)
 {
@@ -353,35 +321,6 @@ UInt32 LUX2810::getMaxIntegrationTime(UInt32 period, FrameGeometry *size)
 	return period - 500;
 }
 
-/* getMaxCurrentIntegrationTime
- *
- * Gets the actual maximum integration for the current settings
- *
- * returns: Maximum integration time
- */
-double LUX2810::getMaxCurrentIntegrationTime(void)
-{
-	return (double)getMaxIntegrationTime(currentPeriod, &currentRes) / LUX2810_TIMING_CLOCK;
-}
-
-/* getActualIntegrationTime
- *
- * Gets the actual integration time that the sensor can be set to which is as close as possible to desired
- *
- * intTime:	Desired integration time in seconds
- *
- * returns: Actual closest integration time
- */
-UInt32 LUX2810::getActualIntegrationTime(double target, UInt32 period, FrameGeometry *size)
-{
-	//Round to nearest timing clock period
-	UInt32 intTime = round(target * LUX2810_TIMING_CLOCK);
-	UInt32 minIntTime = LUX2810_MIN_INT_TIME;
-	UInt32 maxIntTime = getMaxIntegrationTime(period, size);
-
-	return within(intTime, minIntTime, maxIntTime);
-}
-
 /* setIntegrationTime
  *
  * Sets the integration time of the image sensor to a value as close as possible to requested
@@ -394,7 +333,7 @@ UInt32 LUX2810::setIntegrationTime(UInt32 intTime, FrameGeometry *size)
 {
 	//Set integration time to within limits
 	UInt32 maxIntTime = getMaxIntegrationTime(currentPeriod, size);
-	UInt32 minIntTime = LUX2810_MIN_INT_TIME;
+	UInt32 minIntTime = getMinIntegrationTime(currentPeriod, size);
 	currentExposure = within(intTime, minIntTime, maxIntTime);
 
 	setSlaveExposure(currentExposure);
@@ -457,18 +396,18 @@ const float LUX2810_DAC_SCALES[] = {
 		LUX2810_VRDH_SCALE,
 		LUX2810_VDR2_SCALE,
 		LUX2810_VABL_SCALE,
-        0.0, //NC
-        0.0,//NC
-        //Second DAC
+		0.0, //NC
+		0.0,//NC
+		//Second DAC
 		LUX2810_VADC1_SCALE,
 		LUX2810_VADC2_SCALE,
 		LUX2810_VADC3_SCALE,
 		LUX2810_VCM_SCALE,
 		LUX2810_VADC2_FT_SCALE,
 		LUX2810_VADC3_FT_SCALE,
-        0.0,//NC
-        0.0,//NC
-        //Third DAC
+		0.0,//NC
+		0.0,//NC
+		//Third DAC
 		LUX2810_VREFN_SCALE,
 		LUX2810_VREFP_SCALE,
 		LUX2810_VTSTH_SCALE,

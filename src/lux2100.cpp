@@ -337,9 +337,6 @@ UInt16 LUX2100::SCIRead(UInt8 address)
 
 CameraErrortype LUX2100::autoPhaseCal(void)
 {
-	UInt16 valid = 0;
-	UInt32 valid32;
-
 	setClkPhase(0);
 	setClkPhase(1);
 
@@ -430,35 +427,6 @@ void LUX2100::setResolution(FrameGeometry *size)
 	memcpy(&currentRes, size, sizeof(currentRes));
 }
 
-bool LUX2100::isValidResolution(FrameGeometry *size)
-{
-	/* Enforce resolution limits. */
-	if ((size->hRes < LUX2100_MIN_HRES) || (size->hRes + size->hOffset > LUX2100_MAX_H_RES)) {
-		return false;
-	}
-	if ((size->vRes < LUX2100_MIN_VRES) || (size->vRes + size->vOffset > LUX2100_MAX_V_RES)) {
-		return false;
-	}
-	if (size->vDarkRows > LUX2100_MAX_V_DARK) {
-		return false;
-	}
-	if (size->bitDepth != LUX2100_BITS_PER_PIXEL) {
-		return false;
-	}
-	/* Enforce minimum pixel increments. */
-	if ((size->hRes % LUX2100_HRES_INCREMENT) || (size->hOffset % LUX2100_HRES_INCREMENT)) {
-		return false;
-	}
-	if ((size->vRes % LUX2100_VRES_INCREMENT) || (size->vOffset % LUX2100_VRES_INCREMENT)) {
-		return false;
-	}
-	if (size->vDarkRows % LUX2100_VRES_INCREMENT) {
-		return false;
-	}
-	/* Otherwise, the resultion and offset are valid. */
-	return true;
-}
-
 //Used by init functions only
 UInt32 LUX2100::getMinFramePeriod(FrameGeometry *frameSize)
 {
@@ -521,35 +489,6 @@ UInt32 LUX2100::getMaxIntegrationTime(UInt32 period, FrameGeometry *size)
 	return period - 500;
 }
 
-/* getMaxCurrentIntegrationTime
- *
- * Gets the actual maximum integration for the current settings
- *
- * returns: Maximum integration time
- */
-double LUX2100::getMaxCurrentIntegrationTime(void)
-{
-	return (double)getMaxIntegrationTime(currentPeriod, &currentRes) / 100000000.0;
-}
-
-/* getActualIntegrationTime
- *
- * Gets the actual integration time that the sensor can be set to which is as close as possible to desired
- *
- * intTime:	Desired integration time in seconds
- *
- * returns: Actual closest integration time
- */
-UInt32 LUX2100::getActualIntegrationTime(double target, UInt32 period, FrameGeometry *size)
-{
-	//Round to nearest timing clock period
-	UInt32 intTime = round(target * LUX2100_TIMING_CLOCK_FREQ);
-	UInt32 minIntTime = LUX2100_MIN_INT_TIME;
-	UInt32 maxIntTime = getMaxIntegrationTime(period, size);
-
-	return within(intTime, minIntTime, maxIntTime);
-}
-
 /* setIntegrationTime
  *
  * Sets the integration time of the image sensor to a value as close as possible to requested
@@ -562,7 +501,7 @@ UInt32 LUX2100::setIntegrationTime(UInt32 intTime, FrameGeometry *size)
 {
 	//Set integration time to within limits
 	UInt32 maxIntTime = getMaxIntegrationTime(currentPeriod, size);
-	UInt32 minIntTime = LUX2100_MIN_INT_TIME;
+	UInt32 minIntTime = getMinIntegrationTime(currentPeriod, size);
 	currentExposure = within(intTime, minIntTime, maxIntTime);
 
 	setSlaveExposure(currentExposure);
@@ -873,37 +812,6 @@ UInt8 LUX2100::getFilterColor(UInt32 h, UInt32 v)
 	else	//Odd line
 		return ((h & 1) == 0) ? FILTER_COLOR_BLUE : FILTER_COLOR_GREEN;
 
-}
-
-Int32 LUX2100::LUX2100ADCBugCorrection(UInt16 * rawUnpackedFrame, UInt32 hRes, UInt32 vRes)
-{
-    UInt16 line[LUX2100_MAX_H_RES];
-
-    for(unsigned int y = 0; y < vRes; y++)
-    {
-        memcpy(line, rawUnpackedFrame + y*hRes, sizeof(line)); //Copy the current line
-
-        for(unsigned int x = 0; x < hRes; x++)
-        {
-            //Correct for first order effects 64 pixels out
-            if(!((line[x] + 0x80) & 0x100) && line[x] >= 0x80 && x < (hRes - 64))
-            {
-                    rawUnpackedFrame[x+64+y*hRes] -= 0x8;
-                    if(rawUnpackedFrame[x+64+y*hRes] > 4095)    //If it underflowed, clip to zero
-                        rawUnpackedFrame[x+64+y*hRes] = 0;
-            }
-
-            //Correct for second order effects 96 pixels out
-            if(!((line[x] + 0x20) & 0x40) && line[x] >= 0x20 && x < (hRes - 96))
-            {
-                    rawUnpackedFrame[x+96+y*hRes] -= 0x2;
-                    if(rawUnpackedFrame[x+96+y*hRes] > 4095)    //If it underflowed, clip to zero
-                        rawUnpackedFrame[x+96+y*hRes] = 0;
-            }
-        }
-    }
-
-    return SUCCESS;
 }
 
 Int32 LUX2100::initLUX2100(bool colorBinning)

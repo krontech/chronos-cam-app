@@ -86,8 +86,11 @@ SOURCES += main.cpp\
     camspinbox.cpp \
     camtextedit.cpp \
     camdoublespinbox.cpp \
+    sensor.cpp \
     lux1310.cpp \
     lux1310wt.cpp \
+    lux2100.cpp \
+    lux2810.cpp \
     utilwindow.cpp \
     statuswindow.cpp \
     eeprom.c \
@@ -101,8 +104,7 @@ SOURCES += main.cpp\
     chronosControlInterface.cpp \
     chronosVideoInterface.cpp \
     colorwindow.cpp \
-    colordoublespinbox.cpp \
-    lux2810.cpp
+    colordoublespinbox.cpp
 
 ## Generate version.cpp on every build
 versionTarget.target = version.cpp
