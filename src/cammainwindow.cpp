@@ -77,9 +77,6 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 		msg.setText(QString("Camera init failed, error") + QString::number((Int32)retVal));
 		msg.exec();
 	}
-	//camera->endOfRecCallback = &endOfRecCallback;
-	//camera->endOfRecCallbackArg = this;
-
 	ui->cmdWB->setEnabled(camera->getIsColor());
 	ui->chkFocusAid->setChecked(camera->getFocusPeakEnable());
 

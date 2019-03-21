@@ -342,11 +342,8 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 	setCCMatrix(colorCalMatrix);
 	setWhiteBalance(whiteBalMatrix);
 
-	setZebraEnable(appSettings.value("camera/zebra", true).toBool());
-	setFocusPeakEnable(appSettings.value("camera/focusPeak", false).toBool());
-	vinst->setDisplayOptions(getZebraEnable(), getFocusPeakEnable());
+	vinst->setDisplayOptions(getZebraEnable(), getFocusPeakEnable() ? (FocusPeakColors)getFocusPeakColor() : FOCUS_PEAK_DISABLE);
 	vinst->liveDisplay();
-	setFocusPeakColorLL(getFocusPeakColor());
 	setFocusPeakThresholdLL(appSettings.value("camera/focusPeakThreshold", 25).toUInt());
 
 	printf("Video init done\n");
@@ -2817,40 +2814,39 @@ bool Camera::getFocusPeakEnable(void)
 	QSettings appSettings;
 	return appSettings.value("camera/focusPeak", false).toBool();
 }
+
 void Camera::setFocusPeakEnable(bool en)
 {
 	QSettings appSettings;
-	focusPeakEnabled = en;
 	appSettings.setValue("camera/focusPeak", en);
-	vinst->setDisplayOptions(zebraEnabled, focusPeakEnabled);
+	vinst->setDisplayOptions(getZebraEnable(), en ? (FocusPeakColors)getFocusPeakColor() : FOCUS_PEAK_DISABLE);
 }
 
-int Camera::getFocusPeakColor(){
+int Camera::getFocusPeakColor(void)
+{
 	QSettings appSettings;
-	return appSettings.value("camera/focusPeakColorIndex", 2).toInt();//default setting of 3 is cyan
+	return appSettings.value("camera/focusPeakColor", FOCUS_PEAK_CYAN).toInt();
 }
 
-void Camera::setFocusPeakColor(int value){
+void Camera::setFocusPeakColor(int value)
+{
 	QSettings appSettings;
-	setFocusPeakColorLL(value);
-	focusPeakColorIndex = value;
-	appSettings.setValue("camera/focusPeakColorIndex", value);
+	appSettings.setValue("camera/focusPeakColor", value);
+	vinst->setDisplayOptions(getZebraEnable(), getFocusPeakEnable() ? (FocusPeakColors)value : FOCUS_PEAK_DISABLE);
 }
-
 
 bool Camera::getZebraEnable(void)
 {
 	QSettings appSettings;
 	return appSettings.value("camera/zebra", true).toBool();
 }
+
 void Camera::setZebraEnable(bool en)
 {
 	QSettings appSettings;
-	zebraEnabled = en;
 	appSettings.setValue("camera/zebra", en);
-	vinst->setDisplayOptions(zebraEnabled, focusPeakEnabled);
+	vinst->setDisplayOptions(en, getFocusPeakEnable() ? (FocusPeakColors)getFocusPeakColor() : FOCUS_PEAK_DISABLE);
 }
-
 
 int Camera::getUnsavedWarnEnable(void){
 	QSettings appSettings;

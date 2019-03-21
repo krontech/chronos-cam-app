@@ -273,47 +273,6 @@ bool Camera::readIsColor(void)
 	close(colorSelFD);
 }
 
-
-bool Camera::getFocusPeakEnableLL(void)
-{
-	return gpmc->read32(DISPLAY_CTL_ADDR) & DISPLAY_CTL_FOCUS_PEAK_EN_MASK;
-}
-
-
-
-void Camera::setFocusPeakEnableLL(bool en)
-{
-	UInt32 reg = gpmc->read32(DISPLAY_CTL_ADDR);
-	gpmc->write32(DISPLAY_CTL_ADDR, (reg & ~DISPLAY_CTL_FOCUS_PEAK_EN_MASK) | (en ? DISPLAY_CTL_FOCUS_PEAK_EN_MASK : 0));
-}
-
-
-UInt8 Camera::getFocusPeakColorLL(void)
-{
-	return (gpmc->read32(DISPLAY_CTL_ADDR) & DISPLAY_CTL_FOCUS_PEAK_COLOR_MASK) >> DISPLAY_CTL_FOCUS_PEAK_COLOR_OFFSET;
-}
-
-
-void Camera::setFocusPeakColorLL(UInt8 color)
-{
-	UInt32 reg = gpmc->read32(DISPLAY_CTL_ADDR);
-	gpmc->write32(DISPLAY_CTL_ADDR, (reg & ~DISPLAY_CTL_FOCUS_PEAK_COLOR_MASK) | ((color & 7) << DISPLAY_CTL_FOCUS_PEAK_COLOR_OFFSET));
-}
-
-
-bool Camera::getZebraEnableLL(void)
-{
-	return gpmc->read32(DISPLAY_CTL_ADDR) & DISPLAY_CTL_ZEBRA_EN_MASK;
-}
-
-
-
-void Camera::setZebraEnableLL(bool en)
-{
-	UInt32 reg = gpmc->read32(DISPLAY_CTL_ADDR);
-	gpmc->write32(DISPLAY_CTL_ADDR, (reg & ~DISPLAY_CTL_ZEBRA_EN_MASK) | (en ? DISPLAY_CTL_ZEBRA_EN_MASK : 0));
-}
-
 void Camera::setFocusPeakThresholdLL(UInt32 thresh)
 {
 	gpmc->write32(DISPLAY_PEAKING_THRESH_ADDR, thresh);
@@ -323,8 +282,6 @@ UInt32 Camera::getFocusPeakThresholdLL(void)
 {
 	return gpmc->read32(DISPLAY_PEAKING_THRESH_ADDR);
 }
-
-
 
 Int32 Camera::getRamSizeGB(UInt32 * stick0SizeGB, UInt32 * stick1SizeGB)
 {

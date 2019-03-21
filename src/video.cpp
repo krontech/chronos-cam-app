@@ -194,12 +194,12 @@ void Video::loopPlayback(unsigned int start, unsigned int length, int rate)
 	}
 }
 
-void Video::setDisplayOptions(bool zebra, bool peaking)
+void Video::setDisplayOptions(bool zebra, FocusPeakColors fpColor)
 {
 	QVariantMap args;
 	QDBusPendingReply<QVariantMap> reply;
 	args.insert("zebra", QVariant(zebra));
-	args.insert("peaking", QVariant(peaking));
+	args.insert("peaking", QVariant(fpColor));
 
 	pthread_mutex_lock(&mutex);
 	reply = iface.configure(args);
