@@ -19,6 +19,7 @@
 
 #include <QDialog>
 #include <QObject>
+#include <QMessageBox>
 #include <QDebug>
 #include <QTimer>
 
@@ -84,6 +85,9 @@ private:
 	void updateRecordingState(bool recording);
 	void updateCurrentSettingsLabel(void);
 	void updateExpSliderLimits(void);
+	QMessageBox::StandardButton question(const QString &title, const QString &text, QMessageBox::StandardButtons = QMessageBox::Yes|QMessageBox::No);
+
+	QMessageBox *prompt;
 	Ui::CamMainWindow *ui;
 	StatusWindow * sw;
 	QTimer *timer;
