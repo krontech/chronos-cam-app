@@ -191,9 +191,9 @@ private:
 	void SCIWriteBuf(UInt8 address, UInt8 * data, UInt32 dataLen);
 	UInt16 SCIRead(UInt8 address);
 	Int32 doAutoADCOffsetCalibration(void);
-    Int32 initLUX2100(bool colorBinning = false);
-    Int32 initLUX8M(void);
-    Int32 initLUX8M_2(void);
+	Int32 initLUX2100(void);
+	Int32 initLUX8M(void);
+	Int32 initLUX8M_2(void);
 
 	FrameGeometry currentRes;
 	UInt32 currentPeriod;
@@ -204,6 +204,7 @@ private:
 	UInt32 wavetableSelect;
 	UInt32 startDelaySensorClocks;
 	UInt32 sensorVersion;
+	bool colorBinning;
 
 	SPI * spi;
 	GPMC * gpmc;

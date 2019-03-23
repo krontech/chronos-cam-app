@@ -220,7 +220,8 @@ CameraErrortype LUX2100::initSensor()
 	initDAC();
 
 #if LUX2100_BINNING_MODE
-	initLUX2100(false);
+	colorBinning = true;
+	initLUX2100();
 #else
 	initLUX8M();
 #endif
@@ -635,7 +636,7 @@ unsigned int LUX2100::enableAnalogTestMode(void)
 	/* Switch to analog test mode. */
 	SCIWrite(0x04, 0x0000);
 #if LUX2100_BINNING_MODE
-	SCIWrite(0x56, 0xB121);
+	SCIWrite(0x56, colorBinning ? 0xB120 : 0xB121);
 #else
 	SCIWrite(0x56, 0xB001);
 #endif
@@ -656,7 +657,7 @@ void LUX2100::disableAnalogTestMode(void)
 	SCIWrite(0x04, 0x0000);
 	SCIWrite(0x67, 0x1E11);
 #if LUX2100_BINNING_MODE
-	SCIWrite(0x56, 0xA121);
+	SCIWrite(0x56, colorBinning ? 0xA120 : 0xA121);
 #else
 	SCIWrite(0x56, 0x9001);
 #endif
@@ -814,7 +815,7 @@ UInt8 LUX2100::getFilterColor(UInt32 h, UInt32 v)
 
 }
 
-Int32 LUX2100::initLUX2100(bool colorBinning)
+Int32 LUX2100::initLUX2100(void)
 {
     writeDACVoltage(LUX2100_VRSTH_VOLTAGE, 3.3);
     writeDACVoltage(LUX2100_VTX2L_VOLTAGE, 0.0);
