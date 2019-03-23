@@ -102,19 +102,6 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 		ui->cmdClose->setVisible(false);
 		ui->cmdDPCButton->setVisible(false);
 	}
-/*	ui->chkFocusAid->setVisible(false);
-	ui->cmdFPNCal->setVisible(false);
-	ui->cmdIOSettings->setVisible(false);
-	ui->cmdPlay->setVisible(false);
-	ui->cmdRec->setVisible(false);
-	ui->cmdRecSettings->setVisible(false);
-	ui->cmdUtil->setVisible(false);
-
-	ui->cmdWB->setVisible(false);
-	ui->expSlider->setVisible(false);
-	ui->lblCurrent->setVisible(false);
-	ui->lblExp->setVisible(false);
-*/
 
 	if (camera->get_autoRecord()) {
 		camera->setRecSequencerModeNormal();
@@ -349,7 +336,6 @@ void CamMainWindow::updateRecordingState(bool recording)
 			w->setAttribute(Qt::WA_DeleteOnClose);
 			w->show();
 		}
-		
 	}
 }
 
@@ -441,10 +427,9 @@ void CamMainWindow::on_chkFocusAid_clicked(bool focusAidEnabled)
 	camera->setFocusPeakEnable(focusAidEnabled);
 }
 
-void CamMainWindow::on_expSlider_valueChanged(int shutterAngle)
+void CamMainWindow::on_expSlider_valueChanged(int exposure)
 {
-	double eMaxPeriod = camera->sensor->getMaxCurrentIntegrationTime();
-	camera->setIntegrationTime((shutterAngle * eMaxPeriod) / 360, 0, 0, 0);
+	camera->setIntegrationTime((double)exposure / TIMING_CLOCK_FREQ, camera->sensor->currentHRes, camera->sensor->currentVRes, 0);
 	updateCurrentSettingsLabel();
 }
 
@@ -457,16 +442,15 @@ void CamMainWindow::recSettingsClosed()
 //Upate the exposure slider limits and step size.
 void CamMainWindow::updateExpSliderLimits()
 {
-	double fPeriod = camera->sensor->getCurrentFramePeriodDouble();
-	double eMaxPeriod = camera->sensor->getMaxCurrentIntegrationTime();
-	int eShutterAngle = (camera->sensor->getCurrentExposureDouble() * 360) / fPeriod;
+	double exposure = camera->sensor->getCurrentExposureDouble();
 
-	ui->expSlider->setMinimum((LUX1310_MIN_INT_TIME * 360) / fPeriod);
-	ui->expSlider->setMaximum(((eMaxPeriod * 360) / fPeriod + 0.5));
-	ui->expSlider->setValue(eShutterAngle);
+	ui->expSlider->setMinimum(LUX1310_MIN_INT_TIME * TIMING_CLOCK_FREQ);
+	ui->expSlider->setMaximum(camera->sensor->getMaxCurrentIntegrationTime() * TIMING_CLOCK_FREQ);
+	ui->expSlider->setValue(exposure * TIMING_CLOCK_FREQ);
 
-	ui->expSlider->setSingleStep(1);
-	ui->expSlider->setPageStep(1);
+	/* Do fine stepping in 1us increments */
+	ui->expSlider->setSingleStep(TIMING_CLOCK_FREQ / 1000000);
+	ui->expSlider->setPageStep(TIMING_CLOCK_FREQ / 1000000);
 }
 
 //Update the status textbox with the current settings
@@ -474,7 +458,7 @@ void CamMainWindow::updateCurrentSettingsLabel()
 {
 	double framePeriod = camera->sensor->getCurrentFramePeriodDouble();
 	double expPeriod = camera->sensor->getCurrentExposureDouble();
-	int shutterAngle = ui->expSlider->value();
+	int shutterAngle = (expPeriod * 360.0) / framePeriod;
 
 	char str[300];
 	char battStr[50];
@@ -602,34 +586,43 @@ static int expSliderLog(unsigned int angle, int delta)
 
 void CamMainWindow::keyPressEvent(QKeyEvent *ev)
 {
-	const int expLinearRange = 15;
-	int expAngle = ui->expSlider->value();
+	double framePeriod = camera->sensor->getCurrentFramePeriodDouble();
+	double expPeriod = camera->sensor->getCurrentExposureDouble();
+	double expStep = (double)ui->expSlider->singleStep() / TIMING_CLOCK_FREQ;
+	double nextPeriod = expPeriod;
+	int expAngle = (expPeriod * 360) / framePeriod;
+
+	qDebug() << "framePeriod =" << framePeriod << " expPeriod =" << expPeriod;
 
 	switch (ev->key()) {
 	/* Up/Down moves the slider logarithmically */
 	case Qt::Key_Up:
-		if (expAngle <= expLinearRange) {
-			ui->expSlider->setValue(expAngle + 1);
-			break;
+		if (expAngle > 0) {
+			nextPeriod = (framePeriod * expSliderLog(expAngle, 1)) / 360;
 		}
-		ui->expSlider->setValue(expSliderLog(expAngle, 1));
+		if (nextPeriod < (expPeriod + expStep)) {
+			nextPeriod = expPeriod + expStep;
+		}
+		ui->expSlider->setValue(nextPeriod * TIMING_CLOCK_FREQ);
 		break;
 
 	case Qt::Key_Down:
-		if (expAngle <= expLinearRange) {
-			ui->expSlider->setValue(expAngle - 1);
-			break;
+		if (expAngle > 0) {
+			nextPeriod = (framePeriod * expSliderLog(expAngle, -1)) / 360;
 		}
-		ui->expSlider->setValue(expSliderLog(expAngle, -1));
+		if (nextPeriod > (expPeriod - expStep)) {
+			nextPeriod = expPeriod - expStep;
+		}
+		ui->expSlider->setValue(nextPeriod * TIMING_CLOCK_FREQ);
 		break;
 
 	/* PageUp/PageDown moves the slider linearly by degrees. */
 	case Qt::Key_PageUp:
-		ui->expSlider->setValue(expAngle + 1);
+		ui->expSlider->setValue((expPeriod + expStep) * TIMING_CLOCK_FREQ);
 		break;
 
 	case Qt::Key_PageDown:
-		ui->expSlider->setValue(expAngle - 1);
+		ui->expSlider->setValue((expPeriod - expStep) * TIMING_CLOCK_FREQ);
 		break;
 	}
 }
