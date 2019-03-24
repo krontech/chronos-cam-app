@@ -2385,11 +2385,23 @@ void Camera::setCCMatrix(const double *matrix)
 
 void Camera::setWhiteBalance(const double *rgb)
 {
-	double r = within(rgb[0] * imgGain, 0.0, 8.0);
-	double g = within(rgb[1] * imgGain, 0.0, 8.0);
-	double b = within(rgb[2] * imgGain, 0.0, 8.0);
+	double r = rgb[0] * imgGain;
+	double g = rgb[1] * imgGain;
+	double b = rgb[2] * imgGain;
 
-	fprintf(stderr, "Setting WB Matrix: %06f %06f %06f\n", r, g, b);
+	/* If imgGain white balance to clip, then scale it back. */
+	if ((r > 8.0) || (g > 8.0) || (b > 8.0)) {
+		double wbMax = rgb[0];
+		if (wbMax < rgb[1]) wbMax = rgb[1];
+		if (wbMax < rgb[2]) wbMax = rgb[2];
+
+		qWarning("White Balance clipped due to imgGain of %g", imgGain);
+		r = rgb[0] * 8.0 / wbMax;
+		g = rgb[1] * 8.0 / wbMax;
+		b = rgb[2] * 8.0 / wbMax;
+	}
+
+	qDebug("Setting WB Matrix: %06f %06f %06f", r, g, b);
 
 	gpmc->write16(WBAL_RED_ADDR,   (int)(4096.0 * r));
 	gpmc->write16(WBAL_GREEN_ADDR, (int)(4096.0 * g));
