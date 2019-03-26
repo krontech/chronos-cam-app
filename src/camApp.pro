@@ -103,7 +103,8 @@ SOURCES += main.cpp\
     colorwindow.cpp \
     colordoublespinbox.cpp \
     lux2100.cpp \
-    sensor.cpp
+    sensor.cpp \
+    control.cpp
 
 ## Generate version.cpp on every build
 versionTarget.target = version.cpp
@@ -160,7 +161,8 @@ HEADERS  += mainwindow.h \
     colordoublespinbox.h \
     frameGeometry.h \
     lux2100.h \
-    sensor.h
+    sensor.h \
+    control.h
 
 FORMS    += mainwindow.ui \
     cammainwindow.ui \

@@ -25,6 +25,7 @@
 
 #include "gpmc.h"
 #include "video.h"
+#include "control.h"
 #include "sensor.h"
 #include "userInterface.h"
 #include "io.h"
@@ -169,7 +170,7 @@ class Camera
 public:
 	Camera();
 	~Camera();
-	CameraErrortype init(GPMC * gpmcInst, Video * vinstInst, ImageSensor * sensorInst, UserInterface * userInterface, UInt32 ramSizeVal, bool color);
+    CameraErrortype init(GPMC * gpmcInst, Video * vinstInst, Control * cinstInst, ImageSensor * sensorInst, UserInterface * userInterface, UInt32 ramSizeVal, bool color);
 	Int32 startRecording(void);
 	Int32 setRecSequencerModeNormal();
 	Int32 setRecSequencerModeGatedBurst(UInt32 prerecord = 0);
@@ -179,6 +180,7 @@ public:
 	bool getIsRecording(void);
 	GPMC * gpmc;
 	Video * vinst;
+    Control * cinst;
 	ImageSensor * sensor;
 	UserInterface * ui;
 	IO * io;
@@ -186,6 +188,8 @@ public:
 	RecordSettings_t recordingData;
 	ImagerSettings_t getImagerSettings() { return imagerSettings; }
 	UInt32 getRecordLengthFrames(ImagerSettings_t settings);
+    CameraData cData;
+    SensorData sData;
 
 	unsigned short getTriggerDelayConstant();
 	void setTriggerDelayConstant(unsigned short value);

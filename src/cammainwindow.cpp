@@ -48,6 +48,7 @@ GPMC * gpmc;
 ImageSensor * sensor;
 Camera * camera;
 Video * vinst;
+Control * cinst;
 UserInterface * userInterface;
 bool focusAidEnabled = false;
 
@@ -63,10 +64,12 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	gpmc = new GPMC();
 	camera = new Camera();
 	vinst = new Video();
-	userInterface = new UserInterface();
+    cinst = new Control();
+
+    userInterface = new UserInterface();
 
 	/* FIXME: We need a better method for detecting the attached sensor. */
-	if (true)
+	if (false)
 		sensor = new LUX2100();
 	else
 		sensor = new LUX1310();
@@ -75,7 +78,7 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 
 	gpmc->init();
 	userInterface->init();
-	retVal = camera->init(gpmc, vinst, sensor, userInterface, 16*1024/32*1024*1024, true);
+    retVal = camera->init(gpmc, vinst, cinst, sensor, userInterface, 16*1024/32*1024*1024, true);
 
 	if(retVal != SUCCESS)
 	{
@@ -130,6 +133,8 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	//record the number of widgets that are open before any other windows can be opened
 	QWidgetList qwl = QApplication::topLevelWidgets();
 	windowsAlwaysOpen = qwl.count();
+
+
 }
 
 CamMainWindow::~CamMainWindow()

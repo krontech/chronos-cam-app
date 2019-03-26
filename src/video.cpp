@@ -185,6 +185,7 @@ void Video::setDisplayOptions(bool zebra, bool peaking)
 
 void Video::liveDisplay(unsigned int hRes, unsigned int vRes)
 {
+    qDebug("###### trying liveDisplay");
 	QVariantMap args;
 	QDBusPendingReply<QVariantMap> reply;
 	args.insert("hres", QVariant(hRes));

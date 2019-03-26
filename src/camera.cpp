@@ -65,7 +65,7 @@ Camera::~Camera()
 	pthread_join(recDataThreadID, NULL);
 }
 
-CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, ImageSensor * sensorInst, UserInterface * userInterface, UInt32 ramSizeVal, bool color)
+CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, Control * cinstInst, ImageSensor * sensorInst, UserInterface * userInterface, UInt32 ramSizeVal, bool color)
 {
 	CameraErrortype retVal;
 	UInt32 ramSizeGBSlot0, ramSizeGBSlot1;
@@ -83,8 +83,9 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, ImageSensor * s
 		return retVal;
 
 	gpmc = gpmcInst;
-	vinst = vinstInst;
-	sensor = sensorInst;
+    vinst = vinstInst;
+    cinst = cinstInst;
+    sensor = sensorInst;
 	ui = userInterface;
 	ramSize = (ramSizeGBSlot0 + ramSizeGBSlot1)*1024/32*1024*1024;
 	isColor = true;//readIsColor();
@@ -399,6 +400,15 @@ void Camera::updateVideoPosition()
 
 Int32 Camera::startRecording(void)
 {
+    qDebug("===== Camera::startRecording()");
+
+    //Now do dbus call!
+    //TESTING Control dbus:
+    cinst->getCameraData();
+    cinst->getSensorData();
+
+    qDebug("##### hmmm 2");
+    
 	if(recording)
 		return CAMERA_ALREADY_RECORDING;
 	if(playbackMode)
@@ -425,6 +435,7 @@ Int32 Camera::startRecording(void)
 	recordingData.hasBeenSaved = false;
 	vinst->flushRegions();
 	vinst->liveDisplay(imagerSettings.geometry.hRes, imagerSettings.geometry.vRes);
+
 	startSequencer();
 	ui->setRecLEDFront(true);
 	ui->setRecLEDBack(true);
