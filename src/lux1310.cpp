@@ -622,19 +622,10 @@ void LUX1310::setADCOffset(UInt8 channel, Int16 offset)
 //Generate a filename string used for calibration values that is specific to the current gain and wavetable settings
 std::string LUX1310::getFilename(const char * filename, const char * extension)
 {
-	const char *gName = "";
+	char gName[16];
 	char wtName[16];
 
-	switch(gain)
-	{
-		case LUX1310_GAIN_1:		gName = LUX1310_GAIN_1_FN;		break;
-		case LUX1310_GAIN_2:		gName = LUX1310_GAIN_2_FN;		break;
-		case LUX1310_GAIN_4:		gName = LUX1310_GAIN_4_FN;		break;
-		case LUX1310_GAIN_8:		gName = LUX1310_GAIN_8_FN;		break;
-		case LUX1310_GAIN_16:		gName = LUX1310_GAIN_16_FN;		break;
-		default:					gName = "";						break;
-	}
-
+	snprintf(gName, sizeof(gName), "G%d", gain);
 	snprintf(wtName, sizeof(wtName), "WT%d", wavetableSize);
 	return std::string(filename) + "_" + gName + "_" + wtName + extension;
 }
@@ -698,6 +689,9 @@ Int32 LUX1310::setGain(UInt32 gainSetting)
 		SCIWrite(0x52, 0x0001);	//gain selection feedback cap (8) 7 bit
 		SCIWrite(0x53, 0x00);	//Serial gain
 	break;
+
+	default:
+		return CAMERA_INVALID_SETTINGS;
 	}
 
 	gain = gainSetting;

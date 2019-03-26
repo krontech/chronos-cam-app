@@ -53,6 +53,16 @@ public:
 	virtual UInt32 getIntegrationTime(void) = 0;
 	virtual UInt32 setIntegrationTime(UInt32 intTime, FrameGeometry *frameSize) = 0;
 
+	/* Analog Gain Functions. */
+	/*
+	 * Min and max gain are reported as the linear values (eg: 1=0dB, 2=6dB and so on).
+	 * All sensors are expected to support a gain of 1 (eg: normal operation).
+	 * For now, the range of gains are only accessed in powers-of-two steps.
+	 */
+	virtual UInt32 getMinGain() { return 1; }
+	virtual UInt32 getMaxGain() { return 1; }
+	virtual Int32 setGain(UInt32 gain) { return (gain == 1) ? SUCCESS : CAMERA_INVALID_SETTINGS; }
+
 	/* Analog Calibration APIs. */
 	/* TODO: The analog calibration algorithm ought to be private to the
 	 * image sensor, so these really should be replaced with a single
@@ -63,9 +73,6 @@ public:
 	virtual void setAnalogTestVoltage(unsigned int) {}
 	virtual void setADCOffset(UInt8 channel, Int16 offset) = 0;
 	virtual std::string getFilename(const char * filename, const char * extension) = 0;
-
-	/* TODO: Need a better way to communicate what gains are valid to the GUI. */
-	virtual Int32 setGain(UInt32 gainSetting) = 0;
 
 	/* Helper Functions */
 	inline double getCurrentFramePeriodDouble() { return (double)getFramePeriod() / getFramePeriodClock(); }

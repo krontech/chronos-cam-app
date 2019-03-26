@@ -168,8 +168,6 @@ public:
 	void setADCOffset(UInt8 channel, Int16 offset);
 	std::string getFilename(const char * filename, const char * extension);
 
-	Int32 setGain(UInt32 gainSetting);
-
 private:
 	CameraErrortype autoPhaseCal(void);
 	UInt32 getDataCorrect(void);

@@ -542,9 +542,6 @@ void LUX2810::setAnalogTestVoltage(unsigned int voltage)
 	writeDACVoltage(LUX2810_VTSTH_VOLTAGE, 1.5 + (voltage / 64.0));
 }
 
-//Remaps data channels to ADC channel index
-const char adcChannelRemap[] = {0, 8, 16, 24, 4, 12,20, 28,  2,10, 18, 26,  6, 14, 22, 30, 1, 9,  17, 25, 5, 13, 21, 29, 3, 11, 19, 27, 7, 15, 23, 31};
-
 //Sets ADC offset for one channel
 //Converts the input 2s complement value to the sensors's weird sign bit plus value format (sort of like float, with +0 and -0)
 void LUX2810::setADCOffset(UInt8 channel, Int16 offset)
@@ -577,20 +574,17 @@ Int32 LUX2810::doAutoADCOffsetCalibration(void)
 //Generate a filename string used for calibration values that is specific to the current gain and wavetable settings
 std::string LUX2810::getFilename(const char * filename, const char * extension)
 {
-	return std::string(filename) + extension;
+	char gName[16];
+	char wtName[16];
+
+	snprintf(gName, sizeof(gName), "G%d", gain);
+	snprintf(wtName, sizeof(wtName), "WT%d", wavetableSize);
+	return std::string(filename) + "_" + gName + "_" + wtName + extension;
 }
-
-
-Int32 LUX2810::setGain(UInt32 gainSetting)
-{
-	return SUCCESS;
-}
-
 
 // GR
 // BG
 //
-
 UInt8 LUX2810::getFilterColor(UInt32 h, UInt32 v)
 {
 	if((v & 1) == 0)	//If on an even line

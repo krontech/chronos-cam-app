@@ -179,7 +179,6 @@ UInt8 LUX8M_sram66ClkFRWindow[774] =
 LUX2100::LUX2100()
 {
 	spi = new SPI();
-	wavetableSelect = LUX2100_WAVETABLE_AUTO;
 	startDelaySensorClocks = LUX2100_MAGIC_ABN_DELAY;
 }
 
@@ -212,7 +211,7 @@ CameraErrortype LUX2100::init(GPMC * gpmc_inst)
 CameraErrortype LUX2100::initSensor()
 {
 	wavetableSize = 66;
-	gain = LUX2100_GAIN_1;
+	gain = 1;
 
 	gpmc->write32(IMAGER_FRAME_PERIOD_ADDR, 100*4000);	//Disable integration
 	gpmc->write32(IMAGER_INT_TIME_ADDR, 100*4100);
@@ -670,7 +669,12 @@ void LUX2100::setAnalogTestVoltage(unsigned int voltage)
 }
 
 //Remaps data channels to ADC channel index
-const char adcChannelRemap[] = {0, 8, 16, 24, 4, 12,20, 28,  2,10, 18, 26,  6, 14, 22, 30, 1, 9,  17, 25, 5, 13, 21, 29, 3, 11, 19, 27, 7, 15, 23, 31};
+const char adcChannelRemap[] = {
+	0,  8, 16, 24, 4, 12, 20, 28,	/* Data channels 0 to 7 */
+	2, 10, 18, 26, 6, 14, 22, 30,	/* Data channels 8 to 15 */
+	1,  9, 17, 25, 5, 13, 21, 29,	/* Data channels 16 to 23 */
+	3, 11, 19, 27, 7, 15, 23, 31	/* Data channels 24 to 31 */
+};
 
 //Sets ADC offset for one channel
 //Converts the input 2s complement value to the sensors's weird sign bit plus value format (sort of like float, with +0 and -0)
@@ -718,94 +722,61 @@ Int32 LUX2100::doAutoADCOffsetCalibration(void)
 //Generate a filename string used for calibration values that is specific to the current gain and wavetable settings
 std::string LUX2100::getFilename(const char * filename, const char * extension)
 {
-	const char * gName, * wtName;
+	char gName[16];
+	char wtName[16];
 
-	switch(gain)
-	{
-		case LUX2100_GAIN_1:		gName = LUX2100_GAIN_1_FN;		break;
-		case LUX2100_GAIN_2:		gName = LUX2100_GAIN_2_FN;		break;
-		case LUX2100_GAIN_4:		gName = LUX2100_GAIN_4_FN;		break;
-		case LUX2100_GAIN_8:		gName = LUX2100_GAIN_8_FN;		break;
-		case LUX2100_GAIN_16:		gName = LUX2100_GAIN_16_FN;		break;
-	default:						gName = "";						break;
-
-	}
-
-	switch(wavetableSize)
-	{
-		case 80:	wtName = LUX2100_WAVETABLE_80_FN; break;
-		case 39:	wtName = LUX2100_WAVETABLE_39_FN; break;
-		case 30:	wtName = LUX2100_WAVETABLE_30_FN; break;
-		case 25:	wtName = LUX2100_WAVETABLE_25_FN; break;
-		case 20:	wtName = LUX2100_WAVETABLE_20_FN; break;
-		default:	wtName = "";					  break;
-	}
-
+	snprintf(gName, sizeof(gName), "G%d", gain);
+	snprintf(wtName, sizeof(wtName), "WT%d", wavetableSize);
 	return std::string(filename) + "_" + gName + "_" + wtName + extension;
 }
 
 
 Int32 LUX2100::setGain(UInt32 gainSetting)
 {
-    return SUCCESS;
-
 	switch(gainSetting)
 	{
-	case LUX2100_GAIN_1:	//1
-		writeDACVoltage(LUX2100_VRSTH_VOLTAGE, 3.6);
+	case 1:
+		/* HACK Minimum gain is actually somewhere around 2.6 */
+	case 2:
+		/* Set minimum gain of x2.6 */
+		//writeDACVoltage(LUX2100_VRSTH_VOLTAGE, 3.6);
 
-		//Set Gain
-		SCIWrite(0x51, 0x007F);	//gain selection sampling cap (11)	12 bit
-		SCIWrite(0x52, 0x007F);	//gain selection feedback cap (8) 7 bit
-		SCIWrite(0x53, 0x03);	//Serial gain
+		SCIWrite(0x57, 0x01FF);	//gain selection sampling cap (11)	12 bit
+		SCIWrite(0x58, 0x030F);	//serial gain and gain feedback cap (8) 7 bit
 	break;
 
-	case LUX2100_GAIN_2:	//2
-		writeDACVoltage(LUX2100_VRSTH_VOLTAGE, 3.6);
+	case 4:
+		//writeDACVoltage(LUX2100_VRSTH_VOLTAGE, 3.6);
 
-		//Set Gain
-		SCIWrite(0x51, 0x0FFF);	//gain selection sampling cap (11)	12 bit
-		SCIWrite(0x52, 0x007F);	//gain selection feedback cap (8) 7 bit
-		SCIWrite(0x53, 0x03);	//Serial gain
+		SCIWrite(0x57, 0x0FFF);	//gain selection sampling cap (11)	12 bit
+		SCIWrite(0x58, 0x011F); //serial gain and gain feedback cap (8) 7 bit
 	break;
 
-	case LUX2100_GAIN_4:	//4
-		writeDACVoltage(LUX2100_VRSTH_VOLTAGE, 3.6);
+	case 8:
+		//writeDACVoltage(LUX2100_VRSTH_VOLTAGE, 3.6);
 
-		//Set Gain
-		SCIWrite(0x51, 0x0FFF);	//gain selection sampling cap (11)	12 bit
-		SCIWrite(0x52, 0x007F);	//gain selection feedback cap (8) 7 bit
-		SCIWrite(0x53, 0x00);	//Serial gain
+		SCIWrite(0x57, 0x0FFF);	//gain selection sampling cap (11)	12 bit
+		SCIWrite(0x58, 0x001F); //serial gain and gain feedback cap (8) 7 bit
 	break;
 
-	case LUX2100_GAIN_8:	//8
-		writeDACVoltage(LUX2100_VRSTH_VOLTAGE, 2.6);
+	case 16:
+		//writeDACVoltage(LUX2100_VRSTH_VOLTAGE, 2.6);
 
-		//Set Gain
-		SCIWrite(0x51, 0x0FFF);	//gain selection sampling cap (11)	12 bit
-		SCIWrite(0x52, 0x0007);	//gain selection feedback cap (8) 7 bit
-		SCIWrite(0x53, 0x00);	//Serial gain
+		SCIWrite(0x57, 0x0FFF);	//gain selection sampling cap (11)	12 bit
+		SCIWrite(0x58, 0x000F); //serial gain and gain feedback cap (8) 7 bit
 	break;
 
-	case LUX2100_GAIN_16:	//16
-		writeDACVoltage(LUX2100_VRSTH_VOLTAGE, 2.6);
-
-		//Set Gain
-		SCIWrite(0x51, 0x0FFF);	//gain selection sampling cap (11)	12 bit
-		SCIWrite(0x52, 0x0001);	//gain selection feedback cap (8) 7 bit
-		SCIWrite(0x53, 0x00);	//Serial gain
-	break;
+	default:
+		return CAMERA_INVALID_SETTINGS;
 	}
 
 	gain = gainSetting;
 	return SUCCESS;
 }
 
-
 // GR
 // BG
 //
-
 UInt8 LUX2100::getFilterColor(UInt32 h, UInt32 v)
 {
 	if((v & 1) == 0)	//If on an even line

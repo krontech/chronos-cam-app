@@ -37,16 +37,6 @@
 #define LUX1310_TIMING_CLOCK	100000000.0	//Hz
 #define LUX1310_SENSOR_CLOCK	90000000.0	//Hz
 
-#define LUX1310_ROT			(9+4)		//Granularity clock cycles (63MHz periods by default)
-#define LUX1310_FOT			315		//Granularity clock cycles (63MHz periods by default)
-
-#define ROT_TIMER				9
-#define FOT_TIMER				315
-
-#define ROT						(ROT_TIMER + 4)
-#define FOT						(FOT_TIMER + 29)
-#define MAX_TS					54
-
 #define LUX1310_MAX_SLAVE_PERIOD ((double)0xFFFFFFFF)
 
 #define LUX1310_GAIN_CORRECTION_MIN 0.999
@@ -74,18 +64,11 @@ enum {
 #define VRSTL_SCALE			(LUX1310_DAC_FS / LUX1310_DAC_VREF * (10.0 + 23.2) / 10.0)
 #define VRST_SCALE			(LUX1310_DAC_FS / LUX1310_DAC_VREF * 49.9 / (49.9 + 10.0))
 
-#define LUX1310_GAIN_1				0
-#define LUX1310_GAIN_2				1
-#define LUX1310_GAIN_4				2
-#define LUX1310_GAIN_8				3
-#define LUX1310_GAIN_16				4
-
-//Strings to build FPN filenames
-#define LUX1310_GAIN_1_FN			"G1"
-#define LUX1310_GAIN_2_FN			"G2"
-#define LUX1310_GAIN_4_FN			"G4"
-#define LUX1310_GAIN_8_FN			"G8"
-#define LUX1310_GAIN_16_FN			"G16"
+#define LUX1310_GAIN_1				1
+#define LUX1310_GAIN_2				2
+#define LUX1310_GAIN_4				4
+#define LUX1310_GAIN_8				8
+#define LUX1310_GAIN_16				16
 
 #define LUX1310_CHIP_ID				0xDA
 #define LUX1310_VERSION_1			1
@@ -147,7 +130,9 @@ public:
 	void setADCOffset(UInt8 channel, Int16 offset);
 	std::string getFilename(const char * filename, const char * extension);
 
-	Int32 setGain(UInt32 gainSetting);
+	UInt32 getMinGain() { return 1; }
+	UInt32 getMaxGain() { return 16; }
+	Int32 setGain(UInt32 gain);
 
 private:
 	CameraErrortype initSensor();

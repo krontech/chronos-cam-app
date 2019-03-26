@@ -89,38 +89,6 @@ enum {
 #define LUX2100_VPIX_LDO_OFFSET 3.68f        //Offset voltage of VPIX_LT_LDO. That is, the LDO output voltage with a DAC value of 0
 #define LUX2100_VRSTPIX_SCALE   (LUX2100_DAC_FS / LUX2100_DAC_VREF)
 
-#define LUX2100_WAVETABLE_80		0
-#define LUX2100_WAVETABLE_39		1
-#define LUX2100_WAVETABLE_30		2
-#define LUX2100_WAVETABLE_25		3
-#define LUX2100_WAVETABLE_20		4
-#define LUX2100_WAVETABLE_AUTO		0x7FFFFFFF
-
-#define LUX2100_WAVETABLE_80_FN		"WT80"
-#define LUX2100_WAVETABLE_39_FN		"WT39"
-#define LUX2100_WAVETABLE_30_FN		"WT30"
-#define LUX2100_WAVETABLE_25_FN		"WT25"
-#define LUX2100_WAVETABLE_20_FN		"WT20"
-
-#define LUX2100_GAIN_1				0
-#define LUX2100_GAIN_2				1
-#define LUX2100_GAIN_4				2
-#define LUX2100_GAIN_8				3
-#define LUX2100_GAIN_16				4
-
-//Strings to build FPN filenames
-#define LUX2100_GAIN_1_FN			"G1"
-#define LUX2100_GAIN_2_FN			"G2"
-#define LUX2100_GAIN_4_FN			"G4"
-#define LUX2100_GAIN_8_FN			"G8"
-#define LUX2100_GAIN_16_FN			"G16"
-
-#define ABN_DELAY_WT80				25
-#define ABN_DELAY_WT39				30
-#define ABN_DELAY_WT30				29
-#define ABN_DELAY_WT25				27
-#define ABN_DELAY_WT20				25
-
 #define LUX2100_VERSION_1			1
 #define LUX2100_VERSION_2			2
 
@@ -165,14 +133,16 @@ public:
 	UInt32 getIntegrationTime(void);
 	UInt32 setIntegrationTime(UInt32 intTime, FrameGeometry *frameSize);
 
+	UInt32 getMinGain() { return 1; }
+	UInt32 getMaxGain() { return 16; }
+	Int32 setGain(UInt32 gainSetting);
+
 	/* Analog calibration APIs. */
 	unsigned int enableAnalogTestMode(void);
 	void disableAnalogTestMode(void);
 	void setAnalogTestVoltage(unsigned int);
 	void setADCOffset(UInt8 channel, Int16 offset);
 	std::string getFilename(const char * filename, const char * extension);
-
-	Int32 setGain(UInt32 gainSetting);
 
 private:
 	CameraErrortype autoPhaseCal(void);
@@ -201,7 +171,6 @@ private:
 	Int32 dacCSFD;
 	UInt32 wavetableSize;
 	UInt32 gain;
-	UInt32 wavetableSelect;
 	UInt32 startDelaySensorClocks;
 	UInt32 sensorVersion;
 	bool colorBinning;

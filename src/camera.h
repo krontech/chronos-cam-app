@@ -210,6 +210,7 @@ public:
 	void computeFPNCorrection(FrameGeometry *geometry, UInt32 wordAddress, UInt32 framesToAverage, bool writeToFile = false, bool factory = false);
 	void computeFPNColumns(FrameGeometry *geometry, UInt32 wordAddress, UInt32 framesToAverage);
 	void computeGainColumns(FrameGeometry *geometry, UInt32 wordAddress, const struct timespec *interval);
+	void factoryGainColumns(FrameGeometry *geometry, UInt32 wordAddress, const struct timespec *interval);
 	UInt32 autoFPNCorrection(UInt32 framesToAverage, bool writeToFile = false, bool noCap = false, bool factory = false);
 	Int32 fastFPNCorrection();
 	Int32 loadFPNFromFile(void);

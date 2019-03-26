@@ -44,6 +44,7 @@ RecSettingsWindow::RecSettingsWindow(QWidget *parent, Camera * cameraInst) :
 	ui(new Ui::RecSettingsWindow)
 {
 	char str[100];
+	UInt32 gain;
 
 	// as non-static data member initializers can't happen in the .h, making sure it's set correct here.
 	windowInitComplete = false;
@@ -82,12 +83,15 @@ RecSettingsWindow::RecSettingsWindow(QWidget *parent, Camera * cameraInst) :
 	ui->spinHOffset->setValue(is->geometry.hOffset);
 	ui->spinVOffset->setValue(is->geometry.vOffset);
 
-	ui->comboGain->addItem("0dB (x1)");
-	ui->comboGain->addItem("6dB (x2)");
-	ui->comboGain->addItem("12dB (x4)");
-	ui->comboGain->addItem("18dB (x8)");
-	ui->comboGain->addItem("24dB (x16)");
-	ui->comboGain->setCurrentIndex(is->gain);
+	for (gain = camera->sensor->getMinGain(); gain <= camera->sensor->getMaxGain(); gain *= 2) {
+		QString gainText;
+		gainText.sprintf("%ddB (x%u)", int(6.0 * log2(gain)), gain);
+
+		ui->comboGain->addItem(gainText, QVariant(gain));
+	}
+	int gainIndex = ui->comboGain->findData(QVariant(is->gain));
+	if (gainIndex < 0) gainIndex = 0;
+	ui->comboGain->setCurrentIndex(gainIndex);
 
 	//Populate the common resolution combo box from the list of resolutions
 	QFile fp;
@@ -196,8 +200,13 @@ FrameGeometry RecSettingsWindow::getResolution(void)
 
 void RecSettingsWindow::on_cmdOK_clicked()
 {
-	is->gain = ui->comboGain->currentIndex();
+	int gainIndex = ui->comboGain->currentIndex();
+
+	is->gain = camera->sensor->getMinGain();
 	is->geometry = getResolution();
+	if (gainIndex >= 0) {
+		is->gain = ui->comboGain->itemData(gainIndex).toInt();
+	}
 
 	UInt32 period = camera->sensor->getActualFramePeriod(ui->linePeriod->siText(), &is->geometry);
 	UInt32 intTime = camera->sensor->getActualIntegrationTime(ui->lineExp->siText(), period, &is->geometry);

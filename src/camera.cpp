@@ -1238,7 +1238,7 @@ Int32 Camera::checkForDeadPixels(int* resultCount, int* resultMax) {
 	_is.geometry.vDarkRows = 0;	//inactive dark rows
 	_is.exposure = 400000;		//10ns increments
 	_is.period = 500000;		//Frame period in 10ns increments
-	_is.gain = LUX1310_GAIN_1;
+	_is.gain = sensor->getMinGain();
 	_is.recRegionSizeFrames = getMaxRecordRegionSizeFrames(&_is.geometry);
 	_is.disableRingBuffer = 0;
 	_is.mode = RECORD_MODE_NORMAL;
@@ -1530,6 +1530,7 @@ void Camera::computeFPNColumns(FrameGeometry *geometry, UInt32 wordAddress, UInt
 	free(fpnColumns);
 }
 
+/* Compute the gain columns using the analog test voltage. */
 void Camera::computeGainColumns(FrameGeometry *geometry, UInt32 wordAddress, const struct timespec *interval)
 {
 	UInt32 numRows = 64;
@@ -1774,8 +1775,116 @@ Int32 Camera::liveColumnCalibration(unsigned int iterations)
 	return setImagerSettings(isPrev);
 }
 
+/* Compute the gain columns by controlling exposure. */
+void Camera::factoryGainColumns(FrameGeometry *geometry, UInt32 wordAddress, const struct timespec *interval)
+{
+	UInt32 numRows = 64;
+	UInt32 numChannels = sensor->getHResIncrement();
+	UInt32 scale = numRows * geometry->hRes / (numChannels * 2);
+	UInt32 pixFullScale = (1 << BITS_PER_PIXEL);
+	UInt32 rowStart = ((geometry->vRes - numRows) / 2) & ~0x1f;
+	UInt32 rowSize = (geometry->hRes * BITS_PER_PIXEL) / 8;
+	UInt32 *pxBuffer = (UInt32 *)malloc(numRows * rowSize);
+	UInt32 highColumns[numChannels] = {0};
+	UInt32 lowColumns[numChannels] = {0};
+	UInt16 colGain[numChannels];
+	int col;
+	UInt32 maxColumn, minColumn;
+	UInt32 expHigh;
+	UInt32 fPeriod = sensor->getFramePeriod();
+	UInt32 expStart = sensor->getIntegrationTime();
+	UInt32 expLow = sensor->getMinIntegrationTime(fPeriod, geometry);
+	UInt32 expMax = sensor->getMaxIntegrationTime(fPeriod, geometry);
+	UInt32 expStep = (expMax - expLow) / 1000;
+
+	/* Setup the default calibration */
+	for (col = 0; col < numChannels; col++) {
+		colGain[col] = (1 << COL_GAIN_FRAC_BITS);
+	}
+
+	/* Sample rows from somewhere around the middle of the frame. */
+	wordAddress += (rowSize * rowStart) / BYTES_PER_WORD;
+
+	/* Search for a dummy voltage high reference point. */
+	for (expHigh = expMax; expHigh > 0; expHigh -= expStep) {
+		sensor->setIntegrationTime(expHigh, geometry);
+		nanosleep(interval, NULL);
+
+		/* Get the average value for only green pixels. */
+		readAcqMem(pxBuffer, wordAddress, rowSize * numRows);
+		memset(highColumns, 0, sizeof(highColumns));
+		for (int row = 0; row < numRows; row += 2) {
+			for(int col = 0; col < geometry->hRes; col++) {
+				highColumns[col % numChannels] += readPixelBuf12((UInt8 *)pxBuffer, (row + (col&1)) * geometry->hRes + col);
+			}
+		}
+		maxColumn = 0;
+		for (col = 0; col < numChannels; col++) {
+			if (highColumns[col] > maxColumn) maxColumn = highColumns[col];
+		}
+		maxColumn /= scale;
+
+		/* High voltage should be less than 3/4 of full scale */
+		if (maxColumn <= (pixFullScale - (pixFullScale / 8))) {
+			break;
+		}
+	}
+
+	sensor->setIntegrationTime(expLow, geometry);
+	nanosleep(interval, NULL);
+
+	/* Get the average pixel value. */
+	readAcqMem(pxBuffer, wordAddress, rowSize * numRows);
+	memset(lowColumns, 0, sizeof(lowColumns));
+	for (int row = 0; row < numRows; row += 2) {
+		for(col = 0; col < geometry->hRes; col++) {
+			lowColumns[col % numChannels] += readPixelBuf12((UInt8 *)pxBuffer, (row + (col&1)) * geometry->hRes + col);
+		}
+	}
+	minColumn = UINT32_MAX;
+	for (col = 0; col < numChannels; col++) {
+		if (lowColumns[col] < minColumn) minColumn = lowColumns[col];
+	}
+	minColumn /= scale;
+	free(pxBuffer);
+
+	/* Determine which column has the highest response, and sanity check the gain measurements. */
+	maxColumn = 0;
+	for (col = 0; col < numChannels; col++) {
+		UInt32 minrange = (pixFullScale * scale / 16);
+		UInt32 diff = highColumns[col] - lowColumns[col];
+		if (diff < minrange) break;
+		if (diff > maxColumn) maxColumn = diff;
+	}
+	if (col != numChannels) {
+		qWarning("Warning! ADC gain calibration range error.");
+		goto cleanup;
+	}
+
+	/* Compute the 3-point gain calibration coefficients. */
+	for (int col = 0; col < numChannels; col++) {
+		/* Compute the 2-point calibration coefficients. */
+		UInt32 diff = highColumns[col] - lowColumns[col];
+		UInt32 gain2pt = ((unsigned long long)maxColumn << COL_GAIN_FRAC_BITS) / diff;
+
+		/* Apply 2-point calibration */
+		colGain[col] = gain2pt;
+	}
+
+cleanup:
+	sensor->setIntegrationTime(expStart, geometry);
+
+	/* Enable 3-point calibration and load the column gains */
+	gpmc->write16(DISPLAY_GAIN_CONTROL_ADDR, DISPLAY_GAIN_CONTROL_3POINT);
+	for (int col = 0; col < geometry->hRes; col++) {
+		gpmc->write16(COL_GAIN_MEM_START_ADDR + (2 * col), colGain[col % numChannels]);
+		gpmc->write16(COL_CURVE_MEM_START_ADDR + (2 * col), 0);
+	}
+}
+
 Int32 Camera::autoColGainCorrection(void)
 {
+#if 0
 	Int32 retVal;
 	ImagerSettings_t _is;
 
@@ -1783,7 +1892,7 @@ Int32 Camera::autoColGainCorrection(void)
 	_is.geometry.vDarkRows = 0;	//inactive dark rows on top
 	_is.exposure = 400000;		//10ns increments
 	_is.period = 500000;		//Frame period in 10ns increments
-	_is.gain = LUX1310_GAIN_1;
+	_is.gain = sensor->getMinGain();
 	_is.recRegionSizeFrames = getMaxRecordRegionSizeFrames(&_is.geometry);
 	_is.disableRingBuffer = 0;
 	_is.mode = RECORD_MODE_NORMAL;
@@ -1824,7 +1933,50 @@ Int32 Camera::autoColGainCorrection(void)
 	retVal = computeColGainCorrection(1, true);
 	if(SUCCESS != retVal)
 		return retVal;
+#else
+	UInt32 numChannels = sensor->getHResIncrement();
+	struct timespec tRefresh;
+	unsigned int iterations = 32;
+	int offsets[numChannels];
+	Int32 retVal;
 
+	retVal = setRecSequencerModeCalLoop();
+	if (SUCCESS != retVal) {
+		return retVal;
+	}
+
+	//Turn off calibration light
+	io->setOutLevel(0);
+
+	/* Activate the recording sequencer. */
+	startSequencer();
+	ui->setRecLEDFront(true);
+	ui->setRecLEDBack(true);
+
+	/* Compute the live display worst-case frame refresh time. */
+	tRefresh.tv_sec = 0;
+	tRefresh.tv_nsec = (CAL_REGION_FRAMES+1) * imagerSettings.period * 10;
+
+	/* Clear out the ADC Offsets. */
+	for (int i = 0; i < numChannels; i++) {
+		offsets[i] = 0;
+		sensor->setADCOffset(i, 0);
+	}
+
+	/* Tune the ADC offset calibration. */
+	for (int i = 0; i < iterations; i++) {
+		nanosleep(&tRefresh, NULL);
+		offsetCorrectionIteration(&imagerSettings.geometry, offsets, CAL_REGION_START, CAL_REGION_FRAMES);
+	}
+
+	//Turn on calibration light
+	io->setOutLevel((1 << 1));
+	factoryGainColumns(&imagerSettings.geometry, CAL_REGION_START, &tRefresh);
+
+	terminateRecord();
+	ui->setRecLEDFront(false);
+	ui->setRecLEDBack(false);
+#endif
 	return SUCCESS;
 }
 
@@ -2423,7 +2575,7 @@ Int32 Camera::blackCalAllStdRes(bool factory)
 	int g;
 
 	//For each gain
-	for(g = LUX1310_GAIN_1; g <= LUX1310_GAIN_16; g++)
+	for(g = sensor->getMinGain(); g <= sensor->getMaxGain(); g *= 2)
 	{
 		if (!fp.reset()) {
 			return CAMERA_FILE_ERROR;
@@ -2473,7 +2625,7 @@ Int32 Camera::blackCalAllStdRes(bool factory)
 
 	memcpy(&settings.geometry, &maxSize, sizeof(maxSize));
 	settings.geometry.vDarkRows = 0; //Inactive dark rows on top
-	settings.gain = LUX1310_GAIN_1;
+	settings.gain = sensor->getMinGain();
 	settings.recRegionSizeFrames = getMaxRecordRegionSizeFrames(&settings.geometry);
 	settings.period = sensor->getMinFramePeriod(&settings.geometry);
 	settings.exposure = sensor->getMaxIntegrationTime(settings.period, &settings.geometry);
@@ -2538,7 +2690,7 @@ Int32 Camera::takeWhiteReferences(void)
 
 
 	//For each gain
-	for(g = LUX1310_GAIN_1; g <= LUX1310_GAIN_16; g++)
+	for(g = sensor->getMinGain(); g <= sensor->getMaxGain(); g *= 2)
 	{
 		UInt32 nomExp;
 
@@ -2556,17 +2708,6 @@ Int32 Camera::takeWhiteReferences(void)
 
 		nomExp = imagerSettings.exposure;
 
-		//Get the filename
-		switch(g)
-		{
-			case LUX1310_GAIN_1:		gName = LUX1310_GAIN_1_FN;		break;
-			case LUX1310_GAIN_2:		gName = LUX1310_GAIN_2_FN;		break;
-			case LUX1310_GAIN_4:		gName = LUX1310_GAIN_4_FN;		break;
-			case LUX1310_GAIN_8:		gName = LUX1310_GAIN_8_FN;		break;
-			case LUX1310_GAIN_16:		gName = LUX1310_GAIN_16_FN;		break;
-		default:						gName = "";						break;
-		}
-
 		//For each exposure value
 		for(int i = 0; i < (sizeof(exposures)/sizeof(exposures[0])); i++)
 		{
@@ -2580,7 +2721,7 @@ Int32 Camera::takeWhiteReferences(void)
 				return retVal;
 			}
 
-			qDebug() << "Recording frames for gain" << gName << "exposure" << i;
+			qDebug("Recording frames for gain G%u and exposure %d", g, i);
 			//Record frames
 			retVal = recordFrames(16);
 			if(SUCCESS != retVal)
@@ -2594,7 +2735,7 @@ Int32 Camera::takeWhiteReferences(void)
 
 
 			//Generate the filename for this particular resolution and offset
-			filename.sprintf("userFPN/wref_%s_LV%d.raw", gName, i+1);
+			filename.sprintf("userFPN/wref_G%u_LV%d.raw", g, i+1);
 
 			qDebug("Writing WhiteReference to file %s", filename.toUtf8().data());
 
