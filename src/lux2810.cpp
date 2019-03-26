@@ -1422,7 +1422,7 @@ Int32 LUX2100::initLUX2810()
     LUX2810RegWrite(0x08, 0x10);  //Y window start
     LUX2810RegWrite(0x09, 0x447);  //Y window end   1080 active
 
-    LUX2810RegWrite(0x01, 0x7011); // enable timing engine, turn on abn hold and ICF mode
+    LUX2810RegWrite(0x01, 0x4101); // enable timing engine, turn on abn hold and external shutter mode
 
     return SUCCESS;
 }
