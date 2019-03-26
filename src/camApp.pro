@@ -40,8 +40,14 @@ LIBS += -lm -lpthread -lrt -static-libstdc++
 
 ## Some other stuff to install.
 datafiles.path = /opt/camera
-datafiles.files = $$files(data/*)
+datafiles.files = data/resolutions
+datafiles.files += data/shuttingDown.data
+datafiles.files += data/stylesheet.qss
 INSTALLS += datafiles
+
+conffiles.path = /etc
+conffiles.files = data/chronos-gui.conf
+INSTALLS += conffiles
 
 ## Tweaks for Debian builds.
 exists( $${QT_SYSROOT}/etc/debian_version ) {

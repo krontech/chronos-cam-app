@@ -87,8 +87,23 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, ImageSensor * s
 	sensor = sensorInst;
 	ui = userInterface;
 	ramSize = (ramSizeGBSlot0 + ramSizeGBSlot1)*1024/32*1024*1024;
-	isColor = true;//readIsColor();
 	int err;
+
+	/* Color detection or override from env. */
+	const char *envColor = getenv("CAM_OVERRIDE_COLOR");
+	if (envColor) {
+		char *endp;
+		unsigned long uval = strtoul(envColor, &endp, 0);
+		if (*endp == '\0') isColor = (uval != 0);
+		else if (strcasecmp(envColor, "COLOR") == 0) isColor = true;
+		else if (strcasecmp(envColor, "TRUE") == 0) isColor = true;
+		else if (strcasecmp(envColor, "MONO") == 0) isColor = false;
+		else if (strcasecmp(envColor, "FALSE") == 0) isColor = false;
+		else isColor = readIsColor();
+	}
+	else {
+		isColor = readIsColor();
+	}
 
 	//dummy read
 	if(getRecording())
@@ -2655,7 +2670,6 @@ Int32 Camera::takeWhiteReferences(void)
 	UInt32 g;
 	QFile fp;
 	QString filename;
-	const char * gName;
 	double exposures[] = {0.000244141,
 						  0.000488281,
 						  0.000976563,

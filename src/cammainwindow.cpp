@@ -66,13 +66,23 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	vinst = new Video();
 	userInterface = new UserInterface();
 
-	/* FIXME: We need a better method for detecting the attached sensor. */
-	if (true)
-		sensor = new LUX2810();
-	else if (true)
-		sensor = new LUX2100();
-	else
+	const char *envSensor = getenv("CAM_OVERRIDE_SENSOR");
+	if (!envSensor) {
 		sensor = new LUX1310();
+	}
+	else if (strcasecmp(envSensor, "lux2100") == 0) {
+		sensor = new LUX2100();
+	}
+	else if (strcasecmp(envSensor, "lux2810") == 0) {
+		sensor = new LUX2810();
+	}
+	else if (strcasecmp(envSensor, "lux1310") == 0) {
+		sensor = new LUX1310();
+	}
+	else {
+		qWarning("Unknown sensor override - defaulting to LUX1310");
+		sensor = new LUX1310();
+	}
 
 	battCapacityPercent = 0;
 
