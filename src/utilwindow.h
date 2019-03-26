@@ -80,6 +80,9 @@ private slots:
 	void on_cmdEjectDisk_clicked();
 	void on_cmdFormatDisk_clicked();
 
+	void on_lineSshPassword_textEdited(const QString &password);
+	void on_cmdSshApply_clicked();
+
 	void on_chkAutoSave_stateChanged(int arg1);
 
 	void on_chkAutoRecord_stateChanged(int arg1);
@@ -99,10 +102,9 @@ private slots:
 	void on_comboDisableUnsavedWarning_currentIndexChanged(int index);
 
 	void on_cmdClose_2_clicked();
-	
 	void on_cmdClose_3_clicked();
-	
 	void on_cmdClose_4_clicked();
+	void on_cmdClose_5_clicked();
 
 	void on_tabWidget_currentChanged(int index);
 	

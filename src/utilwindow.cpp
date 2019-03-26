@@ -116,7 +116,7 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	camera->getRamSizeGB(&ramSizeSlot1, &ramSizeSlot2);
 	camera->readSerialNumber(serialNumber);
 
-	aboutText.sprintf("Camera Model: Chronos 1.4, %s, %dGB\r\n", (camera->getIsColor() ? "Color" : "Monochrome"), ramSizeSlot1 + ramSizeSlot2);
+	aboutText.sprintf("Camera Model: Chronos 2.1-HD, %s, %dGB\r\n", (camera->getIsColor() ? "Color" : "Monochrome"), ramSizeSlot1 + ramSizeSlot2);
 	aboutText.append(QString("Serial Number: %1\r\n").arg(serialNumber));
 	aboutText.append(QString("\r\n"));
 	aboutText.append(QString("Release Version: %1\r\n").arg(readReleaseString(release, sizeof(release))));
@@ -138,6 +138,9 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	ui->chkDemoMode->setChecked(camera->get_demoMode());
 	ui->chkUiOnLeft->setChecked(camera->getButtonsOnLeft());
 	ui->comboDisableUnsavedWarning->setCurrentIndex(camera->getUnsavedWarnEnable());
+
+	ui->cmdSshApply->setEnabled(false);
+	ui->lineSshPassword->setText("********");
 
 	ui->lineNetAddress->setEnabled(false);
 	ui->lineNetUser->setEnabled(false);
@@ -258,14 +261,58 @@ void UtilWindow::onUtilWindowTimer()
 	/* If on the storage tab, update the drive and network status. */
 	if (ui->tabWidget->currentWidget() == ui->tabStorage) {
 		char line[128];
+		struct stat st;
+		FILE *fp;
+
 		QString mText = "";
-		FILE *fp = popen("df -h /media/*", "r");
+		fp = popen("df -h | grep \'/media/\'", "r");
+		if (fp) {
+			while (fgets(line, sizeof(line), fp) != NULL) {
+				mText.append(line);
+			}
+			pclose(fp);
+		}
+		ui->lblMountedDevices->setText(mText);
+
+		/* Update the disk status text. */
+		QString diskText = "";
+		while (stat("/dev/sda", &st) == 0) {
+			if (!S_ISBLK(st.st_mode)) break;
+			fp = popen("lsblk --output NAME,SIZE,FSTYPE,LABEL,VENDOR,MODEL /dev/sda", "r");
+			if (!fp) break;
+			while (fgets(line, sizeof(line), fp) != NULL) {
+				diskText.append(line);
+			}
+			pclose(fp);
+			break;
+		}
+		ui->lblStatusDisk->setText(diskText);
+
+		/* Update the SD card status text. */
+		QString sdText = "";
+		while (stat("/dev/mmcblk1", &st) == 0) {
+			if (!S_ISBLK(st.st_mode)) break;
+			fp = popen("lsblk --output NAME,SIZE,FSTYPE,LABEL,VENDOR,MODEL /dev/mmcblk1", "r");
+			if (!fp) break;
+			while (fgets(line, sizeof(line), fp) != NULL) {
+				sdText.append(line);
+			}
+			pclose(fp);
+			break;
+		}
+		ui->lblStatusSD->setText(sdText);
+	}
+	/* If on the network tab, update the interface and network status. */
+	if (ui->tabWidget->currentWidget()  == ui->tabNetwork) {
+		char line[128];
+		QString netText = "";
+		FILE *fp = popen("ifconfig eth0", "r");
 		if (!fp) return;
 		while (fgets(line, sizeof(line), fp) != NULL) {
-			mText.append(line);
+			netText.append(line);
 		}
 		pclose(fp);
-		ui->lblMountedDevices->setText(mText);
+		ui->lblNetStatus->setText(netText);
 	}
 }
 
@@ -502,6 +549,12 @@ void UtilWindow::on_cmdClose_3_clicked()
 void UtilWindow::on_cmdClose_4_clicked()
 {
 	qDebug()<<"on_cmdClose_4_clicked";
+	on_cmdClose_clicked();
+}
+
+void UtilWindow::on_cmdClose_5_clicked()
+{
+	qDebug()<<"on_cmdClose_5_clicked";
 	on_cmdClose_clicked();
 }
 
@@ -773,12 +826,13 @@ void UtilWindow::formatStorageDevice(const char *blkdev)
 	progress->setMaximum(4);
 	progress->setMinimumDuration(0);
 	progress->setWindowModality(Qt::WindowModal);
+	progress->show();
 
 	/* Unmount the block device and any of its partitions */
 	progress->setLabelText("Unmounting devices");
 	progress->setValue(0);
 	filepathlen = sprintf(filepath, "/dev/%s", blkdev);
-	sprintf(partpath, "/dev/%s%s", blkdev, isdigit(blkdev[filepathlen-1]) ? "p1" : "1");
+	sprintf(partpath, "/dev/%s%s", blkdev, isdigit(filepath[filepathlen-1]) ? "p1" : "1");
 	while (getmntent_r(mtab, &mnt, tempbuf, sizeof(tempbuf)) != NULL) {
 		if (strncmp(filepath, mnt.mnt_fsname, filepathlen) != 0) continue;
 		qDebug("Unmounting %s", mnt.mnt_dir);
@@ -1070,6 +1124,17 @@ void UtilWindow::on_cmdRevertCalData_pressed()
 	msg.setText("User calibration data deleted");
 	msg.setWindowFlags(Qt::WindowStaysOnTopHint);
 	msg.exec();
+}
+
+void UtilWindow::on_lineSshPassword_textEdited(const QString & password)
+{
+	/* The world's saddest password policy... */
+	ui->cmdSshApply->setEnabled(password.size() >= 4);
+}
+
+void UtilWindow::on_cmdSshApply_clicked()
+{
+	qDebug() << "Would set password to:" << ui->lineSshPassword->text();
 }
 
 void UtilWindow::on_comboDisableUnsavedWarning_currentIndexChanged(int index)

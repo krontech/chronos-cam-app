@@ -11,7 +11,8 @@ Architecture: armel
 Depends: ${shlibs:Depends}, ${misc:Depends},
          libqt4-chronos (>= $${QT_VERSION}),
          chronos-upower,
-         chronos-video
+         chronos-video,
+	 dosfstools
 Description: User Interface for the Chronos Camera
  Qt4 user interface runs locally on the camera, and
  renders to the LCD display on the back of the camera.
