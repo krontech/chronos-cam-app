@@ -96,7 +96,7 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	ui->comboFPColor->addItem("Magenta");
 	ui->comboFPColor->addItem("Yellow");
 	ui->comboFPColor->addItem("White");
-	ui->comboFPColor->setCurrentIndex(camera->getFocusPeakColorLL() - 1);
+	ui->comboFPColor->setCurrentIndex(camera->getFocusPeakColor() - 1);
 	ui->chkZebraEnable->setChecked(camera->getZebraEnable());
 
 	if(camera->getFocusPeakThresholdLL() == FOCUS_PEAK_THRESH_HIGH)

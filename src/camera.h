@@ -265,12 +265,6 @@ private:
 	void writeDGCMem(double gain, UInt32 column);
 	bool readIsColor(void);
 public:
-	bool getFocusPeakEnableLL(void);
-	void setFocusPeakEnableLL(bool en);
-	UInt8 getFocusPeakColorLL(void);
-	void setFocusPeakColorLL(UInt8 color);
-	bool getZebraEnableLL(void);
-	void setZebraEnableLL(bool en);
 	void setFocusPeakThresholdLL(UInt32 thresh);
 	UInt32 getFocusPeakThresholdLL(void);
 	Int32 getRamSizeGB(UInt32 * stick0SizeGB, UInt32 * stick1SizeGB);
@@ -291,9 +285,6 @@ private:
 	bool isColor;
 
 	double imgGain;
-	bool focusPeakEnabled;
-	int focusPeakColorIndex;
-	bool zebraEnabled;
 	char serialNumber[SERIAL_NUMBER_MAX_LEN+1];
 
 public:
