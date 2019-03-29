@@ -98,6 +98,14 @@ RecSettingsWindow::RecSettingsWindow(QWidget *parent, Camera * cameraInst) :
 	QString filename;
 	QByteArray line;
 	QString lineText;
+	int fps;
+	FrameGeometry frameSize = camera->sensor->getMaxGeometry();
+
+	/* List the sensor's native resolution first. */
+	frameSize.hOffset = frameSize.vOffset = frameSize.vDarkRows = 0;
+	fps = camera->sensor->getFramePeriodClock() / camera->sensor->getMinFramePeriod(&frameSize);
+	lineText.sprintf("%dx%d %d fps", frameSize.hRes, frameSize.vRes, fps);
+	ui->comboRes->addItem(lineText);
 
 	filename.append("camApp:resolutions");
 	QFileInfo resolutionsFile(filename);
@@ -114,25 +122,24 @@ RecSettingsWindow::RecSettingsWindow(QWidget *parent, Camera * cameraInst) :
 
 	while(true) {
 		line = fp.readLine(30);
-		FrameGeometry fSize;
-
 		if (line.isEmpty() || line.isNull())
 			break;
 		
 		//Get the resolution and compute the maximum frame rate to be appended after the resolution
-		sscanf(line.constData(), "%dx%d", &fSize.hRes, &fSize.vRes);
-		fSize.bitDepth = BITS_PER_PIXEL;
-		fSize.hOffset = fSize.vOffset = fSize.vDarkRows = 0;
-		
-		int fr =  100000000.0 / (double)camera->sensor->getMinFramePeriod(&fSize);
-		qDebug() << "hres" << fSize.hRes << "vRes" << fSize.vRes << "mperiod" << camera->sensor->getMinFramePeriod(&fSize) << "fr" << fr;
+		sscanf(line.constData(), "%dx%d", &frameSize.hRes, &frameSize.vRes);
+		frameSize.hOffset = frameSize.vOffset = frameSize.vDarkRows = 0;
+		if (camera->sensor->isValidResolution(&frameSize)) {
+			int minPeriod = camera->sensor->getMinFramePeriod(&frameSize);
+			int fps = camera->sensor->getFramePeriodClock() / minPeriod;
+			qDebug("Common Res: %dx%d mPeriod=%d fps=%d", frameSize.hRes, frameSize.vRes, minPeriod, fps);
 
-		lineText.sprintf("%dx%d %d fps", fSize.hRes, fSize.vRes, fr);
-		
-		ui->comboRes->addItem(lineText);
-
-		if ((fSize.hRes == is->geometry.hRes) && (fSize.vRes == is->geometry.vRes)) {
-			ui->comboRes->setCurrentIndex(ui->comboRes->count() - 1);
+			lineText.sprintf("%dx%d %d fps", frameSize.hRes, frameSize.vRes, fps);
+			if (ui->comboRes->findText(lineText) < 0) {
+				ui->comboRes->addItem(lineText);
+				if ((frameSize.hRes == is->geometry.hRes) && (frameSize.vRes == is->geometry.vRes)) {
+					ui->comboRes->setCurrentIndex(ui->comboRes->count() - 1);
+				}
+			}
 		}
 	}
 	
