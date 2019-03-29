@@ -133,8 +133,6 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	//record the number of widgets that are open before any other windows can be opened
 	QWidgetList qwl = QApplication::topLevelWidgets();
 	windowsAlwaysOpen = qwl.count();
-
-
 }
 
 CamMainWindow::~CamMainWindow()

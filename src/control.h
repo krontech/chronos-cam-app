@@ -18,14 +18,18 @@ typedef enum {
     CONTROL_STATE_1 = 1,
     CONTROL_STATE_2 = 2,
     CONTROL_STATE_3 = 3,
-} ControlState;
+} ControlState2;
 
 
 struct ControlStatus {
-    ControlState state;
+    //ControlState state;
     UInt32 status1;
     UInt32 status2;
     UInt32 status3;
+};
+
+struct ControlState {
+    char state[128];
 };
 
 struct CameraData {
@@ -47,6 +51,30 @@ struct SensorData {
     double pixelRate;
 };
 
+struct SensorSettings {
+    double exposure;
+    double framePeriod;
+    double frameRate;
+    UInt32 vDarkRows;
+    UInt32 bitDepth;
+    UInt32 vRes;
+    UInt32 hOffset;
+    UInt32 hRes;
+    UInt32 vOffset;
+
+};
+
+struct SensorLimits {
+    double maxPeriod;
+    double minPeriod;
+};
+
+struct SensorWhiteBalance {
+    double red;
+    double green;
+    double blue;
+};
+
 class Control : public QObject {
     Q_OBJECT
 
@@ -56,7 +84,34 @@ public:
 
     CameraErrortype getCameraData(void);
     CameraErrortype getSensorData(void);
+    CameraErrortype getSensorSettings(void);
+    CameraErrortype getSensorLimits(void);
     CameraErrortype setCameraData(void);
+    CameraErrortype getSensorWhiteBalance(void);
+    CameraErrortype setSensorWhiteBalance(double red, double green, double blue);
+    CameraErrortype status(const char * lastState, const char * error);
+    CameraErrortype setDescription(const char * description, int idNumber);
+    CameraErrortype reinitSystem(void);
+    CameraErrortype setSensorTiming(double frameRate);
+    CameraErrortype setSensorSettings(int hRes, int vRes);
+    CameraErrortype getIoMapping(void);
+    CameraErrortype setIoMapping(void);
+    CameraErrortype calibrate(void);
+    CameraErrortype getColorMatrix(void);
+    CameraErrortype setColorMatrix(void);
+    CameraErrortype startRecord(void);
+    CameraErrortype stopRecord(void);
+    CameraErrortype getSensorCapabilities(void);
+    CameraErrortype dbusGetIoCapabilities(void);
+    CameraErrortype getCalCapabilities(void);
+    CameraErrortype getSequencerCapabilities(void);
+    CameraErrortype getSequencerProgram(void);
+    CameraErrortype setSequencerProgram(void);
+
+
+
+
+
     CameraData cd;
 
 signals:

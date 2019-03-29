@@ -190,6 +190,8 @@ public:
 	UInt32 getRecordLengthFrames(ImagerSettings_t settings);
     CameraData cData;
     SensorData sData;
+    SensorLimits sLimits;
+    SensorSettings sSettings;
 
 	unsigned short getTriggerDelayConstant();
 	void setTriggerDelayConstant(unsigned short value);

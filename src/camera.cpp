@@ -404,8 +404,30 @@ Int32 Camera::startRecording(void)
 
     //Now do dbus call!
     //TESTING Control dbus:
-    cinst->getCameraData();
-    cinst->getSensorData();
+    //cinst->getCameraData();
+    //cinst->getSensorData();
+    //cinst->getSensorLimits();
+    //cinst->setSensorSettings(640, 480);
+    //cinst->setSensorWhiteBalance(0.5, 0.5, 0.5);
+    //cinst->getSensorWhiteBalance();
+
+    //cinst->status("one", "two");
+    //cinst->setDescription("hello", 6);
+    //cinst->reinitSystem();
+    //cinst->setSensorTiming(500);
+    cinst->getSensorCapabilities();
+    cinst->dbusGetIoCapabilities();
+    //cinst->getIoMapping();
+    //cinst->setIoMapping();
+    //cinst->getCalCapabilities();
+    //cinst->calibrate();
+    //cinst->getColorMatrix();
+    //cinst->setColorMatrix();
+    //cinst->getSequencerCapabilities();
+    //cinst->getSequencerProgram();
+    //cinst->setSequencerProgram();
+    //cinst->startRecord();
+    //cinst->stopRecord();
 
     qDebug("##### hmmm 2");
     
@@ -416,7 +438,7 @@ Int32 Camera::startRecording(void)
 
 	switch(imagerSettings.mode)
 	{
-	case RECORD_MODE_NORMAL:
+    case RECORD_MODE_NORMAL:
 	case RECORD_MODE_SEGMENTED:
 		setRecSequencerModeNormal();
 	break;
