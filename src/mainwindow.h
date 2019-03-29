@@ -66,8 +66,6 @@ private slots:
 
 private:
 	Ui::MainWindow *ui;
-	UInt16 readPixel(UInt32 pixel, UInt32 offset);
-	void writePixel(UInt32 pixel, UInt32 offset, UInt16 value);
 	void writePixel12(UInt32 pixel, UInt32 offset, UInt16 value);
 };
 

@@ -646,49 +646,6 @@ UInt32 Camera::setPlayMode(bool playMode)
 	return SUCCESS;
 }
 
-/* Camera::readPixel
- *
- * Reads a 10-bit pixel out of acquisition RAM
- *
- * pixel:	Number of pixels into the image to read from
- * offset:	Offset in bytes
- *
- * returns: Pixel value
- **/
-UInt16 Camera::readPixel(UInt32 pixel, UInt32 offset)
-{
-	UInt32 address = pixel * 10 / 8 + offset;
-	UInt8 shift = (pixel & 0x3) * 2;
-	return ((gpmc->readRam8(address) >> shift) | (((UInt16)gpmc->readRam8(address+1)) << (8 - shift))) & ((1 << BITS_PER_PIXEL) - 1);
-}
-
-/* Camera::writePixel
- *
- * Writes a 10-bit pixel into acquisition RAM
- *
- * pixel:	Number of pixels into the image to write to
- * offset:	Offset in bytes
- * value:	Pixel value to write
- *
- * returns: nothing
- **/
-void Camera::writePixel(UInt32 pixel, UInt32 offset, UInt16 value)
-{
-	UInt32 address = pixel * 10 / 8 + offset;
-	UInt8 shift = (pixel & 0x3) * 2;
-	UInt8 dataL = gpmc->readRam8(address), dataH = gpmc->readRam8(address+1);
-
-	UInt8 maskL = ~(0xFF << shift);
-	UInt8 maskH = ~(0x3FF >> (8 - shift));
-	dataL &= maskL;
-	dataH &= maskH;
-
-	dataL |= (value << shift);
-	dataH |= (value >> (8 - shift));
-	gpmc->writeRam8(address, dataL);
-	gpmc->writeRam8(address+1, dataH);
-}
-
 /* Camera::readPixel12
  *
  * Reads a 12-bit pixel out of acquisition RAM
@@ -705,48 +662,34 @@ UInt16 Camera::readPixel12(UInt32 pixel, UInt32 offset)
 	return ((gpmc->readRam8(address) >> shift) | (((UInt16)gpmc->readRam8(address+1)) << (8 - shift))) & ((1 << BITS_PER_PIXEL) - 1);
 }
 
-/* Camera::readPixel
+/* Camera::readPixelCal
  *
- * Reads a 10-bit pixel out of a local buffer containing 10-bit packed data
+ * Reads a 12-bit pixel out of acquisition RAM with calibration applied.
  *
- * buf:		Pointer to image buffer
- * pixel:	Number of pixels into the buffer to read from
+ * x:		Horizontal pixel offset into the frame.
+ * y:		Vertical pixel offset into the frame.
+ * wordAddr: Memory address of the frame.
+ * size:	Frame geometry.
  *
- * returns: Pixel value
+ * returns: Calibrated pixel value
  **/
-UInt16 Camera::readPixelBuf(UInt8 * buf, UInt32 pixel)
+UInt16 Camera::readPixelCal(UInt32 x, UInt32 y, UInt32 wordAddr, FrameGeometry *geometry)
 {
-	UInt32 address = pixel * 10 / 8;
-	UInt8 shift = (pixel & 0x3) * 2;
-	return ((buf[address] >> shift) | (((UInt16)buf[address+1]) << (8 - shift))) & ((1 << BITS_PER_PIXEL) - 1);
-}
+	Int32 pixel = readPixel12(y * geometry->hRes + x, wordAddr * BYTES_PER_WORD);
+	UInt32 pxGain = (pixel * gpmc->read16(COL_GAIN_MEM_START_ADDR + (2 * x))) >> COL_GAIN_FRAC_BITS;
 
-/* Camera::writePixel
- *
- * Writes a 10-bit pixel into a local buffer containing 10-bit packed data
- *
- * buf:		Pointer to image buffer
- * pixel:	Number of pixels into the image to write to
- * value:	Pixel value to write
- *
- * returns: nothing
- **/
-void Camera::writePixelBuf(UInt8 * buf, UInt32 pixel, UInt16 value)
-{
-	UInt32 address = pixel * 10 / 8;
-	UInt8 shift = (pixel & 0x3) * 2;
-	UInt8 dataL = buf[address], dataH = buf[address+1];
-	//uint8 dataL = 0, dataH = 0;
-
-	UInt8 maskL = ~(0xFF << shift);
-	UInt8 maskH = ~(0x3FF >> (8 - shift));
-	dataL &= maskL;
-	dataH &= maskH;
-
-	dataL |= (value << shift);
-	dataH |= (value >> (8 - shift));
-	buf[address] = dataL;
-	buf[address+1] = dataH;
+	/* Apply column curvature and offset terms for 3-point cal. */
+	if (gpmc->read16(DISPLAY_GAIN_CONTROL_ADDR) & DISPLAY_GAIN_CONTROL_3POINT) {
+		Int32 pxCurve = (pixel * pixel * (Int16)gpmc->read16(COL_CURVE_MEM_START_ADDR + (2 * x))) >> COL_CURVE_FRAC_BITS;
+		Int32 pxOffset = (Int16)gpmc->read16(COL_OFFSET_MEM_START_ADDR + (2 * x));
+		/* TODO: FPN is a bit messy in 3-point world (signed 12-bit). */
+		return pxGain + pxCurve + pxOffset;
+	}
+	/* Otherwise - 2-point calibration requires FPN subtraction. */
+	else {
+		UInt32 fpn = readPixel12(y * geometry->hRes + x, FPN_ADDRESS * BYTES_PER_WORD);
+		return pxGain - fpn;
+	}
 }
 
 /* Camera::readPixel12
@@ -765,9 +708,9 @@ UInt16 Camera::readPixelBuf12(UInt8 * buf, UInt32 pixel)
 	return ((buf[address] >> shift) | (((UInt16)buf[address+1]) << (8 - shift))) & ((1 << BITS_PER_PIXEL) - 1);
 }
 
-/* Camera::writePixel
+/* Camera::writePixelBuf12
  *
- * Writes a 12-bit pixel into a local buffer containing 10-bit packed data
+ * Writes a 12-bit pixel into a local buffer containing 12-bit packed data
  *
  * buf:		Pointer to image buffer
  * pixel:	Number of pixels into the image to write to
@@ -2363,60 +2306,55 @@ void Camera::setWhiteBalance(const double *rgb)
 
 Int32 Camera::autoWhiteBalance(UInt32 x, UInt32 y)
 {
-	const UInt32 min_sum = 100 * (LUX1310_HRES_INCREMENT * LUX1310_HRES_INCREMENT) / 2;
+	UInt32 numChannels = sensor->getHResIncrement();
+	const UInt32 min_sum = 100 * (numChannels * numChannels) / 2;
 
-	UInt32 offset = (y & 0xFFFFFFF0) * imagerSettings.geometry.hRes + (x & 0xFFFFFFF0);
-	double gain[LUX1310_HRES_INCREMENT];
 	UInt32 r_sum = 0;
 	UInt32 g_sum = 0;
 	UInt32 b_sum = 0;
 	double scale;
 	int i, j;
 
-	/* Attempt to get the current column gain data, or default to 1.0 (no gain). */
-	if (readDCG(gain) != SUCCESS) {
-		for (i = 0; i < LUX1310_HRES_INCREMENT; i++) gain[i] = 1.0;
-	}
+	/* Round x and y down to units of 16 pixels. */
+	/* This only really needs to be rounded down to match the bayer pattern. */
+	x &= 0xFFFFFFF0;
+	y &= 0xFFFFFFF0;
 
-	for (i = 0; i < LUX1310_HRES_INCREMENT; i += 2) {
+	for (i = 0; i < numChannels; i += 2) {
 		/* Even Rows - Green/Red Pixels */
-		for (j = 0; j < LUX1310_HRES_INCREMENT; j++) {
-			UInt16 fpn = readPixel12(offset + j, FPN_ADDRESS * BYTES_PER_WORD);
-			UInt16 pix = readPixel12(offset + j, LIVE_REGION_START * BYTES_PER_WORD);
-			if (pix >= (4096 - 128)) {
+		for (j = 0; j < numChannels; j++) {
+			UInt16 pix = readPixelCal(x + j, y + i, LIVE_REGION_START, &imagerSettings.geometry);
+			if (((pix + 128) >> imagerSettings.geometry.bitDepth) != 0) {
 				return CAMERA_CLIPPED_ERROR;
 			}
 			if (j & 1) {
-				r_sum += gain[j] * (pix - fpn) * 2;
+				r_sum += pix * 2;
 			} else {
-				g_sum += gain[j] * (pix - fpn);
+				g_sum += pix;
 			}
 		}
-		offset += imagerSettings.geometry.hRes;
 
 		/* Odd Rows - Blue/Green Pixels */
-		for (j = 0; j < LUX1310_HRES_INCREMENT; j++) {
-			UInt16 fpn = readPixel12(offset + j, FPN_ADDRESS * BYTES_PER_WORD);
-			UInt16 pix = readPixel12(offset + j, LIVE_REGION_START * BYTES_PER_WORD);
-			if (pix >= (4096 - 128)) {
+		for (j = 0; j < numChannels; j++) {
+			UInt16 pix = readPixelCal(x + j, y + i + 1, LIVE_REGION_START, &imagerSettings.geometry);
+			if (((pix + 128) >> imagerSettings.geometry.bitDepth) != 0) {
 				return CAMERA_CLIPPED_ERROR;
 			}
 			if (j & 1) {
-				g_sum += (pix - fpn) * gain[j];
+				g_sum += pix;
 			} else {
-				b_sum += (pix - fpn) * gain[j] * 2;
+				b_sum += pix * 2;
 			}
 		}
-		offset += imagerSettings.geometry.hRes;
 	}
+
+	qDebug("WhiteBalance RGB average: %d %d %d",
+			(2*r_sum) / (numChannels * numChannels),
+			(2*g_sum) / (numChannels * numChannels),
+			(2*b_sum) / (numChannels * numChannels));
 
 	if ((r_sum < min_sum) || (g_sum < min_sum) || (b_sum < min_sum))
         	return CAMERA_LOW_SIGNAL_ERROR;
-
-	fprintf(stderr, "WhiteBalance RGB average: %d %d %d\n",
-			(2*r_sum) / (LUX1310_HRES_INCREMENT * LUX1310_HRES_INCREMENT),
-			(2*g_sum) / (LUX1310_HRES_INCREMENT * LUX1310_HRES_INCREMENT),
-			(2*b_sum) / (LUX1310_HRES_INCREMENT * LUX1310_HRES_INCREMENT));
 
 	/* Find the highest channel (probably green) */
 	scale = g_sum;
