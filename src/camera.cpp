@@ -402,8 +402,8 @@ Int32 Camera::startRecording(void)
 {
     qDebug("===== Camera::startRecording()");
 
-    //Now do dbus call!
-    //TESTING Control dbus:
+    //Now do dbus call
+    //TESTING Control dbus on pressing record
     //cinst->getCameraData();
     //cinst->getSensorData();
     //cinst->getSensorLimits();
@@ -415,8 +415,8 @@ Int32 Camera::startRecording(void)
     //cinst->setDescription("hello", 6);
     //cinst->reinitSystem();
     //cinst->setSensorTiming(500);
-    cinst->getSensorCapabilities();
-    cinst->dbusGetIoCapabilities();
+    //cinst->getSensorCapabilities();
+    //cinst->dbusGetIoCapabilities();
     //cinst->getIoMapping();
     //cinst->setIoMapping();
     //cinst->getCalCapabilities();
@@ -429,9 +429,7 @@ Int32 Camera::startRecording(void)
     //cinst->startRecord();
     //cinst->stopRecord();
 
-    qDebug("##### hmmm 2");
-    
-	if(recording)
+    if(recording)
 		return CAMERA_ALREADY_RECORDING;
 	if(playbackMode)
 		return CAMERA_IN_PLAYBACK_MODE;
