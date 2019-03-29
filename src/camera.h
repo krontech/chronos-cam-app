@@ -200,11 +200,8 @@ public:
 	UInt32 setImagerSettings(ImagerSettings_t settings);
 	UInt32 setIntegrationTime(double intTime, FrameGeometry *geometry, Int32 flags);
 	UInt32 setPlayMode(bool playMode);
-	UInt16 readPixel(UInt32 pixel, UInt32 offset);
-	void writePixel(UInt32 pixel, UInt32 offset, UInt16 value);
 	UInt16 readPixel12(UInt32 pixel, UInt32 offset);
-	UInt16 readPixelBuf(UInt8 * buf, UInt32 pixel);
-	void writePixelBuf(UInt8 * buf, UInt32 pixel, UInt16 value);
+	UInt16 readPixelCal(UInt32 x, UInt32 y, UInt32 wordAddress, FrameGeometry *geometry);
 	UInt16 readPixelBuf12(UInt8 * buf, UInt32 pixel);
 	void writePixelBuf12(UInt8 * buf, UInt32 pixel, UInt16 value);
 	void computeFPNCorrection(FrameGeometry *geometry, UInt32 wordAddress, UInt32 framesToAverage, bool writeToFile = false, bool factory = false);
