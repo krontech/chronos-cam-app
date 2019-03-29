@@ -201,6 +201,7 @@ FrameGeometry RecSettingsWindow::getResolution(void)
 void RecSettingsWindow::on_cmdOK_clicked()
 {
 	int gainIndex = ui->comboGain->currentIndex();
+	bool videoFlip = (camera->sensor->getSensorQuirks() & SENSOR_QUIRK_UPSIDE_DOWN) != 0;
 
 	is->gain = camera->sensor->getMinGain();
 	is->geometry = getResolution();
@@ -218,7 +219,7 @@ void RecSettingsWindow::on_cmdOK_clicked()
 	camera->updateTriggerValues(*is);
 
 	camera->setImagerSettings(*is);
-	camera->vinst->liveDisplay(is->geometry.hRes, is->geometry.vRes);
+	camera->vinst->liveDisplay(is->geometry.hRes, is->geometry.vRes, videoFlip);
 	camera->liveColumnCalibration();
 
 	if(CAMERA_FILE_NOT_FOUND == camera->loadFPNFromFile()) {

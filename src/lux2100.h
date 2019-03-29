@@ -107,7 +107,6 @@ public:
     LUX2100();
     ~LUX2100();
 	CameraErrortype init(GPMC * gpmc_inst);
-	CameraErrortype initSensor();
 
 	/* Frame Geometry Functions. */
 	void setResolution(FrameGeometry *frameSize);
@@ -145,6 +144,7 @@ public:
 	std::string getFilename(const char * filename, const char * extension);
 
 private:
+	CameraErrortype initSensor();
 	CameraErrortype autoPhaseCal(void);
 	UInt32 getDataCorrect(void);
 	void setSyncToken(UInt16 token);

@@ -21,10 +21,16 @@
 #include "gpmc.h"
 #include <string>
 
+/* Bitmask of quirky sensor behavior for the UI to deal with. */
+#define SENSOR_QUIRK_UPSIDE_DOWN	0x00000001
+
 class ImageSensor
 {
 public:
 	virtual CameraErrortype init(GPMC * gpmc_inst) = 0;
+
+	/* Report strange sensor issues. */
+	virtual UInt32 getSensorQuirks() { return 0; }
 
 	/* Frame Geometry Functions. */
 	virtual void setResolution(FrameGeometry *frameSize) = 0;

@@ -250,7 +250,7 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, ImageSensor * s
 
 	vinst->setDisplayOptions(getZebraEnable(), getFocusPeakEnable() ? (FocusPeakColors)getFocusPeakColor() : FOCUS_PEAK_DISABLE);
 	vinst->setDisplayPosition(ButtonsOnLeft ^ UpsideDownDisplay);
-	vinst->liveDisplay(settings.geometry.hRes, settings.geometry.vRes);
+	vinst->liveDisplay(settings.geometry.hRes, settings.geometry.vRes, (sensor->getSensorQuirks() & SENSOR_QUIRK_UPSIDE_DOWN) != 0);
 	setFocusPeakThresholdLL(appSettings.value("camera/focusPeakThreshold", 25).toUInt());
 
 	printf("Video init done\n");
@@ -436,7 +436,7 @@ Int32 Camera::startRecording(void)
 	recordingData.valid = false;
 	recordingData.hasBeenSaved = false;
 	vinst->flushRegions();
-	vinst->liveDisplay(imagerSettings.geometry.hRes, imagerSettings.geometry.vRes);
+	vinst->liveDisplay(imagerSettings.geometry.hRes, imagerSettings.geometry.vRes, (sensor->getSensorQuirks() & SENSOR_QUIRK_UPSIDE_DOWN) != 0);
 	startSequencer();
 	ui->setRecLEDFront(true);
 	ui->setRecLEDBack(true);
@@ -619,7 +619,8 @@ UInt32 Camera::setPlayMode(bool playMode)
 	}
 	else
 	{
-		vinst->liveDisplay(imagerSettings.geometry.hRes, imagerSettings.geometry.vRes);
+		bool videoFlip = (sensor->getSensorQuirks() & SENSOR_QUIRK_UPSIDE_DOWN) != 0;
+		vinst->liveDisplay(imagerSettings.geometry.hRes, imagerSettings.geometry.vRes, videoFlip);
 	}
 	return SUCCESS;
 }

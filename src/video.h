@@ -115,7 +115,7 @@ public:
 	void loopPlayback(unsigned int start, unsigned int length, int rate);
 	void setDisplayOptions(bool zebra, FocusPeakColors fpColor);
 	void setDisplayPosition(bool videoOnRight);
-	void liveDisplay(unsigned int hRes, unsigned int vRes);
+	void liveDisplay(unsigned int hRes, unsigned int vRes, bool flip);
 	VideoState getStatus(VideoStatus *st);
 
 	CameraErrortype startRecording(UInt32 sizeX, UInt32 sizeY, UInt32 start, UInt32 length, save_mode_type save_mode);
