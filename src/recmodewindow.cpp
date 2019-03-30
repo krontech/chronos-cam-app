@@ -35,6 +35,7 @@ recModeWindow::recModeWindow(QWidget *parent, Camera * cameraInst, ImagerSetting
         case RECORD_MODE_GATED_BURST:
             ui->radioGated->setChecked(true);
             ui->stackedWidget->setCurrentIndex(1);
+		  ui->grpSegmented->setVisible(false);
         break;
 
         case RECORD_MODE_FPN:
