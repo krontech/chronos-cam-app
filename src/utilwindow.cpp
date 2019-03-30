@@ -36,6 +36,7 @@
 #include <sys/sendfile.h>
 #include <mntent.h>
 
+#include "aptupdate.h"
 #include "util.h"
 #include "chronosControlInterface.h"
 
@@ -188,6 +189,13 @@ void UtilWindow::on_cmdSWUpdate_clicked()
 	msg.setWindowFlags(Qt::WindowStaysOnTopHint);
 	//msg.setInformativeText("Update");
 	msg.exec();
+}
+
+void UtilWindow::on_cmdNetUpdate_clicked()
+{
+	AptUpdate *update = new AptUpdate(this);
+	update->exec();
+	delete update;
 }
 
 int UtilWindow::updateSoftware(char * updateLocation){

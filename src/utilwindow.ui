@@ -834,7 +834,7 @@ Software Update</string>
       </property>
      </widget>
     </widget>
-    <widget class="QPushButton" name="cmdSWUpdate_2">
+    <widget class="QPushButton" name="cmdNetUpdate">
      <property name="geometry">
       <rect>
        <x>610</x>
@@ -845,7 +845,7 @@ Software Update</string>
      </property>
      <property name="text">
       <string>Download
-Software Update</string>
+Software Updates</string>
      </property>
     </widget>
     <widget class="QGroupBox" name="gbNetwork">

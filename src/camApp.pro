@@ -110,7 +110,8 @@ SOURCES += main.cpp\
     chronosControlInterface.cpp \
     chronosVideoInterface.cpp \
     colorwindow.cpp \
-    colordoublespinbox.cpp
+    colordoublespinbox.cpp \
+    aptupdate.cpp
 
 ## Generate version.cpp on every build
 versionTarget.target = version.cpp
@@ -168,7 +169,8 @@ HEADERS  += mainwindow.h \
     colorwindow.h \
     colordoublespinbox.h \
     frameGeometry.h \
-    sensor.h
+    sensor.h \
+    aptupdate.h
 
 FORMS    += mainwindow.ui \
     cammainwindow.ui \
