@@ -947,10 +947,9 @@ void UtilWindow::on_cmdRestoreSettings_clicked()
 	sw.show();
 	QCoreApplication::processEvents();
 
-	sprintf(str, "tar -xf /media/sda1/user_settings.tar -C /Settings");
+	sprintf(str, "tar -xf /media/sda1/user_settings.tar -C /");
 
 	retVal = system(str);	//tar cal files
-
 	if(0 != retVal)
 	{
 		sw.hide();
