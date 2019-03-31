@@ -127,7 +127,7 @@ public:
 	unsigned int enableAnalogTestMode(void);
 	void disableAnalogTestMode(void);
 	void setAnalogTestVoltage(unsigned int);
-	void setADCOffset(UInt8 channel, Int16 offset);
+	void adcOffsetTraining(FrameGeometry *frameSize, UInt32 address, UInt32 numFrames);
 	std::string getFilename(const char * filename, const char * extension);
 
 	UInt32 getMinGain() { return 1; }
@@ -155,6 +155,8 @@ private:
 	void SCIWriteBuf(UInt8 address, const UInt8 * data, UInt32 dataLen);
 	UInt16 SCIRead(UInt8 address);
 	void updateWavetableSetting(bool gainCalMode);
+	void setADCOffset(UInt8 channel, Int16 offset);
+	void offsetCorrectionIteration(FrameGeometry *geometry, int *offsets, UInt32 address, UInt32 framesToAverage);
 
 	FrameGeometry currentRes;
 	UInt32 currentPeriod;

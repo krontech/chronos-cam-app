@@ -166,7 +166,7 @@ public:
 	unsigned int enableAnalogTestMode(void);
 	void disableAnalogTestMode(void);
 	void setAnalogTestVoltage(unsigned int);
-	void setADCOffset(UInt8 channel, Int16 offset);
+	void adcOffsetTraining(FrameGeometry *frameSize, UInt32 address, UInt32 numFrames);
 	std::string getFilename(const char * filename, const char * extension);
 
 private:
@@ -189,14 +189,6 @@ private:
 	int LUX2810RegWrite(UInt16 addr, UInt16 data);
 	int LUX2810RegRead(UInt16 addr, UInt16 & data);
 	int LUX2810LoadWavetable(UInt32 * wavetable, UInt32 length);
-	void SCIWrite(UInt8 address, UInt16 data);
-	void SCIWriteBuf(UInt8 address, UInt8 * data, UInt32 dataLen);
-	UInt16 SCIRead(UInt8 address);
-	void updateWavetableSetting(bool gainCalMode = false);
-	Int16 getADCOffset(UInt8 channel);
-    Int32 doAutoADCOffsetCalibration(void);
-	Int32 loadADCOffsetsFromFile(void);
-	Int32 saveADCOffsetsToFile(void);
 	Int32 setABNDelayClocks(UInt32 ABNOffset);
     Int32 initLUX2810();
 

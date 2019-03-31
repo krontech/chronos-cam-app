@@ -41,13 +41,12 @@ public:
 	UInt8 readRam8(UInt32 offset);
 	void writeRam8(UInt32 offset, UInt8 data);
 
+	UInt16 readPixel12(UInt32 pixel, UInt32 offset);
+	void readAcqMem(UInt32 * buf, UInt32 offsetWords, UInt32 length);
+	void writeAcqMem(UInt32 * buf, UInt32 offsetWords, UInt32 length);
+
+private:
 	UInt32 map_base, map_registers, map_ram;
 };
-/*
-enum {
-	GPMC_SUCCESS = 0,
-	GPMCERR_FOPEN,
-	GPMCERR_MAP
-};
-*/
+
 #endif // GPMC_H

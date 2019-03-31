@@ -711,3 +711,77 @@ UInt8 LUX1310::getFilterColor(UInt32 h, UInt32 v)
 		return ((h & 1) == 0) ? FILTER_COLOR_BLUE : FILTER_COLOR_GREEN;
 
 }
+
+void LUX1310::offsetCorrectionIteration(FrameGeometry *geometry, int *offsets, UInt32 address, UInt32 framesToAverage)
+{
+	UInt32 numRows = geometry->vDarkRows ? geometry->vDarkRows : 1;
+	UInt32 rowSize = (geometry->hRes * LUX1310_BITS_PER_PIXEL) / 8;
+	UInt32 samples = (numRows * framesToAverage * geometry->hRes / LUX1310_HRES_INCREMENT);
+	UInt32 adcAverage[LUX1310_HRES_INCREMENT];
+	UInt32 adcStdDev[LUX1310_HRES_INCREMENT];
+
+	UInt32 *pxbuffer = (UInt32 *)malloc(rowSize * numRows * framesToAverage);
+
+	for(int i = 0; i < LUX1310_HRES_INCREMENT; i++) {
+		adcAverage[i] = 0;
+		adcStdDev[i] = 0;
+	}
+	/* Read out the black regions from all frames. */
+	for (int i = 0; i < framesToAverage; i++) {
+		UInt32 *rowbuffer = pxbuffer + (rowSize * numRows * i) / sizeof(UInt32);
+		gpmc->readAcqMem(rowbuffer, address, rowSize * numRows);
+		address += gpmc->read32(SEQ_FRAME_SIZE_ADDR);
+	}
+
+	/* Find the per-ADC averages and standard deviation */
+	for (int row = 0; row < (numRows * framesToAverage); row++) {
+		for (int col = 0; col < geometry->hRes; col++) {
+			adcAverage[col % LUX1310_HRES_INCREMENT] += readPixelBuf12((UInt8 *)pxbuffer, row * geometry->hRes + col);
+		}
+	}
+	for (int row = 0; row < (numRows * framesToAverage); row++) {
+		for (int col = 0; col < geometry->hRes; col++) {
+			UInt16 pix = readPixelBuf12((UInt8 *)pxbuffer, row * geometry->hRes + col);
+			UInt16 avg = adcAverage[col % LUX1310_HRES_INCREMENT] / samples;
+			adcStdDev[col % LUX1310_HRES_INCREMENT] += (pix - avg) * (pix - avg);
+		}
+	}
+	for(int col = 0; col < LUX1310_HRES_INCREMENT; col++) {
+		adcStdDev[col] = sqrt(adcStdDev[col] / (samples - 1));
+		adcAverage[col] /= samples;
+	}
+	free(pxbuffer);
+
+	/* Train the ADC for a target of: Average = Footroom + StandardDeviation */
+	for(int col = 0; col < LUX1310_HRES_INCREMENT; col++) {
+		UInt16 avg = adcAverage[col];
+		UInt16 dev = adcStdDev[col];
+
+		offsets[col] = offsets[col] - (avg - dev - 32) / 2;
+		offsets[col] = within(offsets[col], -1023, 1023);
+		setADCOffset(col, offsets[col]);
+	}
+}
+
+
+void LUX1310::adcOffsetTraining(FrameGeometry *size, UInt32 address, UInt32 numFrames)
+{
+	int offsets[LUX1310_HRES_INCREMENT];
+	unsigned int iterations = 32;
+	struct timespec tRefresh;
+
+	tRefresh.tv_sec = 0;
+	tRefresh.tv_nsec = ((numFrames+10) * currentPeriod * 1000000000ULL) / LUX1310_TIMING_CLOCK;
+
+	/* Clear out the ADC Offsets. */
+	for (int i = 0; i < LUX1310_HRES_INCREMENT; i++) {
+		offsets[i] = 0;
+		setADCOffset(i, 0);
+	}
+
+	/* Tune the ADC offset calibration. */
+	for (int i = 0; i < iterations; i++) {
+		nanosleep(&tRefresh, NULL);
+		offsetCorrectionIteration(size, offsets, address, numFrames);
+	}
+}

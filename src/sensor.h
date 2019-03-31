@@ -77,7 +77,7 @@ public:
 	virtual unsigned int enableAnalogTestMode(void) { return 0; } /* Return number of voltage steps, or 0 if not supported. */
 	virtual void disableAnalogTestMode(void) {}
 	virtual void setAnalogTestVoltage(unsigned int) {}
-	virtual void setADCOffset(UInt8 channel, Int16 offset) = 0;
+	virtual void adcOffsetTraining(FrameGeometry *frameSize, UInt32 address, UInt32 numFrames) {}
 	virtual std::string getFilename(const char * filename, const char * extension) = 0;
 
 	/* Helper Functions */

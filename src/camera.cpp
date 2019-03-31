@@ -625,22 +625,6 @@ UInt32 Camera::setPlayMode(bool playMode)
 	return SUCCESS;
 }
 
-/* Camera::readPixel12
- *
- * Reads a 12-bit pixel out of acquisition RAM
- *
- * pixel:	Number of pixels into the image to read from
- * offset:	Offset in bytes
- *
- * returns: Pixel value
- **/
-UInt16 Camera::readPixel12(UInt32 pixel, UInt32 offset)
-{
-	UInt32 address = pixel * 12 / 8 + offset;
-	UInt8 shift = (pixel & 0x1) * 4;
-	return ((gpmc->readRam8(address) >> shift) | (((UInt16)gpmc->readRam8(address+1)) << (8 - shift))) & ((1 << BITS_PER_PIXEL) - 1);
-}
-
 /* Camera::readPixelCal
  *
  * Reads a 12-bit pixel out of acquisition RAM with calibration applied.
@@ -654,7 +638,7 @@ UInt16 Camera::readPixel12(UInt32 pixel, UInt32 offset)
  **/
 UInt16 Camera::readPixelCal(UInt32 x, UInt32 y, UInt32 wordAddr, FrameGeometry *geometry)
 {
-	UInt32 pixel = readPixel12(y * geometry->hRes + x, wordAddr * BYTES_PER_WORD);
+	UInt32 pixel = gpmc->readPixel12(y * geometry->hRes + x, wordAddr * BYTES_PER_WORD);
 	UInt32 pxGain = (pixel * gpmc->read16(COL_GAIN_MEM_START_ADDR + (2 * x))) >> COL_GAIN_FRAC_BITS;
 
 	/* Apply column curvature and offset terms for 3-point cal. */
@@ -666,53 +650,9 @@ UInt16 Camera::readPixelCal(UInt32 x, UInt32 y, UInt32 wordAddr, FrameGeometry *
 	}
 	/* Otherwise - 2-point calibration requires FPN subtraction. */
 	else {
-		UInt32 fpn = readPixel12(y * geometry->hRes + x, FPN_ADDRESS * BYTES_PER_WORD);
+		UInt32 fpn = gpmc->readPixel12(y * geometry->hRes + x, FPN_ADDRESS * BYTES_PER_WORD);
 		return pxGain - fpn;
 	}
-}
-
-/* Camera::readPixel12
- *
- * Reads a 12-bit pixel out of a local buffer containing 12-bit packed data
- *
- * buf:		Pointer to image buffer
- * pixel:	Number of pixels into the buffer to read from
- *
- * returns: Pixel value
- **/
-UInt16 Camera::readPixelBuf12(UInt8 * buf, UInt32 pixel)
-{
-	UInt32 address = pixel * 12 / 8;
-	UInt8 shift = (pixel & 0x1) * 4;
-	return ((buf[address] >> shift) | (((UInt16)buf[address+1]) << (8 - shift))) & ((1 << BITS_PER_PIXEL) - 1);
-}
-
-/* Camera::writePixelBuf12
- *
- * Writes a 12-bit pixel into a local buffer containing 12-bit packed data
- *
- * buf:		Pointer to image buffer
- * pixel:	Number of pixels into the image to write to
- * value:	Pixel value to write
- *
- * returns: nothing
- **/
-void Camera::writePixelBuf12(UInt8 * buf, UInt32 pixel, UInt16 value)
-{
-	UInt32 address = pixel * 12 / 8;
-	UInt8 shift = (pixel & 0x1) * 4;
-	UInt8 dataL = buf[address], dataH = buf[address+1];
-	//uint8 dataL = 0, dataH = 0;
-
-	UInt8 maskL = ~(0xFF << shift);
-	UInt8 maskH = ~(0xFFF >> (8 - shift));
-	dataL &= maskL;
-	dataH &= maskH;
-
-	dataL |= (value << shift);
-	dataH |= (value >> (8 - shift));
-	buf[address] = dataL;
-	buf[address+1] = dataH;
 }
 
 void Camera::loadFPNCorrection(FrameGeometry *geometry, const UInt16 *fpnBuffer, UInt32 framesToAverage)
@@ -768,7 +708,7 @@ void Camera::loadFPNCorrection(FrameGeometry *geometry, const UInt16 *fpnBuffer,
 			writePixelBuf12(pixBuffer, i, (unsigned)fpn & 0xfff);
 		}
 	}
-	writeAcqMem((UInt32 *)pixBuffer, FPN_ADDRESS, geometry->size());
+	gpmc->writeAcqMem((UInt32 *)pixBuffer, FPN_ADDRESS, geometry->size());
 
 	/* Update the image gain to compensate for dynamic range lost to the FPN. */
 	imgGain = 4096.0 / (double)((1 << geometry->bitDepth) - maxColumn) * IMAGE_GAIN_FUDGE_FACTOR;
@@ -821,7 +761,7 @@ void Camera::computeFPNCorrection(FrameGeometry *geometry, UInt32 wordAddress, U
 
 	/* Read frames out of the recorded region and sum their pixels. */
 	for(int frame = 0; frame < framesToAverage; frame++) {
-		readAcqMem((UInt32 *)pixBuffer, wordAddress, geometry->size());
+		gpmc->readAcqMem((UInt32 *)pixBuffer, wordAddress, geometry->size());
 		for(int row = 0; row < geometry->vRes; row++) {
 			for(int col = 0; col < geometry->hRes; col++) {
 				int i = row * geometry->hRes + col;
@@ -1048,9 +988,7 @@ Int32 Camera::computeColGainCorrection(UInt32 framesToAverage, bool writeToFile)
 	memset(buffer, 0, sizeof(buffer)*sizeof(buffer[0]));
 
 	//Read the FPN frame into a buffer
-	readAcqMem(rawBuffer32,
-			   FPN_ADDRESS,
-			   bytesPerFrame);
+	gpmc->readAcqMem(rawBuffer32, FPN_ADDRESS, bytesPerFrame);
 
 	//Retrieve pixels from the raw buffer and sum them
 	for(i = 0; i < pixelsPerFrame; i++)
@@ -1062,7 +1000,7 @@ Int32 Camera::computeColGainCorrection(UInt32 framesToAverage, bool writeToFile)
 	for(int frame = 0; frame < framesToAverage; frame++)
 	{
 		//Get one frame into the raw buffer
-		readAcqMem(rawBuffer32,
+		gpmc->readAcqMem(rawBuffer32,
 				   REC_REGION_START + frame * getFrameSizeWords(&recordingData.is.geometry),
 				   bytesPerFrame);
 
@@ -1220,9 +1158,7 @@ Int32 Camera::checkForDeadPixels(int* resultCount, int* resultMax) {
 
 	memset(fpnBuffer, 0, sizeof(fpnBuffer));
 	//Read the FPN frame into a buffer
-	readAcqMem(rawBuffer32,
-			   FPN_ADDRESS,
-			   bytesPerFrame);
+	gpmc->readAcqMem(rawBuffer32, FPN_ADDRESS, bytesPerFrame);
 
 	//Retrieve pixels from the raw buffer and sum them
 	for(int i = 0; i < pixelsPerFrame; i++) {
@@ -1265,9 +1201,8 @@ Int32 Camera::checkForDeadPixels(int* resultCount, int* resultMax) {
 		// Average pixels across frame
 		for(frame = 0; frame < 16; frame++) {
 			//Get one frame into the raw buffer
-			readAcqMem(rawBuffer32,
-					   REC_REGION_START + frame * getFrameSizeWords(&recordingData.is.geometry),
-					   bytesPerFrame);
+			UInt32 frameAddr = REC_REGION_START + frame * getFrameSizeWords(&recordingData.is.geometry);
+			gpmc->readAcqMem(rawBuffer32, frameAddr, bytesPerFrame);
 
 			//Retrieve pixels from the raw buffer and sum them
 			for(i = 0; i < pixelsPerFrame; i++) {
@@ -1403,58 +1338,6 @@ checkForDeadPixelsCleanup:
 	return retVal;
 }
 
-void Camera::offsetCorrectionIteration(FrameGeometry *geometry, int *offsets, UInt32 wordAddress, UInt32 framesToAverage)
-{
-	UInt32 numChannels = sensor->getHResIncrement();
-	UInt32 numRows = geometry->vDarkRows ? geometry->vDarkRows : 1;
-	UInt32 rowSize = (geometry->hRes * BITS_PER_PIXEL) / 8;
-	UInt32 samples = (numRows * framesToAverage * geometry->hRes / numChannels);
-	UInt32 adcAverage[numChannels];
-	UInt32 adcStdDev[numChannels];
-
-	UInt32 *pxbuffer = (UInt32 *)malloc(rowSize * numRows * framesToAverage);
-
-	for(int i = 0; i < numChannels; i++) {
-		adcAverage[i] = 0;
-		adcStdDev[i] = 0;
-	}
-	/* Read out the black regions from all frames. */
-	for (int i = 0; i < framesToAverage; i++) {
-		UInt32 *rowbuffer = pxbuffer + (rowSize * numRows * i) / sizeof(UInt32);
-		readAcqMem(rowbuffer, wordAddress, rowSize * numRows);
-		wordAddress += getFrameSizeWords(geometry);
-	}
-
-	/* Find the per-ADC averages and standard deviation */
-	for (int row = 0; row < (numRows * framesToAverage); row++) {
-		for (int col = 0; col < geometry->hRes; col++) {
-			adcAverage[col % numChannels] += readPixelBuf12((UInt8 *)pxbuffer, row * geometry->hRes + col);
-		}
-	}
-	for (int row = 0; row < (numRows * framesToAverage); row++) {
-		for (int col = 0; col < geometry->hRes; col++) {
-			UInt16 pix = readPixelBuf12((UInt8 *)pxbuffer, row * geometry->hRes + col);
-			UInt16 avg = adcAverage[col % numChannels] / samples;
-			adcStdDev[col % numChannels] += (pix - avg) * (pix - avg);
-		}
-	}
-	for(int col = 0; col < numChannels; col++) {
-		adcStdDev[col] = sqrt(adcStdDev[col] / (samples - 1));
-		adcAverage[col] /= samples;
-	}
-	free(pxbuffer);
-
-	/* Train the ADC for a target of: Average = Footroom + StandardDeviation */
-	for(int col = 0; col < numChannels; col++) {
-		UInt16 avg = adcAverage[col];
-		UInt16 dev = adcStdDev[col];
-
-		offsets[col] = offsets[col] - (avg - dev - COL_OFFSET_FOOTROOM) / 2;
-		offsets[col] = within(offsets[col], -1023, 1023);
-		sensor->setADCOffset(col, offsets[col]);
-	}
-}
-
 void Camera::computeFPNColumns(FrameGeometry *geometry, UInt32 wordAddress, UInt32 framesToAverage)
 {
 	UInt32 rowSize = (geometry->hRes * BITS_PER_PIXEL) / 8;
@@ -1464,7 +1347,7 @@ void Camera::computeFPNColumns(FrameGeometry *geometry, UInt32 wordAddress, UInt
 
 	/* Read and sum the dark columns */
 	for (int i = 0; i < framesToAverage; i++) {
-		readAcqMem(pxBuffer, wordAddress, rowSize * geometry->vRes);
+		gpmc->readAcqMem(pxBuffer, wordAddress, rowSize * geometry->vRes);
 		for (int row = 0; row < geometry->vRes; row++) {
 			for(int col = 0; col < geometry->hRes; col++) {
 				fpnColumns[col] += readPixelBuf12((UInt8 *)pxBuffer, row * geometry->hRes + col);
@@ -1481,7 +1364,7 @@ void Camera::computeFPNColumns(FrameGeometry *geometry, UInt32 wordAddress, UInt
 	}
 	/* Clear out the per-pixel FPN (for now). */
 	memset(pxBuffer, 0, rowSize * geometry->vRes);
-	writeAcqMem(pxBuffer, FPN_ADDRESS, rowSize * geometry->vRes);
+	gpmc->writeAcqMem(pxBuffer, FPN_ADDRESS, rowSize * geometry->vRes);
 	free(pxBuffer);
 	free(fpnColumns);
 }
@@ -1528,7 +1411,7 @@ void Camera::computeGainColumns(FrameGeometry *geometry, UInt32 wordAddress, con
 		nanosleep(interval, NULL);
 
 		/* Get the average pixel value. */
-		readAcqMem(pxBuffer, wordAddress, rowSize * numRows);
+		gpmc->readAcqMem(pxBuffer, wordAddress, rowSize * numRows);
 		memset(highColumns, 0, sizeof(highColumns));
 		for (int row = 0; row < numRows; row++) {
 			for(int col = 0; col < geometry->hRes; col++) {
@@ -1553,7 +1436,7 @@ void Camera::computeGainColumns(FrameGeometry *geometry, UInt32 wordAddress, con
 		nanosleep(interval, NULL);
 
 		/* Get the average pixel value. */
-		readAcqMem(pxBuffer, wordAddress, rowSize * numRows);
+		gpmc->readAcqMem(pxBuffer, wordAddress, rowSize * numRows);
 		memset(lowColumns, 0, sizeof(lowColumns));
 		for (int row = 0; row < numRows; row++) {
 			for(col = 0; col < geometry->hRes; col++) {
@@ -1579,7 +1462,7 @@ void Camera::computeGainColumns(FrameGeometry *geometry, UInt32 wordAddress, con
 	fprintf(stderr, "ADC Calibration voltages: vlow=%d vmid=%d vhigh=%d\n", vlow, vmid, vhigh);
 
 	/* Get the average pixel value. */
-	readAcqMem(pxBuffer, wordAddress, rowSize * numRows);
+	gpmc->readAcqMem(pxBuffer, wordAddress, rowSize * numRows);
 	memset(midColumns, 0, sizeof(midColumns));
 	for (int row = 0; row < numRows; row++) {
 		for(int col = 0; col < geometry->hRes; col++) {
@@ -1667,12 +1550,10 @@ cleanup:
 
 Int32 Camera::liveColumnCalibration(unsigned int iterations)
 {
-	UInt32 numChannels = sensor->getHResIncrement();
 	ImagerSettings_t isPrev = imagerSettings;
 	ImagerSettings_t isDark;
 	FrameGeometry isMaxSize = sensor->getMaxGeometry();
 	struct timespec tRefresh;
-	int offsets[numChannels];
 	Int32 retVal;
 
 	/* Swap the black rows into the top of the frame. */
@@ -1709,18 +1590,7 @@ Int32 Camera::liveColumnCalibration(unsigned int iterations)
 	tRefresh.tv_sec = 0;
 	tRefresh.tv_nsec = (CAL_REGION_FRAMES+1) * isDark.period * 10;
 
-	/* Clear out the ADC Offsets. */
-	for (int i = 0; i < numChannels; i++) {
-		offsets[i] = 0;
-		sensor->setADCOffset(i, 0);
-	}
-
-	/* Tune the ADC offset calibration. */
-	for (int i = 0; i < iterations; i++) {
-		nanosleep(&tRefresh, NULL);
-		offsetCorrectionIteration(&isDark.geometry, offsets, CAL_REGION_START, CAL_REGION_FRAMES);
-	}
-
+	sensor->adcOffsetTraining(&isDark.geometry, CAL_REGION_START, CAL_REGION_FRAMES);
 	computeGainColumns(&isDark.geometry, CAL_REGION_START, &tRefresh);
 
 	terminateRecord();
@@ -1767,7 +1637,7 @@ void Camera::factoryGainColumns(FrameGeometry *geometry, UInt32 wordAddress, con
 		nanosleep(interval, NULL);
 
 		/* Get the average value for only green pixels. */
-		readAcqMem(pxBuffer, wordAddress, rowSize * numRows);
+		gpmc->readAcqMem(pxBuffer, wordAddress, rowSize * numRows);
 		memset(highColumns, 0, sizeof(highColumns));
 		for (int row = 0; row < numRows; row += 2) {
 			for(int col = 0; col < geometry->hRes; col++) {
@@ -1790,7 +1660,7 @@ void Camera::factoryGainColumns(FrameGeometry *geometry, UInt32 wordAddress, con
 	nanosleep(interval, NULL);
 
 	/* Get the average pixel value. */
-	readAcqMem(pxBuffer, wordAddress, rowSize * numRows);
+	gpmc->readAcqMem(pxBuffer, wordAddress, rowSize * numRows);
 	memset(lowColumns, 0, sizeof(lowColumns));
 	for (int row = 0; row < numRows; row += 2) {
 		for(col = 0; col < geometry->hRes; col++) {
@@ -1890,10 +1760,7 @@ Int32 Camera::autoColGainCorrection(void)
 	if(SUCCESS != retVal)
 		return retVal;
 #else
-	UInt32 numChannels = sensor->getHResIncrement();
 	struct timespec tRefresh;
-	unsigned int iterations = 32;
-	int offsets[numChannels];
 	Int32 retVal;
 
 	retVal = setRecSequencerModeCalLoop();
@@ -1909,21 +1776,7 @@ Int32 Camera::autoColGainCorrection(void)
 	ui->setRecLEDFront(true);
 	ui->setRecLEDBack(true);
 
-	/* Compute the live display worst-case frame refresh time. */
-	tRefresh.tv_sec = 0;
-	tRefresh.tv_nsec = (CAL_REGION_FRAMES+1) * imagerSettings.period * 10;
-
-	/* Clear out the ADC Offsets. */
-	for (int i = 0; i < numChannels; i++) {
-		offsets[i] = 0;
-		sensor->setADCOffset(i, 0);
-	}
-
-	/* Tune the ADC offset calibration. */
-	for (int i = 0; i < iterations; i++) {
-		nanosleep(&tRefresh, NULL);
-		offsetCorrectionIteration(&imagerSettings.geometry, offsets, CAL_REGION_START, CAL_REGION_FRAMES);
-	}
+	sensor->adcOffsetTraining(&imagerSettings.geometry, CAL_REGION_START, CAL_REGION_FRAMES);
 
 	//Turn on calibration light
 	io->setOutLevel((1 << 1));
@@ -2053,15 +1906,15 @@ UInt32 Camera::getMiddlePixelValue(bool includeFPNCorrection)
 	//3=G B
 	//  R G
 
-	UInt16 bRaw = readPixel12((quadStartY + 1) * imagerSettings.geometry.hRes + quadStartX, REC_REGION_START * BYTES_PER_WORD);
-	UInt16 gRaw = readPixel12(quadStartY * imagerSettings.geometry.hRes + quadStartX, REC_REGION_START * BYTES_PER_WORD);
-	UInt16 rRaw = readPixel12(quadStartY * imagerSettings.geometry.hRes + quadStartX + 1, REC_REGION_START * BYTES_PER_WORD);
+	UInt16 bRaw = gpmc->readPixel12((quadStartY + 1) * imagerSettings.geometry.hRes + quadStartX, REC_REGION_START * BYTES_PER_WORD);
+	UInt16 gRaw = gpmc->readPixel12(quadStartY * imagerSettings.geometry.hRes + quadStartX, REC_REGION_START * BYTES_PER_WORD);
+	UInt16 rRaw = gpmc->readPixel12(quadStartY * imagerSettings.geometry.hRes + quadStartX + 1, REC_REGION_START * BYTES_PER_WORD);
 
 	if(includeFPNCorrection)
 	{
-		bRaw -= readPixel12((quadStartY + 1) * imagerSettings.geometry.hRes + quadStartX, FPN_ADDRESS * BYTES_PER_WORD);
-		gRaw -= readPixel12(quadStartY * imagerSettings.geometry.hRes + quadStartX, FPN_ADDRESS * BYTES_PER_WORD);
-		rRaw -= readPixel12(quadStartY * imagerSettings.geometry.hRes + quadStartX + 1, FPN_ADDRESS * BYTES_PER_WORD);
+		bRaw -= gpmc->readPixel12((quadStartY + 1) * imagerSettings.geometry.hRes + quadStartX, FPN_ADDRESS * BYTES_PER_WORD);
+		gRaw -= gpmc->readPixel12(quadStartY * imagerSettings.geometry.hRes + quadStartX, FPN_ADDRESS * BYTES_PER_WORD);
+		rRaw -= gpmc->readPixel12(quadStartY * imagerSettings.geometry.hRes + quadStartX + 1, FPN_ADDRESS * BYTES_PER_WORD);
 
 		//If the result underflowed, clip it to zero
 		if(bRaw >= (1 << SENSOR_DATA_WIDTH)) bRaw = 0;
@@ -2220,9 +2073,7 @@ Int32 Camera::readFPN(UInt16 * fpnUnpacked)
 		return CAMERA_MEM_ERROR;
 
 	//Read the FPN data in
-	readAcqMem(fpnBuffer32,
-			   FPN_ADDRESS,
-			   bytesPerFrame);
+	gpmc->readAcqMem(fpnBuffer32, FPN_ADDRESS, bytesPerFrame);
 
 	//Unpack the FPN data
 	for(int i = 0; i < pixelsPerFrame; i++)
@@ -2242,15 +2093,14 @@ Int32 Camera::readCorrectedFrame(UInt32 frame, UInt16 * frameBuffer, UInt16 * fp
 
 	UInt32 * rawFrameBuffer32 = new UInt32[bytesPerFrame / 4];
 	UInt8 * rawFrameBuffer = (UInt8 *)rawFrameBuffer32;
+	UInt32 frameAddr = REC_REGION_START + frame * getFrameSizeWords(&recordingData.is.geometry);
 
 	if(NULL == rawFrameBuffer32)
 		return CAMERA_MEM_ERROR;
 
 	//Read in the frame and FPN data
 	//Get one frame into the raw buffer
-	readAcqMem(rawFrameBuffer32,
-			   REC_REGION_START + frame * getFrameSizeWords(&recordingData.is.geometry),
-			   bytesPerFrame);
+	gpmc->readAcqMem(rawFrameBuffer32, frameAddr, bytesPerFrame);
 
 	//Subtract the FPN data from the buffer
 	for(int i = 0; i < pixelsPerFrame; i++)

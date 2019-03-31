@@ -697,9 +697,10 @@ void LUX2100::setADCOffset(UInt8 channel, Int16 offset)
     SCIWrite(0x04, 0x0000); // switch back to sensor register space
 }
 
-//This doesn't seem to work. Sensor locks up
-Int32 LUX2100::doAutoADCOffsetCalibration(void)
+void LUX2100::adcOffsetTraining(FrameGeometry *frameSize, UInt32 address, UInt32 numFrames)
 {
+	//This doesn't seem to work. Sensor locks up
+#if 0
     /*
     SCIWrite(0x01, 0x0010); // disable the internal timing engine
 
@@ -715,8 +716,11 @@ Int32 LUX2100::doAutoADCOffsetCalibration(void)
     SCIWrite(0x0A, 0x0001); // Start ADC Offset calibration
     delayms(2000);
     SCIWrite(0x04, 0x0000); // switch back to sensor register space
-
-    return SUCCESS;
+#else
+	for (int i = 0; i < LUX2100_HRES_INCREMENT; i++) {
+		setADCOffset(i, 0);
+	}
+#endif
 }
 
 //Generate a filename string used for calibration values that is specific to the current gain and wavetable settings

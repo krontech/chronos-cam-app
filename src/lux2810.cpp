@@ -174,11 +174,6 @@ CameraErrortype LUX2810::initSensor()
 	return SUCCESS;
 }
 
-void LUX2810::SCIWrite(UInt8 address, UInt16 data)
-{
-    return;
-}
-
 CameraErrortype LUX2810::autoPhaseCal(void)
 {
 	setClkPhase(0);
@@ -254,7 +249,7 @@ void LUX2810::setResolution(FrameGeometry *size)
 	if (size->vDarkRows) {
 		LUX2810RegWrite(0x0A, (vLastRow * 2) - size->vDarkRows);
 	}
-	SCIWrite(0x0B, size->vDarkRows);
+	LUX2810RegWrite(0x0B, size->vDarkRows);
 
 	memcpy(&currentRes, size, sizeof(FrameGeometry));
 }
@@ -542,35 +537,6 @@ void LUX2810::setAnalogTestVoltage(unsigned int voltage)
 	writeDACVoltage(LUX2810_VTSTH_VOLTAGE, 1.5 + (voltage / 64.0));
 }
 
-//Sets ADC offset for one channel
-//Converts the input 2s complement value to the sensors's weird sign bit plus value format (sort of like float, with +0 and -0)
-void LUX2810::setADCOffset(UInt8 channel, Int16 offset)
-{
-	/* TODO: Implement Me! Or Don't... */
-}
-
-//This doesn't seem to work. Sensor locks up
-Int32 LUX2810::doAutoADCOffsetCalibration(void)
-{
-    /*
-    SCIWrite(0x01, 0x0010); // disable the internal timing engine
-
-    //SCIWrite(0x2A, 0x89A); // Address of first dark row to read out (half way through dark rows)
-    //SCIWrite(0x2B, 1); // Readout 5 dark rows
-    delayms(10);
-    SCIWrite(0x01, 0x0011); // enable the internal timing engine
-    delayms(10);
-    */
-    SCIWrite(0x04, 0x0001); // switch to datapath register space
-    SCIWrite(0x0E, 0x0001); // Enable application of ADC offsets during v blank
-    SCIWrite(0x0D, 0x0020); // ADC offset target
-    SCIWrite(0x0A, 0x0001); // Start ADC Offset calibration
-    delayms(2000);
-    SCIWrite(0x04, 0x0000); // switch back to sensor register space
-
-    return SUCCESS;
-}
-
 //Generate a filename string used for calibration values that is specific to the current gain and wavetable settings
 std::string LUX2810::getFilename(const char * filename, const char * extension)
 {
@@ -580,6 +546,11 @@ std::string LUX2810::getFilename(const char * filename, const char * extension)
 	snprintf(gName, sizeof(gName), "G%d", gain);
 	snprintf(wtName, sizeof(wtName), "WT%d", wavetableSize);
 	return std::string(filename) + "_" + gName + "_" + wtName + extension;
+}
+
+void LUX2810::adcOffsetTraining(FrameGeometry *frameSize, UInt32 address, UInt32 numFrames)
+{
+	/* TODO: Implement Me! */
 }
 
 // GR

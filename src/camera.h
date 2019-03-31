@@ -200,10 +200,7 @@ public:
 	UInt32 setImagerSettings(ImagerSettings_t settings);
 	UInt32 setIntegrationTime(double intTime, FrameGeometry *geometry, Int32 flags);
 	UInt32 setPlayMode(bool playMode);
-	UInt16 readPixel12(UInt32 pixel, UInt32 offset);
 	UInt16 readPixelCal(UInt32 x, UInt32 y, UInt32 wordAddress, FrameGeometry *geometry);
-	UInt16 readPixelBuf12(UInt8 * buf, UInt32 pixel);
-	void writePixelBuf12(UInt8 * buf, UInt32 pixel, UInt16 value);
 	void computeFPNCorrection(FrameGeometry *geometry, UInt32 wordAddress, UInt32 framesToAverage, bool writeToFile = false, bool factory = false);
 	void computeFPNColumns(FrameGeometry *geometry, UInt32 wordAddress, UInt32 framesToAverage);
 	void computeGainColumns(FrameGeometry *geometry, UInt32 wordAddress, const struct timespec *interval);
@@ -257,9 +254,6 @@ private:
 	void terminateRecord(void);
 	void writeSeqPgmMem(SeqPgmMemWord pgmWord, UInt32 address);
 	void setRecRegion(UInt32 start, UInt32 count, FrameGeometry *geometry);
-	void readAcqMem(UInt32 * buf, UInt32 offsetWords, UInt32 length);
-	void writeAcqMem(UInt32 * buf, UInt32 offsetWords, UInt32 length);
-	void writeDGCMem(double gain, UInt32 column);
 	bool readIsColor(void);
 public:
 	void setFocusPeakThresholdLL(UInt32 thresh);

@@ -17,6 +17,8 @@
 #ifndef UTIL_H
 #define UTIL_H
 
+#include "types.h"
+
 void delayms(int ms);
 
 /* delayms_events:
@@ -30,6 +32,9 @@ void delayms_events(int ms);
 bool checkAndCreateDir(const char * dir);
 
 int path_is_mounted(const char *path);
+
+UInt16 readPixelBuf12(const void * buf, UInt32 pixel);
+void writePixelBuf12(void * buf, UInt32 pixel, UInt16 value);
 
 
 #endif // UTIL_H

@@ -140,7 +140,7 @@ public:
 	unsigned int enableAnalogTestMode(void);
 	void disableAnalogTestMode(void);
 	void setAnalogTestVoltage(unsigned int);
-	void setADCOffset(UInt8 channel, Int16 offset);
+	void adcOffsetTraining(FrameGeometry *frameSize, UInt32 address, UInt32 numFrames);
 	std::string getFilename(const char * filename, const char * extension);
 
 private:
@@ -164,6 +164,7 @@ private:
 	Int32 initLUX2100(void);
 	Int32 initLUX8M(void);
 	Int32 initLUX8M_2(void);
+	void setADCOffset(UInt8 channel, Int16 offset);
 
 	FrameGeometry currentRes;
 	UInt32 currentPeriod;
