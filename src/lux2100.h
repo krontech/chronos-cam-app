@@ -26,7 +26,7 @@
 
 #define LUX2100_HRES_INCREMENT 32
 #define LUX2100_VRES_INCREMENT	2
-#define LUX2100_MAX_H_RES		1952
+#define LUX2100_MAX_H_RES		1920	//Limited by OMX video pipeline.
 #define LUX2100_MAX_V_RES		1080
 #define LUX2100_MIN_HRES		192		//Limited by video encoder minimum
 #define LUX2100_MIN_VRES		96
