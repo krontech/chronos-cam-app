@@ -10,11 +10,12 @@
 class AptUpdate
 {
 public:
-	AptUpdate(QWidget * parent = 0);
+	AptUpdate(QWidget *parent = 0);
 	~AptUpdate();
 	int exec();
 
 private:
+	QWidget *parent;
 	QProgressDialog *progUpdate;
 	QProgressDialog *progUpgrade;
 

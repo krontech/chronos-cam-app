@@ -18,14 +18,19 @@
  ****************************************************************************/
 #include <QLabel>
 #include <QMessageBox>
+#include <unistd.h>
+#include <signal.h>
 
 #include "aptupdate.h"
 
 AptUpdate::AptUpdate(QWidget * parent)
 {
+	this->parent = parent;
+
 	/* Create the progress dialog for the repository update process. */
 	progUpdate = new QProgressDialog(parent);
 	progUpdate->setWindowTitle(QString("apt-get update"));
+	progUpdate->setMinimumSize(500, 200);
 	progUpdate->setMaximum(4);
 	progUpdate->setMinimumDuration(0);
 	progUpdate->setWindowModality(Qt::WindowModal);
@@ -33,6 +38,7 @@ AptUpdate::AptUpdate(QWidget * parent)
 	/* Create the progress dialog for the package upgrade process. */
 	progUpgrade = new QProgressDialog(parent);
 	progUpdate->setWindowTitle(QString("apt-get ugrade"));
+	progUpdate->setMinimumSize(500, 200);
 	progUpdate->setMaximum(4);
 	progUpdate->setMinimumDuration(0);
 	progUpdate->setWindowModality(Qt::WindowModal);
@@ -47,11 +53,14 @@ AptUpdate::~AptUpdate()
 /* Run the apt-get upgrade progress. */
 int AptUpdate::exec()
 {
+	QMessageBox::StandardButton reply;
+
 	char line[256];
 	unsigned int uri_count = 0;
 	unsigned int uri_progress = 0;
 	unsigned int pkg_count = 0;
 	FILE *fp;
+	pid_t child;
 
 	progUpdate->setValue(0);
 	progUpdate->show();
@@ -60,7 +69,7 @@ int AptUpdate::exec()
 	fp = popen("apt-get update --print-uris", "r");
 	if (!fp) {
 		QMessageBox::StandardButton reply;
-		reply = QMessageBox::critical(NULL, "apt-get update failed", "Failed to start apt-get update with error?", QMessageBox::Ok);
+		reply = QMessageBox::critical(NULL, "apt update failed", "Failed to start apt update with error?", QMessageBox::Ok);
 		return -1;
 	}
 	while (fgets(line, sizeof(line), fp) != NULL) {
@@ -81,10 +90,9 @@ int AptUpdate::exec()
 
 	stIndex = 0;
 	memset(stLabel, 0, sizeof(stLabel));
-	fp = popen("apt-get update -q", "r");
+	fp = popen("apt update", "r");
 	if (!fp) {
-		QMessageBox::StandardButton reply;
-		reply = QMessageBox::critical(NULL, "apt-get update failed", "Failed to start apt-get update with error?", QMessageBox::Ok);
+		reply = QMessageBox::critical(parent, "apt update failed", "Failed to start apt update with error?", QMessageBox::Ok);
 		return -1;
 	}
 	while (fgets(stLabel[stIndex], sizeof(stLabel[stIndex]), fp) != NULL) {
@@ -98,7 +106,6 @@ int AptUpdate::exec()
 		else if (strncasecmp(stLabel[stIndex], "Reading", 7) == 0) {
 			uri_progress++;
 		}
-
 		/* Update the progress bar status text. */
 		QString stString = "";
 		stIndex = (stIndex+1) % 4;
@@ -108,29 +115,28 @@ int AptUpdate::exec()
 		progUpdate->setLabelText(stString);
 		progUpdate->setValue(uri_progress);
 	}
-	fclose(fp);
-
-	/* Check how many packages are upgradable. */
-	fp = popen("apt list -q --upgradable", "r");
-	if (!fp) {
-		QMessageBox::StandardButton reply;
-		reply = QMessageBox::critical(NULL, "apt-get update failed", "Failed to start apt-get update with error?", QMessageBox::Ok);
-		return -1;
-	}
-	while (fgets(line, sizeof(line), fp) != NULL) {
-		if (strncasecmp(line, "Listing...", 11) == 0) {
-			uri_progress++;
-			progUpdate->setValue(uri_progress);
-		}
-		else {
-			pkg_count++;
-		}
-	}
 	pclose(fp);
+	progUpdate->hide();
 
-	qDebug("apt-get update found %d packages for update", pkg_count);
+	/* The last line should have listed the number of packages to be upgraded. */
+	pkg_count = strtoul(stLabel[(stIndex + 3) % 4], NULL, 10);
+	if (pkg_count == 0) {
+		reply = QMessageBox::information(parent, "apt update", "No updates were found.", QMessageBox::Ok);
+		return 0;
+	}
+	reply = QMessageBox::question(parent, "apt update", QString("Found %1 packages eligible for upgrade, download and install them?").arg(pkg_count), QMessageBox::Yes|QMessageBox::No);
+	if (reply != QMessageBox::Yes) {
+		return 0;
+	}
 
-
-	/* TODO: Implement Me! */
+	/* To perform the actual upgrade - we will need to fork and detach a copy of apt. */
+	child = fork();
+	if (child == 0) {
+		setsid();
+		signal(SIGHUP, SIG_IGN);
+		system("apt-get -y upgrade; sleep 10; shutdown -hr now");
+		exit(0);
+	}
+	reply = QMessageBox::information(parent, "apt upgrade", "Package update in progress. The camera will reboot when complete.", QMessageBox::NoButton);
 	return 0;
 }
