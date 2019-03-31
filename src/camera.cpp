@@ -1739,8 +1739,10 @@ Int32 Camera::liveColumnCalibration(unsigned int iterations)
 	memcpy(&isDark, &isPrev, sizeof(isDark));
 	if (!isDark.geometry.vDarkRows) {
 		isDark.geometry.vDarkRows = LUX1310_MAX_V_DARK / 2;
-		isDark.geometry.vRes -= isDark.geometry.vDarkRows;
-		isDark.geometry.vOffset += isDark.geometry.vDarkRows;
+		if ((isDark.geometry.vRes - isDark.geometry.vDarkRows) > sensor->getMinVRes()) {
+			isDark.geometry.vRes -= isDark.geometry.vDarkRows;
+			isDark.geometry.vOffset += isDark.geometry.vDarkRows;
+		}
 	}
 	isDark.recRegionSizeFrames = CAL_REGION_FRAMES;
 	isDark.disableRingBuffer = 0;
@@ -2503,7 +2505,7 @@ Int32 Camera::blackCalAllStdRes(bool factory)
 	QFile fp;
 	UInt32 retVal = SUCCESS;
 	QString filename;
-	QByteArray line;
+	QString line;
 
 	vinst->setRunning(false);
 
@@ -2531,22 +2533,17 @@ Int32 Camera::blackCalAllStdRes(bool factory)
 		if (!fp.reset()) {
 			return CAMERA_FILE_ERROR;
 		}
-		while(true) {
-			line = fp.readLine(30);
-			if (line.isEmpty() || line.isNull())
-				break;
-			
-			//For each resolution in the resolution list
-			//Get the resolution and compute the maximum frame rate to be appended after the resolution
-			int hRes, vRes;
 
-			sscanf(line, "%dx%d", &hRes, &vRes);
-			settings.geometry.hRes = hRes;		//pixels
-			settings.geometry.vRes = vRes;		//pixels
+		line.sprintf("%ux%u", maxSize.hRes, maxSize.vRes);
+		do {
+			// Split the resolution string on 'x' into horizontal and vertical sizes.
+			QStringList strlist = line.split('x');
+			settings.geometry.hRes = strlist[0].toInt(); //pixels
+			settings.geometry.vRes = strlist[1].toInt(); //pixels
 			settings.geometry.vDarkRows = 0;	//dark rows
 			settings.geometry.bitDepth = maxSize.bitDepth;
-			settings.geometry.hOffset = round((maxSize.hRes - hRes) / 2, sensor->getHResIncrement());
-			settings.geometry.vOffset = round((maxSize.vRes - vRes) / 2, sensor->getVResIncrement());
+			settings.geometry.hOffset = round((maxSize.hRes - settings.geometry.hRes) / 2, sensor->getHResIncrement());
+			settings.geometry.vOffset = round((maxSize.vRes - settings.geometry.vRes) / 2, sensor->getVResIncrement());
 			settings.gain = g;
 			settings.recRegionSizeFrames = getMaxRecordRegionSizeFrames(&settings.geometry);
 			settings.period = sensor->getMinFramePeriod(&settings.geometry);
@@ -2557,21 +2554,26 @@ Int32 Camera::blackCalAllStdRes(bool factory)
 			settings.segmentLengthFrames = imagerSettings.recRegionSizeFrames;
 			settings.segments = 1;
 			settings.temporary = 0;
+			if (sensor->isValidResolution(&settings.geometry)) {
+				retVal = setImagerSettings(settings);
+				if(SUCCESS != retVal)
+					return retVal;
 
-			retVal = setImagerSettings(settings);
-			if(SUCCESS != retVal)
-				return retVal;
+				qDebug("Doing FPN correction for %ux%u...", settings.geometry.hRes, settings.geometry.vRes);
+				retVal = liveColumnCalibration();
+				if (SUCCESS != retVal)
+					return retVal;
 
-			qDebug() << "Doing FPN correction for " << hRes << "x" << vRes << "...";
-			retVal = autoFPNCorrection(16, true, false, factory);	//Factory mode
-			if(SUCCESS != retVal)
-				return retVal;
+				retVal = autoFPNCorrection(16, true, false, factory);	//Factory mode
+				if(SUCCESS != retVal)
+					return retVal;
 
-			qDebug() << "Done.";
-		}
+				qDebug() << "Done.";
+			}
+
+			line = fp.readLine(30);
+		} while (!line.isEmpty() && !line.isNull());
 	}
-
-
 	fp.close();
 
 	memcpy(&settings.geometry, &maxSize, sizeof(maxSize));
