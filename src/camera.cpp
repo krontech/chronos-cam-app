@@ -22,6 +22,7 @@
 #include <QSettings>
 #include <QResource>
 #include <QDir>
+#include <QScreen>
 #include <QIODevice>
 #include <QApplication>
 
@@ -2578,15 +2579,10 @@ void Camera::setUpsideDownDisplay(bool en){
 	appSettings.setValue("camera/UpsideDownDisplay", en);
 }
 
-bool Camera::RotationArgumentIsSet(){
-	QString appArguments;
-	for(int argumentIndex = 0; argumentIndex < 5 ; argumentIndex++){
-		appArguments.append(QApplication::argv()[argumentIndex]);
-	}
-
-	if(appArguments.contains("display") && appArguments.contains("transformed:rot0"))
-		return true;
-	else	return false;
+bool Camera::RotationArgumentIsSet()
+{
+	QScreen *qscreen = QScreen::instance();
+	return qscreen->classId() == QScreen::TransformedClass;
 }
 
 
