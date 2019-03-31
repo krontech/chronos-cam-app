@@ -126,7 +126,6 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	ui->lblAbout->setText(aboutText);
 	
 	ui->cmdAutoCal->setVisible(false);
-	ui->cmdBlackCalAll->setVisible(false);
 	ui->cmdCloseApp->setVisible(false);
 	ui->cmdColumnGain->setVisible(false);
 	ui->cmdWhiteRef->setVisible(false);
@@ -758,7 +757,6 @@ void UtilWindow::on_linePassword_textEdited(const QString &arg1)
 	if(0 == QString::compare(arg1, "4242"))
 	{
 		ui->cmdAutoCal->setVisible(true);
-		ui->cmdBlackCalAll->setVisible(true);
 		ui->cmdCloseApp->setVisible(true);
 		ui->cmdColumnGain->setVisible(true);
 		ui->cmdWhiteRef->setVisible(true);

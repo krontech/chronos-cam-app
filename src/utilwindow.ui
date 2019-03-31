@@ -1366,15 +1366,15 @@ Cal</string>
     <widget class="QPushButton" name="cmdBlackCalAll">
      <property name="geometry">
       <rect>
-       <x>280</x>
-       <y>170</y>
-       <width>91</width>
-       <height>51</height>
+       <x>420</x>
+       <y>90</y>
+       <width>131</width>
+       <height>61</height>
       </rect>
      </property>
      <property name="text">
-      <string>Black Cal
-All Std Res</string>
+      <string>Black Calibrate
+All Resolutions</string>
      </property>
     </widget>
     <widget class="QPushButton" name="cmdCloseApp">
@@ -1394,17 +1394,18 @@ Application</string>
     <widget class="QPushButton" name="cmdAutoCal">
      <property name="geometry">
       <rect>
-       <x>420</x>
-       <y>90</y>
-       <width>131</width>
-       <height>61</height>
+       <x>280</x>
+       <y>170</y>
+       <width>91</width>
+       <height>51</height>
       </rect>
      </property>
      <property name="focusPolicy">
       <enum>Qt::WheelFocus</enum>
      </property>
      <property name="text">
-      <string>Factory Calibration</string>
+      <string>Factory
+Calibration</string>
      </property>
     </widget>
     <widget class="QPushButton" name="cmdWhiteRef">
