@@ -41,6 +41,15 @@ void* recDataThread(void *arg);
 void recordEosCallback(void * arg);
 void recordErrorCallback(void * arg, const char * message);
 
+#define USE_PYCHRONOS
+
+#ifdef USE_PYCHRONOS
+bool pych = true;
+#else
+bool pych = false;
+#endif
+
+
 Camera::Camera()
 {
 	QSettings appSettings;
@@ -83,117 +92,130 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, Control * cinst
 		return retVal;
 
 	gpmc = gpmcInst;
-    vinst = vinstInst;
-    cinst = cinstInst;
-    sensor = sensorInst;
+	vinst = vinstInst;
+	cinst = cinstInst;
+	sensor = sensorInst;
 	ui = userInterface;
 	ramSize = (ramSizeGBSlot0 + ramSizeGBSlot1)*1024/32*1024*1024;
 	isColor = true;//readIsColor();
 	int err;
 
-	//dummy read
-	if(getRecording())
-		qDebug("rec true at init");
-	int v = 0;
 
-	if(1)
+	//PYCHRONOS
+	if (!pych)
 	{
+		//dummy read
+		if(getRecording())
+			qDebug("rec true at init");
+		int v = 0;
 
-		//Reset FPGA
-		gpmc->write16(SYSTEM_RESET_ADDR, 1);
-		v++;
-		//Give the FPGA some time to reset
-		delayms(200);
-	}
+		if(1)
+		{
 
-	if(ACCEPTABLE_FPGA_VERSION != getFPGAVersion())
-	{
-		return CAMERA_WRONG_FPGA_VERSION;
-	}
+			//Reset FPGA
+			gpmc->write16(SYSTEM_RESET_ADDR, 1);
+			v++;
+			//Give the FPGA some time to reset
+			delayms(200);
+		}
 
-	gpmc->write16(IMAGE_SENSOR_FIFO_START_ADDR, 0x0100);
-	gpmc->write16(IMAGE_SENSOR_FIFO_STOP_ADDR, 0x0100);
+		if(ACCEPTABLE_FPGA_VERSION != getFPGAVersion())
+		{
+			return CAMERA_WRONG_FPGA_VERSION;
+		}
 
-	gpmc->write32(SEQ_LIVE_ADDR_0_ADDR, LIVE_REGION_START + MAX_FRAME_WORDS*0);
-	gpmc->write32(SEQ_LIVE_ADDR_1_ADDR, LIVE_REGION_START + MAX_FRAME_WORDS*1);
-	gpmc->write32(SEQ_LIVE_ADDR_2_ADDR, LIVE_REGION_START + MAX_FRAME_WORDS*2);
+		gpmc->write16(IMAGE_SENSOR_FIFO_START_ADDR, 0x0100);
+		gpmc->write16(IMAGE_SENSOR_FIFO_STOP_ADDR, 0x0100);
 
-	if (ramSizeGBSlot1 != 0) {
-	if      (ramSizeGBSlot0 == 0)                         { gpmc->write16(MMU_CONFIG_ADDR, MMU_INVERT_CS);      qDebug("--- memory --- invert CS remap"); }
-	else if (ramSizeGBSlot0 == 8 && ramSizeGBSlot1 == 16) { gpmc->write16(MMU_CONFIG_ADDR, MMU_INVERT_CS);		qDebug("--- memory --- invert CS remap"); }
-		else if (ramSizeGBSlot0 == 8 && ramSizeGBSlot1 == 8)  { gpmc->write16(MMU_CONFIG_ADDR, MMU_SWITCH_STUFFED); qDebug("--- memory --- switch stuffed remap"); }
+		gpmc->write32(SEQ_LIVE_ADDR_0_ADDR, LIVE_REGION_START + MAX_FRAME_WORDS*0);
+		gpmc->write32(SEQ_LIVE_ADDR_1_ADDR, LIVE_REGION_START + MAX_FRAME_WORDS*1);
+		gpmc->write32(SEQ_LIVE_ADDR_2_ADDR, LIVE_REGION_START + MAX_FRAME_WORDS*2);
+
+		if (ramSizeGBSlot1 != 0) {
+		if      (ramSizeGBSlot0 == 0)                         { gpmc->write16(MMU_CONFIG_ADDR, MMU_INVERT_CS);      qDebug("--- memory --- invert CS remap"); }
+		else if (ramSizeGBSlot0 == 8 && ramSizeGBSlot1 == 16) { gpmc->write16(MMU_CONFIG_ADDR, MMU_INVERT_CS);		qDebug("--- memory --- invert CS remap"); }
+			else if (ramSizeGBSlot0 == 8 && ramSizeGBSlot1 == 8)  { gpmc->write16(MMU_CONFIG_ADDR, MMU_SWITCH_STUFFED); qDebug("--- memory --- switch stuffed remap"); }
+			else {
+				qDebug("--- memory --- no remap");
+			}
+		}
 		else {
 			qDebug("--- memory --- no remap");
 		}
-	}
-	else {
-		qDebug("--- memory --- no remap");
-	}
-	qDebug("--- memory --- remap register: 0x%04X", gpmc->read32(MMU_CONFIG_ADDR));
+		qDebug("--- memory --- remap register: 0x%04X", gpmc->read32(MMU_CONFIG_ADDR));
 
 
-	//enable video readout
-	gpmc->write32(DISPLAY_CTL_ADDR, (gpmc->read32(DISPLAY_CTL_ADDR) & ~DISPLAY_CTL_READOUT_INH_MASK) | (isColor ? DISPLAY_CTL_COLOR_MODE_MASK : 0));
+		//enable video readout
+		gpmc->write32(DISPLAY_CTL_ADDR, (gpmc->read32(DISPLAY_CTL_ADDR) & ~DISPLAY_CTL_READOUT_INH_MASK) | (isColor ? DISPLAY_CTL_COLOR_MODE_MASK : 0));
 
-	printf("Starting rec data thread\n");
-	terminateRecDataThread = false;
+		printf("Starting rec data thread\n");
+		terminateRecDataThread = false;
 
-	err = pthread_create(&recDataThreadID, NULL, &recDataThread, this);
-	if(err)
-		return CAMERA_THREAD_ERROR;
+		err = pthread_create(&recDataThreadID, NULL, &recDataThread, this);
+		if(err)
+			return CAMERA_THREAD_ERROR;
 
 
-	retVal = sensor->init(gpmc);
-//mem problem before this
-	if(retVal != SUCCESS)
-	{
-		return retVal;
-	}
+		retVal = sensor->init(gpmc);
+	//mem problem before this
+		if(retVal != SUCCESS)
+		{
+			return retVal;
+		}
 
-	io = new IO(gpmc);
-	retVal = io->init();
-	if(retVal != SUCCESS)
-		return retVal;
+		io = new IO(gpmc);
+		retVal = io->init();
+		if(retVal != SUCCESS)
+			return retVal;
 
-	/* Load default recording from sensor limits. */
-	imagerSettings.geometry = sensor->getMaxGeometry();
-	imagerSettings.geometry.vDarkRows = 0;
-	imagerSettings.recRegionSizeFrames = getMaxRecordRegionSizeFrames(&imagerSettings.geometry);
-	imagerSettings.period = sensor->getMinFramePeriod(&imagerSettings.geometry);
-	imagerSettings.exposure = sensor->getMaxIntegrationTime(imagerSettings.period, &imagerSettings.geometry);
-	imagerSettings.disableRingBuffer = 0;
-	imagerSettings.mode = RECORD_MODE_NORMAL;
-	imagerSettings.prerecordFrames = 1;
-	imagerSettings.segmentLengthFrames = imagerSettings.recRegionSizeFrames;
-	imagerSettings.segments = 1;
+		/* Load default recording from sensor limits. */
+		imagerSettings.geometry = sensor->getMaxGeometry();
+		imagerSettings.geometry.vDarkRows = 0;
+		imagerSettings.recRegionSizeFrames = getMaxRecordRegionSizeFrames(&imagerSettings.geometry);
+		imagerSettings.period = sensor->getMinFramePeriod(&imagerSettings.geometry);
+		imagerSettings.exposure = sensor->getMaxIntegrationTime(imagerSettings.period, &imagerSettings.geometry);
+		imagerSettings.disableRingBuffer = 0;
+		imagerSettings.mode = RECORD_MODE_NORMAL;
+		imagerSettings.prerecordFrames = 1;
+		imagerSettings.segmentLengthFrames = imagerSettings.recRegionSizeFrames;
+		imagerSettings.segments = 1;
+
+	} // !pych
 
 	//Set to full resolution
 	ImagerSettings_t settings;
 
-	settings.geometry.hRes          = appSettings.value("camera/hRes", imagerSettings.geometry.hRes).toInt();
-	settings.geometry.vRes          = appSettings.value("camera/vRes", imagerSettings.geometry.vRes).toInt();
-	settings.geometry.hOffset       = appSettings.value("camera/hOffset", 0).toInt();
-	settings.geometry.vOffset       = appSettings.value("camera/vOffset", 0).toInt();
-	settings.geometry.vDarkRows     = 0;
-	settings.geometry.bitDepth		= imagerSettings.geometry.bitDepth;
-	settings.gain                   = appSettings.value("camera/gain", 0).toInt();
-	settings.period                 = appSettings.value("camera/period", sensor->getMinFramePeriod(&settings.geometry)).toInt();
-	settings.exposure               = appSettings.value("camera/exposure", sensor->getMaxIntegrationTime(settings.period, &settings.geometry)).toInt();
-	settings.recRegionSizeFrames    = appSettings.value("camera/recRegionSizeFrames", getMaxRecordRegionSizeFrames(&settings.geometry)).toInt();
-	settings.disableRingBuffer      = appSettings.value("camera/disableRingBuffer", 0).toInt();
-	settings.mode                   = (CameraRecordModeType)appSettings.value("camera/mode", RECORD_MODE_NORMAL).toInt();
-	settings.prerecordFrames        = appSettings.value("camera/prerecordFrames", 1).toInt();
-	settings.segmentLengthFrames    = appSettings.value("camera/segmentLengthFrames", settings.recRegionSizeFrames).toInt();
-	settings.segments               = appSettings.value("camera/segments", 1).toInt();
-	settings.temporary              = 0;
+	if (pych)
+	{
 
-	setImagerSettings(settings);
+	}
+	else
+	{
+		settings.geometry.hRes          = appSettings.value("camera/hRes", imagerSettings.geometry.hRes).toInt();
+		settings.geometry.vRes          = appSettings.value("camera/vRes", imagerSettings.geometry.vRes).toInt();
+		settings.geometry.hOffset       = appSettings.value("camera/hOffset", 0).toInt();
+		settings.geometry.vOffset       = appSettings.value("camera/vOffset", 0).toInt();
+		settings.geometry.vDarkRows     = 0;
+		settings.geometry.bitDepth		= imagerSettings.geometry.bitDepth;
+		settings.gain                   = appSettings.value("camera/gain", 0).toInt();
+		settings.period                 = appSettings.value("camera/period", sensor->getMinFramePeriod(&settings.geometry)).toInt();
+		settings.exposure               = appSettings.value("camera/exposure", sensor->getMaxIntegrationTime(settings.period, &settings.geometry)).toInt();
+		settings.recRegionSizeFrames    = appSettings.value("camera/recRegionSizeFrames", getMaxRecordRegionSizeFrames(&settings.geometry)).toInt();
+		settings.disableRingBuffer      = appSettings.value("camera/disableRingBuffer", 0).toInt();
+		settings.mode                   = (CameraRecordModeType)appSettings.value("camera/mode", RECORD_MODE_NORMAL).toInt();
+		settings.prerecordFrames        = appSettings.value("camera/prerecordFrames", 1).toInt();
+		settings.segmentLengthFrames    = appSettings.value("camera/segmentLengthFrames", settings.recRegionSizeFrames).toInt();
+		settings.segments               = appSettings.value("camera/segments", 1).toInt();
+		settings.temporary              = 0;
 
-	io->setTriggerDelayFrames(0, FLAG_USESAVED);
-	setTriggerDelayValues((double) io->getTriggerDelayFrames() / settings.recRegionSizeFrames,
-				 io->getTriggerDelayFrames() * ((double)settings.period / 100000000),
-				 io->getTriggerDelayFrames());
+		setImagerSettings(settings);
 
+
+		io->setTriggerDelayFrames(0, FLAG_USESAVED);
+		setTriggerDelayValues((double) io->getTriggerDelayFrames() / settings.recRegionSizeFrames,
+					 io->getTriggerDelayFrames() * ((double)settings.period / 100000000),
+					 io->getTriggerDelayFrames());
+	}
 	vinst->bitsPerPixel        = appSettings.value("recorder/bitsPerPixel", 0.7).toDouble();
 	vinst->maxBitrate          = appSettings.value("recorder/maxBitrate", 40.0).toDouble();
 	vinst->framerate           = appSettings.value("recorder/framerate", 60).toUInt();
@@ -213,32 +235,44 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, Control * cinst
 		if(!fileDirFoundOnUSB) strcpy(vinst->fileDirectory, "/media/mmcblk1p1");
 	}
 
-	liveColumnCalibration();
 
-	maxPostFramesRatio = 1;
+	if (!pych)
+	{
+		liveColumnCalibration();
 
-	if(CAMERA_FILE_NOT_FOUND == loadFPNFromFile()) {
-		fastFPNCorrection();
-	}
+		maxPostFramesRatio = 1;
 
-	/* Load color matrix from settings */
-	if (isColor) {
-		/* White Balance. */
-		whiteBalMatrix[0] = appSettings.value("whiteBalance/currentR", 1.35).toDouble();
-		whiteBalMatrix[1] = appSettings.value("whiteBalance/currentG", 1.00).toDouble();
-		whiteBalMatrix[2] = appSettings.value("whiteBalance/currentB", 1.584).toDouble();
+		if(CAMERA_FILE_NOT_FOUND == loadFPNFromFile()) {
+			fastFPNCorrection();
+		}
 
-		/* Color Matrix */
-		loadCCMFromSettings();
-	}
-	setCCMatrix(colorCalMatrix);
-	setWhiteBalance(whiteBalMatrix);
+		/* Load color matrix from settings */
+		if (isColor) {
+			/* White Balance. */
+			whiteBalMatrix[0] = appSettings.value("whiteBalance/currentR", 1.35).toDouble();
+			whiteBalMatrix[1] = appSettings.value("whiteBalance/currentG", 1.00).toDouble();
+			whiteBalMatrix[2] = appSettings.value("whiteBalance/currentB", 1.584).toDouble();
 
-	setZebraEnable(appSettings.value("camera/zebra", true).toBool());
-	setFocusPeakEnable(appSettings.value("camera/focusPeak", false).toBool());
+			/* Color Matrix */
+			loadCCMFromSettings();
+		}
+		setCCMatrix(colorCalMatrix);
+		setWhiteBalance(whiteBalMatrix);
+
+		setZebraEnable(appSettings.value("camera/zebra", true).toBool());
+		setFocusPeakEnable(appSettings.value("camera/focusPeak", false).toBool());
+	} // !pych
+
 	vinst->setDisplayOptions(getZebraEnable(), getFocusPeakEnable());
 	vinst->setDisplayPosition(ButtonsOnLeft ^ UpsideDownDisplay);
-	vinst->liveDisplay(settings.geometry.hRes, settings.geometry.vRes);
+	if (pych)
+	{
+
+	}
+	else
+	{
+		vinst->liveDisplay(settings.geometry.hRes, settings.geometry.vRes);
+	}
 	setFocusPeakColorLL(getFocusPeakColor());
 	setFocusPeakThresholdLL(appSettings.value("camera/focusPeakThreshold", 25).toUInt());
 
@@ -400,43 +434,43 @@ void Camera::updateVideoPosition()
 
 Int32 Camera::startRecording(void)
 {
-    qDebug("===== Camera::startRecording()");
+	qDebug("===== Camera::startRecording()");
 
-    //Now do dbus call
-    //TESTING Control dbus on pressing record
-    //cinst->getCameraData();
-    //cinst->getSensorData();
-    //cinst->getSensorLimits();
-    //cinst->setSensorSettings(640, 480);
-    //cinst->setSensorWhiteBalance(0.5, 0.5, 0.5);
-    //cinst->getSensorWhiteBalance();
+	//Now do dbus call
+	//TESTING Control dbus on pressing record
+	//cinst->getCameraData();
+	//cinst->getSensorData();
+	//cinst->getSensorLimits();
+	//cinst->setSensorSettings(640, 480);
+	//cinst->setSensorWhiteBalance(0.5, 0.5, 0.5);
+	//cinst->getSensorWhiteBalance();
 
-    //cinst->status("one", "two");
-    //cinst->setDescription("hello", 6);
-    //cinst->reinitSystem();
-    //cinst->setSensorTiming(500);
-    //cinst->getSensorCapabilities();
-    //cinst->dbusGetIoCapabilities();
-    //cinst->getIoMapping();
-    //cinst->setIoMapping();
-    //cinst->getCalCapabilities();
-    //cinst->calibrate();
-    //cinst->getColorMatrix();
-    //cinst->setColorMatrix();
-    //cinst->getSequencerCapabilities();
-    //cinst->getSequencerProgram();
-    //cinst->setSequencerProgram();
-    //cinst->startRecord();
-    //cinst->stopRecord();
+	//cinst->status("one", "two");
+	//cinst->setDescription("hello", 6);
+	//cinst->reinitSystem();
+	//cinst->setSensorTiming(500);
+	//cinst->getSensorCapabilities();
+	//cinst->dbusGetIoCapabilities();
+	//cinst->getIoMapping();
+	//cinst->setIoMapping();
+	//cinst->getCalCapabilities();
+	//cinst->calibrate();
+	//cinst->getColorMatrix();
+	//cinst->setColorMatrix();
+	//cinst->getSequencerCapabilities();
+	//cinst->getSequencerProgram();
+	//cinst->setSequencerProgram();
+	//cinst->startRecord();
+	//cinst->stopRecord();
 
-    if(recording)
+	if(recording)
 		return CAMERA_ALREADY_RECORDING;
 	if(playbackMode)
 		return CAMERA_IN_PLAYBACK_MODE;
 
 	switch(imagerSettings.mode)
 	{
-    case RECORD_MODE_NORMAL:
+	case RECORD_MODE_NORMAL:
 	case RECORD_MODE_SEGMENTED:
 		setRecSequencerModeNormal();
 	break;
@@ -456,7 +490,14 @@ Int32 Camera::startRecording(void)
 	vinst->flushRegions();
 	vinst->liveDisplay(imagerSettings.geometry.hRes, imagerSettings.geometry.vRes);
 
-	startSequencer();
+	if (pych)
+	{
+		cinst->startRecord();
+	}
+	else
+	{
+		startSequencer();
+	}
 	ui->setRecLEDFront(true);
 	ui->setRecLEDBack(true);
 	recording = true;

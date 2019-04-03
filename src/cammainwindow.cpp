@@ -38,9 +38,12 @@
 #include "lux1310.h"
 #include "lux2100.h"
 
+
 extern "C" {
 #include "siText.h"
 }
+
+extern bool pych;
 
 #define DEF_SI_OPTS	SI_DELIM_SPACE | SI_SPACE_BEFORE_PREFIX
 
@@ -96,8 +99,15 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	bmsFifoFD = ::open(myfifo, O_RDONLY|O_NONBLOCK);
 
 	sw = new StatusWindow;
+\
+    if (pych)
+    {
 
-	updateExpSliderLimits();
+    }
+    else
+    {
+        updateExpSliderLimits();
+    }
 	updateCurrentSettingsLabel();
 
 	lastShutterButton = camera->ui->getShutterButton();
