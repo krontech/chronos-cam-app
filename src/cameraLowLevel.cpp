@@ -18,6 +18,7 @@
 #include <fcntl.h>
 #include <QDebug>
 #include <unistd.h>
+#include <signal.h>
 
 #include "camera.h"
 #include "gpmc.h"
@@ -29,47 +30,103 @@ extern "C" {
 }
 #include "defines.h"
 
+extern bool pych;
+
 bool Camera::getRecDataFifoIsEmpty(void)
 {
-	return gpmc->read32(SEQ_STATUS_ADDR) & SEQ_STATUS_MD_FIFO_EMPTY_MASK;
+	if (pych)
+	{
+		return 0;
+	}
+	else
+	{
+		return gpmc->read32(SEQ_STATUS_ADDR) & SEQ_STATUS_MD_FIFO_EMPTY_MASK;
+	}
 }
 
 UInt32 Camera::readRecDataFifo(void)
 {
-	return gpmc->read32(SEQ_MD_FIFO_READ_ADDR);
+	if (pych)
+	{
+		return 0;
+	}
+	else
+	{
+		return gpmc->read32(SEQ_MD_FIFO_READ_ADDR);
+	}
 }
 
 bool Camera::getRecording(void)
 {
-	return gpmc->read32(SEQ_STATUS_ADDR) & SEQ_STATUS_RECORDING_MASK;
+	if (pych)
+	{
+		CameraStatus cs;
+
+		cs = cinst->getStatus("one", "two");
+		qDebug(cs.state);
+		return !strcmp(cs.state, "recording");
+	}
+	else
+	{
+		return gpmc->read32(SEQ_STATUS_ADDR) & SEQ_STATUS_RECORDING_MASK;
+	}
 }
 
 void Camera::startSequencer(void)
 {
-	UInt32 reg = gpmc->read32(SEQ_CTL_ADDR);
-	gpmc->write32(SEQ_CTL_ADDR, reg | SEQ_CTL_START_REC_MASK);
-	gpmc->write32(SEQ_CTL_ADDR, reg & ~SEQ_CTL_START_REC_MASK);
+	if (pych)
+	{
+		return;
+	}
+	else
+	{
+
+		UInt32 reg = gpmc->read32(SEQ_CTL_ADDR);
+		gpmc->write32(SEQ_CTL_ADDR, reg | SEQ_CTL_START_REC_MASK);
+		gpmc->write32(SEQ_CTL_ADDR, reg & ~SEQ_CTL_START_REC_MASK);
+	}
 }
 
 void Camera::terminateRecord(void)
 {
-	UInt32 reg = gpmc->read32(SEQ_CTL_ADDR);
-	gpmc->write32(SEQ_CTL_ADDR, reg | SEQ_CTL_STOP_REC_MASK);
-	gpmc->write32(SEQ_CTL_ADDR, reg & ~SEQ_CTL_STOP_REC_MASK);
+	if (pych)
+	{
+		raise(SIGSEGV);
+	}
+	else
+	{
+		UInt32 reg = gpmc->read32(SEQ_CTL_ADDR);
+		gpmc->write32(SEQ_CTL_ADDR, reg | SEQ_CTL_STOP_REC_MASK);
+		gpmc->write32(SEQ_CTL_ADDR, reg & ~SEQ_CTL_STOP_REC_MASK);
+	}
 }
 
 void Camera::writeSeqPgmMem(SeqPgmMemWord pgmWord, UInt32 address)
 {
-	gpmc->write32((SEQ_PGM_MEM_START_ADDR + address * 16)+4, pgmWord.data.high);
-	gpmc->write32((SEQ_PGM_MEM_START_ADDR + address * 16)+0, pgmWord.data.low/*0x00282084*/);
+	if (pych)
+	{
+
+	}
+	else
+	{
+		gpmc->write32((SEQ_PGM_MEM_START_ADDR + address * 16)+4, pgmWord.data.high);
+		gpmc->write32((SEQ_PGM_MEM_START_ADDR + address * 16)+0, pgmWord.data.low/*0x00282084*/);
+	}
 }
 
 void Camera::setRecRegion(UInt32 start, UInt32 count, FrameGeometry *geometry)
 {
-	UInt32 sizeWords = getFrameSizeWords(geometry);
-	gpmc->write32(SEQ_FRAME_SIZE_ADDR, sizeWords);
-	gpmc->write32(SEQ_REC_REGION_START_ADDR, start);
-	gpmc->write32(SEQ_REC_REGION_END_ADDR, start + count * sizeWords);
+	if (pych)
+	{
+		raise(SIGSEGV);
+	}
+	else
+	{
+		UInt32 sizeWords = getFrameSizeWords(geometry);
+		gpmc->write32(SEQ_FRAME_SIZE_ADDR, sizeWords);
+		gpmc->write32(SEQ_REC_REGION_START_ADDR, start);
+		gpmc->write32(SEQ_REC_REGION_END_ADDR, start + count * sizeWords);
+	}
 }
 
 /* Camera::readAcqMem
@@ -84,40 +141,48 @@ void Camera::setRecRegion(UInt32 start, UInt32 count, FrameGeometry *geometry)
  **/
 void Camera::readAcqMem(UInt32 * buf, UInt32 offsetWords, UInt32 length)
 {
-	int i;
-	if (gpmc->read16(RAM_IDENTIFIER_REG) == RAM_IDENTIFIER) {
-		UInt32 bytesLeft = length;
-		UInt32 pageOffset = 0;
-		
-		while (bytesLeft) {
-			//---- read a page
-			// set address (in words or 256-bit blocks)
-			gpmc->write32(RAM_ADDRESS, offsetWords + (pageOffset >> 3));
-			// trigger a read
-			gpmc->write16(RAM_CONTROL, RAM_CONTROL_TRIGGER_READ);
-			// wait for read to complete
-			for(i = 0; i < 1000 && gpmc->read16(RAM_CONTROL); i++);
+	if (pych)
+	{
+		raise(SIGSEGV);
 
-			// loop through reading out the data up to the full page
-			// size or until there's no data left
-			for (i = 0; i < 512 && bytesLeft > 0; ) {
-				buf[i+pageOffset] = gpmc->read32(RAM_BUFFER_START + (i<<2));
-				i++;
-				bytesLeft -= 4;
+	}
+	else
+	{
+		int i;
+		if (gpmc->read16(RAM_IDENTIFIER_REG) == RAM_IDENTIFIER) {
+			UInt32 bytesLeft = length;
+			UInt32 pageOffset = 0;
+
+			while (bytesLeft) {
+				//---- read a page
+				// set address (in words or 256-bit blocks)
+				gpmc->write32(RAM_ADDRESS, offsetWords + (pageOffset >> 3));
+				// trigger a read
+				gpmc->write16(RAM_CONTROL, RAM_CONTROL_TRIGGER_READ);
+				// wait for read to complete
+				for(i = 0; i < 1000 && gpmc->read16(RAM_CONTROL); i++);
+
+				// loop through reading out the data up to the full page
+				// size or until there's no data left
+				for (i = 0; i < 512 && bytesLeft > 0; ) {
+					buf[i+pageOffset] = gpmc->read32(RAM_BUFFER_START + (i<<2));
+					i++;
+					bytesLeft -= 4;
+				}
+
+				pageOffset += 512;
+			}
+		}
+		else {
+			gpmc->write32(GPMC_PAGE_OFFSET_ADDR, offsetWords);
+
+			for(i = 0; i < length/4; i++)
+			{
+				buf[i] = gpmc->readRam32(4*i);
 			}
 
-			pageOffset += 512;
+			gpmc->write32(GPMC_PAGE_OFFSET_ADDR, 0);
 		}
-	}
-	else {
-		gpmc->write32(GPMC_PAGE_OFFSET_ADDR, offsetWords);
-		
-		for(i = 0; i < length/4; i++)
-		{
-			buf[i] = gpmc->readRam32(4*i);
-		}
-		
-		gpmc->write32(GPMC_PAGE_OFFSET_ADDR, 0);
 	}
 }
 
@@ -133,42 +198,50 @@ void Camera::readAcqMem(UInt32 * buf, UInt32 offsetWords, UInt32 length)
  **/
 void Camera::writeAcqMem(UInt32 * buf, UInt32 offsetWords, UInt32 length)
 {
-	int i;
-	if (gpmc->read16(RAM_IDENTIFIER_REG) == RAM_IDENTIFIER) {
-		UInt32 bytesLeft = length;
-		UInt32 pageOffset = 0;
-		
-		while (bytesLeft) {
-			//---- write a page
+	if (pych)
+	{
+		raise(SIGSEGV);
 
-			// loop through reading out the data up to the full page
-			// size or until there's no data left
-			for (i = 0; i < 512 && bytesLeft > 0; ) {
-				gpmc->write32(RAM_BUFFER_START + (i<<2), buf[i+pageOffset]);
-				i++;
-				bytesLeft -= 4;
-			}
-			
-			// set address (in words or 256-bit blocks)
-			gpmc->write32(RAM_ADDRESS, offsetWords + (pageOffset >> 3));
-
-			// trigger a read
-			gpmc->write16(RAM_CONTROL, RAM_CONTROL_TRIGGER_WRITE);
-			// wait for read to complete
-			for(i = 0; i < 1000 && gpmc->read16(RAM_CONTROL); i++);
-			
-			pageOffset += 512;
-		}
 	}
-	else {
-		gpmc->write32(GPMC_PAGE_OFFSET_ADDR, offsetWords);
-		
-		for(i = 0; i < length/4; i++)
-		{
-			gpmc->writeRam32(4*i, buf[i]);
+	else
+	{
+		int i;
+		if (gpmc->read16(RAM_IDENTIFIER_REG) == RAM_IDENTIFIER) {
+			UInt32 bytesLeft = length;
+			UInt32 pageOffset = 0;
+
+			while (bytesLeft) {
+				//---- write a page
+
+				// loop through reading out the data up to the full page
+				// size or until there's no data left
+				for (i = 0; i < 512 && bytesLeft > 0; ) {
+					gpmc->write32(RAM_BUFFER_START + (i<<2), buf[i+pageOffset]);
+					i++;
+					bytesLeft -= 4;
+				}
+
+				// set address (in words or 256-bit blocks)
+				gpmc->write32(RAM_ADDRESS, offsetWords + (pageOffset >> 3));
+
+				// trigger a read
+				gpmc->write16(RAM_CONTROL, RAM_CONTROL_TRIGGER_WRITE);
+				// wait for read to complete
+				for(i = 0; i < 1000 && gpmc->read16(RAM_CONTROL); i++);
+
+				pageOffset += 512;
+			}
 		}
-		
-		gpmc->write32(GPMC_PAGE_OFFSET_ADDR, 0);
+		else {
+			gpmc->write32(GPMC_PAGE_OFFSET_ADDR, offsetWords);
+
+			for(i = 0; i < length/4; i++)
+			{
+				gpmc->writeRam32(4*i, buf[i]);
+			}
+
+			gpmc->write32(GPMC_PAGE_OFFSET_ADDR, 0);
+		}
 	}
 }
 
@@ -184,7 +257,15 @@ void Camera::writeAcqMem(UInt32 * buf, UInt32 offsetWords, UInt32 length)
 
 void Camera::writeDGCMem(double gain, UInt32 column)
 {
-	gpmc->write16(COL_GAIN_MEM_START_ADDR+2*column, gain*4096.0);
+	if (pych)
+	{
+		raise(SIGSEGV);
+
+	}
+	else
+	{
+		gpmc->write16(COL_GAIN_MEM_START_ADDR+2*column, gain*4096.0);
+	}
 }
 
 /* Camera::readIsColor
@@ -196,41 +277,73 @@ void Camera::writeDGCMem(double gain, UInt32 column)
 
 bool Camera::readIsColor(void)
 {
-	Int32 colorSelFD;
+	if (pych)
+	{
+		return 0;
 
-	colorSelFD = open("/sys/class/gpio/gpio34/value", O_RDONLY);
+	}
+	else
+	{
 
-	if (-1 == colorSelFD)
-		return CAMERA_FILE_ERROR;
+		Int32 colorSelFD;
 
-	char buf[2];
+		colorSelFD = open("/sys/class/gpio/gpio34/value", O_RDONLY);
 
-	lseek(colorSelFD, 0, SEEK_SET);
-	read(colorSelFD, buf, sizeof(buf));
+		if (-1 == colorSelFD)
+			return CAMERA_FILE_ERROR;
 
-	return ('1' == buf[0]) ? true : false;
+		char buf[2];
 
-	close(colorSelFD);
+		lseek(colorSelFD, 0, SEEK_SET);
+		read(colorSelFD, buf, sizeof(buf));
+
+		return ('1' == buf[0]) ? true : false;
+
+		close(colorSelFD);
+	}
 }
 
 
 bool Camera::getFocusPeakEnableLL(void)
 {
-	return gpmc->read32(DISPLAY_CTL_ADDR) & DISPLAY_CTL_FOCUS_PEAK_EN_MASK;
+	if (pych)
+	{
+		return false;
+
+	}
+	else
+	{
+		return gpmc->read32(DISPLAY_CTL_ADDR) & DISPLAY_CTL_FOCUS_PEAK_EN_MASK;
+	}
 }
 
 
 
 void Camera::setFocusPeakEnableLL(bool en)
 {
-	UInt32 reg = gpmc->read32(DISPLAY_CTL_ADDR);
-	gpmc->write32(DISPLAY_CTL_ADDR, (reg & ~DISPLAY_CTL_FOCUS_PEAK_EN_MASK) | (en ? DISPLAY_CTL_FOCUS_PEAK_EN_MASK : 0));
+	if (pych)
+	{
+		raise(SIGSEGV);
+
+	}
+	else
+	{
+		UInt32 reg = gpmc->read32(DISPLAY_CTL_ADDR);
+		gpmc->write32(DISPLAY_CTL_ADDR, (reg & ~DISPLAY_CTL_FOCUS_PEAK_EN_MASK) | (en ? DISPLAY_CTL_FOCUS_PEAK_EN_MASK : 0));
+	}
 }
 
 
 UInt8 Camera::getFocusPeakColorLL(void)
 {
-	return (gpmc->read32(DISPLAY_CTL_ADDR) & DISPLAY_CTL_FOCUS_PEAK_COLOR_MASK) >> DISPLAY_CTL_FOCUS_PEAK_COLOR_OFFSET;
+	if (pych)
+	{
+		return 4;
+	}
+	else
+	{
+		return (gpmc->read32(DISPLAY_CTL_ADDR) & DISPLAY_CTL_FOCUS_PEAK_COLOR_MASK) >> DISPLAY_CTL_FOCUS_PEAK_COLOR_OFFSET;
+	}
 }
 
 
@@ -243,175 +356,239 @@ void Camera::setFocusPeakColorLL(UInt8 color)
 
 bool Camera::getZebraEnableLL(void)
 {
-	return gpmc->read32(DISPLAY_CTL_ADDR) & DISPLAY_CTL_ZEBRA_EN_MASK;
+	if (pych)
+	{
+		return 0;
+	}
+	else
+	{
+		return gpmc->read32(DISPLAY_CTL_ADDR) & DISPLAY_CTL_ZEBRA_EN_MASK;
+	}
 }
 
 
 
 void Camera::setZebraEnableLL(bool en)
 {
-	UInt32 reg = gpmc->read32(DISPLAY_CTL_ADDR);
-	gpmc->write32(DISPLAY_CTL_ADDR, (reg & ~DISPLAY_CTL_ZEBRA_EN_MASK) | (en ? DISPLAY_CTL_ZEBRA_EN_MASK : 0));
+	if (pych)
+	{
+
+	}
+	else
+	{
+		UInt32 reg = gpmc->read32(DISPLAY_CTL_ADDR);
+		gpmc->write32(DISPLAY_CTL_ADDR, (reg & ~DISPLAY_CTL_ZEBRA_EN_MASK) | (en ? DISPLAY_CTL_ZEBRA_EN_MASK : 0));
+	}
 }
 
 void Camera::setFocusPeakThresholdLL(UInt32 thresh)
 {
-	gpmc->write32(DISPLAY_PEAKING_THRESH_ADDR, thresh);
+	if (pych)
+	{
+
+	}
+	else
+	{
+		gpmc->write32(DISPLAY_PEAKING_THRESH_ADDR, thresh);
+	}
 }
 
 UInt32 Camera::getFocusPeakThresholdLL(void)
 {
-	return gpmc->read32(DISPLAY_PEAKING_THRESH_ADDR);
+	if (pych)
+	{
+		return 4;
+	}
+	else
+	{
+		return gpmc->read32(DISPLAY_PEAKING_THRESH_ADDR);
+	}
 }
 
 
 
 Int32 Camera::getRamSizeGB(UInt32 * stick0SizeGB, UInt32 * stick1SizeGB)
 {
-	int retVal;
-	int file;
-    unsigned char ram0_buf, ram1_buf;
-
-	/* if we are reading, *WRITE* to file */
-	if ((file = open(RAM_SPD_I2C_BUS_FILE, O_WRONLY|O_CREAT,0666)) < 0) {
-		/* ERROR HANDLING: you can check errno to see what went wrong */
-		qDebug() << "Failed to open i2c bus" << RAM_SPD_I2C_BUS_FILE;
-		return CAMERA_FILE_ERROR;
+	if (pych)
+	{
+		return SUCCESS;
 	}
+	else
+	{
 
-//	Print out all the SPD data
-//	for(int i = 0; i < 256; i++)
-//	{
-//		retVal = eeprom_read(file, RAM_SPD_I2C_ADDRESS_STICK_0/*Address*/, i/*Offset*/, &buf/*buffer*/, sizeof(buf)/*Length*/);
-//		qDebug() << buf;
-//	}
+		int retVal;
+		int file;
+		unsigned char ram0_buf, ram1_buf;
 
-    // Read ram slot 0 size
-    retVal = eeprom_read(file, RAM_SPD_I2C_ADDRESS_STICK_0/*Address*/, 5/*Offset*/, &ram0_buf/*buffer*/, sizeof(ram0_buf)/*Length*/);
+		/* if we are reading, *WRITE* to file */
+		if ((file = open(RAM_SPD_I2C_BUS_FILE, O_WRONLY|O_CREAT,0666)) < 0) {
+			/* ERROR HANDLING: you can check errno to see what went wrong */
+			qDebug() << "Failed to open i2c bus" << RAM_SPD_I2C_BUS_FILE;
+			return CAMERA_FILE_ERROR;
+		}
 
-    if(retVal < 0)
-    {
-        *stick0SizeGB = 0;
-    }
+	//	Print out all the SPD data
+	//	for(int i = 0; i < 256; i++)
+	//	{
+	//		retVal = eeprom_read(file, RAM_SPD_I2C_ADDRESS_STICK_0/*Address*/, i/*Offset*/, &buf/*buffer*/, sizeof(buf)/*Length*/);
+	//		qDebug() << buf;
+	//	}
 
+		// Read ram slot 0 size
+		retVal = eeprom_read(file, RAM_SPD_I2C_ADDRESS_STICK_0/*Address*/, 5/*Offset*/, &ram0_buf/*buffer*/, sizeof(ram0_buf)/*Length*/);
 
-    switch(ram0_buf & 0x07)	//Column size is in bits 2:0, and is row address width - 9
-    {
-        case 1:	//8GB, column address width is 10
-            *stick0SizeGB = 8;
-
-            break;
-        case 2:	//16GB, column address width is 11
-            *stick0SizeGB = 16;
-            break;
-        default:
-        *stick0SizeGB = 0;
-            break;
-    }
-
-    qDebug() << "Found" << *stick0SizeGB << "GB memory stick in slot 0";
+		if(retVal < 0)
+		{
+			*stick0SizeGB = 0;
+		}
 
 
-    // Read ram slot 1 size
-    retVal = eeprom_read(file, RAM_SPD_I2C_ADDRESS_STICK_1/*Address*/, 5/*Offset*/, &ram1_buf/*buffer*/, sizeof(ram1_buf)/*Length*/);
+		switch(ram0_buf & 0x07)	//Column size is in bits 2:0, and is row address width - 9
+		{
+			case 1:	//8GB, column address width is 10
+				*stick0SizeGB = 8;
 
-    if(retVal < 0)
-    {
-        *stick1SizeGB = 0;
-    }
-    else {
-        switch(ram1_buf & 0x07)	//Column size is in bits 2:0, and is row address width - 9
-        {
-            case 1:	//8GB, column address width is 10
-                *stick1SizeGB = 8;
+				break;
+			case 2:	//16GB, column address width is 11
+				*stick0SizeGB = 16;
+				break;
+			default:
+			*stick0SizeGB = 0;
+				break;
+		}
 
-                break;
-            case 2:	//16GB, column address width is 11
-                *stick1SizeGB = 16;
-                break;
-            default:
-                *stick1SizeGB = 0;
-                break;
-        }
-    }
+		qDebug() << "Found" << *stick0SizeGB << "GB memory stick in slot 0";
 
-    qDebug() << "Found" << *stick1SizeGB << "GB memory stick in slot 1";
 
-    close(file);
+		// Read ram slot 1 size
+		retVal = eeprom_read(file, RAM_SPD_I2C_ADDRESS_STICK_1/*Address*/, 5/*Offset*/, &ram1_buf/*buffer*/, sizeof(ram1_buf)/*Length*/);
 
-    if (*stick0SizeGB == 0 && *stick1SizeGB == 0) {
-        return CAMERA_ERROR_IO;
-    }
+		if(retVal < 0)
+		{
+			*stick1SizeGB = 0;
+		}
+		else {
+			switch(ram1_buf & 0x07)	//Column size is in bits 2:0, and is row address width - 9
+			{
+				case 1:	//8GB, column address width is 10
+					*stick1SizeGB = 8;
 
-    return SUCCESS;
+					break;
+				case 2:	//16GB, column address width is 11
+					*stick1SizeGB = 16;
+					break;
+				default:
+					*stick1SizeGB = 0;
+					break;
+			}
+		}
+
+		qDebug() << "Found" << *stick1SizeGB << "GB memory stick in slot 1";
+
+		close(file);
+
+		if (*stick0SizeGB == 0 && *stick1SizeGB == 0) {
+			return CAMERA_ERROR_IO;
+		}
+
+		return SUCCESS;
+	}
 }
 
 //dest must be a char array that can handle SERIAL_NUMBER_MAX_LEN + 1 bytes
 Int32 Camera::readSerialNumber(char * dest)
 {
-	int retVal;
-	int file;
-
-	/* if we are reading, *WRITE* to file */
-	if ((file = open(RAM_SPD_I2C_BUS_FILE, O_WRONLY|O_CREAT,0666)) < 0) {
-		/* ERROR HANDLING: you can check errno to see what went wrong */
-		qDebug() << "Failed to open i2c bus" << RAM_SPD_I2C_BUS_FILE;
-		return CAMERA_FILE_ERROR;
-	}
-
-	retVal = eeprom_read_large(file, CAMERA_EEPROM_I2C_ADDR/*Address*/, SERIAL_NUMBER_OFFSET/*Offset*/, (unsigned char *)dest/*buffer*/, SERIAL_NUMBER_MAX_LEN/*Length*/);
-	close(file);
-
-	if(retVal < 0)
+	if (pych)
 	{
-		return CAMERA_ERROR_IO;
+		return SUCCESS;
 	}
+	else
+	{
+		int retVal;
+		int file;
 
-	qDebug() << "Read in serial number" << dest;
-	dest[SERIAL_NUMBER_MAX_LEN] = '\0';
+		/* if we are reading, *WRITE* to file */
+		if ((file = open(RAM_SPD_I2C_BUS_FILE, O_WRONLY|O_CREAT,0666)) < 0) {
+			/* ERROR HANDLING: you can check errno to see what went wrong */
+			qDebug() << "Failed to open i2c bus" << RAM_SPD_I2C_BUS_FILE;
+			return CAMERA_FILE_ERROR;
+		}
 
-	return SUCCESS;
+		retVal = eeprom_read_large(file, CAMERA_EEPROM_I2C_ADDR/*Address*/, SERIAL_NUMBER_OFFSET/*Offset*/, (unsigned char *)dest/*buffer*/, SERIAL_NUMBER_MAX_LEN/*Length*/);
+		close(file);
+
+		if(retVal < 0)
+		{
+			return CAMERA_ERROR_IO;
+		}
+
+		qDebug() << "Read in serial number" << dest;
+		dest[SERIAL_NUMBER_MAX_LEN] = '\0';
+
+		return SUCCESS;
+	}
 }
 
 Int32 Camera::writeSerialNumber(char * src)
 {
-	int retVal;
-	int file;
-	char serialNumber[SERIAL_NUMBER_MAX_LEN];
-
-	memset(serialNumber, 0x00, SERIAL_NUMBER_MAX_LEN);
-
-	if (strlen(src) > SERIAL_NUMBER_MAX_LEN) {
-		// forcefully null terminate string
-		src[SERIAL_NUMBER_MAX_LEN] = 0;
+	if (pych)
+	{
+		return 4;
 	}
-	
-	strcpy(serialNumber, src);
-	
-	const char *filename = RAM_SPD_I2C_BUS_FILE;
+	else
+	{
+		int retVal;
+		int file;
+		char serialNumber[SERIAL_NUMBER_MAX_LEN];
 
-	/* if we are writing to eeprom, *READ* from file */
-	if ((file = open(filename, O_RDONLY)) < 0) {
-		/* ERROR HANDLING: you can check errno to see what went wrong */
-		qDebug() << "Failed to open the i2c bus";
-		return CAMERA_FILE_ERROR;
+		memset(serialNumber, 0x00, SERIAL_NUMBER_MAX_LEN);
+
+		if (strlen(src) > SERIAL_NUMBER_MAX_LEN) {
+			// forcefully null terminate string
+			src[SERIAL_NUMBER_MAX_LEN] = 0;
+		}
+
+		strcpy(serialNumber, src);
+
+		const char *filename = RAM_SPD_I2C_BUS_FILE;
+
+		/* if we are writing to eeprom, *READ* from file */
+		if ((file = open(filename, O_RDONLY)) < 0) {
+			/* ERROR HANDLING: you can check errno to see what went wrong */
+			qDebug() << "Failed to open the i2c bus";
+			return CAMERA_FILE_ERROR;
+		}
+
+		retVal = eeprom_write_large(file, CAMERA_EEPROM_I2C_ADDR, SERIAL_NUMBER_OFFSET, (unsigned char *) serialNumber, SERIAL_NUMBER_MAX_LEN);
+		qDebug("eeprom_write_large returned: %d", retVal);
+		::close(file);
+
+		delayms(250);
+
+		return SUCCESS;
 	}
-
-	retVal = eeprom_write_large(file, CAMERA_EEPROM_I2C_ADDR, SERIAL_NUMBER_OFFSET, (unsigned char *) serialNumber, SERIAL_NUMBER_MAX_LEN);
-	qDebug("eeprom_write_large returned: %d", retVal);
-	::close(file);
-
-	delayms(250);
-
-	return SUCCESS;
 }
 
 UInt16 Camera::getFPGAVersion(void)
 {
-	return gpmc->read16(FPGA_VERSION_ADDR);
+	if (pych)
+	{
+		return 3;
+	}
+	else
+	{
+		return gpmc->read16(FPGA_VERSION_ADDR);
+	}
 }
 
 UInt16 Camera::getFPGASubVersion(void)
 {
-	return gpmc->read16(FPGA_SUBVERSION_ADDR);
+	if (pych)
+	{
+		return 19;
+	}
+	else
+	{
+		return gpmc->read16(FPGA_SUBVERSION_ADDR);
+	}
 }

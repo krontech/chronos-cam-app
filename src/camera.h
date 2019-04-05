@@ -192,6 +192,7 @@ public:
     SensorData sData;
     SensorLimits sLimits;
     SensorSettings sSettings;
+	CameraStatus cStatus;
 
 	unsigned short getTriggerDelayConstant();
 	void setTriggerDelayConstant(unsigned short value);

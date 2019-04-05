@@ -34,6 +34,8 @@
 #define USE_AUTONAME_FOR_SAVE ""
 #define MIN_FREE_SPACE 20000000
 
+extern bool pych;
+
 playbackWindow::playbackWindow(QWidget *parent, Camera * cameraInst, bool autosave) :
 	QWidget(parent),
 	ui(new Ui::playbackWindow)
@@ -112,7 +114,14 @@ void playbackWindow::videoStarted(VideoState state)
 	/* When starting a filesave, increase the frame timing for maximum speed */
 	if (state == VIDEO_STATE_FILESAVE) {
 		camera->recordingData.hasBeenSaved = true;
-		camera->sensor->seqOnOff(false); /* Disable the sensor to reduce RAM contention */
+		if (pych)
+		{
+			//TODO turn off sensor
+		}
+		else
+		{
+			camera->sensor->seqOnOff(false); /* Disable the sensor to reduce RAM contention */
+		}
 		ui->cmdSave->setText("Abort\nSave");
 
 		saveDoneTimer = new QTimer(this);
@@ -141,7 +150,14 @@ void playbackWindow::videoEnded(VideoState state, QString err)
 		QMessageBox msg;
 
 		/* When ending a filesave, restart the sensor and return to live display timing. */
-		camera->sensor->seqOnOff(true);
+		if (pych)
+		{
+			//TODO turn on sensor
+		}
+		else
+		{
+			camera->sensor->seqOnOff(true);
+		}
 
 		sw->close();
 		ui->cmdSave->setText("Save");

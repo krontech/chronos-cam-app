@@ -1,3 +1,5 @@
+#define USE_PYCHRONOS
+
 /****************************************************************************
  *  Copyright (C) 2013-2017 Kron Technologies Inc <http://www.krontech.ca>. *
  *                                                                          *
@@ -41,7 +43,6 @@ void* recDataThread(void *arg);
 void recordEosCallback(void * arg);
 void recordErrorCallback(void * arg, const char * message);
 
-#define USE_PYCHRONOS
 
 #ifdef USE_PYCHRONOS
 bool pych = true;
@@ -80,6 +81,10 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, Control * cinst
 	UInt32 ramSizeGBSlot0, ramSizeGBSlot1;
 	QSettings appSettings;
 
+	CameraStatus cs;
+	CameraData cd;
+	VideoStatus st;
+
 	//Get the memory size
 	retVal = (CameraErrortype)getRamSizeGB(&ramSizeGBSlot0, &ramSizeGBSlot1);
 
@@ -102,7 +107,26 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, Control * cinst
 
 
 	//PYCHRONOS
-	if (!pych)
+	if (pych)
+	{
+
+		gpmc = nullptr;
+
+		//cd = cinst->getCameraData();
+		cs = cinst->getStatus("one", "two");
+		qDebug(cs.state);
+		bool recording = !strcmp(cs.state, "idle");
+		qDebug("recording");
+
+
+		//taken from below:
+		printf("Starting rec data thread\n");
+		terminateRecDataThread = false;
+
+		err = pthread_create(&recDataThreadID, NULL, &recDataThread, this);
+
+	}
+	else
 	{
 		//dummy read
 		if(getRecording())
@@ -236,7 +260,14 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, Control * cinst
 	}
 
 
-	if (!pych)
+	if (pych)
+	{
+		//column calibration turns off LEDs!
+		ui->setRecLEDFront(false);
+		ui->setRecLEDBack(false);
+
+	}
+	else
 	{
 		liveColumnCalibration();
 
@@ -267,14 +298,14 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, Control * cinst
 	vinst->setDisplayPosition(ButtonsOnLeft ^ UpsideDownDisplay);
 	if (pych)
 	{
-
+		cinst->reinitSystem();
 	}
 	else
 	{
 		vinst->liveDisplay(settings.geometry.hRes, settings.geometry.vRes);
+		setFocusPeakColorLL(getFocusPeakColor());
+		setFocusPeakThresholdLL(appSettings.value("camera/focusPeakThreshold", 25).toUInt());
 	}
-	setFocusPeakColorLL(getFocusPeakColor());
-	setFocusPeakThresholdLL(appSettings.value("camera/focusPeakThreshold", 25).toUInt());
 
 	printf("Video init done\n");
 	return SUCCESS;
@@ -434,6 +465,8 @@ void Camera::updateVideoPosition()
 
 Int32 Camera::startRecording(void)
 {
+	CameraStatus cs;
+
 	qDebug("===== Camera::startRecording()");
 
 	//Now do dbus call
@@ -445,7 +478,8 @@ Int32 Camera::startRecording(void)
 	//cinst->setSensorWhiteBalance(0.5, 0.5, 0.5);
 	//cinst->getSensorWhiteBalance();
 
-	//cinst->status("one", "two");
+	//cs = cinst->getStatus("one", "two");
+
 	//cinst->setDescription("hello", 6);
 	//cinst->reinitSystem();
 	//cinst->setSensorTiming(500);
@@ -468,27 +502,31 @@ Int32 Camera::startRecording(void)
 	if(playbackMode)
 		return CAMERA_IN_PLAYBACK_MODE;
 
-	switch(imagerSettings.mode)
+	if (pych)
 	{
-	case RECORD_MODE_NORMAL:
-	case RECORD_MODE_SEGMENTED:
-		setRecSequencerModeNormal();
-	break;
-
-	case RECORD_MODE_GATED_BURST:
-		setRecSequencerModeGatedBurst(imagerSettings.prerecordFrames);
-	break;
-
-	case RECORD_MODE_FPN:
-		//setRecSequencerModeSingleBlock(17);   //Don't set this here, leave blank so the existing sequencer mode setting for FPN still works
-	break;
 
 	}
+	else
+	{
+		switch(imagerSettings.mode)
+		{
+		case RECORD_MODE_NORMAL:
+		case RECORD_MODE_SEGMENTED:
+			setRecSequencerModeNormal();
+		break;
 
+		case RECORD_MODE_GATED_BURST:
+			setRecSequencerModeGatedBurst(imagerSettings.prerecordFrames);
+		break;
+
+		case RECORD_MODE_FPN:
+			//setRecSequencerModeSingleBlock(17);   //Don't set this here, leave blank so the existing sequencer mode setting for FPN still works
+		break;
+		}
+	}
 	recordingData.valid = false;
 	recordingData.hasBeenSaved = false;
 	vinst->flushRegions();
-	vinst->liveDisplay(imagerSettings.geometry.hRes, imagerSettings.geometry.vRes);
 
 	if (pych)
 	{
@@ -496,6 +534,7 @@ Int32 Camera::startRecording(void)
 	}
 	else
 	{
+		vinst->liveDisplay(imagerSettings.geometry.hRes, imagerSettings.geometry.vRes);
 		startSequencer();
 	}
 	ui->setRecLEDFront(true);
@@ -515,26 +554,34 @@ Int32 Camera::setRecSequencerModeNormal()
 	if(playbackMode)
 		return CAMERA_IN_PLAYBACK_MODE;
 
-	setRecRegion(REC_REGION_START, imagerSettings.recRegionSizeFrames, &imagerSettings.geometry);
 
-	pgmWord.settings.termRecTrig = 0;
-	pgmWord.settings.termRecMem = imagerSettings.disableRingBuffer ? 1 : 0;     //This currently doesn't work, bug in record sequencer hardware
-	pgmWord.settings.termRecBlkEnd = (RECORD_MODE_SEGMENTED == imagerSettings.mode && imagerSettings.segments > 1) ? 0 : 1;
-	pgmWord.settings.termBlkFull = 0;
-	pgmWord.settings.termBlkLow = 0;
-	pgmWord.settings.termBlkHigh = 0;
-	pgmWord.settings.termBlkFalling = 0;
-	pgmWord.settings.termBlkRising = 1;
-	pgmWord.settings.next = 0;
-	pgmWord.settings.blkSize = (imagerSettings.mode == RECORD_MODE_NORMAL ?
-					imagerSettings.recRegionSizeFrames :
-					imagerSettings.recRegionSizeFrames / imagerSettings.segments) - 1; //Set to number of frames desired minus one
-	pgmWord.settings.pad = 0;
+	if (pych)
+	{
+		//TODO add sequencing
+	}
+	else
+	{
 
-	qDebug() << "Setting record sequencer mode to" << (imagerSettings.mode == RECORD_MODE_NORMAL ? "normal" : "segmented") << ", disableRingBuffer =" << imagerSettings.disableRingBuffer << "segments ="
-		 << imagerSettings.segments << "blkSize =" << pgmWord.settings.blkSize;
-	writeSeqPgmMem(pgmWord, 0);
+		setRecRegion(REC_REGION_START, imagerSettings.recRegionSizeFrames, &imagerSettings.geometry);
 
+		pgmWord.settings.termRecTrig = 0;
+		pgmWord.settings.termRecMem = imagerSettings.disableRingBuffer ? 1 : 0;     //This currently doesn't work, bug in record sequencer hardware
+		pgmWord.settings.termRecBlkEnd = (RECORD_MODE_SEGMENTED == imagerSettings.mode && imagerSettings.segments > 1) ? 0 : 1;
+		pgmWord.settings.termBlkFull = 0;
+		pgmWord.settings.termBlkLow = 0;
+		pgmWord.settings.termBlkHigh = 0;
+		pgmWord.settings.termBlkFalling = 0;
+		pgmWord.settings.termBlkRising = 1;
+		pgmWord.settings.next = 0;
+		pgmWord.settings.blkSize = (imagerSettings.mode == RECORD_MODE_NORMAL ?
+						imagerSettings.recRegionSizeFrames :
+						imagerSettings.recRegionSizeFrames / imagerSettings.segments) - 1; //Set to number of frames desired minus one
+		pgmWord.settings.pad = 0;
+
+		qDebug() << "Setting record sequencer mode to" << (imagerSettings.mode == RECORD_MODE_NORMAL ? "normal" : "segmented") << ", disableRingBuffer =" << imagerSettings.disableRingBuffer << "segments ="
+			 << imagerSettings.segments << "blkSize =" << pgmWord.settings.blkSize;
+		writeSeqPgmMem(pgmWord, 0);
+	}
 	return SUCCESS;
 }
 
@@ -650,10 +697,22 @@ Int32 Camera::setRecSequencerModeCalLoop(void)
 
 Int32 Camera::stopRecording(void)
 {
+	CameraStatus cs;
+
 	if(!recording)
 		return CAMERA_NOT_RECORDING;
 
-	terminateRecord();
+
+	if (pych)
+	{
+		cs = cinst->getStatus("one", "two");
+
+		cinst->stopRecord();
+	}
+	else
+	{
+		terminateRecord();
+	}
 	//recording = false;
 
 	return SUCCESS;
@@ -2818,6 +2877,8 @@ bool Camera::get_demoMode() {
 	return appSettings.value("camera/demoMode", false).toBool();
 }
 
+
+
 void* recDataThread(void *arg)
 {
 	Camera * cInst = (Camera *)arg;
@@ -2827,13 +2888,16 @@ void* recDataThread(void *arg)
 
 	while(!cInst->terminateRecDataThread) {
 		//On the falling edge of recording, call the user callback
+
 		recording = cInst->getRecording();
+
 		if(!recording && (cInst->lastRecording || cInst->recording))	//Take care of situtation where recording goes low->high-low between two interrutps by checking the cInst->recording flag
 		{
 			recording = false;
 			cInst->ui->setRecLEDFront(false);
 			cInst->ui->setRecLEDBack(false);
 			cInst->recording = false;
+
 		}
 		cInst->lastRecording = recording;
 

@@ -100,15 +100,16 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 
 	sw = new StatusWindow;
 \
-    if (pych)
-    {
+	if (pych)
+	{
+		//TODO sliders
+	}
+	else
+	{
+		updateExpSliderLimits();
+		updateCurrentSettingsLabel();
+	}
 
-    }
-    else
-    {
-        updateExpSliderLimits();
-    }
-	updateCurrentSettingsLabel();
 
 	lastShutterButton = camera->ui->getShutterButton();
 	lastRecording = camera->getIsRecording();

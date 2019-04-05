@@ -14,6 +14,7 @@
 
 void* frameThread(void *arg);
 
+/*
 typedef enum {
     CONTROL_STATE_1 = 1,
     CONTROL_STATE_2 = 2,
@@ -22,14 +23,14 @@ typedef enum {
 
 
 struct ControlStatus {
-    //ControlState state;
+	//ControlState state;
     UInt32 status1;
     UInt32 status2;
     UInt32 status3;
 };
-
-struct ControlState {
-    char state[128];
+*/
+struct CameraStatus {
+	char state[128];
 };
 
 struct CameraData {
@@ -82,14 +83,14 @@ public:
     Control();
     ~Control();
 
-    CameraErrortype getCameraData(void);
+	CameraData getCameraData(void);
     CameraErrortype getSensorData(void);
     CameraErrortype getSensorSettings(void);
     CameraErrortype getSensorLimits(void);
     CameraErrortype setCameraData(void);
     CameraErrortype getSensorWhiteBalance(void);
     CameraErrortype setSensorWhiteBalance(double red, double green, double blue);
-    CameraErrortype status(const char * lastState, const char * error);
+	CameraStatus getStatus(const char * lastState, const char * error);
     CameraErrortype setDescription(const char * description, int idNumber);
     CameraErrortype reinitSystem(void);
     CameraErrortype setSensorTiming(double frameRate);
@@ -115,7 +116,7 @@ public:
     CameraData cd;
 
 signals:
-    void newControlTest(ControlStatus *status);
+	//void newControlTest(ControlStatus *status);
 
 private:
     int pid;
