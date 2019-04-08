@@ -2888,9 +2888,7 @@ void* recDataThread(void *arg)
 
 	while(!cInst->terminateRecDataThread) {
 		//On the falling edge of recording, call the user callback
-
 		recording = cInst->getRecording();
-
 		if(!recording && (cInst->lastRecording || cInst->recording))	//Take care of situtation where recording goes low->high-low between two interrutps by checking the cInst->recording flag
 		{
 			recording = false;

@@ -35,34 +35,7 @@ void Control::checkpid(void)
     }
 }
 
-/*
-static ControlState parseControlState2(const QVariantMap &args)
-{
 
-	if (args["state1"].toBool()) {
-        return CONTROL_STATE_3;
-    }
-    else if (args["state2"].toBool()) {
-        return CONTROL_STATE_2;
-    }
-    else {
-        return CONTROL_STATE_3;
-	}
-
-}
-
-static ControlStatus *parseControlStatus2(const QVariantMap &args, ControlStatus *st)
-{
-
-    st->state = parseControlState(args);
-
-    st->status1 = args["status1"].toUInt();
-    st->status2 = args["status2"].toUInt();
-    st->status3 = args["status3"].toUInt();
-
-    return st;
-}
-*/
 static CameraStatus *parseCameraStatus(const QVariantMap &args, CameraStatus *cs)
 {
 	strcpy(cs->state, args["state"].toString().toAscii());
@@ -353,7 +326,7 @@ CameraStatus Control::getStatus(const char * lastState, const char * error)
 	QVariantMap map;
 
 	CameraStatus cStatus;
-    qDebug("status");
+	//qDebug("status");
 
     args.insert("lastState", QVariant(lastState));
     args.insert("error", QVariant(error));
@@ -714,12 +687,6 @@ CameraErrortype Control::setSequencerProgram(void)
 		fprintf(stderr, "Failed to setSequencerProgram: %s - %s\n", err.name().data(), err.message().toAscii().data());
 	}
 }
-
-
-
-
-
-
 
 
 
