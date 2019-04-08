@@ -165,6 +165,7 @@ private:
 	Int32 initLUX8M(void);
 	Int32 initLUX8M_2(void);
 	void setADCOffset(UInt8 channel, Int16 offset);
+	void offsetCorrectionIteration(FrameGeometry *geometry, int *offsets, UInt32 address, UInt32 framesToAverage, int iter);
 
 	FrameGeometry currentRes;
 	UInt32 currentPeriod;

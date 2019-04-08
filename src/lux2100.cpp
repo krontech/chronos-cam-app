@@ -697,31 +697,132 @@ void LUX2100::setADCOffset(UInt8 channel, Int16 offset)
     SCIWrite(0x04, 0x0000); // switch back to sensor register space
 }
 
+//This doesn't seem to work. Sensor locks up
+#if 0
 void LUX2100::adcOffsetTraining(FrameGeometry *frameSize, UInt32 address, UInt32 numFrames)
 {
-	//This doesn't seem to work. Sensor locks up
-#if 0
-    /*
-    SCIWrite(0x01, 0x0010); // disable the internal timing engine
+	/*
+	SCIWrite(0x01, 0x0010); // disable the internal timing engine
 
-    //SCIWrite(0x2A, 0x89A); // Address of first dark row to read out (half way through dark rows)
-    //SCIWrite(0x2B, 1); // Readout 5 dark rows
-    delayms(10);
-    SCIWrite(0x01, 0x0011); // enable the internal timing engine
-    delayms(10);
-    */
-    SCIWrite(0x04, 0x0001); // switch to datapath register space
-    SCIWrite(0x0E, 0x0001); // Enable application of ADC offsets during v blank
-    SCIWrite(0x0D, 0x0020); // ADC offset target
-    SCIWrite(0x0A, 0x0001); // Start ADC Offset calibration
-    delayms(2000);
-    SCIWrite(0x04, 0x0000); // switch back to sensor register space
+	//SCIWrite(0x2A, 0x89A); // Address of first dark row to read out (half way through dark rows)
+	//SCIWrite(0x2B, 1); // Readout 5 dark rows
+	delayms(10);
+	SCIWrite(0x01, 0x0011); // enable the internal timing engine
+	delayms(10);
+	*/
+	SCIWrite(0x04, 0x0001); // switch to datapath register space
+	SCIWrite(0x0E, 0x0001); // Enable application of ADC offsets during v blank
+	SCIWrite(0x0D, 0x0020); // ADC offset target
+	SCIWrite(0x0A, 0x0001); // Start ADC Offset calibration
+	delayms(2000);
+	SCIWrite(0x04, 0x0000); // switch back to sensor register space
+}
 #else
+void LUX2100::offsetCorrectionIteration(FrameGeometry *geometry, int *offsets, UInt32 address, UInt32 framesToAverage, int iter)
+{
+	UInt32 numRows = geometry->vDarkRows + geometry->vRes;
+	UInt32 rowSize = (geometry->hRes * LUX2100_BITS_PER_PIXEL) / 8;
+	UInt32 samples = (numRows * framesToAverage * geometry->hRes / LUX2100_HRES_INCREMENT);
+	UInt32 adcAverage[LUX2100_HRES_INCREMENT];
+	UInt32 adcStdDev[LUX2100_HRES_INCREMENT];
+
+	UInt32 *pxbuffer = (UInt32 *)malloc(rowSize * numRows * framesToAverage);
+
+	for(int i = 0; i < LUX2100_HRES_INCREMENT; i++) {
+		adcAverage[i] = 0;
+		adcStdDev[i] = 0;
+	}
+	/* Read out the black regions from all frames. */
+	for (int i = 0; i < framesToAverage; i++) {
+		UInt32 *rowbuffer = pxbuffer + (rowSize * numRows * i) / sizeof(UInt32);
+		gpmc->readAcqMem(rowbuffer, address, rowSize * numRows);
+		address += gpmc->read32(SEQ_FRAME_SIZE_ADDR);
+	}
+
+	/* Find the per-ADC averages and standard deviation */
+	for (int row = 0; row < (numRows * framesToAverage); row++) {
+		for (int col = 0; col < geometry->hRes; col++) {
+			adcAverage[col % LUX2100_HRES_INCREMENT] += readPixelBuf12((UInt8 *)pxbuffer, row * geometry->hRes + col);
+		}
+	}
+	for (int row = 0; row < (numRows * framesToAverage); row++) {
+		for (int col = 0; col < geometry->hRes; col++) {
+			UInt16 pix = readPixelBuf12((UInt8 *)pxbuffer, row * geometry->hRes + col);
+			UInt16 avg = adcAverage[col % LUX2100_HRES_INCREMENT] / samples;
+			adcStdDev[col % LUX2100_HRES_INCREMENT] += (pix - avg) * (pix - avg);
+		}
+	}
+	for(int col = 0; col < LUX2100_HRES_INCREMENT; col++) {
+		adcStdDev[col] = sqrt(adcStdDev[col] / (samples - 1));
+		adcAverage[col] /= samples;
+	}
+	free(pxbuffer);
+
+	/* Train the ADC for a target of: Average = Footroom + StandardDeviation */
+	for(int col = 0; col < LUX2100_HRES_INCREMENT; col++) {
+		UInt16 avg = adcAverage[col];
+		UInt16 dev = adcStdDev[col];
+		if (iter == 0) {
+			offsets[col] = -(avg - dev - 32) * 3;
+		} else {
+			//offsets[col] = offsets[col] - (avg - dev - 32) / 2;
+			//HACK Pushing the offset a little lower to make up for the lack of iterations.
+			offsets[col] = offsets[col] - (avg - dev - 64) / 2;
+		}
+		offsets[col] = within(offsets[col], -1023, 1023);
+		setADCOffset(col, offsets[col]);
+	}
+
+	char debugstr[8*LUX2100_HRES_INCREMENT];
+	int debuglen = 0;
+
+	if (iter == 0) {
+		debuglen = 0;
+		for (int col=0; col < LUX2100_HRES_INCREMENT; col++) {
+			debuglen += sprintf(debugstr + debuglen, " %+4d", adcAverage[col]);
+		}
+		qDebug("ADC Initial:%s", debugstr);
+
+		debuglen = 0;
+		for (int col=0; col < LUX2100_HRES_INCREMENT; col++) {
+			debuglen += sprintf(debugstr + debuglen, " %+4d", adcStdDev[col]);
+		}
+		qDebug("ADC StdDev: %s", debugstr);
+	}
+
+	debuglen = 0;
+	for (int col=0; col < LUX2100_HRES_INCREMENT; col++) {
+		debuglen += sprintf(debugstr + debuglen, " %+4d", offsets[col]);
+	}
+	qDebug("ADC Offsets:%s", debugstr);
+}
+
+void LUX2100::adcOffsetTraining(FrameGeometry *size, UInt32 address, UInt32 numFrames)
+{
+	Int32 offsets[LUX2100_HRES_INCREMENT];
+	struct timespec tRefresh;
+	//unsigned int iterations = 8;
+	// HACK: We really need like 8-16 iterations, to get good results, but reduce it
+	// down further to speed up the user experience and make up for it with a larger
+	// footroom.
+	unsigned int iterations = 4;
+
+	tRefresh.tv_sec = 0;
+	tRefresh.tv_nsec = ((numFrames+10) * currentPeriod * 1000000000ULL) / LUX2100_TIMING_CLOCK_FREQ;
+
+	/* Clear out the ADC Offsets. */
 	for (int i = 0; i < LUX2100_HRES_INCREMENT; i++) {
+		offsets[i] = 0;
 		setADCOffset(i, 0);
 	}
-#endif
+
+	/* Tune the ADC offset calibration. */
+	for (int i = 0; i < iterations; i++) {
+		nanosleep(&tRefresh, NULL);
+		offsetCorrectionIteration(size, offsets, address, numFrames, i);
+	}
 }
+#endif
 
 //Generate a filename string used for calibration values that is specific to the current gain and wavetable settings
 std::string LUX2100::getFilename(const char * filename, const char * extension)
@@ -740,11 +841,13 @@ Int32 LUX2100::setGain(UInt32 gainSetting)
 	switch(gainSetting)
 	{
 	case 1:
-		/* HACK Minimum gain is actually somewhere around 2.6 */
-	case 2:
-		/* Set minimum gain of x2.6 */
-		//writeDACVoltage(LUX2100_VRSTH_VOLTAGE, 3.6);
+		/* Set the real minimum gain is of 1.333 */
+		SCIWrite(0x57, 0x007F);
+		SCIWrite(0x58, 0x037F);
+	break;
 
+	case 2:
+		/* Set Luxima's minimum recommended gain of x2.6 */
 		SCIWrite(0x57, 0x01FF);	//gain selection sampling cap (11)	12 bit
 		SCIWrite(0x58, 0x030F);	//serial gain and gain feedback cap (8) 7 bit
 	break;
