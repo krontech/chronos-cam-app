@@ -444,7 +444,8 @@ UInt32 LUX2100::getMinFramePeriod(FrameGeometry *frameSize)
 	double tFovb = (50) * LUX2100_CLOCK_PERIOD;//Duration between PRSTN falling and TXN falling (I think)
 	double tFrame = tRow * (frameSize->vRes + frameSize->vDarkRows) + tTx + tFovf + tFovb;
 	qDebug() << "getMinFramePeriod:" << tFrame;
-	return (UInt64)(ceil(tFrame * 100000000.0));
+	/* 1.01 is a fudge factor to account for errors in Luxima's datasheet. */
+	return (UInt64)(ceil(tFrame * 100000000.0 * 1.01));
 }
 
 UInt32 LUX2100::getFramePeriod(void)
@@ -486,7 +487,7 @@ UInt32 LUX2100::setFramePeriod(UInt32 period, FrameGeometry *size)
  */
 UInt32 LUX2100::getMaxIntegrationTime(UInt32 period, FrameGeometry *size)
 {
-	return period - 500;
+	return period - 750;
 }
 
 /* setIntegrationTime
