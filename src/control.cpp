@@ -376,7 +376,7 @@ CameraErrortype Control::setSensorTiming(double frameRate)
     QVariantMap args;
     QDBusPendingReply<QVariantMap> reply;
 
-    qDebug("reinitSystem");
+	qDebug("setSensorTiming");
 
     args.insert("frameRate", QVariant(frameRate));
 
@@ -464,7 +464,7 @@ CameraErrortype Control::calibrate(void)
 
 	qDebug("calibrate");
 
-	//args.insert("lastState", QVariant(lastState));
+	args.insert("analog", QVariant(true));
 	//args.insert("error", QVariant(error));
 
 	pthread_mutex_lock(&mutex);

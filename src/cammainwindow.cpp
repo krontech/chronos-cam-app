@@ -282,8 +282,16 @@ void CamMainWindow::on_cmdFPNCal_clicked()//Black cal
 	sw->setText("Performing black calibration...");
 	sw->show();
 	QCoreApplication::processEvents();
-	camera->liveColumnCalibration();
-	camera->autoFPNCorrection(16, true);
+
+	if (pych)
+	{
+		camera->cinst->calibrate();
+	}
+	else
+	{
+		camera->liveColumnCalibration();
+		camera->autoFPNCorrection(16, true);
+	}
 	sw->hide();
 }
 

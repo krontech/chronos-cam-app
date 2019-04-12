@@ -443,10 +443,25 @@ UInt32 Camera::setIntegrationTime(double intTime, FrameGeometry *fSize, Int32 fl
 	if (flags & SETTING_FLAG_USESAVED) {
 		validTime = appSettings.value("camera/exposure", defaultTime).toInt();
 		qDebug("--- Using old settings --- Exposure time: %d (default: %d)", validTime, defaultTime);
-		validTime = sensor->setIntegrationTime(validTime, fSize);
+		if (pych)
+		{
+			//add call to cinst->setSensorTiming()
+		}
+		else
+		{
+			validTime = sensor->setIntegrationTime(validTime, fSize);
+		}
 	}
 	else {
-		validTime = sensor->setIntegrationTime(intTime * sensor->getIntegrationClock(), fSize);
+		if (pych)
+		{
+			//add call to cinst->setSensorTiming()
+
+		}
+		else
+		{
+			validTime = sensor->setIntegrationTime(intTime * sensor->getIntegrationClock(), fSize);
+		}
 	}
 
 	if (!(flags & SETTING_FLAG_TEMPORARY)) {
@@ -474,7 +489,7 @@ Int32 Camera::startRecording(void)
 	//cinst->getCameraData();
 	//cinst->getSensorData();
 	//cinst->getSensorLimits();
-	//cinst->setSensorSettings(640, 480);
+	//cinst->setSensorSettings(1280, 1024);
 	//cinst->setSensorWhiteBalance(0.5, 0.5, 0.5);
 	//cinst->getSensorWhiteBalance();
 
