@@ -42,8 +42,6 @@ extern "C" {
 #include "eeprom.h"
 }
 
-void endOfRecCallback(void * arg);
-
 MainWindow::MainWindow(QWidget *parent) :
 	QMainWindow(parent),
 	ui(new Ui::MainWindow)
@@ -114,34 +112,6 @@ void MainWindow::on_cmdWrite_clicked()
 
 }
 
-
-void endOfRecCallback(void * arg)
-{
-	char st[100];
-	MainWindow * mw = (MainWindow*)arg;
-	sprintf(st, "Recording Ended!\n");
-	mw->ui->lblStatus->setText(st);
-	qApp->processEvents();
-}
-
-void MainWindow::on_cmdAdvPhase_clicked()
-{
-	char st[100];
-	camera->sensor->setClkPhase(++camera->sensor->clkPhase);
-
-	sprintf(st, "Set phase to %d\n", camera->sensor->clkPhase);
-	ui->lblStatus->setText(st);
-}
-
-void MainWindow::on_cmdDecPhase_clicked()
-{
-	char st[100];
-	camera->sensor->setClkPhase(--camera->sensor->clkPhase);
-
-	sprintf(st, "Set phase to %d\n", camera->sensor->clkPhase);
-	ui->lblStatus->setText(st);
-}
-
 void MainWindow::on_cmdSeqOn_clicked()
 {
 	static bool on = false;
@@ -158,7 +128,7 @@ void MainWindow::on_cmdSeqOff_clicked()
 void MainWindow::on_cmdSetOffset_clicked()
 {
 	FILE * fp;
-	UInt32 pixelsPerFrame = camera->recordingData.is.stride * camera->recordingData.is.vRes;
+	UInt32 pixelsPerFrame = camera->recordingData.is.geometry.hRes * camera->recordingData.is.geometry.vRes;
 
 	UInt16 * frameBuffer = new UInt16[pixelsPerFrame];
 	camera->getRawCorrectedFramesAveraged(0, 16, frameBuffer);
@@ -193,13 +163,17 @@ void MainWindow::on_cmdTrigger_clicked()
 
 void MainWindow::on_cmdRam_clicked()
 {
-	int FRAME_SIZE = 1280*1024*12/8;
+	UInt32 hRes = camera->getImagerSettings().geometry.hRes;
+	UInt32 vRes = camera->getImagerSettings().geometry.vRes;
+    int FRAME_SIZE = hRes*vRes*12/8;
 
-	qDebug() << "Setting display addresses";
+    qDebug() << "--- Test Pattern --- Resolution is" << hRes << "x" << vRes;
+
+    qDebug() << "--- Test Pattern --- Setting display addresses";
 	camera->gpmc->write16(DISPLAY_CTL_ADDR, camera->gpmc->read16(DISPLAY_CTL_ADDR) | 1);	//Set to display from display frame address register
-	camera->gpmc->write32(DISPLAY_FRAME_ADDRESS_ADDR, 0x40000);	//Set display address
+    camera->gpmc->write32(DISPLAY_FRAME_ADDRESS_ADDR, REC_REGION_START);	//Set display address
 
-	qDebug() << "Zero FPN area";
+    qDebug() << "--- Test Pattern --- Zeroing FPN area";
 	//Zero FPN area
 	camera->gpmc->write32(GPMC_PAGE_OFFSET_ADDR, 0);	//Set GPMC offset
 	for(int i = 0; i < FRAME_SIZE; i = i + 2)
@@ -226,23 +200,23 @@ void MainWindow::on_cmdRam_clicked()
 	}
 	*/
 
-	qDebug() << "Zero image area";
+    qDebug() << "--- Test Pattern --- Zeroing image area";
 	//Zero image area
-	camera->gpmc->write32(GPMC_PAGE_OFFSET_ADDR, 0x40000);	//Set GPMC offset
+    camera->gpmc->write32(GPMC_PAGE_OFFSET_ADDR, REC_REGION_START);	//Set GPMC offset
 	for(int i = 0; i < FRAME_SIZE; i = i + 2)
 	{
 		camera->gpmc->writeRam16(i, 0);
 	}
 
-	qDebug() << "Draw a rectangular box with diagonal";
+    qDebug() << "--- Test Pattern --- Drawing a rectangular box with diagonal";
 	//Draw a rectangular box around the outside of the screen and a diagonal lines starting from the top left
 	for(int i = 0; i < 1; i++)
 	{
-		for(int y = 0; y < 1024; y++)
+        for(int y = 0; y < vRes; y++)
 		{
-			for(int x = 0; x < 1280; x++)
+            for(int x = 0; x < hRes; x++)
 			{
-				writePixel12(x+y*1280, 0, 2048);//(x == 0 || y == 0 || x == 1279 || y == 1023 || x == y) ? 0xFFF : 0);
+                writePixel12(x+y*hRes, 0, (x == 0 || y == 0 || x == (hRes-1) || y == (vRes-1) || x == y) ? 0xFFF : 0);
 			}
 //			qDebug() << "line" << y;
 		}
@@ -255,31 +229,7 @@ void MainWindow::on_cmdRam_clicked()
 
 void MainWindow::on_cmdReset_clicked()
 {
-	camera->sensor->initSensor();
 	//camera->gpmc->write16(SYSTEM_RESET_ADDR, 1);
-}
-
-UInt16 MainWindow::readPixel(UInt32 pixel, UInt32 offset)
-{
-	UInt32 address = pixel * 10 / 8 + offset;
-	UInt8 shift = (pixel & 0x3) * 2;
-	return (camera->gpmc->readRam8(address) >> shift) | (((UInt16)camera->gpmc->readRam8(address+1)) << (8 - shift));
-}
-
-void MainWindow::writePixel(UInt32 pixel, UInt32 offset, UInt16 value)
-{
-	UInt32 address = pixel * 10 / 8 + offset;
-	UInt8 shift = (pixel & 0x3) * 2;
-	UInt8 dataL = camera->gpmc->readRam8(address), dataH = camera->gpmc->readRam8(address+1);
-	//uint8 dataL = 0, dataH = 0;
-
-	dataL &= ~(0xFF << shift);
-	dataH &= ~(0xFF >> (8 - shift));
-
-	dataL |= value << shift;
-	dataH |= value >> (8 - shift);
-	camera->gpmc->writeRam8(address, dataL);
-	camera->gpmc->writeRam8(address+1, dataH);
 }
 
 void MainWindow::writePixel12(UInt32 pixel, UInt32 offset, UInt16 value)
@@ -361,25 +311,29 @@ void MainWindow::on_cmdGC_clicked()
 	camera->computeColGainCorrection(1, true);
 }
 
-void MainWindow::on_cmdOffsetCorrection_clicked()
-{
-	//camera->offsetCorrectionIteration();
-	camera->adcOffsetCorrection(32, false);
-}
-
-void MainWindow::on_cmdSaveOC_clicked()
-{
-	camera->sensor->saveADCOffsetsToFile();
-}
-
-void MainWindow::on_cmdAutoBlack_clicked()
-{
-	camera->autoAdcOffsetCorrection();
-}
-
 void MainWindow::on_cmdSaveFrame_clicked()
 {
     // nothing to see here.
     // TODO: Do the same thing with the following shell command.
     //      cat /tmp/cam-screencap.jpg > /media/sda1/somefilename.jpg
+}
+
+void MainWindow::on_cmdClearFPN_clicked()
+{
+	UInt32 hRes = camera->getImagerSettings().geometry.hRes;
+	UInt32 vRes = camera->getImagerSettings().geometry.vRes;
+	int FRAME_SIZE = camera->getImagerSettings().geometry.size();
+
+    qDebug() << "--- Clear FPN --- Resolution is" << hRes << "x" << vRes;
+
+
+    qDebug() << "--- Clear FPN --- Zeroing FPN area";
+
+    //Zero FPN area
+    camera->gpmc->write32(GPMC_PAGE_OFFSET_ADDR, 0);	//Set GPMC offset
+    for(int i = 0; i < FRAME_SIZE; i = i + 2)
+    {
+        camera->gpmc->writeRam16(i, 0);
+    }
+
 }

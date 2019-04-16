@@ -187,7 +187,7 @@ Int32 Ecp5Config::configure(const char * configFile)
 	delayms(1);	//Just in case
 
 	//Check returend device ID. ID of LFE5U-85 is 0x41113043 (from device programmer).
-	if(	0x41 != data[0] ||
+    if(	(0x41 != data[0] && 0x01 != data[0]) || //0x41 for ECP5U, 0x01 for ECP5UM
 		0x11 != data[1] ||
 		0x30 != data[2] ||
 		0x43 != data[3])

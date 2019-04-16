@@ -92,7 +92,9 @@ enum
 struct VideoStatus {
 	VideoState	state;
 	UInt32 totalFrames;
-	UInt32 position;
+	Int32  position;
+	UInt32 totalSegments;
+	UInt32 segment;
 	double framerate;
 };
 
@@ -101,29 +103,25 @@ class Video : public QObject {
 
 public:
 	Video();
-	~Video(); /* Class needs at least one virtual function for slots to work */
-	Int32 init();
+	~Video();
 
 	UInt32 getPosition(void);
 	bool getOverlayStatus();
 	void setOverlay(const char *format);
 	void seekFrame(int delta);
 	void clearOverlay(void);
-	void setPosition(unsigned int position, int rate);
+	void setPosition(unsigned int position);
 	void setPlayback(int rate);
 	void loopPlayback(unsigned int start, unsigned int length, int rate);
 	void setDisplayOptions(bool zebra, FocusPeakColors fpColor);
-	void setDisplayWindowStartX(bool videoOnRight);
-	void liveDisplay(void);
+	void setDisplayPosition(bool videoOnRight);
+	void liveDisplay(unsigned int hRes, unsigned int vRes, bool flip);
 	VideoState getStatus(VideoStatus *st);
 
 	CameraErrortype startRecording(UInt32 sizeX, UInt32 sizeY, UInt32 start, UInt32 length, save_mode_type save_mode);
 	CameraErrortype stopRecording(void);
 
 	void flushRegions(void);
-	bool isRunning(void) {return running;}
-	bool setRunning(bool run);
-	void reload(void);
 	CameraErrortype setScaling(UInt32 startX, UInt32 startY, UInt32 cropX, UInt32 cropY);
 
 	/* Settings moved over from the VideoRecord class */
@@ -140,12 +138,14 @@ public:
 signals:
 	void started(VideoState state);
 	void ended(VideoState state, QString error);
+	void newSegment(VideoStatus *status);
 
 private:
 	int pid;
 	bool running;
 	pthread_mutex_t mutex;
 
+	void checkpid(void);
 	int mkfilename(char *path, save_mode_type save_mode);
 
 	ComKrontechChronosVideoInterface iface;
@@ -153,9 +153,11 @@ private:
 	UInt32 displayWindowXSize;
 	UInt32 displayWindowYSize;
 
+	/* D-Bus signal handlers. */
 private slots:
 	void sof(const QVariantMap &args);
 	void eof(const QVariantMap &args);
+	void segment(const QVariantMap &args);
 };
 
 #endif // VIDEO_H

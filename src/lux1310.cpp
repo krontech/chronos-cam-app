@@ -28,171 +28,22 @@
 #include "defines.h"
 #include "cameraRegisters.h"
 
-
-
 #include "types.h"
 #include "lux1310.h"
 
 #include <QSettings>
-/*
- *
- * LUPA1300-2 defaults
- * In granularity clock cycles(63MHz)
- * 126 clocks per line
- * 2.057415ms/frame
- *
- *Changing from 14 to 9 ROT setting changed it to 124 clocks per line
- *Changing rowselect_timer from 9 to 6 changed it to 121 clocks per line
- *
- *Changing x res by 24 changed period by 32.5082us = 2048 clocks
- *
- *1.9760493 1296 1024	124491.1059
- *1.0983273 648 1024	69194.6199
- *519.7825	648 480		32746.2975
- *165.4935	336 240		10426.0905
- *
- *Frame rate equation
- *periods = (2*ts+ROT)*(tint_timer+res_length) +	//Row readout time * number of rows
- *			2*(54-ts) +								//Emperically determined fudge factor (two extra clocks for every timeslot not read out)
- *			(54*2+ROT) +							//Black cal line
- *			FOT										//Frame overhead time
- *
- *Where
- *		ROT = rot_timer + 4
- *		FOT = fot_timer + 29
- *		tint_timer = tint_timer register setting
- *		res_length = res_length register setting
- *		ts = number of x timeslots in window
- *		MAX_TS = maximum number of timeslots (54)
- *
- *simplified
- *
- *periods = (tint_timer+res_length)*(2*ts+ROT) - 2*ts + ROT + FOT + 4*MAX_TS
- *
- *G B
-  R G
- *
- **/
 
-UInt8 sram80Clk[427] = {0x81, 0xFF, 0x27, 0xFA, 0x21, 0xA0, 0x7F, 0xCB, 0xFE, 0x8C, 0x78, 0x1F, 0xF2, 0xFF, 0xA3,
-						0x1E, 0x07, 0xFC, 0xBF, 0xE8, 0xC7, 0x81, 0xFF, 0x2F, 0xFA, 0x31, 0xE0, 0x7F, 0xCB, 0xFE,
-						0x8C, 0x78, 0x1F, 0xF2, 0xFF, 0xA3, 0x1E, 0x07, 0xFC, 0xBF, 0xE8, 0xC7, 0x81, 0xFF, 0x2F,
-						0xFA, 0x31, 0xE0, 0x7F, 0xCB, 0xFE, 0x8C, 0x78, 0x1F, 0xF2, 0xFF, 0xA3, 0x1E, 0x07, 0xFC,
-						0xBF, 0xE8, 0xC7, 0x81, 0xFF, 0x2F, 0xFA, 0x31, 0xE0, 0x7F, 0xCB, 0xFE, 0x8C, 0x78, 0x1F,
-						0xF2, 0xFF, 0xA3, 0x1E, 0x07, 0xFC, 0xBF, 0xE8, 0xC7, 0x81, 0xFF, 0x2F, 0xFA, 0x31, 0xE0,
-						0x7F, 0xCB, 0xFE, 0x8C, 0x78, 0x1F, 0xF2, 0xFF, 0xA3, 0x1E, 0x07, 0xFC, 0xBF, 0xE8, 0xC7,
-						0x81, 0xFF, 0x2F, 0xFA, 0x31, 0xE0, 0x7F, 0xCB, 0xFE, 0x8C, 0x78, 0x1F, 0xF2, 0xFF, 0xA3,
-						0x1E, 0x07, 0xFC, 0xBF, 0xE8, 0xC7, 0x81, 0xFF, 0x2F, 0xFA, 0x31, 0xE0, 0x7F, 0xCB, 0xFE,
-						0x84, 0x78, 0x1F, 0xF2, 0xFF, 0xA1, 0x1E, 0x07, 0xFC, 0xBF, 0xE8, 0x47, 0x81, 0xFF, 0x2F,
-						0xFA, 0x11, 0xE0, 0x7F, 0xCB, 0xFE, 0x84, 0x78, 0x1F, 0xF2, 0xFF, 0xA1, 0x1E, 0x07, 0xFC,
-						0xBF, 0xE8, 0x47, 0x81, 0xFF, 0x2F, 0xFA, 0x11, 0xE0, 0x7F, 0xCB, 0xFE, 0x84, 0x78, 0x1F,
-						0xF2, 0xFF, 0xA1, 0x1E, 0x07, 0xFC, 0xBF, 0xE8, 0x47, 0x81, 0xFF, 0x2F, 0xFA, 0x11, 0xE0,
-						0x7F, 0xCB, 0xFE, 0x84, 0x78, 0x1F, 0xF2, 0xFF, 0xA1, 0x1E, 0x07, 0xFC, 0xBF, 0xE8, 0x47,
-						0x80, 0xFF, 0x2F, 0xFA, 0x11, 0xE0, 0x3F, 0xC3, 0xFE, 0x94, 0x78, 0x0F, 0xF0, 0xFF, 0xA5,
-						0x1E, 0x03, 0xFC, 0x3F, 0xE9, 0x47, 0x80, 0xFF, 0x0F, 0xFA, 0x51, 0xE0, 0x3F, 0xC3, 0xFE,
-						0x94, 0x78, 0x0F, 0xF0, 0xFF, 0xB5, 0x1E, 0x03, 0xFC, 0x3F, 0xED, 0x47, 0x80, 0xFF, 0x0F,
-						0xFB, 0x51, 0xE0, 0x3F, 0xC3, 0xFE, 0xD4, 0x78, 0x0F, 0xF0, 0xFF, 0xB5, 0x1E, 0x03, 0xFC,
-						0x3F, 0xED, 0x47, 0x80, 0xFF, 0x0F, 0xFB, 0x51, 0xE0, 0x3F, 0xC3, 0xFE, 0xD4, 0x78, 0x0F,
-						0xF0, 0xFF, 0xB5, 0x1E, 0x03, 0xFC, 0x3F, 0xED, 0x47, 0x80, 0xFF, 0x0F, 0xFA, 0x51, 0xE0,
-						0x3F, 0xC3, 0xFE, 0x94, 0x78, 0x0F, 0xF0, 0xFF, 0xA5, 0x1E, 0x03, 0xFC, 0x3F, 0xE9, 0x47,
-						0x80, 0xFF, 0x0F, 0xFA, 0x51, 0xE0, 0x3F, 0xC3, 0xFE, 0x94, 0x78, 0x0F, 0xF0, 0xFF, 0xA5,
-						0x1E, 0x03, 0xFC, 0x3F, 0xE8, 0x47, 0x80, 0xFF, 0x0F, 0xFA, 0x11, 0xE0, 0x3F, 0xC3, 0xFE,
-						0x84, 0x78, 0x0F, 0xF0, 0xFF, 0xA1, 0x1E, 0x03, 0xFC, 0x3F, 0xE8, 0x47, 0x80, 0xFF, 0x0F,
-						0xFA, 0x11, 0xE0, 0x3F, 0xC3, 0xFE, 0x84, 0x78, 0x0F, 0xF0, 0xFF, 0xA1, 0x1E, 0x03, 0xFC,
-						0x3F, 0xE8, 0x47, 0x80, 0xFF, 0x0F, 0xFA, 0x11, 0xE0, 0x3F, 0xC3, 0xFE, 0x84, 0x78, 0x0F,
-						0xF0, 0xFF, 0xA1, 0x1E, 0x03, 0xFC, 0x3F, 0xE8, 0x47, 0x80, 0xFF, 0x0F, 0xFA, 0x11, 0xE0,
-						0x3F, 0xC3, 0xFE, 0x84, 0x78, 0x0F, 0xF0, 0xFF, 0xA1, 0x1E, 0x03, 0xFC, 0x1F, 0xE8, 0x47,
-						0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-
-
-UInt8 sram39ClkBlk[211] = {0x81, 0xFF, 0x2F, 0xFA, 0x31, 0xE0, 0x7F, 0xCB, 0xFE, 0x8C, 0x78, 0x1F, 0xF2, 0xFF, 0xA3,
-						0x1E, 0x07, 0xFC, 0xBF, 0xE8, 0xC7, 0x81, 0xFF, 0x2F, 0xFA, 0x31, 0xE0, 0x7F, 0xCB, 0xFE,
-						0x8C, 0x78, 0x1F, 0xF2, 0xFF, 0xA3, 0x1E, 0x07, 0xFC, 0xBF, 0xE8, 0x47, 0x81, 0xFF, 0x2F,
-						0xFA, 0x11, 0xE0, 0x7F, 0xCB, 0xFE, 0x84, 0x78, 0x1F, 0xF2, 0xFF, 0xA1, 0x1E, 0x07, 0xFC,
-						0xBF, 0xE8, 0x47, 0x81, 0xFF, 0x2F, 0xFA, 0x11, 0xE0, 0x3F, 0xCB, 0xFE, 0x84, 0x78, 0x0F,
-						0xF0, 0xFF, 0xB5, 0x1E, 0x03, 0xFC, 0x3F, 0xED, 0x47, 0x80, 0xFF, 0x0F, 0xFB, 0x51, 0xE0,
-						0x3F, 0xC3, 0xFE, 0xD4, 0x78, 0x0F, 0xF0, 0xFF, 0xB5, 0x1E, 0x03, 0xFC, 0x3F, 0xED, 0x47,
-						0x80, 0xFF, 0x0F, 0xFB, 0x51, 0xE0, 0x3F, 0xC3, 0xFE, 0xD4, 0x78, 0x0F, 0xF0, 0xFF, 0xB5,
-						0x1E, 0x03, 0xFC, 0x3F, 0xE9, 0x47, 0x80, 0xFF, 0x0F, 0xFA, 0x51, 0xE0, 0x3F, 0xC3, 0xFE,
-						0x94, 0x78, 0x0F, 0xF0, 0xFF, 0xA5, 0x1E, 0x03, 0xFC, 0x3F, 0xE8, 0x47, 0x80, 0xFF, 0x0F,
-						0xFA, 0x11, 0xE0, 0x3F, 0xC3, 0xFE, 0x84, 0x78, 0x0F, 0xF0, 0xFF, 0xA1, 0x1E, 0x03, 0xFC,
-						0x3F, 0xE8, 0x47, 0x80, 0xFF, 0x0F, 0xFA, 0x11, 0xE0, 0x3F, 0xC3, 0xFE, 0x84, 0x78, 0x0F,
-						0xF0, 0xFF, 0xA1, 0x1E, 0x03, 0xFC, 0x3F, 0xE8, 0x47, 0x80, 0xFF, 0x0F, 0xFA, 0x11, 0xE8,
-						0x3F, 0xC3, 0xFE, 0x84, 0x78, 0x0F, 0xF0, 0x7F, 0xA1, 0x1C, 0x00, 0x00, 0x00, 0x00, 0x00,
-						0x00};
-
-UInt8 sram39Clk[211] = {0x81, 0xFF, 0x2F, 0xFA, 0x31, 0xE0, 0x7F, 0xCB, 0xFE, 0x8C, 0x78, 0x1F, 0xF2, 0xFF, 0xA3,
-						0x1E, 0x07, 0xFC, 0xBF, 0xE8, 0xC7, 0x81, 0xFF, 0x2F, 0xFA, 0x31, 0xE0, 0x7F, 0xCB, 0xFE,
-						0x8C, 0x78, 0x1F, 0xF2, 0xFF, 0xA3, 0x1E, 0x07, 0xFC, 0xBF, 0xE8, 0x47, 0x81, 0xFF, 0x2F,
-						0xFA, 0x11, 0xE0, 0x7F, 0xCB, 0xFE, 0x84, 0x78, 0x1F, 0xF2, 0xFF, 0xA1, 0x1E, 0x07, 0xFC,
-						0xBF, 0xE8, 0x47, 0x81, 0xFF, 0x2F, 0xFA, 0x11, 0xE0, 0x3F, 0xCB, 0xFE, 0x84, 0x78, 0x0F,
-						0xF0, 0xFF, 0xB5, 0x1E, 0x03, 0xFC, 0x3F, 0xED, 0x47, 0x80, 0xFF, 0x0F, 0xFB, 0x51, 0xE0,
-						0x3F, 0xC3, 0xFE, 0xD4, 0x78, 0x0F, 0xF0, 0xFF, 0xB5, 0x1E, 0x03, 0xFC, 0x3F, 0xED, 0x47,
-						0x80, 0xFF, 0x0F, 0xFB, 0x51, 0xE0, 0x3F, 0xC3, 0xFE, 0xD4, 0x78, 0x0F, 0xF0, 0xFF, 0xB5,
-						0x1E, 0x03, 0xFC, 0x3F, 0xE9, 0x47, 0x80, 0xFF, 0x0F, 0xFA, 0x51, 0xE0, 0x3F, 0xC3, 0xFE,
-						0x94, 0x78, 0x0F, 0xF0, 0xFF, 0xA5, 0x1E, 0x03, 0xFC, 0x3F, 0xE8, 0x47, 0x80, 0xFF, 0x0F,
-						0xFA, 0x11, 0xE0, 0x3F, 0xC3, 0xFE, 0x84, 0x78, 0x0F, 0xF0, 0xFF, 0xA1, 0x1E, 0x03, 0xFC,
-						0x3F, 0xE8, 0x47, 0x80, 0xFF, 0x0F, 0xFA, 0x11, 0xE0, 0x3F, 0xC3, 0xFE, 0x84, 0x78, 0x0F,
-						0xF0, 0xFF, 0xA1, 0x1E, 0x03, 0xFC, 0x3F, 0xE8, 0x47, 0x80, 0xFF, 0x0F, 0xFA, 0x11, 0xE0,
-						0x3F, 0xC3, 0xFE, 0x84, 0x78, 0x0F, 0xF0, 0x7F, 0xA1, 0x1C, 0x00, 0x00, 0x00, 0x00, 0x00,
-						0x00};
-
-UInt8 sram22Clk[126] = {0x81, 0xFF, 0x2F, 0xFA, 0x21, 0xA0, 0x7F, 0xCB, 0xFE, 0x8C, 0x78, 0x1F, 0xF2, 0xFF, 0xA3,
-						0x1E, 0x07, 0xFC, 0xBF, 0xE8, 0xC7, 0x81, 0xFF, 0x2F, 0xFA, 0x11, 0xE0, 0x7F, 0xCB, 0xFE,
-						0xC4, 0x78, 0x1F, 0xF2, 0xFF, 0xB1, 0x1E, 0x03, 0xFC, 0xBF, 0xEC, 0x47, 0x80, 0xFF, 0x0F,
-						0xFB, 0x51, 0xE0, 0x3F, 0xC3, 0xFE, 0xD4, 0x78, 0x0F, 0xF0, 0xFF, 0xB5, 0x1E, 0x03, 0xFC,
-						0x3F, 0xE9, 0x47, 0x80, 0xFF, 0x0F, 0xFA, 0x51, 0xE0, 0x3F, 0xC3, 0xFE, 0x94, 0x78, 0x0F,
-						0xF0, 0xFF, 0xA5, 0x1E, 0x03, 0xFC, 0x3F, 0xE8, 0x47, 0x80, 0xFF, 0x0F, 0xFA, 0x11, 0xE0,
-						0x3F, 0xC3, 0xFE, 0x84, 0x78, 0x0F, 0xF0, 0xFF, 0xA1, 0x1E, 0x03, 0xFC, 0x3F, 0xE8, 0x47,
-						0x80, 0xFF, 0x0F, 0xFA, 0x11, 0xE0, 0x3F, 0xC1, 0xFE, 0x84, 0x70, 0x00, 0x00, 0x00, 0x00,
-						0x00, 0x00};
-
-UInt8 sram30Clk[174] = {0x81, 0xFF, 0x2F, 0xFA, 0x31, 0xE0, 0x7F, 0xCB, 0xFE, 0x8C, 0x78, 0x1F, 0xF2, 0xFF, 0xA3,
-						0x1E, 0x07, 0xFC, 0xBF, 0xE8, 0xC7, 0x81, 0xFF, 0x2F, 0xFA, 0x31, 0xE0, 0x7F, 0xCB, 0xFE,
-						0x8C, 0x78, 0x1F, 0xF2, 0xFF, 0xA3, 0x1E, 0x07, 0xFC, 0xBF, 0xE8, 0x47, 0x81, 0xFF, 0x2F,
-						0xFA, 0x11, 0xE0, 0x7F, 0xCB, 0xFE, 0x84, 0x78, 0x1F, 0xF2, 0xFF, 0xA1, 0x1E, 0x07, 0xFC,
-						0xBF, 0xE8, 0x47, 0x81, 0xFF, 0x2F, 0xFA, 0x11, 0xE0, 0x3F, 0xCB, 0xFE, 0x84, 0x78, 0x0F,
-						0xF0, 0xFF, 0xB5, 0x1E, 0x03, 0xFC, 0x3F, 0xED, 0x47, 0x80, 0xFF, 0x0F, 0xFB, 0x51, 0xE0,
-						0x3F, 0xC3, 0xFE, 0xD4, 0x78, 0x0F, 0xF0, 0xFF, 0xB5, 0x1E, 0x03, 0xFC, 0x3F, 0xED, 0x47,
-						0x80, 0xFF, 0x0F, 0xFA, 0x51, 0xE0, 0x3F, 0xC3, 0xFE, 0x94, 0x78, 0x0F, 0xF0, 0xFF, 0xA1,
-						0x1E, 0x03, 0xFC, 0x3F, 0xE8, 0x47, 0x80, 0xFF, 0x0F, 0xFA, 0x11, 0xE0, 0x3F, 0xC3, 0xFE,
-						0x84, 0x78, 0x0F, 0xF0, 0xFF, 0xA1, 0x1E, 0x03, 0xFC, 0x3F, 0xE8, 0x47, 0x80, 0xFF, 0x0F,
-						0xFA, 0x11, 0xE0, 0x3F, 0xC1, 0xFE, 0x84, 0x70, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-						0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-
-UInt8 sram25Clk[148] = {0x81, 0xFF, 0x2F, 0xFA, 0x31, 0xE0, 0x7F, 0xCB, 0xFE, 0x8C, 0x78, 0x1F, 0xF2, 0xFF, 0xA3,
-						0x1E, 0x07, 0xFC, 0xBF, 0xE8, 0xC7, 0x81, 0xFF, 0x2F, 0xFA, 0x31, 0xE0, 0x7F, 0xCB, 0xFE,
-						0x8C, 0x78, 0x1F, 0xF2, 0xFF, 0xA1, 0x1E, 0x07, 0xFC, 0xBF, 0xE8, 0x47, 0x81, 0xFF, 0x2F,
-						0xFA, 0x11, 0xE0, 0x7F, 0xCB, 0xFE, 0x84, 0x78, 0x1F, 0xF2, 0xFF, 0xA1, 0x1E, 0x03, 0xFC,
-						0xBF, 0xE8, 0x47, 0x80, 0xFF, 0x0F, 0xFB, 0x51, 0xE0, 0x3F, 0xC3, 0xFE, 0xD4, 0x78, 0x0F,
-						0xF0, 0xFF, 0xB5, 0x1E, 0x03, 0xFC, 0x3F, 0xED, 0x47, 0x80, 0xFF, 0x0F, 0xFB, 0x51, 0xE0,
-						0x3F, 0xC3, 0xFE, 0xD4, 0x78, 0x0F, 0xF0, 0xFF, 0xA5, 0x1E, 0x03, 0xFC, 0x3F, 0xE9, 0x47,
-						0x80, 0xFF, 0x0F, 0xFA, 0x11, 0xE0, 0x3F, 0xC3, 0xFE, 0x84, 0x78, 0x0F, 0xF0, 0xFF, 0xA1,
-						0x1E, 0x03, 0xFC, 0x3F, 0xE8, 0x47, 0x80, 0xFF, 0x07, 0xFA, 0x11, 0xC0, 0x00, 0x00, 0x00,
-						0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-
-UInt8 sram20Clk[122] = {0x81, 0xFF, 0x2F, 0xFA, 0x31, 0xE0, 0x7F, 0xCB, 0xFE, 0x8C, 0x78, 0x1F, 0xF2, 0xFF, 0xA3,
-						0x1E, 0x07, 0xFC, 0xBF, 0xE8, 0xC7, 0x81, 0xFF, 0x2F, 0xFA, 0x31, 0xE0, 0x7F, 0xCB, 0xFE,
-						0x84, 0x78, 0x1F, 0xF2, 0xFF, 0xA1, 0x1E, 0x07, 0xFC, 0xBF, 0xE8, 0x47, 0x81, 0xFF, 0x2F,
-						0xFA, 0x11, 0xE0, 0x3F, 0xCB, 0xFE, 0x84, 0x78, 0x0F, 0xF0, 0xFF, 0xB5, 0x1E, 0x03, 0xFC,
-						0x3F, 0xED, 0x47, 0x80, 0xFF, 0x0F, 0xFB, 0x51, 0xE0, 0x3F, 0xC3, 0xFE, 0xD4, 0x78, 0x0F,
-						0xF0, 0xFF, 0xB5, 0x1E, 0x03, 0xFC, 0x3F, 0xE9, 0x47, 0x80, 0xFF, 0x0F, 0xFA, 0x51, 0xE0,
-						0x3F, 0xC3, 0xFE, 0x84, 0x78, 0x0F, 0xF0, 0xFF, 0xA1, 0x1E, 0x03, 0xFC, 0x1F, 0xE8, 0x47,
-						0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-						0x00, 0x00};
-
+/* Some Timing Constants */
+#define LUX1310_SOF_DELAY	0x0f	/* Delay from TXN rising edge to start of frame. */
+#define LUX1310_LV_DELAY	0x07	/* Linevalid delay to match ADC latency. */
+#define LUX1310_MIN_HBLANK	0x02	/* Minimum horiontal blanking period. */
 
 #define round(x) (floor(x + 0.5))
 
 LUX1310::LUX1310()
 {
 	spi = new SPI();
-	wavetableSelect = LUX1310_WAVETABLE_AUTO;
 	startDelaySensorClocks = LUX1310_MAGIC_ABN_DELAY;
-	//Zero out offsets
-	for(int i = 0; i < LUX1310_HRES_INCREMENT; i++)
-		offsetsA[i] = 0;
-
 }
 
 LUX1310::~LUX1310()
@@ -223,6 +74,9 @@ CameraErrortype LUX1310::init(GPMC * gpmc_inst)
 
 CameraErrortype LUX1310::initSensor()
 {
+	CameraErrortype err;
+	UInt16 rev;
+
 	wavetableSize = 80;
 	gain = LUX1310_GAIN_1;
 
@@ -247,7 +101,16 @@ CameraErrortype LUX1310::initSensor()
 
 	delayms(1);		//Seems to be required for SCI clock to get running
 
+	/* Reset the sensor and check its chip ID. */
 	SCIWrite(0x7E, 0);	//reset all registers
+	rev = SCIRead(0x00);
+	if ((rev >> 8) != LUX1310_CHIP_ID) {
+		fprintf(stderr, "LUX1310 rev_chip returned invalid ID (0x02x)\n", rev>>8);
+		return CAMERA_ERROR_SENSOR;
+	}
+	sensorVersion = rev & 0xFF;
+	fprintf(stderr, "Initializing LUX1310: silicon revision %d\n", sensorVersion);
+
 	//delayms(1);
 	SCIWrite(0x57, 0x0FC0); //custom pattern for ADC training pattern
 	//delayms(1);
@@ -260,69 +123,65 @@ CameraErrortype LUX1310::initSensor()
 
 	autoPhaseCal();
 
-	//Return to normal data mode
+	/* Break out in case of an error. */
+	err = LUX1310_SERIAL_READBACK_ERROR;
+	do {
+		//Return to normal data mode
+		if (!SCIWrite(0x4C, 0x0F00, true)) break;	//pclk channel output during vertical blanking
+		if (!SCIWrite(0x4E, 0x0FC0, true)) break;	//pclk channel output during dark pixel readout
+		if (!SCIWrite(0x56, 0x0000, true)) break;	//Disable test pattern
 
-	SCIWrite(0x4C, 0x0F00);	//pclk channel output during vertical blanking
-	SCIWrite(0x56, 0x0000); //Disable test pattern
+		//Set for 80 clock wavetable
+		if (!SCIWrite(0x37, 80, true)) break;	//non-overlapping readout delay
+		if (!SCIWrite(0x7A, 80, true)) break;	//wavetable size
 
-	//Set for 80 clock wavetable
-	SCIWrite(0x37, 80); //non-overlapping readout delay
-	SCIWrite(0x7A, 80); //wavetable size
+		//Set internal control registers to fine tune the performance of the sensor
+		if (!SCIWrite(0x71, LUX1310_LV_DELAY, true)) break;		//line valid delay to match internal ADC latency
+		if (!SCIWrite(0x03, LUX1310_MIN_HBLANK, true)) break;	//set horizontal blanking period.
+		if (!SCIWrite(0x2D, 0xE08E, true)) break; //state for idle controls
+		if (!SCIWrite(0x2E, 0xFC1F, true)) break; //state for idle controls
+		if (!SCIWrite(0x2F, 0x0003, true)) break; //state for idle controls
 
-	//Set internal control registers to fine tune the performance of the sensor
+		if (!SCIWrite(0x5C, 0x2202, true)) break; //ADC clock controls
+		if (!SCIWrite(0x62, 0x5A76, true)) break; //ADC range to match pixel saturation level
+		if (!SCIWrite(0x74, 0x041F, true)) break; //internal clock timing
+		if (!SCIWrite(0x66, 0x0845, true)) break; //internal current control
 
-	SCIWrite(0x71, 0x0007); //line valid delay to match internal ADC latency
-	SCIWrite(0x2D, 0xE08E); //state for idle controls
-	SCIWrite(0x2E, 0xFC1F); //state for idle controls
-	SCIWrite(0x2F, 0x0003); //state for idle controls
+		//Load the appropriate values based on the silicon revision
+		if(LUX1310_VERSION_2 == sensorVersion) {
+			SCIWrite(0x5B, 0x307F); //internal control register
+			SCIWrite(0x7B, 0x3007); //internal control register
+		}
+		else if(LUX1310_VERSION_1 == sensorVersion) {
+			SCIWrite(0x5B, 0x301F); //internal control register
+			SCIWrite(0x7B, 0x3001); //internal control register
+		}
+		else
+		{	//Unknown version, default to version 1 values
+			SCIWrite(0x5B, 0x301F); //internal control register
+			SCIWrite(0x7B, 0x3001); //internal control register
+			qDebug() << "Found LUX1310 sensor, unexpected Silicon revision found:" << sensorVersion;
+		}
 
-	SCIWrite(0x5C, 0x2202); //ADC clock controls
-	SCIWrite(0x62, 0x4B76); //ADC range to match pixel saturation level
-	SCIWrite(0x74, 0x041F); //internal clock timing
-
-	//Read out the version register to determine the silicon revision
-	UInt16 rev = SCIRead(0x00);
-	qDebug() << "Read rev of " << rev;
-	sensorVersion = rev & 0xFF;
-
-	qDebug() << "Found LUX1310 sensor, silicon revision" << sensorVersion;
-
-	//Load the appropriate values based on the silicon revision
-	if(LUX1310_VERSION_2 == sensorVersion)
-	{
-		SCIWrite(0x5B, 0x307F); //internal control register
-		SCIWrite(0x7B, 0x3007); //internal control register
+		err = SUCCESS;
+	} while (0);
+	if (err != SUCCESS) {
+		return err;
 	}
-	else if(LUX1310_VERSION_1 == sensorVersion)
-	{
-		SCIWrite(0x5B, 0x301F); //internal control register
-		SCIWrite(0x7B, 0x3001); //internal control register
+
+	/* Clear ADC offsets for now. */
+	for (int i = 0; i < LUX1310_HRES_INCREMENT; i++) {
+		setADCOffset(i, 0);
 	}
-	else
-	{	//Unknown version, default to version 1 values
-		SCIWrite(0x5B, 0x301F); //internal control register
-		SCIWrite(0x7B, 0x3001); //internal control register
-		qDebug() << "Found LUX1310 sensor, unexpected Silicon revision found:" << sensorVersion;
-
-	}
-
-	for(int i = 0; i < 16; i++)
-		SCIWrite(0x3a+i, 0x0); //internal control register
-
 	SCIWrite(0x39, 0x1); //ADC offset enable??
-
-	//Set ADC offsets
-	loadADCOffsetsFromFile();
 
 	//Set Gain
 	SCIWrite(0x51, 0x007F);	//gain selection sampling cap (11)	12 bit
 	SCIWrite(0x52, 0x007F);	//gain selection feedback cap (8) 7 bit
 	SCIWrite(0x53, 0x03);	//Serial gain
 
-
-
-	//Load the wavetable
-	SCIWriteBuf(0x7F, sram80Clk, 427 /*sizeof(sram80Clk)*/);
+	//Load the default wavetable
+	SCIWriteBuf(0x7F, lux1310wt[0]->wavetab, lux1310wt[0]->length);
 
 	//Enable internal timing engine
 	SCIWrite(0x01, 0x0001);
@@ -333,24 +192,26 @@ CameraErrortype LUX1310::initSensor()
 	gpmc->write32(IMAGER_INT_TIME_ADDR, 100*3900);
 	delayms(50);
 
+	currentRes.hRes = LUX1310_MAX_H_RES;
+	currentRes.vRes = LUX1310_MAX_V_RES;
+	currentRes.hOffset = 0;
+	currentRes.vOffset = 0;
+	currentRes.vDarkRows = 0;
+	currentRes.bitDepth = LUX1310_BITS_PER_PIXEL;
 
-	currentHRes = 1280;
-	currentVRes = 1024;
-	setFramePeriod(getMinFramePeriod(currentHRes, currentVRes)/100000000.0, currentHRes, currentVRes);
+	setFramePeriod(getMinFramePeriod(&currentRes), &currentRes);
 	//mem problem before this
-	setIntegrationTime((double)getMaxExposure(currentPeriod) / 100000000.0, currentHRes, currentVRes);
+	setIntegrationTime(getMaxIntegrationTime(currentPeriod, &currentRes), &currentRes);
 
 	return SUCCESS;
 }
 
-void LUX1310::SCIWrite(UInt8 address, UInt16 data)
+bool LUX1310::SCIWrite(UInt8 address, UInt16 data, bool readback)
 {
 	int i = 0;
 
-	//qDebug() << "sci write" << data;
-
 	//Clear RW and reset FIFO
-	gpmc->write16(SENSOR_SCI_CONTROL_ADDR, 0x8000 | (gpmc->read16(SENSOR_SCI_CONTROL_ADDR) & ~SENSOR_SCI_CONTROL_RW_MASK));
+	gpmc->write16(SENSOR_SCI_CONTROL_ADDR, 0x8000);
 
 	//Set up address, transfer length and put data into FIFO
 	gpmc->write16(SENSOR_SCI_ADDRESS_ADDR, address);
@@ -358,27 +219,26 @@ void LUX1310::SCIWrite(UInt8 address, UInt16 data)
 	gpmc->write16(SENSOR_SCI_FIFO_WR_ADDR_ADDR, data >> 8);
 	gpmc->write16(SENSOR_SCI_FIFO_WR_ADDR_ADDR, data & 0xFF);
 
-	//Start transfer
-	gpmc->write16(SENSOR_SCI_CONTROL_ADDR, gpmc->read16(SENSOR_SCI_CONTROL_ADDR) | SENSOR_SCI_CONTROL_RUN_MASK);
+	// Start the write and wait for completion.
+	gpmc->write16(SENSOR_SCI_CONTROL_ADDR, SENSOR_SCI_CONTROL_RUN_MASK);
+	while(gpmc->read16(SENSOR_SCI_CONTROL_ADDR) & SENSOR_SCI_CONTROL_RUN_MASK) i++;
 
-	int first = gpmc->read16(SENSOR_SCI_CONTROL_ADDR) & SENSOR_SCI_CONTROL_RUN_MASK;
-	//Wait for completion
-	while(gpmc->read16(SENSOR_SCI_CONTROL_ADDR) & SENSOR_SCI_CONTROL_RUN_MASK)
-		i++;
+	if (readback) {
+		UInt16 readback;
 
-	if(!first && i != 0)
-		qDebug() << "First busy was missed, address:" << address;
-	else if(i == 0)
-		qDebug() << "No busy detected, something is probably very wrong, address:" << address;
-
-	int readback = SCIRead(address);
-	int readback2 = SCIRead(address);
-	int readback3 = SCIRead(address);
-	if(data != readback)
-		qDebug() << "SCI readback wrong, address: " << address << " expected: " << data << " got: " << readback << readback2 << readback3;
+		if (i == 0) {
+			qDebug() << "No busy detected, something is probably very wrong, address:" << address;
+		}
+		readback = SCIRead(address);
+		if (data != readback) {
+			qDebug() << "SCI readback wrong, address: " << address << " expected: " << data << " got: " << readback;
+			return false;
+		}
+	}
+	return true;
 }
 
-void LUX1310::SCIWriteBuf(UInt8 address, UInt8 * data, UInt32 dataLen)
+void LUX1310::SCIWriteBuf(UInt8 address, const UInt8 * data, UInt32 dataLen)
 {
 	//Clear RW and reset FIFO
 	gpmc->write16(SENSOR_SCI_CONTROL_ADDR, 0x8000 | (gpmc->read16(SENSOR_SCI_CONTROL_ADDR) & ~SENSOR_SCI_CONTROL_RW_MASK));
@@ -386,8 +246,9 @@ void LUX1310::SCIWriteBuf(UInt8 address, UInt8 * data, UInt32 dataLen)
 	//Set up address, transfer length and put data into FIFO
 	gpmc->write16(SENSOR_SCI_ADDRESS_ADDR, address);
 	gpmc->write16(SENSOR_SCI_DATALEN_ADDR, dataLen);
-	for(UInt32 i = 0; i < dataLen; i++)
+	for(UInt32 i = 0; i < dataLen; i++) {
 		gpmc->write16(SENSOR_SCI_FIFO_WR_ADDR_ADDR, data[i]);
+	}
 
 	//Start transfer
 	gpmc->write16(SENSOR_SCI_CONTROL_ADDR, gpmc->read16(SENSOR_SCI_CONTROL_ADDR) | SENSOR_SCI_CONTROL_RUN_MASK);
@@ -428,18 +289,8 @@ UInt16 LUX1310::SCIRead(UInt8 address)
 	return gpmc->read16(SENSOR_SCI_READ_DATA_ADDR);
 }
 
-Int32 LUX1310::setOffset(UInt16 * offsets)
-{
-	return 0;
-	for(int i = 0; i < 16; i++)
-		SCIWrite(0x3a+i, offsets[i]); //internal control register
-}
-
 CameraErrortype LUX1310::autoPhaseCal(void)
 {
-	UInt16 valid = 0;
-	UInt32 valid32;
-
 	setClkPhase(0);
 	setClkPhase(1);
 
@@ -449,66 +300,6 @@ CameraErrortype LUX1310::autoPhaseCal(void)
 	int dataCorrect = getDataCorrect();
 	qDebug() << "datacorrect" << dataCorrect;
 	return SUCCESS;
-
-//	setSyncToken(0x32A);	//Set sync token to lock to the training pattern (0x32A or 1100101010)
-
-	for(int i = 0; i < 16; i++)
-	{
-		valid = (valid >> 1) | ((0x1FFFF == getDataCorrect()) ? 0x8000 : 0);
-
-		qDebug() << "datacorrect" << clkPhase << " " << getDataCorrect();
-		//advance clock phase
-		clkPhase = getClkPhase() + 1;
-		if(clkPhase >= 16)
-			clkPhase = 0;
-		setClkPhase(clkPhase);
-	}
-
-	if(0 == valid)
-	{
-		setClkPhase(4);
-		return LUPA1300_NO_DATA_VALID_WINDOW;
-	}
-
-	qDebug() << "Valid: " << valid;
-
-	valid32 = valid | (valid << 16);
-
-	//Determine the start and length of the window of clock phase values that produce valid outputs
-	UInt32 bestMargin = 0;
-	UInt32 bestStart = 0;
-
-	for(int i = 0; i < 16; i++)
-	{
-		UInt32 margin = 0;
-		if(valid32 & (1 << i))
-		{
-			//Scan starting at this valid point
-			for(int j = 0; j < 16; j++)
-			{
-				//Track the margin until we hit a non-valid point
-				if(valid32 & (1 << (i + j)))
-					margin++;
-				else
-				{
-					//Track the best
-					if(margin > bestMargin)
-					{
-						bestMargin = margin;
-						bestStart = i;
-					}
-				}
-			}
-		}
-	}
-
-	if(bestMargin <= 3)
-		return LUPA1300_INSUFFICIENT_DATA_VALID_WINDOW;
-
-	//Set clock phase to the best
-	clkPhase = (bestStart + bestMargin / 2) % 16;
-	setClkPhase(clkPhase);
-	qDebug() << "Valid Window start: " << bestStart << "Valid Window Length: " << bestMargin << "clkPhase: " << clkPhase;
 }
 
 Int32 LUX1310::seqOnOff(bool on)
@@ -546,126 +337,98 @@ void LUX1310::setSyncToken(UInt16 token)
 	gpmc->write16(IMAGE_SENSOR_SYNC_TOKEN_ADDR, token);
 }
 
-void LUX1310::setResolution(UInt32 hStart, UInt32 hWidth, UInt32 vStart, UInt32 vEnd)
+FrameGeometry LUX1310::getMaxGeometry(void)
 {
-	UInt32 hStartBlocks = hStart / LUX1310_HRES_INCREMENT;
-	UInt32 hWidthblocks = hWidth / LUX1310_HRES_INCREMENT;
+	FrameGeometry size = {
+		.hRes = LUX1310_MAX_H_RES,
+		.vRes = LUX1310_MAX_V_RES,
+		.hOffset = 0,
+		.vOffset = 0,
+		.vDarkRows = LUX1310_MAX_V_DARK,
+		.bitDepth = LUX1310_BITS_PER_PIXEL,
+	};
+	return size;
+}
+
+void LUX1310::setResolution(FrameGeometry *size)
+{
+	UInt32 hStartBlocks = size->hOffset / LUX1310_HRES_INCREMENT;
+	UInt32 hWidthblocks = size->hRes / LUX1310_HRES_INCREMENT;
 	SCIWrite(0x05, 0x20 + hStartBlocks * LUX1310_HRES_INCREMENT);//X Start
 	SCIWrite(0x06, 0x20 + (hStartBlocks + hWidthblocks) * LUX1310_HRES_INCREMENT - 1);//X End
-	SCIWrite(0x07, vStart);//Y Start
-	SCIWrite(0x08, vEnd);//Y End
+	SCIWrite(0x07, size->vOffset);							//Y Start
+	SCIWrite(0x08, size->vOffset + size->vRes - 1);	//Y End
+	SCIWrite(0x29, (size->vDarkRows << 12) + (LUX1310_MAX_V_RES + LUX1310_MAX_V_DARK - size->vDarkRows + 4));
 
-	currentHRes = hWidth;
-	currentVRes = vEnd - vStart + 1;
+	memcpy(&currentRes, size, sizeof(currentRes));
 }
 
-bool LUX1310::isValidResolution(UInt32 hRes, UInt32 vRes, UInt32 hOffset, UInt32 vOffset)
+UInt32 LUX1310::getMinWavetablePeriod(FrameGeometry *frameSize, UInt32 wtSize)
 {
-	/* Enforce resolution limits. */
-	if ((hRes < LUX1310_MIN_HRES) || (hRes + hOffset > LUX1310_MAX_H_RES)) {
-		return false;
-	}
-	if ((vRes < LUX1310_MIN_VRES) || (vRes + vOffset > LUX1310_MAX_V_RES)) {
-		return false;
-	}
-	/* Enforce minimum pixel increments. */
-	if ((hRes % LUX1310_HRES_INCREMENT) || (hOffset % LUX1310_HRES_INCREMENT)) {
-		return false;
-	}
-	if ((vRes % LUX1310_VRES_INCREMENT) || (vOffset % LUX1310_VRES_INCREMENT)) {
-		return false;
-	}
-	/* Otherwise, the resultion and offset are valid. */
-	return true;
-}
-
-//Used by init functions only
-UInt32 LUX1310::getMinFramePeriod(UInt32 hRes, UInt32 vRes, UInt32 wtSize)
-{
-	if(!isValidResolution(hRes, vRes, 0, 0))
+	if(!isValidResolution(frameSize))
 		return 0;
 
-	if(hRes == 1280)
-		wtSize = 80;
+	/* Updated to v3.0 datasheet and computed directly in LUX1310 clocks. */
+	unsigned int tRead = frameSize->hRes / LUX1310_HRES_INCREMENT;
+	unsigned int tTx = 25; /* Hard-coded to 25 clocks in the FPGA, should actually be at least 350ns. */
+	unsigned int tRow = max(tRead + LUX1310_MIN_HBLANK, wtSize + 3);
+	unsigned int tFovf = LUX1310_SOF_DELAY + wtSize + LUX1310_LV_DELAY + 10;
+	unsigned int tFovfb = 41; /* Duration between PRSTN falling and TXN falling (I think) */
+	unsigned int tFrame = tRow * (frameSize->vRes + frameSize->vDarkRows) + tTx + tFovf + tFovfb - LUX1310_MIN_HBLANK;
 
-	double tRead = (double)(hRes / LUX1310_HRES_INCREMENT) * LUX1310_CLOCK_PERIOD;
-	double tHBlank = 2.0 * LUX1310_CLOCK_PERIOD;
-	double tWavetable = wtSize * LUX1310_CLOCK_PERIOD;
-	double tRow = max(tRead+tHBlank, tWavetable+3*LUX1310_CLOCK_PERIOD);
-	double tTx = 25 * LUX1310_CLOCK_PERIOD;
-	double tFovf = 50 * LUX1310_CLOCK_PERIOD;
-	double tFovb = (50) * LUX1310_CLOCK_PERIOD;//Duration between PRSTN falling and TXN falling (I think)
-	double tFrame = tRow * vRes + tTx + tFovf + tFovb;
+	/* Convert from 90MHz sensor clocks to 100MHz FPGA clocks. */
 	qDebug() << "getMinFramePeriod:" << tFrame;
-	return (UInt64)(ceil(tFrame * 100000000.0));
+	return ceil(tFrame * 100 / 90);
 }
 
-double LUX1310::getMinMasterFramePeriod(UInt32 hRes, UInt32 vRes)
+UInt32 LUX1310::getMinFramePeriod(FrameGeometry *frameSize)
 {
-	if(!isValidResolution(hRes, vRes, 0, 0))
-		return 0.0;
+	unsigned int wtIdeal = (frameSize->hRes / LUX1310_HRES_INCREMENT) + LUX1310_MIN_HBLANK - 3;
+	unsigned int wtSize;
 
-	return (double)getMinFramePeriod(hRes, vRes) / 100000000.0;
-	int wtSize;
+	if(!isValidResolution(frameSize))
+		return 0;
 
-	if(hRes == 1280)
-		wtSize = 80;
-	else
-		wtSize = LUX1310_MIN_WAVETABLE_SIZE;
+	/*
+	 * Select the longest wavetable that fits within the line readout time,
+	 * or fall back to the shortest wavetable for extremely small resolutions.
+	 */
+	for (int i = 0; lux1310wt[i] != NULL; i++) {
+		wtSize = lux1310wt[i]->clocks;
+		if (wtSize <= wtIdeal) break;
+	}
 
-	double tRead = (double)(hRes / LUX1310_HRES_INCREMENT) * LUX1310_CLOCK_PERIOD;
-	double tHBlank = 2.0 * LUX1310_CLOCK_PERIOD;
-	double tWavetable = wtSize * LUX1310_CLOCK_PERIOD;
-	double tRow = max(tRead+tHBlank, tWavetable+3*LUX1310_CLOCK_PERIOD);
-	double tTx = 25 * LUX1310_CLOCK_PERIOD;
-	double tFovf = 50 * LUX1310_CLOCK_PERIOD;
-	double tFovb = (50) * LUX1310_CLOCK_PERIOD;//Duration between PRSTN falling and TXN falling (I think)
-	double tFrame = tRow * vRes + tTx + tFovf + tFovb;
-	qDebug() << "getMinMasterFramePeriod:" << tFrame;
-	return tFrame;
+	return getMinWavetablePeriod(frameSize, wtSize);
 }
 
-UInt32 LUX1310::getMaxExposure(UInt32 period)
+UInt32 LUX1310::getFramePeriod(void)
 {
-	return period - 500;
+	return currentPeriod;
 }
 
-//Returns the period the sensor is set to in seconds
-double LUX1310::getCurrentFramePeriodDouble(void)
+UInt32 LUX1310::getActualFramePeriod(double target, FrameGeometry *size)
 {
-	return (double)currentPeriod / 100000000.0;
+	//Round to nearest timing clock period
+	UInt32 clocks = round(target * LUX1310_TIMING_CLOCK);
+	UInt32 minPeriod = getMinFramePeriod(size);
+	UInt32 maxPeriod = LUX1310_MAX_SLAVE_PERIOD;
+
+	return within(clocks, minPeriod, maxPeriod);
 }
 
-//Returns the exposure time the sensor is set to in seconds
-double LUX1310::getCurrentExposureDouble(void)
+UInt32 LUX1310::setFramePeriod(UInt32 period, FrameGeometry *size)
 {
-	return (double)currentExposure / 100000000.0;
-}
-
-double LUX1310::getActualFramePeriod(double targetPeriod, UInt32 hRes, UInt32 vRes)
-{
-	//Round to nearest 10ns period
-	targetPeriod = round(targetPeriod * (100000000.0)) / 100000000.0;
-
-	double minPeriod = getMinMasterFramePeriod(hRes, vRes);
-	double maxPeriod = LUX1310_MAX_SLAVE_PERIOD;
-
-	return within(targetPeriod, minPeriod, maxPeriod);
-}
-
-double LUX1310::setFramePeriod(double period, UInt32 hRes, UInt32 vRes)
-{
-	//Round to nearest 10ns period
-	period = round(period * (100000000.0)) / 100000000.0;
 	qDebug() << "Requested period" << period;
-	double minPeriod = getMinMasterFramePeriod(hRes, vRes);
-	double maxPeriod = LUX1310_MAX_SLAVE_PERIOD / 100000000.0;
+	UInt32 minPeriod = getMinFramePeriod(size);
+	UInt32 maxPeriod = LUX1310_MAX_SLAVE_PERIOD;
 
-	period = within(period, minPeriod, maxPeriod);
-	currentPeriod = period * 100000000.0;
+	currentPeriod = within(period, minPeriod, maxPeriod);
 
-	setSlavePeriod(currentPeriod);
-	return period;
+
+	updateWavetableSetting(false);
+	gpmc->write16(SENSOR_LINE_PERIOD_ADDR, max((size->hRes / LUX1310_HRES_INCREMENT)+2, (wavetableSize + 3)) - 1);
+	gpmc->write32(IMAGER_FRAME_PERIOD_ADDR, period);
+	return currentPeriod;
 }
 
 /* getMaxIntegrationTime
@@ -676,66 +439,28 @@ double LUX1310::setFramePeriod(double period, UInt32 hRes, UInt32 vRes)
  *
  * returns: Maximum integration time
  */
-double LUX1310::getMaxIntegrationTime(double period, UInt32 hRes, UInt32 vRes)
+UInt32 LUX1310::getMaxIntegrationTime(UInt32 period, FrameGeometry *size)
 {
-	//Round to nearest 10ns period
-	period = round(period * (100000000.0)) / 100000000.0;
-	return (double)getMaxExposure(period * 100000000.0) / 100000000.0;
-
-}
-
-/* getMaxCurrentIntegrationTime
- *
- * Gets the actual maximum integration for the current settings
- *
- * returns: Maximum integration time
- */
-double LUX1310::getMaxCurrentIntegrationTime(void)
-{
-	return (double)getMaxExposure(currentPeriod) / 100000000.0;
-}
-
-/* getActualIntegrationTime
- *
- * Gets the actual integration time that the sensor can be set to which is as close as possible to desired
- *
- * intTime:	Desired integration time in seconds
- *
- * returns: Actual closest integration time
- */
-double LUX1310::getActualIntegrationTime(double intTime, double period, UInt32 hRes, UInt32 vRes)
-{
-
-	//Round to nearest 10ns period
-	period = round(period * (100000000.0)) / 100000000.0;
-	intTime = round(intTime * (100000000.0)) / 100000000.0;
-
-	double maxIntTime = (double)getMaxExposure(period * 100000000.0) / 100000000.0;
-	double minIntTime = LUX1310_MIN_INT_TIME;
-	return within(intTime, minIntTime, maxIntTime);
-
+	return period - 500;
 }
 
 /* setIntegrationTime
  *
  * Sets the integration time of the image sensor to a value as close as possible to requested
  *
- * intTime:	Desired integration time in seconds
+ * intTime:	Desired integration time in clocks
  *
  * returns: Actual integration time that was set
  */
-double LUX1310::setIntegrationTime(double intTime, UInt32 hRes, UInt32 vRes)
+UInt32 LUX1310::setIntegrationTime(UInt32 intTime, FrameGeometry *size)
 {
-	//Round to nearest 10ns period
-	intTime = round(intTime * (100000000.0)) / 100000000.0;
-
 	//Set integration time to within limits
-	double maxIntTime = (double)getMaxExposure(currentPeriod) / 100000000.0;
-	double minIntTime = LUX1310_MIN_INT_TIME;
-	intTime = within(intTime, minIntTime, maxIntTime);
-	currentExposure = intTime * 100000000.0;	
+	UInt32 maxIntTime = getMaxIntegrationTime(currentPeriod, size);
+	UInt32 minIntTime = getMinIntegrationTime(currentPeriod, size);
+	currentExposure = within(intTime, minIntTime, maxIntTime);
+
 	setSlaveExposure(currentExposure);
-	return intTime;
+	return currentExposure;
 }
 
 /* getIntegrationTime
@@ -744,23 +469,16 @@ double LUX1310::setIntegrationTime(double intTime, UInt32 hRes, UInt32 vRes)
  *
  * returns: Integration tim
  */
-double LUX1310::getIntegrationTime(void)
+UInt32 LUX1310::getIntegrationTime(void)
 {
-
-	return (double)currentExposure / 100000000.0;
-}
-
-
-void LUX1310::setSlavePeriod(UInt32 period)
-{
-	gpmc->write32(IMAGER_FRAME_PERIOD_ADDR, period);
+	return currentExposure;
 }
 
 void LUX1310::setSlaveExposure(UInt32 exposure)
 {
 	//hack to fix line issue. Not perfect, need to properly register this on the sensor clock.
-	double linePeriod = max((currentHRes / LUX1310_HRES_INCREMENT)+2, (wavetableSize + 3)) * 1.0/LUX1310_SENSOR_CLOCK;	//Line period in seconds
-	UInt32 startDelay = (double)startDelaySensorClocks * TIMING_CLOCK_FREQ / LUX1310_SENSOR_CLOCK;
+	double linePeriod = max((currentRes.hRes / LUX1310_HRES_INCREMENT)+2, (wavetableSize + 3)) * 1.0/LUX1310_SENSOR_CLOCK;	//Line period in seconds
+	UInt32 startDelay = (double)startDelaySensorClocks * LUX1310_TIMING_CLOCK / LUX1310_SENSOR_CLOCK;
 	double targetExp = (double)exposure / 100000000.0;
 	UInt32 expLines = round(targetExp / linePeriod);
 
@@ -769,11 +487,6 @@ void LUX1310::setSlaveExposure(UInt32 exposure)
 	//		 << "targetExp" << targetExp << "expLines" << expLines << "exposure" << exposure;
 	gpmc->write32(IMAGER_INT_TIME_ADDR, exposure);
 	currentExposure = exposure;
-}
-
-void LUX1310::dumpRegisters(void)
-{
-	return;
 }
 
 //Set up DAC
@@ -847,223 +560,73 @@ void LUX1310::setDACCS(bool on)
 	write(dacCSFD, on ? "1" : "0", 1);
 }
 
-
-void LUX1310::setWavetable(UInt8 mode)
+void LUX1310::updateWavetableSetting(bool gainCalMode)
 {
-	switch(mode)
-	{
-	case LUX1310_WAVETABLE_80:
-		SCIWrite(0x01, 0x0000);	//Disable internal timing engine
-		SCIWrite(0x37, 80); //non-overlapping readout delay
-		SCIWrite(0x7A, 80); //wavetable size
-		SCIWriteBuf(0x7F, sram80Clk, sizeof(sram80Clk));
-		SCIWrite(0x01, 0x0001);	//Enable internal timing engine
-		wavetableSize = 80;
-		setABNDelayClocks(ABN_DELAY_WT80);
-		break;
+	/* Search for the longest wavetable that it shorter than the current frame period. */
+	const lux1310wavetab_t *wt = NULL;
+	int i;
 
-	case LUX1310_WAVETABLE_39:
-		SCIWrite(0x01, 0x0000);	//Disable internal timing engine
-		SCIWrite(0x37, 39); //non-overlapping readout delay
-		SCIWrite(0x7A, 39); //wavetable size
-		SCIWriteBuf(0x7F, sram39Clk, sizeof(sram39Clk));
-		SCIWrite(0x01, 0x0001);	//Enable internal timing engine
-		wavetableSize = 39;
-		setABNDelayClocks(ABN_DELAY_WT39);
-		break;
+	qDebug() << "Selecting wavetable for period of" << currentPeriod;
 
-	case LUX1310_WAVETABLE_30:
-		SCIWrite(0x01, 0x0000);	//Disable internal timing engine
-		SCIWrite(0x37, 30); //non-overlapping readout delay
-		SCIWrite(0x7A, 30); //wavetable size
-		SCIWriteBuf(0x7F, sram30Clk, sizeof(sram30Clk));
-		SCIWrite(0x01, 0x0001);	//Enable internal timing engine
-		wavetableSize = 30;
-		setABNDelayClocks(ABN_DELAY_WT30);
-		break;
-
-	case LUX1310_WAVETABLE_25:
-		SCIWrite(0x01, 0x0000);	//Disable internal timing engine
-		SCIWrite(0x37, 25); //non-overlapping readout delay
-		SCIWrite(0x7A, 25); //wavetable size
-		SCIWriteBuf(0x7F, sram25Clk, sizeof(sram25Clk));
-		SCIWrite(0x01, 0x0001);	//Enable internal timing engine
-		wavetableSize = 25;
-		setABNDelayClocks(ABN_DELAY_WT25);
-		break;
-
-	case LUX1310_WAVETABLE_20:
-		SCIWrite(0x01, 0x0000);	//Disable internal timing engine
-		SCIWrite(0x37, 20); //non-overlapping readout delay
-		SCIWrite(0x7A, 20); //wavetable size
-		SCIWriteBuf(0x7F, sram20Clk, sizeof(sram20Clk));
-		SCIWrite(0x01, 0x0001);	//Enable internal timing engine
-		wavetableSize = 20;
-		setABNDelayClocks(ABN_DELAY_WT20);
-		break;
-
-
+	for (i = 0; lux1310wt[i] != NULL; i++) {
+		wt = lux1310wt[i];
+		if (currentPeriod >= getMinWavetablePeriod(&currentRes, wt->clocks)) break;
 	}
-	qDebug() << "Wavetable size set to" << wavetableSize;
-}
 
+	/* Update the wavetable. */
+	if (wt) {
+		SCIWrite(0x01, 0x0000);         //Disable internal timing engine
+		SCIWrite(0x37, wt->clocks);     //non-overlapping readout delay
+		SCIWrite(0x7A, wt->clocks);     //wavetable size
+		SCIWriteBuf(0x7F, gainCalMode ? wt->gaincal : wt->wavetab, wt->length);
+		SCIWrite(0x01, 0x0001);         //Enable internal timing engine
+		wavetableSize = wt->clocks;
+		gpmc->write16(SENSOR_MAGIC_START_DELAY_ADDR, wt->abnDelay);
 
-void LUX1310::updateWavetableSetting()
-{
-	if(wavetableSelect == LUX1310_WAVETABLE_AUTO)
-	{
-		qDebug() << "currentPeriod" << currentPeriod << "Min period" << getMinFramePeriod(currentHRes, currentVRes, 80);
-		if(currentPeriod < getMinFramePeriod(currentHRes, currentVRes, 80))
-		{
-			if(currentPeriod < getMinFramePeriod(currentHRes, currentVRes, 39))
-			{
-				if(currentPeriod < getMinFramePeriod(currentHRes, currentVRes, 30))
-				{
-					if(currentPeriod < getMinFramePeriod(currentHRes, currentVRes, 25))
-					{
-						setWavetable(LUX1310_WAVETABLE_20);
-					}
-					else
-						setWavetable(LUX1310_WAVETABLE_25);
-				}
-				else
-					setWavetable(LUX1310_WAVETABLE_30);
-			}
-			else
-				setWavetable(LUX1310_WAVETABLE_39);
-		}
-		else
-		{
-			setWavetable(LUX1310_WAVETABLE_80);
-		}
-	}
-	else
-	{
-		setWavetable(wavetableSelect);
+		qDebug() << "Wavetable size set to" << wavetableSize;
 	}
 }
 
+unsigned int LUX1310::enableAnalogTestMode(void)
+{
+	seqOnOff(false);
+	delayms(10);
+	updateWavetableSetting(true);
+	seqOnOff(true);
+	return 31;
+}
+
+void LUX1310::disableAnalogTestMode(void)
+{
+	seqOnOff(false);
+	delayms(10);
+	updateWavetableSetting(false);
+	seqOnOff(true);
+}
+
+void LUX1310::setAnalogTestVoltage(unsigned int voltage)
+{
+	SCIWrite(0x63, 0xC008 | (voltage << 5));
+}
 
 //Sets ADC offset for one channel
 //Converts the input 2s complement value to the sensors's weird sign bit plus value format (sort of like float, with +0 and -0)
 void LUX1310::setADCOffset(UInt8 channel, Int16 offset)
 {
-	offsetsA[channel] = offset;
-
 	if(offset < 0)
 		SCIWrite(0x3a+channel, 0x400 | (-offset & 0x3FF));
 	else
 		SCIWrite(0x3a+channel, offset);
-
-}
-
-//Gets ADC offset for one channel
-//Don't use this, the values seem shifted right depending on the gain setting. Higher gain results in more shift. Seems to work fine at lower gains
-Int16 LUX1310::getADCOffset(UInt8 channel)
-{
-	Int16 val = SCIRead(0x3a+channel);
-
-	if(val & 0x400)
-		return -(val & 0x3FF);
-	else
-		return val & 0x3FF;
-}
-
-Int32 LUX1310::loadADCOffsetsFromFile(void)
-{
-	Int16 offsets[LUX1310_HRES_INCREMENT];
-
-	QString filename;
-	
-	//Generate the filename for this particular resolution and offset
-	filename.sprintf("cal:lux1310Offsets");
-	
-	std::string fn;
-	fn = getFilename("", ".bin");
-	filename.append(fn.c_str());
-	QFileInfo adcOffsetsFile(filename);
-	if (adcOffsetsFile.exists() && adcOffsetsFile.isFile()) 
-		fn = adcOffsetsFile.absoluteFilePath().toLocal8Bit().constData();
-	else 
-		return CAMERA_FILE_NOT_FOUND;
-
-	qDebug() << "attempting to load ADC offsets from" << fn.c_str();
-
-	//If the offsets file exists, read it in
-	if( access( fn.c_str(), R_OK ) == -1 )
-		return CAMERA_FILE_NOT_FOUND;
-
-	FILE * fp;
-	fp = fopen(fn.c_str(), "rb");
-	if(!fp)
-		return CAMERA_FILE_ERROR;
-
-	fread(offsets, sizeof(offsets[0]), LUX1310_HRES_INCREMENT, fp);
-	fclose(fp);
-
-	//Write the values into the sensor
-	for(int i = 0; i < LUX1310_HRES_INCREMENT; i++)
-		setADCOffset(i, offsets[i]);
-
-	return SUCCESS;
-}
-
-Int32 LUX1310::saveADCOffsetsToFile(void)
-{
-	Int16 offsets[LUX1310_HRES_INCREMENT];
-	std::string fn;
-
-	fn = getFilename("cal/lux1310Offsets", ".bin");
-	qDebug("writing ADC offsets to %s", fn.c_str());
-	
-	FILE * fp;
-	fp = fopen(fn.c_str(), "wb");
-	if(!fp)
-		return CAMERA_FILE_ERROR;
-
-	for(int i = 0; i < LUX1310_HRES_INCREMENT; i++)
-		offsets[i] = offsetsA[i];
-
-	//Ugly print to keep it all on one line
-	qDebug() << "Saving offsets to file" << fn.c_str() << "Offsets:"
-			 << offsets[0] << offsets[1] << offsets[2] << offsets[3]
-			 << offsets[4] << offsets[5] << offsets[6] << offsets[7]
-			 << offsets[8] << offsets[9] << offsets[10] << offsets[11]
-			 << offsets[12] << offsets[13] << offsets[14] << offsets[15];
-
-	//Store to file
-	fwrite(offsets, sizeof(offsets[0]), LUX1310_HRES_INCREMENT, fp);
-	fclose(fp);
-
-	return SUCCESS;
 }
 
 //Generate a filename string used for calibration values that is specific to the current gain and wavetable settings
 std::string LUX1310::getFilename(const char * filename, const char * extension)
 {
-	const char * gName, * wtName;
+	char gName[16];
+	char wtName[16];
 
-	switch(gain)
-	{
-		case LUX1310_GAIN_1:		gName = LUX1310_GAIN_1_FN;		break;
-		case LUX1310_GAIN_2:		gName = LUX1310_GAIN_2_FN;		break;
-		case LUX1310_GAIN_4:		gName = LUX1310_GAIN_4_FN;		break;
-		case LUX1310_GAIN_8:		gName = LUX1310_GAIN_8_FN;		break;
-		case LUX1310_GAIN_16:		gName = LUX1310_GAIN_16_FN;		break;
-	default:						gName = "";						break;
-
-	}
-
-	switch(wavetableSize)
-	{
-		case 80:	wtName = LUX1310_WAVETABLE_80_FN; break;
-		case 39:	wtName = LUX1310_WAVETABLE_39_FN; break;
-		case 30:	wtName = LUX1310_WAVETABLE_30_FN; break;
-		case 25:	wtName = LUX1310_WAVETABLE_25_FN; break;
-		case 20:	wtName = LUX1310_WAVETABLE_20_FN; break;
-		default:	wtName = "";					  break;
-	}
-
+	snprintf(gName, sizeof(gName), "G%d", gain);
+	snprintf(wtName, sizeof(wtName), "WT%d", wavetableSize);
 	return std::string(filename) + "_" + gName + "_" + wtName + extension;
 }
 
@@ -1126,6 +689,9 @@ Int32 LUX1310::setGain(UInt32 gainSetting)
 		SCIWrite(0x52, 0x0001);	//gain selection feedback cap (8) 7 bit
 		SCIWrite(0x53, 0x00);	//Serial gain
 	break;
+
+	default:
+		return CAMERA_INVALID_SETTINGS;
 	}
 
 	gain = gainSetting;
@@ -1146,8 +712,76 @@ UInt8 LUX1310::getFilterColor(UInt32 h, UInt32 v)
 
 }
 
-Int32 LUX1310::setABNDelayClocks(UInt32 ABNOffset)
+void LUX1310::offsetCorrectionIteration(FrameGeometry *geometry, int *offsets, UInt32 address, UInt32 framesToAverage)
 {
-	gpmc->write16(SENSOR_MAGIC_START_DELAY_ADDR, ABNOffset);
-	return SUCCESS;
+	UInt32 numRows = geometry->vDarkRows ? geometry->vDarkRows : 1;
+	UInt32 rowSize = (geometry->hRes * LUX1310_BITS_PER_PIXEL) / 8;
+	UInt32 samples = (numRows * framesToAverage * geometry->hRes / LUX1310_HRES_INCREMENT);
+	UInt32 adcAverage[LUX1310_HRES_INCREMENT];
+	UInt32 adcStdDev[LUX1310_HRES_INCREMENT];
+
+	UInt32 *pxbuffer = (UInt32 *)malloc(rowSize * numRows * framesToAverage);
+
+	for(int i = 0; i < LUX1310_HRES_INCREMENT; i++) {
+		adcAverage[i] = 0;
+		adcStdDev[i] = 0;
+	}
+	/* Read out the black regions from all frames. */
+	for (int i = 0; i < framesToAverage; i++) {
+		UInt32 *rowbuffer = pxbuffer + (rowSize * numRows * i) / sizeof(UInt32);
+		gpmc->readAcqMem(rowbuffer, address, rowSize * numRows);
+		address += gpmc->read32(SEQ_FRAME_SIZE_ADDR);
+	}
+
+	/* Find the per-ADC averages and standard deviation */
+	for (int row = 0; row < (numRows * framesToAverage); row++) {
+		for (int col = 0; col < geometry->hRes; col++) {
+			adcAverage[col % LUX1310_HRES_INCREMENT] += readPixelBuf12((UInt8 *)pxbuffer, row * geometry->hRes + col);
+		}
+	}
+	for (int row = 0; row < (numRows * framesToAverage); row++) {
+		for (int col = 0; col < geometry->hRes; col++) {
+			UInt16 pix = readPixelBuf12((UInt8 *)pxbuffer, row * geometry->hRes + col);
+			UInt16 avg = adcAverage[col % LUX1310_HRES_INCREMENT] / samples;
+			adcStdDev[col % LUX1310_HRES_INCREMENT] += (pix - avg) * (pix - avg);
+		}
+	}
+	for(int col = 0; col < LUX1310_HRES_INCREMENT; col++) {
+		adcStdDev[col] = sqrt(adcStdDev[col] / (samples - 1));
+		adcAverage[col] /= samples;
+	}
+	free(pxbuffer);
+
+	/* Train the ADC for a target of: Average = Footroom + StandardDeviation */
+	for(int col = 0; col < LUX1310_HRES_INCREMENT; col++) {
+		UInt16 avg = adcAverage[col];
+		UInt16 dev = adcStdDev[col];
+
+		offsets[col] = offsets[col] - (avg - dev - 32) / 2;
+		offsets[col] = within(offsets[col], -1023, 1023);
+		setADCOffset(col, offsets[col]);
+	}
+}
+
+
+void LUX1310::adcOffsetTraining(FrameGeometry *size, UInt32 address, UInt32 numFrames)
+{
+	int offsets[LUX1310_HRES_INCREMENT];
+	unsigned int iterations = 32;
+	struct timespec tRefresh;
+
+	tRefresh.tv_sec = 0;
+	tRefresh.tv_nsec = ((numFrames+10) * currentPeriod * 1000000000ULL) / LUX1310_TIMING_CLOCK;
+
+	/* Clear out the ADC Offsets. */
+	for (int i = 0; i < LUX1310_HRES_INCREMENT; i++) {
+		offsets[i] = 0;
+		setADCOffset(i, 0);
+	}
+
+	/* Tune the ADC offset calibration. */
+	for (int i = 0; i < iterations; i++) {
+		nanosleep(&tRefresh, NULL);
+		offsetCorrectionIteration(size, offsets, address, numFrames);
+	}
 }

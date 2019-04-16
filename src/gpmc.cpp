@@ -19,6 +19,7 @@
 #include <sys/mman.h>
 #include "gpmc.h"
 #include "defines.h"
+#include "cameraRegisters.h"
 
 GPMC::GPMC()
 {
@@ -64,7 +65,7 @@ Int32 GPMC::init()
 	GPMC_CONFIG = GPMC_CONFIG | (3 << 8);
 
 	GPMC_TIMEOUT_CONTROL =	0x1FF << 4 |	/*TIMEOUTSTARTVALUE*/
-		0;				/*TIMEOUTENABLE*/      // <<<<<<<<<<<<<<<<<<<<<<<<<<< TIMEOUT ENABLE
+        0;				/*TIMEOUTENABLE*/      // <<<<<<<<<<<<<<<<<<<<<<<<<<< TIMEOUT ENABLE
 
 	//Disable CS0
 	GPMC_CONFIG7_i(0) = 0;
@@ -259,4 +260,111 @@ UInt8 GPMC::readRam8(UInt32 offset)
 void GPMC::writeRam8(UInt32 offset, UInt8 data)
 {
 	*((volatile UInt8 *)(map_ram + offset)) = data;
+}
+
+UInt16 GPMC::readPixel12(UInt32 pixel, UInt32 offset)
+{
+	UInt32 address = pixel * 12 / 8 + offset;
+	UInt8 shift = (pixel & 0x1) * 4;
+	return ((readRam8(address) >> shift) | (((UInt16)readRam8(address+1)) << (8 - shift))) & ((1 << 12) - 1);
+}
+
+/* GPMC::readAcqMem
+ *
+ * Reads data from acquisition memory into a buffer
+ *
+ * buf:			Pointer to image buffer
+ * offsetWords:	Number words into acquisition memory to start read
+ * length:		number of bytes to read (must be a multiple of 4)
+ *
+ * returns: nothing
+ **/
+void GPMC::readAcqMem(UInt32 * buf, UInt32 offsetWords, UInt32 length)
+{
+	int i;
+	if (read16(RAM_IDENTIFIER_REG) == RAM_IDENTIFIER) {
+		UInt32 bytesLeft = length;
+		UInt32 pageOffset = 0;
+
+		while (bytesLeft) {
+			//---- read a page
+			// set address (in words or 256-bit blocks)
+			write32(RAM_ADDRESS, offsetWords + (pageOffset >> 3));
+			// trigger a read
+			write16(RAM_CONTROL, RAM_CONTROL_TRIGGER_READ);
+			// wait for read to complete
+			for(i = 0; i < 1000 && read16(RAM_CONTROL); i++);
+
+			// loop through reading out the data up to the full page
+			// size or until there's no data left
+			for (i = 0; i < 512 && bytesLeft > 0; ) {
+				buf[i+pageOffset] = read32(RAM_BUFFER_START + (i<<2));
+				i++;
+				bytesLeft -= 4;
+			}
+
+			pageOffset += 512;
+		}
+	}
+	else {
+		write32(GPMC_PAGE_OFFSET_ADDR, offsetWords);
+
+		for(i = 0; i < length/4; i++)
+		{
+			buf[i] = readRam32(4*i);
+		}
+
+		write32(GPMC_PAGE_OFFSET_ADDR, 0);
+	}
+}
+
+/* GPMC::writeAcqMem
+ *
+ * Writes data from a buffer to acquisition memory
+ *
+ * buf:			Pointer to image buffer
+ * offsetWords:	Number words into aqcuisition memory to start write
+ * length:		number of bytes to write (must be a multiple of 4)
+ *
+ * returns: nothing
+ **/
+void GPMC::writeAcqMem(UInt32 * buf, UInt32 offsetWords, UInt32 length)
+{
+	int i;
+	if (read16(RAM_IDENTIFIER_REG) == RAM_IDENTIFIER) {
+		UInt32 bytesLeft = length;
+		UInt32 pageOffset = 0;
+
+		while (bytesLeft) {
+			//---- write a page
+
+			// loop through reading out the data up to the full page
+			// size or until there's no data left
+			for (i = 0; i < 512 && bytesLeft > 0; ) {
+				write32(RAM_BUFFER_START + (i<<2), buf[i+pageOffset]);
+				i++;
+				bytesLeft -= 4;
+			}
+
+			// set address (in words or 256-bit blocks)
+			write32(RAM_ADDRESS, offsetWords + (pageOffset >> 3));
+
+			// trigger a read
+			write16(RAM_CONTROL, RAM_CONTROL_TRIGGER_WRITE);
+			// wait for read to complete
+			for(i = 0; i < 1000 && read16(RAM_CONTROL); i++);
+
+			pageOffset += 512;
+		}
+	}
+	else {
+		write32(GPMC_PAGE_OFFSET_ADDR, offsetWords);
+
+		for(i = 0; i < length/4; i++)
+		{
+			writeRam32(4*i, buf[i]);
+		}
+
+		write32(GPMC_PAGE_OFFSET_ADDR, 0);
+	}
 }

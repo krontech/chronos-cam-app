@@ -25,29 +25,27 @@
 
 #include "gpmc.h"
 #include "video.h"
-//#include "lupa1300.h"
-#include "lux1310.h"
+#include "sensor.h"
 #include "userInterface.h"
 #include "io.h"
 #include "string.h"
 #include "types.h"
 
 #define RECORD_DATA_LENGTH		2048		//Number of record data entries for the record sequencer data
-#define FPN_ADDRESS				0x0
-#define MAX_FRAME_LENGTH		0xF000
-#define	LIVE_FRAME_0_ADDRESS	MAX_FRAME_LENGTH
-#define	LIVE_FRAME_1_ADDRESS	(MAX_FRAME_LENGTH*2)
-#define	LIVE_FRAME_2_ADDRESS	(MAX_FRAME_LENGTH*3)
-#define REC_REGION_START		(MAX_FRAME_LENGTH*4)
-#define REC_REGION_LEN			ramSize
+#define MAX_FRAME_WORDS			0x19000
+#define CAL_REGION_START		0x0
+#define CAL_REGION_FRAMES		3
+#define LIVE_REGION_START		(CAL_REGION_START + MAX_FRAME_WORDS * CAL_REGION_FRAMES)
+#define LIVE_REGION_FRAMES		3
+#define REC_REGION_START		(LIVE_REGION_START + MAX_FRAME_WORDS * LIVE_REGION_FRAMES)
 #define FRAME_ALIGN_WORDS		64			//Align to 256 byte boundaries (8 32-byte words)
 #define RECORD_LENGTH_MIN       1           //Minimum number of frames in the record region
 #define SEGMENT_COUNT_MAX       (32*1024)   //Maximum number of record segments in segmented mode
+#define FPN_ADDRESS				CAL_REGION_START
 
-#define MAX_FRAME_SIZE_H		1280
-#define MAX_FRAME_SIZE_V		1024
+#define MAX_FRAME_SIZE_H		1920
+#define MAX_FRAME_SIZE_V		1080
 #define MAX_FRAME_SIZE          (MAX_FRAME_SIZE_H * MAX_FRAME_SIZE_V * 8 / 12)
-#define MAX_STRIDE				1280
 #define BITS_PER_PIXEL			12
 #define BYTES_PER_WORD			32
 
@@ -60,6 +58,9 @@
 #define COLOR_MATRIX_INT_BITS	3
 
 #define IMAGE_GAIN_FUDGE_FACTOR 1.0		//Multiplier to make sure clipped ADC value actually clips image
+#define COL_OFFSET_FOOTROOM		32		// Train ADC to not-quite zero to give footroom for noise.
+#define COL_GAIN_FRAC_BITS		12		// 2-point column gain fractional bits.
+#define COL_CURVE_FRAC_BITS		21		// 3-point column curvature factional bits.
 
 #define SETTING_FLAG_TEMPORARY  1
 #define SETTING_FLAG_USESAVED   2
@@ -123,24 +124,19 @@ typedef union SeqPrmMemWord_t
 } SeqPgmMemWord;
 
 typedef struct {
-    UInt32 hRes;                //pixels
-    UInt32 vRes;                //pixels
-    UInt32 stride;              //Number of pixels per line (allows for dark pixels in the last column)
-    UInt32 hOffset;             //active area offset from left
-    UInt32 vOffset;             //Active area offset from top
-    UInt32 exposure;            //10ns increments
-    UInt32 period;              //Frame period in 10ns increments
+	FrameGeometry geometry;		//Frame geometry.
+	UInt32 exposure;            //10ns increments
+	UInt32 period;              //Frame period in 10ns increments
 	UInt32 gain;
-    UInt32 frameSizeWords;      //Number of words a frame takes up
-    UInt32 recRegionSizeFrames; //Number of frames in the entire record region
-    CameraRecordModeType mode;  //Recording mode
-    UInt32 segments;            //Number of segments in segmented mode
-    UInt32 segmentLengthFrames; //Length of segment in segmented mode
-    UInt32 prerecordFrames;     //Number of frames to record before each burst in Gated Burst mode
+	UInt32 recRegionSizeFrames; //Number of frames in the entire record region
+	CameraRecordModeType mode;  //Recording mode
+	UInt32 segments;            //Number of segments in segmented mode
+	UInt32 segmentLengthFrames; //Length of segment in segmented mode
+	UInt32 prerecordFrames;     //Number of frames to record before each burst in Gated Burst mode
 
 	struct {
 		unsigned temporary : 1; // set this to disable saving of state
-        unsigned disableRingBuffer : 1; //Set this to disable the ring buffer (record ends when at the end of memory rather than rolling over to the beginning)
+		unsigned disableRingBuffer : 1; //Set this to disable the ring buffer (record ends when at the end of memory rather than rolling over to the beginning)
 	};
 } ImagerSettings_t;
 
@@ -173,18 +169,17 @@ class Camera
 public:
 	Camera();
 	~Camera();
-	CameraErrortype init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * sensorInst, UserInterface * userInterface, UInt32 ramSizeVal, bool color);
+	CameraErrortype init(GPMC * gpmcInst, Video * vinstInst, ImageSensor * sensorInst, UserInterface * userInterface, UInt32 ramSizeVal, bool color);
 	Int32 startRecording(void);
 	Int32 setRecSequencerModeNormal();
 	Int32 setRecSequencerModeGatedBurst(UInt32 prerecord = 0);
 	Int32 setRecSequencerModeSingleBlock(UInt32 blockLength, UInt32 frameOffset = 0);
+	Int32 setRecSequencerModeCalLoop();
 	Int32 stopRecording(void);
 	bool getIsRecording(void);
-	void (*endOfRecCallback)(void *);
-	void * endOfRecCallbackArg;
 	GPMC * gpmc;
 	Video * vinst;
-	LUX1310 * sensor;
+	ImageSensor * sensor;
 	UserInterface * ui;
 	IO * io;
 
@@ -203,30 +198,24 @@ public:
 	double maxPostFramesRatio;
 
 	UInt32 setImagerSettings(ImagerSettings_t settings);
-	UInt32 setIntegrationTime(double intTime, UInt32 hRes, UInt32 vRes, Int32 flags);
-	UInt32 setDisplaySettings(bool encoderSafe, UInt32 maxFps);
+	UInt32 setIntegrationTime(double intTime, FrameGeometry *geometry, Int32 flags);
 	UInt32 setPlayMode(bool playMode);
-	UInt16 readPixel(UInt32 pixel, UInt32 offset);
-	void writePixel(UInt32 pixel, UInt32 offset, UInt16 value);
-	UInt16 readPixel12(UInt32 pixel, UInt32 offset);
-	UInt16 readPixelBuf(UInt8 * buf, UInt32 pixel);
-	void writePixelBuf(UInt8 * buf, UInt32 pixel, UInt16 value);
-	UInt16 readPixelBuf12(UInt8 * buf, UInt32 pixel);
-	void writePixelBuf12(UInt8 * buf, UInt32 pixel, UInt16 value);
-	void computeFPNCorrection();
-	void computeFPNCorrection2(UInt32 framesToAverage, bool writeToFile = false, bool factory = false);
+	UInt16 readPixelCal(UInt32 x, UInt32 y, UInt32 wordAddress, FrameGeometry *geometry);
+	void computeFPNCorrection(FrameGeometry *geometry, UInt32 wordAddress, UInt32 framesToAverage, bool writeToFile = false, bool factory = false);
+	void computeFPNColumns(FrameGeometry *geometry, UInt32 wordAddress, UInt32 framesToAverage);
+	void computeGainColumns(FrameGeometry *geometry, UInt32 wordAddress, const struct timespec *interval);
+	void factoryGainColumns(FrameGeometry *geometry, UInt32 wordAddress, const struct timespec *interval);
 	UInt32 autoFPNCorrection(UInt32 framesToAverage, bool writeToFile = false, bool noCap = false, bool factory = false);
+	Int32 fastFPNCorrection();
 	Int32 loadFPNFromFile(void);
+	void loadFPNCorrection(FrameGeometry *geometry, const UInt16 *fpnBuffer, UInt32 framesToAverage);
 	Int32 computeColGainCorrection(UInt32 framesToAverage, bool writeToFile = false);
-	Int32 loadColGainFromFile(void);
-	UInt32 adcOffsetCorrection(UInt32 iterations, bool writeToFile = true);
-	void offsetCorrectionIteration(UInt32 wordAddress = LIVE_FRAME_0_ADDRESS);
-	int autoAdcOffsetCorrection(void);
+	void offsetCorrectionIteration(FrameGeometry *geometry, int *offsets, UInt32 wordAddress, UInt32 framesToAverage = 1);
+	Int32 liveColumnCalibration(unsigned int iterations = 32);
 	Int32 autoColGainCorrection(void);
 	Int32 adjustExposureToValue(UInt32 level, UInt32 tolerance = 100, bool includeFPNCorrection = true);
 	Int32 recordFrames(UInt32 numframes);
 	UInt32 getMiddlePixelValue(bool includeFPNCorrection = true);
-	Int32 readFrame(UInt32 frame, UInt16 * frameBuffer);
 	Int32 getRawCorrectedFrame(UInt32 frame, UInt16 * frameBuffer);
 	Int32 readDCG(double * gainCorrection);
 	Int32 readFPN(UInt16 * fpnUnpacked);
@@ -253,24 +242,18 @@ public:
 	char * getSerialNumber(void) {return serialNumber;}
 	void setSerialNumber(const char * sn) {strcpy(serialNumber, sn);}
 	bool getIsColor() {return isColor;}
-    UInt32 getMaxRecordRegionSizeFrames(UInt32 hSize, UInt32 vSize) {return (ramSize - REC_REGION_START) / (ROUND_UP_MULT((hSize * (vSize) * BITS_PER_PIXEL / 8 + (BYTES_PER_WORD-1)) / BYTES_PER_WORD, FRAME_ALIGN_WORDS));}
+
+	UInt32 getFrameSizeWords(FrameGeometry *geometry);
+	UInt32 getMaxRecordRegionSizeFrames(FrameGeometry *geometry);
 
 private:
-	void setLiveOutputTiming(UInt32 hRes, UInt32 vRes, UInt32 hOutRes, UInt32 vOutRes, UInt32 maxFps);
 	bool getRecDataFifoIsEmpty(void);
 	UInt32 readRecDataFifo(void);
 	bool getRecording(void);
 	void startSequencer(void);
 	void terminateRecord(void);
 	void writeSeqPgmMem(SeqPgmMemWord pgmWord, UInt32 address);
-	void setFrameSizeWords(UInt16 frameSize);
-	void setRecRegionStartWords(UInt32 start);
-	void setRecRegionEndWords(UInt32 end);
-public:
-	void readAcqMem(UInt32 * buf, UInt32 offsetWords, UInt32 length);
-private:
-	void writeAcqMem(UInt32 * buf, UInt32 offsetWords, UInt32 length);
-	void writeDGCMem(double gain, UInt32 column);
+	void setRecRegion(UInt32 start, UInt32 count, FrameGeometry *geometry);
 	bool readIsColor(void);
 public:
 	void setFocusPeakThresholdLL(UInt32 thresh);
@@ -282,10 +265,8 @@ public:
 	UInt16 getFPGASubVersion(void);
 	bool ButtonsOnLeft;
 	bool UpsideDownDisplay;
-private:
-	void endOfRec(void);
-	UInt16 getMaxFPNValue(UInt16 * buf, UInt32 count);
 
+private:
 	friend void* recDataThread(void *arg);
 
 	volatile bool recording;

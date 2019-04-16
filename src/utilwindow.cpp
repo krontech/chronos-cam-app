@@ -17,20 +17,27 @@
 #include "utilwindow.h"
 #include "ui_utilwindow.h"
 #include "statuswindow.h"
+
 #include <QDebug>
 #include <QMessageBox>
 #include <QTimer>
 #include <QSettings>
+#include <QDBusInterface>
+#include <QProgressDialog>
+
 #include <stdio.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <errno.h>
 #include <time.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <sys/mount.h>
-#include "sys/sendfile.h"
-#include <QDBusInterface>
+#include <sys/sendfile.h>
+#include <mntent.h>
+
+#include "aptupdate.h"
+#include "util.h"
 #include "chronosControlInterface.h"
 
 #define FOCUS_PEAK_THRESH_LOW	35
@@ -110,7 +117,7 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	camera->getRamSizeGB(&ramSizeSlot1, &ramSizeSlot2);
 	camera->readSerialNumber(serialNumber);
 
-	aboutText.sprintf("Camera Model: Chronos 1.4, %s, %dGB\r\n", (camera->getIsColor() ? "Color" : "Monochrome"), ramSizeSlot1 + ramSizeSlot2);
+	aboutText.sprintf("Camera Model: Chronos 2.1-HD, %s, %dGB\r\n", (camera->getIsColor() ? "Color" : "Monochrome"), ramSizeSlot1 + ramSizeSlot2);
 	aboutText.append(QString("Serial Number: %1\r\n").arg(serialNumber));
 	aboutText.append(QString("\r\n"));
 	aboutText.append(QString("Release Version: %1\r\n").arg(readReleaseString(release, sizeof(release))));
@@ -118,9 +125,7 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	aboutText.append(QString("FPGA Revision: %1.%2").arg(QString::number(camera->getFPGAVersion()), QString::number(camera->getFPGASubVersion())));
 	ui->lblAbout->setText(aboutText);
 	
-	ui->cmdAdcOffset->setVisible(false);
 	ui->cmdAutoCal->setVisible(false);
-	ui->cmdBlackCalAll->setVisible(false);
 	ui->cmdCloseApp->setVisible(false);
 	ui->cmdColumnGain->setVisible(false);
 	ui->cmdWhiteRef->setVisible(false);
@@ -133,6 +138,15 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	ui->chkDemoMode->setChecked(camera->get_demoMode());
 	ui->chkUiOnLeft->setChecked(camera->getButtonsOnLeft());
 	ui->comboDisableUnsavedWarning->setCurrentIndex(camera->getUnsavedWarnEnable());
+
+	ui->cmdSshApply->setEnabled(false);
+	ui->lineSshPassword->setText("********");
+
+	ui->lineNetAddress->setEnabled(false);
+	ui->lineNetUser->setEnabled(false);
+	ui->lineNetPassword->setEnabled(false);
+	ui->cmdNetTest->setEnabled(false);
+	ui->lblNetStatus->setText("Placeholder - Work in Progress");
 
 	if(camera->RotationArgumentIsSet())
 		ui->chkUpsideDownDisplay->setChecked(camera->getUpsideDownDisplay());
@@ -174,6 +188,13 @@ void UtilWindow::on_cmdSWUpdate_clicked()
 	msg.setWindowFlags(Qt::WindowStaysOnTopHint);
 	//msg.setInformativeText("Update");
 	msg.exec();
+}
+
+void UtilWindow::on_cmdNetUpdate_clicked()
+{
+	AptUpdate *update = new AptUpdate(this);
+	update->exec();
+	delete update;
 }
 
 int UtilWindow::updateSoftware(char * updateLocation){
@@ -243,6 +264,63 @@ void UtilWindow::onUtilWindowTimer()
 		else
 			ui->dateTimeEdit->setDateTime(QDateTime::currentDateTime());
 	}
+
+	/* If on the storage tab, update the drive and network status. */
+	if (ui->tabWidget->currentWidget() == ui->tabStorage) {
+		char line[128];
+		struct stat st;
+		FILE *fp;
+
+		QString mText = "";
+		fp = popen("df -h | grep \'/media/\'", "r");
+		if (fp) {
+			while (fgets(line, sizeof(line), fp) != NULL) {
+				mText.append(line);
+			}
+			pclose(fp);
+		}
+		ui->lblMountedDevices->setText(mText);
+
+		/* Update the disk status text. */
+		QString diskText = "";
+		while (stat("/dev/sda", &st) == 0) {
+			if (!S_ISBLK(st.st_mode)) break;
+			fp = popen("lsblk --output NAME,SIZE,FSTYPE,LABEL,VENDOR,MODEL /dev/sda", "r");
+			if (!fp) break;
+			while (fgets(line, sizeof(line), fp) != NULL) {
+				diskText.append(line);
+			}
+			pclose(fp);
+			break;
+		}
+		ui->lblStatusDisk->setText(diskText);
+
+		/* Update the SD card status text. */
+		QString sdText = "";
+		while (stat("/dev/mmcblk1", &st) == 0) {
+			if (!S_ISBLK(st.st_mode)) break;
+			fp = popen("lsblk --output NAME,SIZE,FSTYPE,LABEL,VENDOR,MODEL /dev/mmcblk1", "r");
+			if (!fp) break;
+			while (fgets(line, sizeof(line), fp) != NULL) {
+				sdText.append(line);
+			}
+			pclose(fp);
+			break;
+		}
+		ui->lblStatusSD->setText(sdText);
+	}
+	/* If on the network tab, update the interface and network status. */
+	if (ui->tabWidget->currentWidget()  == ui->tabNetwork) {
+		char line[128];
+		QString netText = "";
+		FILE *fp = popen("ifconfig eth0", "r");
+		if (!fp) return;
+		while (fgets(line, sizeof(line), fp) != NULL) {
+			netText.append(line);
+		}
+		pclose(fp);
+		ui->lblNetStatus->setText(netText);
+	}
 }
 
 void UtilWindow::on_cmdSetClock_clicked()
@@ -255,43 +333,6 @@ void UtilWindow::on_cmdSetClock_clicked()
 
 	if(retval == -1)
 		qDebug() << "Couldn't set time, errorno =" << errno;
-}
-
-void UtilWindow::on_cmdAdcOffset_clicked()
-{
-	StatusWindow sw;
-	Int32 retVal;
-	char text[100];
-
-	sw.setText("Performing ADC Offset calibration. Please wait...");
-	sw.show();
-	QCoreApplication::processEvents();
-
-	//Turn off calibration light
-	camera->io->setOutLevel(0);	//Turn off output drive
-
-	//ADC Offset calibration
-	retVal = camera->autoAdcOffsetCorrection();
-
-	if(SUCCESS != retVal)
-	{
-		sw.hide();
-		QMessageBox msg;
-		sprintf(text, "Error during ADC Offset calibration, error %d", retVal);
-		msg.setText(text);
-		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
-		msg.exec();
-		return;
-	}
-	else
-	{
-		sw.hide();
-		QMessageBox msg;
-		sprintf(text, "ADC Offset calibration was successful");
-		msg.setText(text);
-		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
-		msg.exec();
-	}
 }
 
 void UtilWindow::on_cmdColumnGain_clicked()
@@ -432,21 +473,6 @@ void UtilWindow::on_cmdAutoCal_clicked()
 	qDebug("cmdAutoCal: turn off cal light");
 	camera->io->setOutLevel(0);	//Turn off output drive
 
-	//ADC Offset calibration
-	qDebug("cmdAutoCal: autoAdcOffsetCorrection");
-	retVal = camera->autoAdcOffsetCorrection();
-
-	if(SUCCESS != retVal)
-	{
-		sw.hide();
-		QMessageBox msg;
-		sprintf(text, "Error during ADC Offset calibration, error %d", retVal);
-		msg.setText(text);
-		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
-		msg.exec();
-		return;
-	}
-
 	//Black cal all standard resolutions
 	qDebug("cmdAutoCal: blackCalAllStdRes");
 	retVal = camera->blackCalAllStdRes(true);
@@ -469,8 +495,7 @@ void UtilWindow::on_cmdAutoCal_clicked()
 	qDebug("cmdAutoCal: autoColGainCorrection");
 	retVal = camera->autoColGainCorrection();
 
-	if(SUCCESS != retVal)
-	{
+	if(SUCCESS != retVal) {
 		sw.hide();
 		QMessageBox msg;
 		sprintf(text, "Error during gain calibration, error %d", retVal);
@@ -479,28 +504,13 @@ void UtilWindow::on_cmdAutoCal_clicked()
 		msg.exec();
 		return;
 	}
-/*
-	retVal = camera->takeWhiteReferences();
-
-	if(SUCCESS != retVal)
-	{
-		QMessageBox msg;
-		sprintf(text, "Error during white reference calibration, error %d", retVal);
-		msg.setText(text);
-		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
-		msg.exec();
-	}
-	else*/
-	{
+	else {
 		sw.hide();
 		QMessageBox msg;
 		msg.setText("Done!");
 		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
 		msg.exec();
 	}
-
-
-
 }
 
 
@@ -549,6 +559,12 @@ void UtilWindow::on_cmdClose_4_clicked()
 	on_cmdClose_clicked();
 }
 
+void UtilWindow::on_cmdClose_5_clicked()
+{
+	qDebug()<<"on_cmdClose_5_clicked";
+	on_cmdClose_clicked();
+}
+
 void UtilWindow::on_cmdWhiteRef_clicked()
 {
 	char text[100];
@@ -573,9 +589,6 @@ void UtilWindow::on_cmdWhiteRef_clicked()
 		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
 		msg.exec();
 	}
-
-
-
 }
 
 void UtilWindow::on_cmdSetSN_clicked()
@@ -743,9 +756,7 @@ void UtilWindow::on_linePassword_textEdited(const QString &arg1)
 {
 	if(0 == QString::compare(arg1, "4242"))
 	{
-		ui->cmdAdcOffset->setVisible(true);
 		ui->cmdAutoCal->setVisible(true);
-		ui->cmdBlackCalAll->setVisible(true);
 		ui->cmdCloseApp->setVisible(true);
 		ui->cmdColumnGain->setVisible(true);
 		ui->cmdWhiteRef->setVisible(true);
@@ -775,7 +786,111 @@ void UtilWindow::on_cmdEjectSD_clicked()
 	}
 }
 
-void UtilWindow::on_cmdEjectUSB_clicked()
+void UtilWindow::formatStorageDevice(const char *blkdev)
+{
+	QMessageBox::StandardButton reply;
+	QProgressDialog *progress;
+	FILE * mtab = setmntent("/etc/mtab", "r");
+	struct mntent mnt;
+	char tempbuf[4096];		//Temp buffer used by mntent
+	char command[128];
+	char filepath[128];
+	char partpath[128];
+	char diskname[128];
+	int filepathlen;
+	FILE *fp;
+	int ret;
+
+	/* Read the disk name from sysfs. */
+	sprintf(filepath, "/sys/block/%s/device/model", blkdev);
+	if ((fp = fopen(filepath, "r")) != NULL) {
+		int len = fread(diskname, 1, sizeof(diskname)-1, fp);
+		diskname[len] = '\0';
+		fclose(fp);
+	}
+	else {
+		sprintf(filepath, "/sys/block/%s/device/name", blkdev);
+		if ((fp = fopen(filepath, "r")) != NULL) {
+			int len = fread(diskname, 1, sizeof(diskname)-1, fp);
+			diskname[len] = '\0';
+			fclose(fp);
+		}
+		else {
+			strcpy(diskname, blkdev);
+		}
+	}
+
+	/* Prompt the user for confirmation */
+	reply = QMessageBox::question(this, QString("Format Device: %1").arg(diskname),
+								  "This will erase all data on the device, are you sure you want to continue?",
+								  QMessageBox::Yes|QMessageBox::No);
+	if(QMessageBox::Yes != reply)
+		return;
+
+	progress = new QProgressDialog(this);
+	progress->setWindowTitle(QString("Format Device: %1").arg(diskname));
+	progress->setMaximum(4);
+	progress->setMinimumDuration(0);
+	progress->setWindowModality(Qt::WindowModal);
+	progress->show();
+
+	/* Unmount the block device and any of its partitions */
+	progress->setLabelText("Unmounting devices");
+	progress->setValue(0);
+	filepathlen = sprintf(filepath, "/dev/%s", blkdev);
+	sprintf(partpath, "/dev/%s%s", blkdev, isdigit(filepath[filepathlen-1]) ? "p1" : "1");
+	while (getmntent_r(mtab, &mnt, tempbuf, sizeof(tempbuf)) != NULL) {
+		if (strncmp(filepath, mnt.mnt_fsname, filepathlen) != 0) continue;
+		qDebug("Unmounting %s", mnt.mnt_dir);
+		umount2(mnt.mnt_dir, 0);
+	}
+	endmntent(mtab);
+
+	/* Overwrite the first 4kB with zeros and then rebuild the partition table. */
+	progress->setLabelText("Wiping partition table");
+	if (progress->wasCanceled()) {
+		delete progress;
+		return;
+	}
+	progress->setValue(1);
+	fp = fopen(filepath, "wb");
+	if (fp) {
+		fwrite(memset(tempbuf, 0, sizeof(tempbuf)), sizeof(tempbuf), 1, fp);
+		fflush(fp);
+		fclose(fp);
+	}
+
+	progress->setLabelText("Writing partition table");
+	if (progress->wasCanceled()) {
+		delete progress;
+		return;
+	}
+	progress->setValue(2);
+	sprintf(command, "echo \"0 - c -\" | sfdisk -Dq %s && sleep 1", filepath);
+	system(command);
+
+	/* Delay for a second to give the kernel some time to reload the partitons, and then format the disk. */
+	progress->setLabelText("Formatting partition");
+	if (progress->wasCanceled()) {
+		delete progress;
+		return;
+	}
+	progress->setValue(3);
+	sprintf(command, "mkfs.vfat %s && sleep 1 && blockdev --rereadpt %s", partpath, filepath);
+	system(command);
+
+	/* Turn the 'cancel' button into a 'done' button */
+	progress->setLabelText("Formatting complete");
+	progress->setValue(4);
+	delete progress;
+}
+
+void UtilWindow::on_cmdFormatSD_clicked()
+{
+	formatStorageDevice("mmcblk1");
+}
+
+void UtilWindow::on_cmdEjectDisk_clicked()
 {
 	if(umount2("/media/sda1", 0))
 	{ //Failed, show error
@@ -793,6 +908,11 @@ void UtilWindow::on_cmdEjectUSB_clicked()
 		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
 		msg.exec();
 	}
+}
+
+void UtilWindow::on_cmdFormatDisk_clicked()
+{
+	formatStorageDevice("sda");
 }
 
 void UtilWindow::on_chkAutoSave_stateChanged(int arg1)
@@ -1011,7 +1131,27 @@ void UtilWindow::on_cmdRevertCalData_pressed()
 	msg.exec();
 }
 
+void UtilWindow::on_lineSshPassword_textEdited(const QString & password)
+{
+	/* The world's saddest password policy... */
+	ui->cmdSshApply->setEnabled(password.size() >= 4);
+}
+
+void UtilWindow::on_cmdSshApply_clicked()
+{
+	qDebug() << "Would set password to:" << ui->lineSshPassword->text();
+}
+
 void UtilWindow::on_comboDisableUnsavedWarning_currentIndexChanged(int index)
 {
 	camera->setUnsavedWarnEnable(index);
+}
+
+void UtilWindow::on_tabWidget_currentChanged(int index)
+{
+#ifdef QT_KEYPAD_NAVIGATION
+	if (index == ui->tabWidget->indexOf(ui->tabKickstarter)) {
+		ui->textKickstarter->setEditFocus(true);
+	}
+#endif
 }

@@ -35,6 +35,10 @@
 #include "util.h"
 #include "whitebalancedialog.h"
 
+#include "lux1310.h"
+#include "lux2100.h"
+#include "lux2810.h"
+
 extern "C" {
 #include "siText.h"
 }
@@ -42,7 +46,7 @@ extern "C" {
 #define DEF_SI_OPTS	SI_DELIM_SPACE | SI_SPACE_BEFORE_PREFIX
 
 GPMC * gpmc;
-LUX1310 * sensor;
+ImageSensor * sensor;
 Camera * camera;
 Video * vinst;
 UserInterface * userInterface;
@@ -60,15 +64,31 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	gpmc = new GPMC();
 	camera = new Camera();
 	vinst = new Video();
-	sensor = new LUX1310();
 	userInterface = new UserInterface();
 	prompt = NULL;
+
+	const char *envSensor = getenv("CAM_OVERRIDE_SENSOR");
+	if (!envSensor) {
+		sensor = new LUX1310();
+	}
+	else if (strcasecmp(envSensor, "lux2100") == 0) {
+		sensor = new LUX2100();
+	}
+	else if (strcasecmp(envSensor, "lux2810") == 0) {
+		sensor = new LUX2810();
+	}
+	else if (strcasecmp(envSensor, "lux1310") == 0) {
+		sensor = new LUX1310();
+	}
+	else {
+		qWarning("Unknown sensor override - defaulting to LUX1310");
+		sensor = new LUX1310();
+	}
 
 	battCapacityPercent = 0;
 	vinst->displayWindowXOff = (camera->ButtonsOnLeft ^ camera->UpsideDownDisplay? 200 : 0);
 
 	gpmc->init();
-	vinst->init();
 	userInterface->init();
 	retVal = camera->init(gpmc, vinst, sensor, userInterface, 16*1024/32*1024*1024, true);
 
@@ -96,6 +116,8 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	timer = new QTimer(this);
 	connect(timer, SIGNAL(timeout()), this, SLOT(on_MainWindowTimer()));
 	timer->start(16);
+
+	connect(camera->vinst, SIGNAL(newSegment(VideoStatus *)), this, SLOT(on_newVideoSegment(VideoStatus *)));
 
 	if (appSettings.value("debug/hideDebug", true).toBool()) {
 		ui->cmdDebugWnd->setVisible(false);
@@ -127,10 +149,6 @@ CamMainWindow::~CamMainWindow()
 	delete sw;
 
 	delete ui;
-	if(camera->vinst->isRunning())
-	{
-		camera->vinst->setRunning(false);
-	}
 	delete camera;
 }
 
@@ -253,6 +271,7 @@ void CamMainWindow::on_cmdFPNCal_clicked()//Black cal
 	sw->setText("Performing black calibration...");
 	sw->show();
 	QCoreApplication::processEvents();
+	camera->liveColumnCalibration();
 	camera->autoFPNCorrection(16, true);
 	sw->hide();
 }
@@ -398,6 +417,17 @@ void CamMainWindow::on_MainWindowTimer()
 	}
 }
 
+void CamMainWindow::on_newVideoSegment(VideoStatus *st)
+{
+	/* Flag that we have unsaved video. */
+	qDebug("--- Sequencer --- Total recording size: %u", st->totalFrames);
+	if (st->totalFrames) {
+		camera->recordingData.is = camera->getImagerSettings();
+		camera->recordingData.valid = true;
+		camera->recordingData.hasBeenSaved = false;
+	}
+}
+
 void CamMainWindow::on_chkFocusAid_clicked(bool focusAidEnabled)
 {
 	camera->setFocusPeakEnable(focusAidEnabled);
@@ -405,7 +435,7 @@ void CamMainWindow::on_chkFocusAid_clicked(bool focusAidEnabled)
 
 void CamMainWindow::on_expSlider_valueChanged(int exposure)
 {
-	camera->setIntegrationTime((double)exposure / TIMING_CLOCK_FREQ, camera->sensor->currentHRes, camera->sensor->currentVRes, 0);
+	camera->setIntegrationTime((double)exposure / camera->sensor->getIntegrationClock(), NULL, 0);
 	updateCurrentSettingsLabel();
 }
 
@@ -418,20 +448,23 @@ void CamMainWindow::recSettingsClosed()
 //Upate the exposure slider limits and step size.
 void CamMainWindow::updateExpSliderLimits()
 {
-	double exposure = camera->sensor->getCurrentExposureDouble();
+	FrameGeometry fSize = camera->getImagerSettings().geometry;
+	UInt32 fPeriod = camera->sensor->getFramePeriod();
+	UInt32 exposure = camera->sensor->getIntegrationTime();
 
-	ui->expSlider->setMinimum(LUX1310_MIN_INT_TIME * TIMING_CLOCK_FREQ);
-	ui->expSlider->setMaximum(camera->sensor->getMaxCurrentIntegrationTime() * TIMING_CLOCK_FREQ);
-	ui->expSlider->setValue(exposure * TIMING_CLOCK_FREQ);
+	ui->expSlider->setMinimum(camera->sensor->getMinIntegrationTime(fPeriod, &fSize));
+	ui->expSlider->setMaximum(camera->sensor->getMaxIntegrationTime(fPeriod, &fSize));
+	ui->expSlider->setValue(exposure);
 
 	/* Do fine stepping in 1us increments */
-	ui->expSlider->setSingleStep(TIMING_CLOCK_FREQ / 1000000);
-	ui->expSlider->setPageStep(TIMING_CLOCK_FREQ / 1000000);
+	ui->expSlider->setSingleStep(camera->sensor->getIntegrationClock() / 1000000);
+	ui->expSlider->setPageStep(camera->sensor->getIntegrationClock() / 1000000);
 }
 
 //Update the status textbox with the current settings
 void CamMainWindow::updateCurrentSettingsLabel()
 {
+	ImagerSettings_t is = camera->getImagerSettings();
 	double framePeriod = camera->sensor->getCurrentFramePeriodDouble();
 	double expPeriod = camera->sensor->getCurrentExposureDouble();
 	int shutterAngle = (expPeriod * 360.0) / framePeriod;
@@ -460,7 +493,7 @@ void CamMainWindow::updateCurrentSettingsLabel()
 		sprintf(battStr, "No Batt");
 	}
 
-	sprintf(str, "%s\r\n%ux%u %sfps\r\nExp %ss (%u\xb0)", battStr, camera->sensor->currentHRes, camera->sensor->currentVRes, fpsString, expString, shutterAngle);
+	sprintf(str, "%s\r\n%ux%u %sfps\r\nExp %ss (%u\xb0)", battStr, is.geometry.hRes, is.geometry.vRes, fpsString, expString, shutterAngle);
 	ui->lblCurrent->setText(str);
 }
 
@@ -561,10 +594,9 @@ static int expSliderLog(unsigned int angle, int delta)
 void CamMainWindow::keyPressEvent(QKeyEvent *ev)
 {
 	double framePeriod = camera->sensor->getCurrentFramePeriodDouble();
-	double expPeriod = camera->sensor->getCurrentExposureDouble();
-	double expStep = (double)ui->expSlider->singleStep() / TIMING_CLOCK_FREQ;
-	double nextPeriod = expPeriod;
-	int expAngle = (expPeriod * 360) / framePeriod;
+	UInt32 expPeriod = camera->sensor->getIntegrationTime();
+	UInt32 nextPeriod = expPeriod;
+	int expAngle = (expPeriod * 360) / (framePeriod * camera->sensor->getIntegrationClock());
 
 	qDebug() << "framePeriod =" << framePeriod << " expPeriod =" << expPeriod;
 
@@ -572,31 +604,31 @@ void CamMainWindow::keyPressEvent(QKeyEvent *ev)
 	/* Up/Down moves the slider logarithmically */
 	case Qt::Key_Up:
 		if (expAngle > 0) {
-			nextPeriod = (framePeriod * expSliderLog(expAngle, 1)) / 360;
+			nextPeriod = (framePeriod * expSliderLog(expAngle, 1) * camera->sensor->getIntegrationClock()) / 360;
 		}
-		if (nextPeriod < (expPeriod + expStep)) {
-			nextPeriod = expPeriod + expStep;
+		if (nextPeriod < (expPeriod + ui->expSlider->singleStep())) {
+			nextPeriod = expPeriod + ui->expSlider->singleStep();
 		}
-		ui->expSlider->setValue(nextPeriod * TIMING_CLOCK_FREQ);
+		ui->expSlider->setValue(nextPeriod);
 		break;
 
 	case Qt::Key_Down:
 		if (expAngle > 0) {
-			nextPeriod = (framePeriod * expSliderLog(expAngle, -1)) / 360;
+			nextPeriod = (framePeriod * expSliderLog(expAngle, -1) * camera->sensor->getIntegrationClock()) / 360;
 		}
-		if (nextPeriod > (expPeriod - expStep)) {
-			nextPeriod = expPeriod - expStep;
+		if (nextPeriod > (expPeriod - ui->expSlider->singleStep())) {
+			nextPeriod = expPeriod - ui->expSlider->singleStep();
 		}
-		ui->expSlider->setValue(nextPeriod * TIMING_CLOCK_FREQ);
+		ui->expSlider->setValue(nextPeriod);
 		break;
 
 	/* PageUp/PageDown moves the slider linearly by degrees. */
 	case Qt::Key_PageUp:
-		ui->expSlider->setValue((expPeriod + expStep) * TIMING_CLOCK_FREQ);
+		ui->expSlider->setValue(expPeriod + ui->expSlider->singleStep());
 		break;
 
 	case Qt::Key_PageDown:
-		ui->expSlider->setValue((expPeriod - expStep) * TIMING_CLOCK_FREQ);
+		ui->expSlider->setValue(expPeriod - ui->expSlider->singleStep());
 		break;
 	}
 }

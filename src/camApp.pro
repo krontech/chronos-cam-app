@@ -40,8 +40,14 @@ LIBS += -lm -lpthread -lrt -static-libstdc++
 
 ## Some other stuff to install.
 datafiles.path = /opt/camera
-datafiles.files = $$files(data/*)
+datafiles.files = data/resolutions
+datafiles.files += data/shuttingDown.data
+datafiles.files += data/stylesheet.qss
 INSTALLS += datafiles
+
+conffiles.path = /etc
+conffiles.files = data/chronos-gui.conf
+INSTALLS += conffiles
 
 ## Tweaks for Debian builds.
 exists( $${QT_SYSROOT}/etc/debian_version ) {
@@ -86,8 +92,11 @@ SOURCES += main.cpp\
     camspinbox.cpp \
     camtextedit.cpp \
     camdoublespinbox.cpp \
+    sensor.cpp \
     lux1310.cpp \
-    ecp5Config.cpp \
+    lux1310wt.cpp \
+    lux2100.cpp \
+    lux2810.cpp \
     utilwindow.cpp \
     statuswindow.cpp \
     eeprom.c \
@@ -101,7 +110,8 @@ SOURCES += main.cpp\
     chronosControlInterface.cpp \
     chronosVideoInterface.cpp \
     colorwindow.cpp \
-    colordoublespinbox.cpp
+    colordoublespinbox.cpp \
+    aptupdate.cpp
 
 ## Generate version.cpp on every build
 versionTarget.target = version.cpp
@@ -141,7 +151,8 @@ HEADERS  += mainwindow.h \
     camdoublespinbox.h \
     errorCodes.h \
     lux1310.h \
-    ecp5Config.h \
+    lux2100.h \
+    lux2810.h \
     utilwindow.h \
     statuswindow.h \
     i2c/i2c-dev.h \
@@ -156,7 +167,10 @@ HEADERS  += mainwindow.h \
     chronosControlInterface.h \
     chronosVideoInterface.h \
     colorwindow.h \
-    colordoublespinbox.h
+    colordoublespinbox.h \
+    frameGeometry.h \
+    sensor.h \
+    aptupdate.h
 
 FORMS    += mainwindow.ui \
     cammainwindow.ui \

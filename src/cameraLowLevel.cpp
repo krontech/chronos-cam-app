@@ -29,59 +29,6 @@ extern "C" {
 }
 #include "defines.h"
 
-void Camera::setLiveOutputTiming(UInt32 hRes, UInt32 vRes, UInt32 hOutRes, UInt32 vOutRes, UInt32 maxFps)
-{
-	const UInt32 hSync = 1;
-	const UInt32 hBackPorch = 64;
-	const UInt32 hFrontPorch = 4;
-	const UInt32 vSync = 1;
-	const UInt32 vBackPorch = 4;
-	const UInt32 vFrontPorch = 1;
-	UInt32 pxClock = 100000000;
-	UInt32 minHPeriod;
-	UInt32 hPeriod;
-	UInt32 vPeriod;
-	UInt32 fps;
-
-	/* FPGA revision 3.14 and higher use a 133MHz video clock. */
-	if ((getFPGAVersion() > 3) || (getFPGASubVersion() >= 14)) {
-		pxClock = 133333333;
-	}
-
-	hPeriod = hSync + hBackPorch + hOutRes + hFrontPorch;
-
-	// calculate minimum hPeriod to fit within the 1024 max vertical resolution
-	// and make sure hPeriod is equal or larger
-	minHPeriod = (pxClock / ((1024+vBackPorch+vSync+vFrontPorch) * maxFps)) + 1; // the +1 is just to round up
-	if (hPeriod < minHPeriod) hPeriod = minHPeriod;
-
-	// calculate vPeriod and make sure it's large enough for the frame
-	vPeriod = pxClock / (hPeriod * maxFps);
-	if (vPeriod < (vOutRes + vBackPorch + vSync + vFrontPorch)) {
-		vPeriod = (vOutRes + vBackPorch + vSync + vFrontPorch);
-	}
-
-	// calculate FPS for debug output
-	fps = pxClock / (vPeriod * hPeriod);
-	qDebug("setLiveOutputTiming: %d*%d@%d (%d*%d max: %d)",
-		   (hPeriod - hBackPorch - hSync - hFrontPorch),
-		   (vPeriod - vBackPorch - vSync - vFrontPorch),
-		   fps, hOutRes, vOutRes, maxFps);
-	
-	gpmc->write16(DISPLAY_H_RES_ADDR, hRes);
-	gpmc->write16(DISPLAY_H_OUT_RES_ADDR, hOutRes);
-	gpmc->write16(DISPLAY_V_RES_ADDR, vRes);
-	gpmc->write16(DISPLAY_V_OUT_RES_ADDR, vOutRes);
-
-	gpmc->write16(DISPLAY_H_PERIOD_ADDR, hPeriod - 1);
-	gpmc->write16(DISPLAY_H_SYNC_LEN_ADDR, hSync);
-	gpmc->write16(DISPLAY_H_BACK_PORCH_ADDR, hBackPorch);
-
-	gpmc->write16(DISPLAY_V_PERIOD_ADDR, vPeriod - 1);
-	gpmc->write16(DISPLAY_V_SYNC_LEN_ADDR, vSync);
-	gpmc->write16(DISPLAY_V_BACK_PORCH_ADDR, vBackPorch);
-}
-
 bool Camera::getRecDataFifoIsEmpty(void)
 {
 	return gpmc->read32(SEQ_STATUS_ADDR) & SEQ_STATUS_MD_FIFO_EMPTY_MASK;
@@ -117,134 +64,12 @@ void Camera::writeSeqPgmMem(SeqPgmMemWord pgmWord, UInt32 address)
 	gpmc->write32((SEQ_PGM_MEM_START_ADDR + address * 16)+0, pgmWord.data.low/*0x00282084*/);
 }
 
-void Camera::setFrameSizeWords(UInt16 frameSize)
+void Camera::setRecRegion(UInt32 start, UInt32 count, FrameGeometry *geometry)
 {
-	gpmc->write16(SEQ_FRAME_SIZE_ADDR, frameSize);
-}
-
-void Camera::setRecRegionStartWords(UInt32 start)
-{
+	UInt32 sizeWords = getFrameSizeWords(geometry);
+	gpmc->write32(SEQ_FRAME_SIZE_ADDR, sizeWords);
 	gpmc->write32(SEQ_REC_REGION_START_ADDR, start);
-}
-
-void Camera::setRecRegionEndWords(UInt32 end)
-{
-	gpmc->write32(SEQ_REC_REGION_END_ADDR, end);
-}
-
-/* Camera::readAcqMem
- *
- * Reads data from acquisition memory into a buffer
- *
- * buf:			Pointer to image buffer
- * offsetWords:	Number words into acquisition memory to start read
- * length:		number of bytes to read (must be a multiple of 4)
- *
- * returns: nothing
- **/
-void Camera::readAcqMem(UInt32 * buf, UInt32 offsetWords, UInt32 length)
-{
-	int i;
-	if (gpmc->read16(RAM_IDENTIFIER_REG) == RAM_IDENTIFIER) {
-		UInt32 bytesLeft = length;
-		UInt32 pageOffset = 0;
-		
-		while (bytesLeft) {
-			//---- read a page
-			// set address (in words or 256-bit blocks)
-			gpmc->write32(RAM_ADDRESS, offsetWords + (pageOffset >> 3));
-			// trigger a read
-			gpmc->write16(RAM_CONTROL, RAM_CONTROL_TRIGGER_READ);
-			// wait for read to complete
-			for(i = 0; i < 1000 && gpmc->read16(RAM_CONTROL); i++);
-
-			// loop through reading out the data up to the full page
-			// size or until there's no data left
-			for (i = 0; i < 512 && bytesLeft > 0; ) {
-				buf[i+pageOffset] = gpmc->read32(RAM_BUFFER_START + (i<<2));
-				i++;
-				bytesLeft -= 4;
-			}
-
-			pageOffset += 512;
-		}
-	}
-	else {
-		gpmc->write32(GPMC_PAGE_OFFSET_ADDR, offsetWords);
-		
-		for(i = 0; i < length/4; i++)
-		{
-			buf[i] = gpmc->readRam32(4*i);
-		}
-		
-		gpmc->write32(GPMC_PAGE_OFFSET_ADDR, 0);
-	}
-}
-
-/* Camera::writeAcqMem
- *
- * Writes data from a buffer to acquisition memory
- *
- * buf:			Pointer to image buffer
- * offsetWords:	Number words into aqcuisition memory to start write
- * length:		number of bytes to write (must be a multiple of 4)
- *
- * returns: nothing
- **/
-void Camera::writeAcqMem(UInt32 * buf, UInt32 offsetWords, UInt32 length)
-{
-	int i;
-	if (gpmc->read16(RAM_IDENTIFIER_REG) == RAM_IDENTIFIER) {
-		UInt32 bytesLeft = length;
-		UInt32 pageOffset = 0;
-		
-		while (bytesLeft) {
-			//---- write a page
-
-			// loop through reading out the data up to the full page
-			// size or until there's no data left
-			for (i = 0; i < 512 && bytesLeft > 0; ) {
-				gpmc->write32(RAM_BUFFER_START + (i<<2), buf[i+pageOffset]);
-				i++;
-				bytesLeft -= 4;
-			}
-			
-			// set address (in words or 256-bit blocks)
-			gpmc->write32(RAM_ADDRESS, offsetWords + (pageOffset >> 3));
-
-			// trigger a read
-			gpmc->write16(RAM_CONTROL, RAM_CONTROL_TRIGGER_WRITE);
-			// wait for read to complete
-			for(i = 0; i < 1000 && gpmc->read16(RAM_CONTROL); i++);
-			
-			pageOffset += 512;
-		}
-	}
-	else {
-		gpmc->write32(GPMC_PAGE_OFFSET_ADDR, offsetWords);
-		
-		for(i = 0; i < length/4; i++)
-		{
-			gpmc->writeRam32(4*i, buf[i]);
-		}
-		
-		gpmc->write32(GPMC_PAGE_OFFSET_ADDR, 0);
-	}
-}
-
-/* Camera::writeDGCMem
- *
- * Writes data to the display column gain buffer
- *
- * gain:		double value representing gain to apply to column
- * column:		selects which column the gain is applied to
- *
- * returns: nothing
- **/
-
-void Camera::writeDGCMem(double gain, UInt32 column)
-{
-	gpmc->write16(DCG_MEM_START_ADDR+2*column, gain*4096.0);
+	gpmc->write32(SEQ_REC_REGION_END_ADDR, start + count * sizeWords);
 }
 
 /* Camera::readIsColor

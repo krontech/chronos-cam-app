@@ -6,7 +6,7 @@
 export INSTALL_ROOT=$(shell pwd)/debian/chronos-gui
 
 %:
-	dh $@
+	dh $@ --with systemd
 
 override_dh_auto_clean:
 

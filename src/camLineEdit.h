@@ -25,12 +25,14 @@ class CamLineEdit : public QLineEdit
 public:
 	explicit CamLineEdit(QWidget * parent = 0);
 
-    void selectText();
-    bool getHasUnits();
-    void setHasUnits(bool value);
+	void selectText();
+	bool getHasUnits();
+	void setHasUnits(bool value);
+	double siText();
+
 protected:
-  virtual void focusInEvent(QFocusEvent *e);
-  virtual void focusOutEvent(QFocusEvent *e);
+	virtual void focusInEvent(QFocusEvent *e);
+	virtual void focusOutEvent(QFocusEvent *e);
 	void mouseReleaseEvent(QMouseEvent *);
 
 private:

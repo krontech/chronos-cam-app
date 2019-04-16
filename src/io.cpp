@@ -285,7 +285,7 @@ void IO::setTriggeredExpEnable(bool en, Int32 flags)
 	QSettings appSettings;
 	if (flags & FLAG_USESAVED)
 		en = appSettings.value("io/triggeredExpEnable", false).toBool();
-	gpmc->write16(EXT_SHUTTER_CTL_ADDR, (gpmc->read16(EXT_SHUTTER_CTL_ADDR) & ~EXT_SH_TRIGD_EXP_EN_MASK) | ((en ? 1 : 0) << EXT_SH_TRIGD_EXP_EN_OFFSET));
+	gpmc->write16(EXT_SHUTTER_CTL_ADDR, (gpmc->read16(EXT_SHUTTER_CTL_ADDR) & ~EXT_SH_TRIGD_EXP_EN_MASK) | (en ? EXT_SH_TRIGD_EXP_EN_MASK : 0));
 	if (!(flags & FLAG_TEMPORARY) && !(flags & FLAG_USESAVED))
 		appSettings.setValue("io/triggeredExpEnable", en);
 }
@@ -305,7 +305,7 @@ void IO::setShutterGatingEnable(bool en, Int32 flags)
 	QSettings appSettings;
 	if (flags & FLAG_USESAVED) 
 		en = appSettings.value("io/shutterGatingEnable", false).toBool();
-	gpmc->write16(EXT_SHUTTER_CTL_ADDR, (gpmc->read16(EXT_SHUTTER_CTL_ADDR) & ~EXT_SH_GATING_EN_MASK) | ((en ? 1 : 0) << EXT_SH_GATING_EN_OFFSET));
+	gpmc->write16(EXT_SHUTTER_CTL_ADDR, (gpmc->read16(EXT_SHUTTER_CTL_ADDR) & ~EXT_SH_GATING_EN_MASK) | (en ? EXT_SH_GATING_EN_MASK : 0));
 	if (!(flags & FLAG_TEMPORARY) && !(flags & FLAG_USESAVED))
 		appSettings.setValue("io/shutterGatingEnable", en);
 }

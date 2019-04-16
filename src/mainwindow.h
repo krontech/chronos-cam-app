@@ -38,8 +38,6 @@ private slots:
 
 	void on_cmdWrite_clicked();
 
-	void on_cmdAdvPhase_clicked();
-
 	void on_cmdSeqOn_clicked();
 
 	void on_cmdSeqOff_clicked();
@@ -56,23 +54,14 @@ private slots:
 
 	void on_cmdFrameNumbers_clicked();
 
-	void on_cmdDecPhase_clicked();
-
 	void on_cmdGC_clicked();
-
-	void on_cmdOffsetCorrection_clicked();
-
-	void on_cmdSaveOC_clicked();
-
-	void on_cmdAutoBlack_clicked();
 
 	void on_cmdSaveFrame_clicked();
 
+	void on_cmdClearFPN_clicked();
+
 private:
-    Ui::MainWindow *ui;
-	friend void endOfRecCallback(void * arg);
-	UInt16 readPixel(UInt32 pixel, UInt32 offset);
-	void writePixel(UInt32 pixel, UInt32 offset, UInt16 value);
+	Ui::MainWindow *ui;
 	void writePixel12(UInt32 pixel, UInt32 offset, UInt16 value);
 };
 

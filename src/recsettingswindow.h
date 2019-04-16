@@ -75,13 +75,15 @@ private slots:
 
 private:
 	void updateOffsetLimits();
-	void updateFrameImage();
+	void updateFramePreview();
 	void updateInfoText();
 	void setResFromText(char * str);
 	Ui::RecSettingsWindow *ui;
 	Camera * camera;
-    ImagerSettings_t * is;
-    bool windowInitComplete;
+	ImagerSettings_t * is;
+	bool windowInitComplete;
+
+	FrameGeometry getResolution(void);
 
 signals:
 	void settingsChanged();

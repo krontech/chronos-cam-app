@@ -38,11 +38,10 @@ signals:
 	
 private slots:
 	void on_cmdSWUpdate_clicked();
+	void on_cmdNetUpdate_clicked();
 	void onUtilWindowTimer();
 
 	void on_cmdSetClock_clicked();
-
-	void on_cmdAdcOffset_clicked();
 
 	void on_cmdColumnGain_clicked();
 
@@ -77,8 +76,13 @@ private slots:
 	void on_linePassword_textEdited(const QString &arg1);
 
 	void on_cmdEjectSD_clicked();
+	void on_cmdFormatSD_clicked();
 
-	void on_cmdEjectUSB_clicked();
+	void on_cmdEjectDisk_clicked();
+	void on_cmdFormatDisk_clicked();
+
+	void on_lineSshPassword_textEdited(const QString &password);
+	void on_cmdSshApply_clicked();
 
 	void on_chkAutoSave_stateChanged(int arg1);
 
@@ -99,10 +103,11 @@ private slots:
 	void on_comboDisableUnsavedWarning_currentIndexChanged(int index);
 
 	void on_cmdClose_2_clicked();
-	
 	void on_cmdClose_3_clicked();
-	
 	void on_cmdClose_4_clicked();
+	void on_cmdClose_5_clicked();
+
+	void on_tabWidget_currentChanged(int index);
 	
 	int updateSoftware(char *updateLocation);
 private:
@@ -111,6 +116,7 @@ private:
 	QTimer * timer;
 	bool settingClock;
 
+	void formatStorageDevice(const char *blkdev);
 	void statErrorMessage();
 };
 
