@@ -111,4 +111,6 @@ typedef enum CameraErrortype
 	SETTINGS_SAVE_ERROR                       = 902	
 } CameraErrortype;
 
+const char *errorCodeString(int code);
+
 #endif // ERRORCODES_H

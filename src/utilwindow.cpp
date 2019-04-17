@@ -306,7 +306,7 @@ void UtilWindow::on_cmdColumnGain_clicked()
 	{
 		sw.hide();
 		QMessageBox msg;
-		sprintf(text, "Error during gain calibration, error %d", retVal);
+		sprintf(text, "Error during gain calibration, error %d: %s", retVal, errorCodeString(retVal));
 		msg.setText(text);
 		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
 		msg.exec();
@@ -342,7 +342,7 @@ void UtilWindow::on_cmdBlackCalAll_clicked()
 	{
 		sw.hide();
 		QMessageBox msg;
-		sprintf(text, "Error during black calibration, error %d", retVal);
+		sprintf(text, "Error during black calibration, error %d: %s", retVal, errorCodeString(retVal));
 		msg.setText(text);
 		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
 		msg.exec();
@@ -433,7 +433,7 @@ void UtilWindow::on_cmdAutoCal_clicked()
 	{
 		sw.hide();
 		QMessageBox msg;
-		sprintf(text, "Error during black calibration, error %d", retVal);
+		sprintf(text, "Error during black calibration, error %d: %s", retVal, errorCodeString(retVal));
 		msg.setText(text);
 		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
 		msg.exec();
@@ -450,7 +450,7 @@ void UtilWindow::on_cmdAutoCal_clicked()
 	if(SUCCESS != retVal) {
 		sw.hide();
 		QMessageBox msg;
-		sprintf(text, "Error during gain calibration, error %d", retVal);
+		sprintf(text, "Error during gain calibration, error %d: %s", retVal, errorCodeString(retVal));
 		msg.setText(text);
 		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
 		msg.exec();
@@ -523,7 +523,7 @@ void UtilWindow::on_cmdWhiteRef_clicked()
 	if(SUCCESS != retVal)
 	{
 		QMessageBox msg;
-		sprintf(text, "Error during white reference calibration, error %d", retVal);
+		sprintf(text, "Error during white reference calibration, error %d: %s", retVal, errorCodeString(retVal));
 		msg.setText(text);
 		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
 		msg.exec();

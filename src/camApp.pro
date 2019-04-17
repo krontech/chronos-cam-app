@@ -87,6 +87,7 @@ SOURCES += main.cpp\
     camtextedit.cpp \
     camdoublespinbox.cpp \
     lux1310.cpp \
+    lux1310wt.cpp \
     ecp5Config.cpp \
     utilwindow.cpp \
     statuswindow.cpp \
@@ -102,7 +103,7 @@ SOURCES += main.cpp\
     chronosVideoInterface.cpp \
     colorwindow.cpp \
     colordoublespinbox.cpp \
-    lux1310wt.cpp
+    errorStrings.cpp
 
 ## Generate version.cpp on every build
 versionTarget.target = version.cpp
