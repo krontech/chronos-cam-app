@@ -443,12 +443,12 @@ void RecSettingsWindow::on_cmdExpMax_clicked()
 	ui->lineExp->setText(str);
 }
 
-void RecSettingsWindow::updateFrameImage()
+void RecSettingsWindow::updateFramePreview()
 {
-	ui->frameImage->setGeometry(QRect(ui->spinHOffset->value()/4, ui->spinVOffset->value()/4, ui->spinHRes->value()/4, ui->spinVRes->value()/4));
+	FrameGeometry fSize = getResolution();
+	ui->frameImage->setGeometry(QRect(fSize.hOffset/4, fSize.vOffset/4, fSize.hRes/4, fSize.vRes/4));
 	ui->frame->repaint();
 }
-
 
 void RecSettingsWindow::updateInfoText()
 {
@@ -468,12 +468,6 @@ void RecSettingsWindow::updateInfoText()
 
 	sprintf(str, "Max rate for this resolution:\r\n%sfps\r\nMin Period: %ss", maxRateStr, minPeriodStr);
 	ui->lblInfo->setText(str);
-}
-
-void RecSettingsWindow::updateFramePreview()
-{
-	FrameGeometry fSize = getResolution();
-	ui->frameImage->setGeometry(QRect(fSize.hOffset/4, fSize.vOffset/4, fSize.hRes/4, fSize.vRes/4));
 }
 
 void RecSettingsWindow::setResFromText(char * str)
