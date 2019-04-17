@@ -111,7 +111,8 @@ SOURCES += main.cpp\
     chronosVideoInterface.cpp \
     colorwindow.cpp \
     colordoublespinbox.cpp \
-    aptupdate.cpp
+    aptupdate.cpp \
+    errorStrings.cpp
 
 ## Generate version.cpp on every build
 versionTarget.target = version.cpp

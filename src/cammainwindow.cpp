@@ -95,7 +95,10 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	if(retVal != SUCCESS)
 	{
 		QMessageBox msg;
-		msg.setText(QString("Camera init failed, error") + QString::number((Int32)retVal));
+		QString errText;
+
+		errText.sprintf("Camera init failed, error %d: %s", (Int32)retVal, errorCodeString(retVal));
+		msg.setText(errText);
 		msg.exec();
 	}
 	ui->cmdWB->setEnabled(camera->getIsColor());
