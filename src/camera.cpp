@@ -38,6 +38,8 @@
 #include "sensor.h"
 #include "defines.h"
 #include <QWSDisplay>
+#include "control.h"
+
 
 void* recDataThread(void *arg);
 void recordEosCallback(void * arg);
@@ -110,10 +112,16 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, Control * cinst
 	if (pych)
 	{
 
-		gpmc = nullptr;
+		gpmc = nullptr;		//trap any remaining gpmc calls!
+
+
+		//testing:
 
 		//cd = cinst->getCameraData();
 		cs = cinst->getStatus("one", "two");
+
+
+
 		qDebug(cs.state);
 		bool recording = !strcmp(cs.state, "idle");
 		qDebug("recording");
@@ -124,6 +132,18 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, Control * cinst
 		terminateRecDataThread = false;
 
 		err = pthread_create(&recDataThreadID, NULL, &recDataThread, this);
+
+		/* Load default recording from sensor limits. */
+		imagerSettings.geometry = sensor->getMaxGeometry();
+		imagerSettings.geometry.vDarkRows = 0;
+		imagerSettings.recRegionSizeFrames = getMaxRecordRegionSizeFrames(&imagerSettings.geometry);
+		imagerSettings.period = sensor->getMinFramePeriod(&imagerSettings.geometry);
+		imagerSettings.exposure = sensor->getMaxIntegrationTime(imagerSettings.period, &imagerSettings.geometry);
+		imagerSettings.disableRingBuffer = 0;
+		imagerSettings.mode = RECORD_MODE_NORMAL;
+		imagerSettings.prerecordFrames = 1;
+		imagerSettings.segmentLengthFrames = imagerSettings.recRegionSizeFrames;
+		imagerSettings.segments = 1;
 
 	}
 	else
@@ -209,31 +229,33 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, Control * cinst
 	//Set to full resolution
 	ImagerSettings_t settings;
 
+	settings.geometry.hRes          = appSettings.value("camera/hRes", imagerSettings.geometry.hRes).toInt();
+	settings.geometry.vRes          = appSettings.value("camera/vRes", imagerSettings.geometry.vRes).toInt();
+	settings.geometry.hOffset       = appSettings.value("camera/hOffset", 0).toInt();
+	settings.geometry.vOffset       = appSettings.value("camera/vOffset", 0).toInt();
+	settings.geometry.vDarkRows     = 0;
+	settings.geometry.bitDepth		= imagerSettings.geometry.bitDepth;
+	settings.gain                   = appSettings.value("camera/gain", 0).toInt();
+	settings.period                 = appSettings.value("camera/period", sensor->getMinFramePeriod(&settings.geometry)).toInt();
+	settings.exposure               = appSettings.value("camera/exposure", sensor->getMaxIntegrationTime(settings.period, &settings.geometry)).toInt();
+	settings.recRegionSizeFrames    = appSettings.value("camera/recRegionSizeFrames", getMaxRecordRegionSizeFrames(&settings.geometry)).toInt();
+	settings.disableRingBuffer      = appSettings.value("camera/disableRingBuffer", 0).toInt();
+	settings.mode                   = (CameraRecordModeType)appSettings.value("camera/mode", RECORD_MODE_NORMAL).toInt();
+	settings.prerecordFrames        = appSettings.value("camera/prerecordFrames", 1).toInt();
+	settings.segmentLengthFrames    = appSettings.value("camera/segmentLengthFrames", settings.recRegionSizeFrames).toInt();
+	settings.segments               = appSettings.value("camera/segments", 1).toInt();
+	settings.temporary              = 0;
+
+	setImagerSettings(settings);
+
 	if (pych)
 	{
+
+		//
 
 	}
 	else
 	{
-		settings.geometry.hRes          = appSettings.value("camera/hRes", imagerSettings.geometry.hRes).toInt();
-		settings.geometry.vRes          = appSettings.value("camera/vRes", imagerSettings.geometry.vRes).toInt();
-		settings.geometry.hOffset       = appSettings.value("camera/hOffset", 0).toInt();
-		settings.geometry.vOffset       = appSettings.value("camera/vOffset", 0).toInt();
-		settings.geometry.vDarkRows     = 0;
-		settings.geometry.bitDepth		= imagerSettings.geometry.bitDepth;
-		settings.gain                   = appSettings.value("camera/gain", 0).toInt();
-		settings.period                 = appSettings.value("camera/period", sensor->getMinFramePeriod(&settings.geometry)).toInt();
-		settings.exposure               = appSettings.value("camera/exposure", sensor->getMaxIntegrationTime(settings.period, &settings.geometry)).toInt();
-		settings.recRegionSizeFrames    = appSettings.value("camera/recRegionSizeFrames", getMaxRecordRegionSizeFrames(&settings.geometry)).toInt();
-		settings.disableRingBuffer      = appSettings.value("camera/disableRingBuffer", 0).toInt();
-		settings.mode                   = (CameraRecordModeType)appSettings.value("camera/mode", RECORD_MODE_NORMAL).toInt();
-		settings.prerecordFrames        = appSettings.value("camera/prerecordFrames", 1).toInt();
-		settings.segmentLengthFrames    = appSettings.value("camera/segmentLengthFrames", settings.recRegionSizeFrames).toInt();
-		settings.segments               = appSettings.value("camera/segments", 1).toInt();
-		settings.temporary              = 0;
-
-		setImagerSettings(settings);
-
 
 		io->setTriggerDelayFrames(0, FLAG_USESAVED);
 		setTriggerDelayValues((double) io->getTriggerDelayFrames() / settings.recRegionSizeFrames,
@@ -299,6 +321,7 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, Control * cinst
 	if (pych)
 	{
 		cinst->reinitSystem();
+		//sensor = nullptr;
 	}
 	else
 	{
@@ -321,17 +344,39 @@ UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 		return CAMERA_INVALID_IMAGER_SETTINGS;
 	}
 
-	sensor->seqOnOff(false);
-	delayms(10);
-	qDebug() << "Settings.period is" << settings.period;
-	qDebug() << "Settings.exposure is" << settings.exposure;
+	if (pych)
+	{
+		//add cinst calls
+		//cinst->setResolution(&settings.geometry);
+/*
+		cinst->setResolution(settings.geometry.hRes,
+			settings.geometry.vRes,
+			settings.geometry.hOffset,
+			settings.geometry.vOffset,
+			settings.geometry.vDarkRows,
+			settings.geometry.bitDepth);
+*/
+		//not implemented yet:
+		//cinst->setGain(settings.gain);
 
-	sensor->setResolution(&settings.geometry);
-	sensor->setGain(settings.gain);
-	sensor->setFramePeriod(settings.period, &settings.geometry);
-	delayms(10);
-	sensor->setIntegrationTime(settings.exposure, &settings.geometry);
 
+		cinst->setIntegrationTime(settings.exposure);
+		cinst->setFramePeriod(settings.period);
+
+	}
+	else
+	{
+		sensor->seqOnOff(false);
+		delayms(10);
+		qDebug() << "Settings.period is" << settings.period;
+		qDebug() << "Settings.exposure is" << settings.exposure;
+
+		sensor->setResolution(&settings.geometry);
+		sensor->setGain(settings.gain);
+		sensor->setFramePeriod(settings.period, &settings.geometry);
+		delayms(10);
+		sensor->setIntegrationTime(settings.exposure, &settings.geometry);
+	}
 	memcpy(&imagerSettings, &settings, sizeof(settings));
 
 	//Zero trigger delay for Gated Burst
@@ -346,7 +391,14 @@ UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 	else {
 		imagerSettings.recRegionSizeFrames = settings.recRegionSizeFrames;
 	}
-	setRecRegion(REC_REGION_START, imagerSettings.recRegionSizeFrames, &imagerSettings.geometry);
+	if (pych)
+	{
+		//add cinst call
+	}
+	else
+	{
+		setRecRegion(REC_REGION_START, imagerSettings.recRegionSizeFrames, &imagerSettings.geometry);
+	}
 
 	qDebug()	<< "\nSet imager settings:\nhRes" << imagerSettings.geometry.hRes
 				<< "vRes" << imagerSettings.geometry.vRes
@@ -415,7 +467,14 @@ void Camera::updateTriggerValues(ImagerSettings_t settings){
 		triggerTimeRatio   = (double)triggerPostFrames / recLengthFrames;
 		triggerPostSeconds = triggerPostFrames * ((double)settings.period / 100000000);
 	}
-	io->setTriggerDelayFrames(triggerPostFrames);
+	if (pych)
+	{
+		//add call to cinst->something
+	}
+	else
+	{
+		io->setTriggerDelayFrames(triggerPostFrames);
+	}
 }
 
 unsigned short Camera::getTriggerDelayConstant(){
@@ -445,7 +504,7 @@ UInt32 Camera::setIntegrationTime(double intTime, FrameGeometry *fSize, Int32 fl
 		qDebug("--- Using old settings --- Exposure time: %d (default: %d)", validTime, defaultTime);
 		if (pych)
 		{
-			//add call to cinst->setSensorTiming()
+			//cinst->setSensorTiming()
 		}
 		else
 		{
@@ -692,7 +751,14 @@ Int32 Camera::setRecSequencerModeCalLoop(void)
 		return CAMERA_IN_PLAYBACK_MODE;
 
 	//Set to one plus the last valid address in the record region
-	setRecRegion(CAL_REGION_START, CAL_REGION_FRAMES, &imagerSettings.geometry);
+	if (pych)
+	{
+		//add cinst rec region
+	}
+	else
+	{
+		setRecRegion(CAL_REGION_START, CAL_REGION_FRAMES, &imagerSettings.geometry);
+	}
 
 	pgmWord.settings.termRecTrig = 0;
 	pgmWord.settings.termRecMem = 0;
@@ -706,7 +772,14 @@ Int32 Camera::setRecSequencerModeCalLoop(void)
 	pgmWord.settings.blkSize = CAL_REGION_FRAMES - 1;
 	pgmWord.settings.pad = 0;
 
-	writeSeqPgmMem(pgmWord, 0);
+	if (pych)
+	{
+		//pychronos set sequence has not been implemented yet!
+	}
+	else
+	{
+		writeSeqPgmMem(pgmWord, 0);
+	}
 	return SUCCESS;
 }
 
@@ -1856,6 +1929,12 @@ cleanup:
 
 Int32 Camera::liveColumnCalibration(unsigned int iterations)
 {
+	if (pych)
+	{
+		//add this
+
+		return 0;
+	}
 	UInt32 numChannels = sensor->getHResIncrement();
 	ImagerSettings_t isPrev = imagerSettings;
 	ImagerSettings_t isDark;

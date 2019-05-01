@@ -7,6 +7,7 @@
 #include "errorCodes.h"
 #include "chronosControlInterface.h"
 #include "types.h"
+#include "frameGeometry.h"
 
 #include <QObject>
 
@@ -93,8 +94,19 @@ public:
 	CameraStatus getStatus(const char * lastState, const char * error);
     CameraErrortype setDescription(const char * description, int idNumber);
     CameraErrortype reinitSystem(void);
-    CameraErrortype setSensorTiming(double frameRate);
+	//CameraErrortype setSensorTiming(long framePeriod, long exposure);
     CameraErrortype setSensorSettings(int hRes, int vRes);
+	CameraErrortype setResolution(int hRes,
+		int vRes,
+		int hOffset,
+		int vOffset,
+		int vDarkRows,
+		int bitDepth);
+	CameraErrortype setGain(UInt32 gainSetting);
+	CameraErrortype setFramePeriod(UInt32 period);
+	CameraErrortype setIntegrationTime(UInt32 exposure);
+
+
     CameraErrortype getIoMapping(void);
     CameraErrortype setIoMapping(void);
     CameraErrortype calibrate(void);

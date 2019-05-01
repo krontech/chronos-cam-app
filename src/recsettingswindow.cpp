@@ -35,6 +35,8 @@ extern "C" {
 
 #define DEF_SI_OPTS	SI_DELIM_SPACE | SI_SPACE_BEFORE_PREFIX
 
+extern bool pych;
+
 //Round an integer (x) to the nearest multiple of mult
 template<typename T>
 inline T round(T x, T mult) { T offset = (x) % (mult); return (offset >= mult/2) ? x - offset + mult : x - offset; }
@@ -206,14 +208,28 @@ void RecSettingsWindow::on_cmdOK_clicked()
 	is->exposure = intTime;
 	is->temporary = 0;
 
-	camera->updateTriggerValues(*is);
+	if (pych)
+	{
+		//add
+	}
+	else
+	{
+		camera->updateTriggerValues(*is);
+	}
 
 	camera->setImagerSettings(*is);
 	camera->vinst->liveDisplay(is->geometry.hRes, is->geometry.vRes);
 	camera->liveColumnCalibration();
 
 	if(CAMERA_FILE_NOT_FOUND == camera->loadFPNFromFile()) {
-		camera->fastFPNCorrection();
+		if (pych)
+		{
+			// add this
+		}
+		else
+		{
+			camera->fastFPNCorrection();
+		}
 	}
 
 	close();

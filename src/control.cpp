@@ -370,8 +370,30 @@ CameraErrortype Control::reinitSystem(void)
 }
 
 
-CameraErrortype Control::setSensorTiming(double frameRate)
-/* we need to have multiple functions for this, to set frame period and/or exposure */
+CameraErrortype Control::setFramePeriod(UInt32 period)
+{
+	QVariantMap args;
+	QDBusPendingReply<QVariantMap> reply;
+
+	qDebug("setFramePeriod");
+
+	args.insert("framePeriod", QVariant(period / 100000000.0));
+
+	pthread_mutex_lock(&mutex);
+	reply = iface.setSensorSettings(args);
+	reply.waitForFinished();
+	pthread_mutex_unlock(&mutex);
+
+	if (reply.isError()) {
+		QDBusError err = reply.error();
+		fprintf(stderr, "Failed to setSensorTiming: %s - %s\n", err.name().data(), err.message().toAscii().data());
+	}
+
+}
+
+/*
+CameraErrortype Control::setSensorTiming(UInt32 frameRate)
+// we need to have multiple functions for this, to set frame period and/or exposure
 {
     QVariantMap args;
     QDBusPendingReply<QVariantMap> reply;
@@ -390,7 +412,7 @@ CameraErrortype Control::setSensorTiming(double frameRate)
         fprintf(stderr, "Failed to setSensorTiming: %s - %s\n", err.name().data(), err.message().toAscii().data());
     }
 }
-
+*/
 
 CameraErrortype Control::setSensorSettings(int hRes, int vRes)
 /* we need to have multiple functions for this, to set hRes, vRes, hOffset, vOffset, vDarkRows, bitDepth, framePeriod, frameRate, framePeriod, exposure */
@@ -413,6 +435,52 @@ CameraErrortype Control::setSensorSettings(int hRes, int vRes)
         fprintf(stderr, "Failed to setSensorSettings: %s - %s\n", err.name().data(), err.message().toAscii().data());
     }
 }
+
+//CameraErrortype setResolution(FrameGeometry *size)
+//{
+//
+//}
+
+
+CameraErrortype setResolution(int hRes,
+	int vRes,
+	int hOffset,
+	int vOffset,
+	int vDarkRows,
+	int bitDepth)
+{
+	return SUCCESS;
+}
+
+CameraErrortype setGain(UInt32 gainSetting)
+{
+	return SUCCESS;
+
+}
+
+
+CameraErrortype Control::setIntegrationTime(UInt32 exposure)
+{
+	QVariantMap args;
+	QDBusPendingReply<QVariantMap> reply;
+
+	qDebug("setSensorTiming");
+
+	args.insert("exposure", QVariant(exposure));
+
+	pthread_mutex_lock(&mutex);
+	reply = iface.setSensorTiming(args);
+	reply.waitForFinished();
+	pthread_mutex_unlock(&mutex);
+
+	if (reply.isError()) {
+		QDBusError err = reply.error();
+		fprintf(stderr, "Failed to setSensorTiming: %s - %s\n", err.name().data(), err.message().toAscii().data());
+	}
+
+}
+
+
 
 CameraErrortype Control::getIoMapping(void)
 {

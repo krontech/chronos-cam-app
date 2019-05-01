@@ -68,15 +68,23 @@ public Q_SLOTS: // METHODS
         return asyncCallWithArgumentList(QLatin1String("getWhiteBalance"), argumentList);
     }
 
-    inline QDBusPendingReply<QVariantMap> setWhiteBalance(const QVariantMap &args)
-    {
-        QList<QVariant> argumentList;
-        argumentList << qVariantFromValue(args);
-        qDebug() << "setting WB: " << argumentList;
-        return asyncCallWithArgumentList(QLatin1String("setWhiteBalance"), argumentList);
-    }
+	inline QDBusPendingReply<QVariantMap> setWhiteBalance(const QVariantMap &args)
+	{
+		QList<QVariant> argumentList;
+		argumentList << qVariantFromValue(args);
+		qDebug() << "setting WB: " << argumentList;
+		return asyncCallWithArgumentList(QLatin1String("setWhiteBalance"), argumentList);
+	}
 
-    inline QDBusPendingReply<QVariantMap> status(const QVariantMap &args)
+	inline QDBusPendingReply<QVariantMap> setFramePeriod(const QVariantMap &args)
+	{
+		QList<QVariant> argumentList;
+		argumentList << qVariantFromValue(args);
+		qDebug() << "setting frame period: " << argumentList;
+		return asyncCallWithArgumentList(QLatin1String("setFramePeriod"), argumentList);
+	}
+
+	inline QDBusPendingReply<QVariantMap> status(const QVariantMap &args)
     {
         QList<QVariant> argumentList;
         argumentList << qVariantFromValue(args);
