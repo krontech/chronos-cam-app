@@ -84,8 +84,30 @@ public:
     Control();
     ~Control();
 
+	CameraErrortype startRecording(void);
+	CameraErrortype stopRecording(void);
+	CameraErrortype doReset(void);
+	CameraErrortype testResolution(void);
+	CameraErrortype startAnalogCalibration(void);
+	CameraErrortype set(void);
+	CameraErrortype setFloat(QString parameter, float value);
+	CameraErrortype setInt(QString parameter, int value);
+	CameraErrortype startAutoWhiteBalance(void);
+	CameraErrortype revertAutoWhiteBalance(void);
+	CameraErrortype startZeroTimeBlackCal(void);
+	CameraErrortype startBlackCalibration(void);
+
+	CameraErrortype status(CameraStatus *cs);
+	CameraErrortype availableKeys(void);
+	CameraErrortype availableCalls(void);
+
+
+
+
+
+
 	CameraData getCameraData(void);
-    CameraErrortype getSensorData(void);
+	CameraErrortype getSensorData(void);
     CameraErrortype getSensorSettings(void);
     CameraErrortype getSensorLimits(void);
     CameraErrortype setCameraData(void);

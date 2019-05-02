@@ -36,6 +36,16 @@ void Control::checkpid(void)
 }
 
 
+//
+// NEW API
+//
+
+
+//
+// parsers
+//
+
+
 static CameraStatus *parseCameraStatus(const QVariantMap &args, CameraStatus *cs)
 {
 	strcpy(cs->state, args["state"].toString().toAscii());
@@ -43,6 +53,367 @@ static CameraStatus *parseCameraStatus(const QVariantMap &args, CameraStatus *cs
 	return cs;
 }
 
+
+
+
+
+
+CameraErrortype Control::startRecording(void)
+{
+	QVariantMap args;
+	QDBusPendingReply<QVariantMap> reply;
+
+	qDebug("startRecording");
+
+	//args.insert("lastState", QVariant(lastState));
+	//args.insert("error", QVariant(error));
+
+	pthread_mutex_lock(&mutex);
+	reply = iface.startRecording(args);
+	reply.waitForFinished();
+	pthread_mutex_unlock(&mutex);
+
+	if (reply.isError()) {
+		QDBusError err = reply.error();
+		fprintf(stderr, "Failed - startRecording: %s - %s\n", err.name().data(), err.message().toAscii().data());
+	}
+}
+
+CameraErrortype Control::stopRecording(void)
+{
+	QVariantMap args;
+	QDBusPendingReply<QVariantMap> reply;
+
+	qDebug("stopRecording");
+
+	//args.insert("lastState", QVariant(lastState));
+	//args.insert("error", QVariant(error));
+
+	pthread_mutex_lock(&mutex);
+	reply = iface.stopRecording(args);
+	reply.waitForFinished();
+	pthread_mutex_unlock(&mutex);
+
+	if (reply.isError()) {
+		QDBusError err = reply.error();
+		fprintf(stderr, "Failed - stopRecording: %s - %s\n", err.name().data(), err.message().toAscii().data());
+	}
+}
+
+CameraErrortype Control::testResolution(void)
+{
+	// TODO: implement various different ways to call this
+	QVariantMap args;
+	QDBusPendingReply<QVariantMap> reply;
+
+	qDebug("testResolution");
+
+	//args.insert("lastState", QVariant(lastState));
+	//args.insert("error", QVariant(error));
+
+	pthread_mutex_lock(&mutex);
+	reply = iface.testResolution(args);
+	reply.waitForFinished();
+	pthread_mutex_unlock(&mutex);
+
+	if (reply.isError()) {
+		QDBusError err = reply.error();
+		fprintf(stderr, "Failed - testResolution: %s - %s\n", err.name().data(), err.message().toAscii().data());
+	}
+}
+
+CameraErrortype Control::doReset(void)
+{
+	QVariantMap args;
+	QDBusPendingReply<QVariantMap> reply;
+
+	qDebug("doReset");
+
+	//args.insert("lastState", QVariant(lastState));
+	//args.insert("error", QVariant(error));
+
+	pthread_mutex_lock(&mutex);
+	reply = iface.doReset(args);
+	reply.waitForFinished();
+	pthread_mutex_unlock(&mutex);
+
+	if (reply.isError()) {
+		QDBusError err = reply.error();
+		fprintf(stderr, "Failed - doReset: %s - %s\n", err.name().data(), err.message().toAscii().data());
+	}
+}
+
+
+
+CameraErrortype Control::startAnalogCalibration(void)
+{
+	QVariantMap args;
+	QDBusPendingReply<QVariantMap> reply;
+
+	qDebug("startAnalogCalibration");
+
+	//args.insert("lastState", QVariant(lastState));
+	//args.insert("error", QVariant(error));
+
+	pthread_mutex_lock(&mutex);
+	reply = iface.startAnalogCalibration(args);
+	reply.waitForFinished();
+	pthread_mutex_unlock(&mutex);
+
+	if (reply.isError()) {
+		QDBusError err = reply.error();
+		fprintf(stderr, "Failed - startAnalogCalibration: %s - %s\n", err.name().data(), err.message().toAscii().data());
+	}
+}
+
+CameraErrortype Control::set(void)
+{
+	QVariantMap args;
+	QDBusPendingReply<QVariantMap> reply;
+
+	qDebug("set");
+
+	//args.insert("lastState", QVariant(lastState));
+	//args.insert("error", QVariant(error));
+
+	pthread_mutex_lock(&mutex);
+	reply = iface.set(args);
+	reply.waitForFinished();
+	pthread_mutex_unlock(&mutex);
+
+	if (reply.isError()) {
+		QDBusError err = reply.error();
+		fprintf(stderr, "Failed - set: %s - %s\n", err.name().data(), err.message().toAscii().data());
+	}
+}
+
+CameraErrortype Control::setFloat(QString parameter, float value)
+{
+	QVariantMap args;
+	QDBusPendingReply<QVariantMap> reply;
+
+	qDebug("set");
+
+	//args.insert("lastState", QVariant(lastState));
+	//args.insert("error", QVariant(error));
+
+	pthread_mutex_lock(&mutex);
+	reply = iface.set(args);
+	reply.waitForFinished();
+	pthread_mutex_unlock(&mutex);
+
+	if (reply.isError()) {
+		QDBusError err = reply.error();
+		fprintf(stderr, "Failed - set: %s - %s\n", err.name().data(), err.message().toAscii().data());
+	}
+}
+
+CameraErrortype Control::setInt(QString parameter, int value)
+{
+	QVariantMap args;
+	QDBusPendingReply<QVariantMap> reply;
+
+	qDebug("set");
+
+	//args.insert("lastState", QVariant(lastState));
+	//args.insert("error", QVariant(error));
+
+	pthread_mutex_lock(&mutex);
+	reply = iface.set(args);
+	reply.waitForFinished();
+	pthread_mutex_unlock(&mutex);
+
+	if (reply.isError()) {
+		QDBusError err = reply.error();
+		fprintf(stderr, "Failed - set: %s - %s\n", err.name().data(), err.message().toAscii().data());
+	}
+}
+
+
+
+CameraErrortype Control::startAutoWhiteBalance(void)
+{
+	QVariantMap args;
+	QDBusPendingReply<QVariantMap> reply;
+
+	qDebug("startAutoWhiteBalance");
+
+	//args.insert("lastState", QVariant(lastState));
+	//args.insert("error", QVariant(error));
+
+	pthread_mutex_lock(&mutex);
+	reply = iface.startAutoWhiteBalance(args);
+	reply.waitForFinished();
+	pthread_mutex_unlock(&mutex);
+
+	if (reply.isError()) {
+		QDBusError err = reply.error();
+		fprintf(stderr, "Failed - startAutoWhiteBalance: %s - %s\n", err.name().data(), err.message().toAscii().data());
+	}
+}
+
+
+
+CameraErrortype Control::revertAutoWhiteBalance(void)
+{
+	QVariantMap args;
+	QDBusPendingReply<QVariantMap> reply;
+
+	qDebug("revertAutoWhiteBalance");
+
+	//args.insert("lastState", QVariant(lastState));
+	//args.insert("error", QVariant(error));
+
+	pthread_mutex_lock(&mutex);
+	reply = iface.revertAutoWhiteBalance(args);
+	reply.waitForFinished();
+	pthread_mutex_unlock(&mutex);
+
+	if (reply.isError()) {
+		QDBusError err = reply.error();
+		fprintf(stderr, "Failed - revertAutoWhiteBalance: %s - %s\n", err.name().data(), err.message().toAscii().data());
+	}
+}
+
+
+
+CameraErrortype Control::startZeroTimeBlackCal(void)
+{
+	QVariantMap args;
+	QDBusPendingReply<QVariantMap> reply;
+
+	qDebug("startZeroTimeBlackCal");
+
+	//args.insert("lastState", QVariant(lastState));
+	//args.insert("error", QVariant(error));
+
+	pthread_mutex_lock(&mutex);
+	reply = iface.startZeroTimeBlackCal(args);
+	reply.waitForFinished();
+	pthread_mutex_unlock(&mutex);
+
+	if (reply.isError()) {
+		QDBusError err = reply.error();
+		fprintf(stderr, "Failed - startZeroTimeBlackCal: %s - %s\n", err.name().data(), err.message().toAscii().data());
+	}
+}
+
+
+
+CameraErrortype Control::startBlackCalibration(void)
+{
+	QVariantMap args;
+	QDBusPendingReply<QVariantMap> reply;
+
+	qDebug("startBlackCalibration");
+
+	//args.insert("lastState", QVariant(lastState));
+	//args.insert("error", QVariant(error));
+
+	pthread_mutex_lock(&mutex);
+	reply = iface.startBlackCalibration(args);
+	reply.waitForFinished();
+	pthread_mutex_unlock(&mutex);
+
+	if (reply.isError()) {
+		QDBusError err = reply.error();
+		fprintf(stderr, "Failed - startBlackCalibration: %s - %s\n", err.name().data(), err.message().toAscii().data());
+	}
+}
+
+
+
+CameraErrortype Control::status(CameraStatus *cs){
+	QVariantMap args;
+	QDBusPendingReply<QVariantMap> reply;
+	QVariantMap map;
+	static CameraStatus st;
+
+	qDebug("status");
+
+	//args.insert("lastState", QVariant(lastState));
+	//args.insert("error", QVariant(error));
+
+	pthread_mutex_lock(&mutex);
+	reply = iface.status(args);
+	reply.waitForFinished();
+	pthread_mutex_unlock(&mutex);
+
+	if (reply.isError()) {
+		QDBusError err = reply.error();
+		fprintf(stderr, "Failed - status: %s - %s\n", err.name().data(), err.message().toAscii().data());
+	}
+	map = reply.value();
+	parseCameraStatus(map, &st);
+
+	return SUCCESS;
+
+
+}
+
+
+CameraErrortype Control::availableKeys(void)
+{
+	QVariantMap args;
+	QDBusPendingReply<QVariantMap> reply;
+
+	qDebug("availableKeys");
+
+	//args.insert("lastState", QVariant(lastState));
+	//args.insert("error", QVariant(error));
+
+	pthread_mutex_lock(&mutex);
+	reply = iface.availableKeys(args);
+	reply.waitForFinished();
+	pthread_mutex_unlock(&mutex);
+
+	if (reply.isError()) {
+		QDBusError err = reply.error();
+		fprintf(stderr, "Failed - availableKeys: %s - %s\n", err.name().data(), err.message().toAscii().data());
+	}
+}
+
+CameraErrortype Control::availableCalls(void){
+	QVariantMap args;
+	QDBusPendingReply<QVariantMap> reply;
+
+	qDebug("availableCalls");
+
+	//args.insert("lastState", QVariant(lastState));
+	//args.insert("error", QVariant(error));
+
+	pthread_mutex_lock(&mutex);
+	reply = iface.availableCalls(args);
+	reply.waitForFinished();
+	pthread_mutex_unlock(&mutex);
+
+	if (reply.isError()) {
+		QDBusError err = reply.error();
+		fprintf(stderr, "Failed - availableCalls: %s - %s\n", err.name().data(), err.message().toAscii().data());
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// OLD API:
+
+
+
+/*
 
 static CameraData *parseCameraData(const QVariantMap &args, CameraData *cd)
 {
@@ -53,6 +424,10 @@ static CameraData *parseCameraData(const QVariantMap &args, CameraData *cd)
 
     return cd;
 }
+
+
+
+
 
 
 CameraData Control::getCameraData()
@@ -317,7 +692,7 @@ static SensorWhiteBalance *parseSensorWhiteBalance(const QVariantMap &args, Sens
 
 	return swb;
 }
-*/
+
 
 CameraStatus Control::getStatus(const char * lastState, const char * error)
 {
@@ -368,10 +743,13 @@ CameraErrortype Control::reinitSystem(void)
         fprintf(stderr, "Failed to reinitSystem: %s - %s\n", err.name().data(), err.message().toAscii().data());
     }
 }
-
+*/
 
 CameraErrortype Control::setFramePeriod(UInt32 period)
 {
+	setInt("framePeriod", period);
+
+	/*
 	QVariantMap args;
 	QDBusPendingReply<QVariantMap> reply;
 
@@ -388,6 +766,7 @@ CameraErrortype Control::setFramePeriod(UInt32 period)
 		QDBusError err = reply.error();
 		fprintf(stderr, "Failed to setSensorTiming: %s - %s\n", err.name().data(), err.message().toAscii().data());
 	}
+	*/
 
 }
 
@@ -412,10 +791,10 @@ CameraErrortype Control::setSensorTiming(UInt32 frameRate)
         fprintf(stderr, "Failed to setSensorTiming: %s - %s\n", err.name().data(), err.message().toAscii().data());
     }
 }
-*/
+
 
 CameraErrortype Control::setSensorSettings(int hRes, int vRes)
-/* we need to have multiple functions for this, to set hRes, vRes, hOffset, vOffset, vDarkRows, bitDepth, framePeriod, frameRate, framePeriod, exposure */
+// we need to have multiple functions for this, to set hRes, vRes, hOffset, vOffset, vDarkRows, bitDepth, framePeriod, frameRate, framePeriod, exposure
 {
     QVariantMap args;
     QDBusPendingReply<QVariantMap> reply;
@@ -458,29 +837,14 @@ CameraErrortype setGain(UInt32 gainSetting)
 
 }
 
+*/
 
 CameraErrortype Control::setIntegrationTime(UInt32 exposure)
 {
-	QVariantMap args;
-	QDBusPendingReply<QVariantMap> reply;
-
-	qDebug("setSensorTiming");
-
-	args.insert("exposure", QVariant(exposure));
-
-	pthread_mutex_lock(&mutex);
-	reply = iface.setSensorTiming(args);
-	reply.waitForFinished();
-	pthread_mutex_unlock(&mutex);
-
-	if (reply.isError()) {
-		QDBusError err = reply.error();
-		fprintf(stderr, "Failed to setSensorTiming: %s - %s\n", err.name().data(), err.message().toAscii().data());
-	}
-
+	setInt("exposurePeriod", exposure);
 }
 
-
+/*
 
 CameraErrortype Control::getIoMapping(void)
 {
@@ -757,6 +1121,11 @@ CameraErrortype Control::setSequencerProgram(void)
 }
 
 
+THIS MARKS THE END OF THE OLD API
+*/
+
+
+
 
 void Control::controlTest(const QVariantMap &args)
 {
@@ -777,7 +1146,7 @@ Control::Control() : iface("com.krontech.chronos.control", "/com/krontech/chrono
     pthread_mutex_init(&mutex, NULL);
     //pthread_mutex_lock(&mutex);
 
-    /* Connect DBus signals */
+	// Connect DBus signals
     conn.connect("com.krontech.chronos.control", "/com/krontech/chronos/control", "com.krontech.chronos.control",
                  "controltest", this, SLOT(segment(const QVariantMap&)));
 

@@ -62,7 +62,7 @@ bool Camera::getRecording(void)
 	{
 		CameraStatus cs;
 
-		cs = cinst->getStatus("one", "two");
+		cinst->status(&cs);
 		//qDebug(cs.state);
 		return !strcmp(cs.state, "recording");
 	}

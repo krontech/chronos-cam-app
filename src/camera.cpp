@@ -118,7 +118,7 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, Control * cinst
 		//testing:
 
 		//cd = cinst->getCameraData();
-		cs = cinst->getStatus("one", "two");
+		retVal = cinst->status(&cs);
 
 
 
@@ -320,7 +320,7 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, Control * cinst
 	vinst->setDisplayPosition(ButtonsOnLeft ^ UpsideDownDisplay);
 	if (pych)
 	{
-		cinst->reinitSystem();
+		cinst->doReset();
 		//sensor = nullptr;
 	}
 	else
@@ -362,6 +362,7 @@ UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 
 		cinst->setIntegrationTime(settings.exposure);
 		cinst->setFramePeriod(settings.period);
+
 
 	}
 	else
@@ -540,8 +541,10 @@ void Camera::updateVideoPosition()
 Int32 Camera::startRecording(void)
 {
 	CameraStatus cs;
+	QString str;
+	qDebug("===== Camera::startRecording()", &str);
 
-	qDebug("===== Camera::startRecording()");
+	cinst->get("cameraApiVersion");
 
 	//Now do dbus call
 	//TESTING Control dbus on pressing record
@@ -604,7 +607,7 @@ Int32 Camera::startRecording(void)
 
 	if (pych)
 	{
-		cinst->startRecord();
+		cinst->startRecording();
 	}
 	else
 	{
@@ -793,9 +796,9 @@ Int32 Camera::stopRecording(void)
 
 	if (pych)
 	{
-		cs = cinst->getStatus("one", "two");
+		cinst->status(&cs);
 
-		cinst->stopRecord();
+		cinst->stopRecording();
 	}
 	else
 	{

@@ -285,7 +285,7 @@ void CamMainWindow::on_cmdFPNCal_clicked()//Black cal
 
 	if (pych)
 	{
-		camera->cinst->calibrate();
+		camera->cinst->startBlackCalibration();
 	}
 	else
 	{

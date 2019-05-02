@@ -35,143 +35,125 @@ public:
     ~ComKrontechChronosControlInterface();
 
 public Q_SLOTS: // METHODS
-    inline QDBusPendingReply<QVariantMap> getCameraData()
-    {
-        QList<QVariant> argumentList;
-        return asyncCallWithArgumentList(QLatin1String("getCameraData"), argumentList);
-    }
 
-    inline QDBusPendingReply<QVariantMap> getSensorData()
-    {
-        QList<QVariant> argumentList;
-        return asyncCallWithArgumentList(QLatin1String("getSensorData"), argumentList);
-    }
-
-    inline QDBusPendingReply<QVariantMap> getSensorSettings()
-    {
-        QList<QVariant> argumentList;
-        return asyncCallWithArgumentList(QLatin1String("getSensorSettings"), argumentList);
-    }
-
-	inline QDBusPendingReply<QVariantMap> getSensorLimits()
-    {
-        QList<QVariant> argumentList;
-		qDebug("GSL!");
-		//return asyncCallWithArgumentList(QLatin1String("getSensorLimits"), argumentList);
-		return asyncCallWithArgumentList(QLatin1String("getSensorLimits"), argumentList);
-		//return asyncCallWithArgumentList(QLatin1String("getSensorSettings2"), argumentList);
-	}
-
-    inline QDBusPendingReply<QVariantMap> getWhiteBalance()
-    {
-        QList<QVariant> argumentList;
-        return asyncCallWithArgumentList(QLatin1String("getWhiteBalance"), argumentList);
-    }
-
-	inline QDBusPendingReply<QVariantMap> setWhiteBalance(const QVariantMap &args)
+	// manually entered for NEWAPI
+	// in/out methdods:
+	inline QDBusPendingReply<QVariantMap> startRecording(const QVariantMap &args)
 	{
 		QList<QVariant> argumentList;
+		qDebug() << "startRecording ";
 		argumentList << qVariantFromValue(args);
-		qDebug() << "setting WB: " << argumentList;
-		return asyncCallWithArgumentList(QLatin1String("setWhiteBalance"), argumentList);
+		return asyncCallWithArgumentList(QLatin1String("startRecording"), argumentList);
 	}
 
-	inline QDBusPendingReply<QVariantMap> setFramePeriod(const QVariantMap &args)
+	inline QDBusPendingReply<QVariantMap> stopRecording(const QVariantMap &args)
 	{
 		QList<QVariant> argumentList;
+		qDebug() << "stopRecording ";
 		argumentList << qVariantFromValue(args);
-		qDebug() << "setting frame period: " << argumentList;
-		return asyncCallWithArgumentList(QLatin1String("setFramePeriod"), argumentList);
+		return asyncCallWithArgumentList(QLatin1String("stopRecording"), argumentList);
 	}
+
+	inline QDBusPendingReply<QVariantMap> testResolution(const QVariantMap &args)
+	{
+		QList<QVariant> argumentList;
+		qDebug() << "testResolution";
+		argumentList << qVariantFromValue(args);
+		return asyncCallWithArgumentList(QLatin1String("testResolution"), argumentList);
+	}
+
+	inline QDBusPendingReply<QVariantMap> doReset(const QVariantMap &args)
+	{
+		QList<QVariant> argumentList;
+		qDebug() << "doReset";
+		argumentList << qVariantFromValue(args);
+		return asyncCallWithArgumentList(QLatin1String("doReset"), argumentList);
+	}
+
+	inline QDBusPendingReply<QVariantMap> startAnalogCalibration(const QVariantMap &args)
+	{
+		QList<QVariant> argumentList;
+		qDebug() << "startAnalogCalibration";
+		argumentList << qVariantFromValue(args);
+		return asyncCallWithArgumentList(QLatin1String("startAnalogCalibration"), argumentList);
+	}
+
+	inline QDBusPendingReply<QVariantMap> startZeroTimeBlackCal(const QVariantMap &args)
+	{
+		QList<QVariant> argumentList;
+		qDebug() << "startZeroTimeBlackCal";
+		argumentList << qVariantFromValue(args);
+		return asyncCallWithArgumentList(QLatin1String("startZeroTimeBlackCal"), argumentList);
+	}
+
+	inline QDBusPendingReply<QVariantMap> startAutoWhiteBalance(const QVariantMap &args)
+	{
+		QList<QVariant> argumentList;
+		qDebug() << "startAutoWhiteBalance";
+		argumentList << qVariantFromValue(args);
+		return asyncCallWithArgumentList(QLatin1String("startAutoWhiteBalance"), argumentList);
+	}
+
+	inline QDBusPendingReply<QVariantMap> get(const QVariantMap &args)
+	{
+		QList<QVariant> argumentList;
+		qDebug() << "get";
+		argumentList << qVariantFromValue(args);
+		return asyncCallWithArgumentList(QLatin1String("get"), argumentList);
+	}
+
+	inline QDBusPendingReply<QVariantMap> set(const QVariantMap &args)
+	{
+		QList<QVariant> argumentList;
+		qDebug() << "set";
+		argumentList << qVariantFromValue(args);
+		return asyncCallWithArgumentList(QLatin1String("set"), argumentList);
+	}
+
+	inline QDBusPendingReply<QVariantMap> startBlackCalibration(const QVariantMap &args)
+	{
+		QList<QVariant> argumentList;
+		qDebug() << "startBlackCalibration";
+		argumentList << qVariantFromValue(args);
+		return asyncCallWithArgumentList(QLatin1String("startBlackCalibration"), argumentList);
+	}
+
+	inline QDBusPendingReply<QVariantMap> revertAutoWhiteBalance(const QVariantMap &args)
+	{
+		QList<QVariant> argumentList;
+		qDebug() << "revertAutoWhiteBalance";
+		argumentList << qVariantFromValue(args);
+		return asyncCallWithArgumentList(QLatin1String("revertAutoWhiteBalance"), argumentList);
+	}
+
+
+	// out only methods
+
 
 	inline QDBusPendingReply<QVariantMap> status(const QVariantMap &args)
-    {
-        QList<QVariant> argumentList;
-        argumentList << qVariantFromValue(args);
-		//qDebug() << "getting status: " << argumentList;
-        return asyncCallWithArgumentList(QLatin1String("status"), argumentList);
-    }
-
-    inline QDBusPendingReply<QVariantMap> setDescription(const QVariantMap &args)
-    {
-        QList<QVariant> argumentList;
-        argumentList << qVariantFromValue(args);
-        qDebug() << "setDescription: " << argumentList;
-        return asyncCallWithArgumentList(QLatin1String("setDescription"), argumentList);
-    }
-
-    inline QDBusPendingReply<QVariantMap> reinitSystem(const QVariantMap &args)
-    {
-        QList<QVariant> argumentList;
-        argumentList << qVariantFromValue(args);
-        qDebug() << "reinitSystem: " << argumentList;
-        return asyncCallWithArgumentList(QLatin1String("reinitSystem"), argumentList);
-    }
-
-    inline QDBusPendingReply<QVariantMap> setSensorSettings(const QVariantMap &args)
-    {
-        QList<QVariant> argumentList;
-        argumentList << qVariantFromValue(args);
-        qDebug() << "setSensorSettings: " << argumentList;
-        return asyncCallWithArgumentList(QLatin1String("setSensorSettings"), argumentList);
-    }
-
-	inline QDBusPendingReply<QVariantMap> setIoMapping(const QVariantMap &args)
 	{
 		QList<QVariant> argumentList;
-		argumentList << qVariantFromValue(args);
-		qDebug() << "setIoMapping: " << argumentList;
-		return asyncCallWithArgumentList(QLatin1String("setIoMapping"), argumentList);
+		qDebug() << "status";
+		return asyncCallWithArgumentList(QLatin1String("status"), argumentList);
+	}
+
+	inline QDBusPendingReply<QVariantMap> availableKeys(const QVariantMap &args)
+	{
+		QList<QVariant> argumentList;
+		qDebug() << "availableKeys";
+		return asyncCallWithArgumentList(QLatin1String("availableKeys"), argumentList);
+	}
+
+	inline QDBusPendingReply<QVariantMap> availableCalls(const QVariantMap &args)
+	{
+		QList<QVariant> argumentList;
+		qDebug() << "availableCalls";
+		return asyncCallWithArgumentList(QLatin1String("availableCalls"), argumentList);
 	}
 
 
-	inline QDBusPendingReply<QVariantMap> getIoMapping(const QVariantMap &args)
-	{
-		QList<QVariant> argumentList;
-		argumentList << qVariantFromValue(args);
-		qDebug("GIM");
-		//return asyncCallWithArgumentList(QLatin1String("getIoMapping"), argumentList);
-		return asyncCallWithArgumentList(QLatin1String("calibrate"), argumentList);
-	}
 
-
-	inline QDBusPendingReply<QVariantMap> calibrate(const QVariantMap &args)
-	{
-		QList<QVariant> argumentList;
-		argumentList << qVariantFromValue(args);
-		qDebug() << "calibrate: " << argumentList;
-		return asyncCallWithArgumentList(QLatin1String("calibrate"), argumentList);
-	}
-
-	inline QDBusPendingReply<QVariantMap> setSensorTiming(const QVariantMap &args)
-	{
-		QList<QVariant> argumentList;
-		argumentList << qVariantFromValue(args);
-		qDebug() << "setSensorTiming: " << argumentList;
-		return asyncCallWithArgumentList(QLatin1String("setSensorTiming"), argumentList);
-	}
-
-	inline QDBusPendingReply<QVariantMap> getColorMatrix()
-	{
-		QList<QVariant> argumentList;
-		return asyncCallWithArgumentList(QLatin1String("getColorMatrix"), argumentList);
-	}
-
-	inline QDBusPendingReply<QVariantMap> setColorMatrix()
-	{
-		QList<QVariant> argumentList;
-		return asyncCallWithArgumentList(QLatin1String("setColorMatrix"), argumentList);
-	}
-
-//---------------
-
-	inline QDBusPendingReply<QVariantMap> startRecord(const QVariantMap &args)
-	{
-		QList<QVariant> argumentList;
-		qDebug() << "startRecord ";
-		argumentList << qVariantFromValue(args);
-		return asyncCallWithArgumentList(QLatin1String("startRecord"), argumentList);
-	}
+	//---------------
 
 	inline QDBusPendingReply<QVariantMap> stopRecord(const QVariantMap &args)
 	{
@@ -181,75 +163,6 @@ public Q_SLOTS: // METHODS
 		return asyncCallWithArgumentList(QLatin1String("stopRecord"), argumentList);
 	}
 
-	inline QDBusPendingReply<QVariantMap> dbusGetIoCapabilities()
-	{
-		QList<QVariant> argumentList;
-		qDebug() << "dbusGetIoCapabilities";
-		return asyncCallWithArgumentList(QLatin1String("dbusGetIoCapabilities"), argumentList);
-	}
-
-	inline QDBusPendingReply<QVariantMap> getCalCapabilities()
-	{
-		QList<QVariant> argumentList;
-		qDebug() << "getCalCapabilities";
-		return asyncCallWithArgumentList(QLatin1String("getCalCapabilities"), argumentList);
-	}
-
-	inline QDBusPendingReply<QVariantMap> getSequencerCapabilities()
-	{
-		QList<QVariant> argumentList;
-		qDebug() << "getSequencerCapabilities";
-		return asyncCallWithArgumentList(QLatin1String("getSequencerCapabilities"), argumentList);
-	}
-
-	inline QDBusPendingReply<QVariantMap> getSensorCapabilities()
-	{
-		QList<QVariant> argumentList;
-		qDebug() << "getSensorCapabilities";
-		return asyncCallWithArgumentList(QLatin1String("getSensorCapabilities"), argumentList);
-	}
-
-	inline QDBusPendingReply<QVariantMap> setSequencerProgram(const QVariantMap &args)
-	{
-		QList<QVariant> argumentList;
-		argumentList << qVariantFromValue(args);
-		qDebug() << "setSequencerProgram" << argumentList;
-		return asyncCallWithArgumentList(QLatin1String("setSequencerProgram"), argumentList);
-	}
-
-
-	inline QDBusPendingReply<QVariantMap> getSequencerProgram(const QVariantMap &args)
-	{
-		QList<QVariant> argumentList;
-		qDebug() << "getSequencerProgram";
-		argumentList << qVariantFromValue(args);
-		return asyncCallWithArgumentList(QLatin1String("getSequencerProgram"), argumentList);
-	}
-
-
-
-
-
-
-    inline QDBusPendingReply<QVariantMap> get_timing_limits(const QVariantMap &args)
-    {
-        QList<QVariant> argumentList;
-        argumentList << qVariantFromValue(args);
-        return asyncCallWithArgumentList(QLatin1String("get_timing_limits"), argumentList);
-    }
-
-    inline QDBusPendingReply<QVariantMap> get_video_settings()
-    {
-        QList<QVariant> argumentList;
-        return asyncCallWithArgumentList(QLatin1String("get_video_settings"), argumentList);
-    }
-
-    inline QDBusPendingReply<> set_video_settings(const QVariantMap &data)
-    {
-        QList<QVariant> argumentList;
-        argumentList << qVariantFromValue(data);
-        return asyncCallWithArgumentList(QLatin1String("set_video_settings"), argumentList);
-    }
 
 Q_SIGNALS: // SIGNALS
 };
