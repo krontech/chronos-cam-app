@@ -1589,7 +1589,7 @@ Int32 Camera::liveColumnCalibration(unsigned int iterations)
 
 	/* Compute the live display worst-case frame refresh time. */
 	tRefresh.tv_sec = 0;
-	tRefresh.tv_nsec = (CAL_REGION_FRAMES+1) * isDark.period * 10;
+	tRefresh.tv_nsec = (CAL_REGION_FRAMES+10) * (isDark.period * 1000000000ULL) / sensor->getFramePeriodClock();
 
 	sensor->adcOffsetTraining(&isDark.geometry, CAL_REGION_START, CAL_REGION_FRAMES);
 	computeGainColumns(&isDark.geometry, CAL_REGION_START, &tRefresh);
