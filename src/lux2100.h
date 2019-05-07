@@ -101,6 +101,18 @@ enum {
 #define FILTER_COLOR_GREEN	1
 #define FILTER_COLOR_BLUE	2
 
+/* LUX 2100 Sensor Wavetables */
+typedef struct {
+	unsigned int clocks;
+	unsigned int length;
+	unsigned int abnDelay;
+	unsigned int binning;
+	const UInt8 *wavetab;
+} lux2100wavetab_t;
+
+/* Array of wavetables, sorted longest first, and terminated with a NULL */
+extern const lux2100wavetab_t *lux2100wt[];
+
 class LUX2100 : public ImageSensor
 {
 public:
@@ -158,7 +170,7 @@ private:
     int writeDACSPI(UInt16 data0, unsigned short data1);
 	void setDACCS(bool on);
 	void SCIWrite(UInt8 address, UInt16 data);
-	void SCIWriteBuf(UInt8 address, UInt8 * data, UInt32 dataLen);
+	void SCIWriteBuf(UInt8 address, const UInt8 * data, UInt32 dataLen);
 	UInt16 SCIRead(UInt8 address);
 	Int32 doAutoADCOffsetCalibration(void);
 	Int32 initLUX2100(void);
@@ -166,6 +178,8 @@ private:
 	Int32 initLUX8M_2(void);
 	void setADCOffset(UInt8 channel, Int16 offset);
 	void offsetCorrectionIteration(FrameGeometry *geometry, int *offsets, UInt32 address, UInt32 framesToAverage, int iter);
+	void updateWavetableSetting(void);
+	UInt32 getMinWavetablePeriod(FrameGeometry *frameSize, UInt32 wtSize);
 
 	FrameGeometry currentRes;
 	UInt32 currentPeriod;

@@ -176,6 +176,10 @@ UInt8 LUX8M_sram66ClkFRWindow[774] =
 #define round(x) (floor(x + 0.5))
 //#define SCI_DEBUG_PRINTS
 
+#define LUX2100_MIN_HBLANK 2
+#define LUX2100_SOF_DELAY  10
+#define LUX2100_LV_DELAY   8
+
 LUX2100::LUX2100()
 {
 	spi = new SPI();
@@ -284,7 +288,7 @@ void LUX2100::SCIWrite(UInt8 address, UInt16 data)
 #endif
 }
 
-void LUX2100::SCIWriteBuf(UInt8 address, UInt8 * data, UInt32 dataLen)
+void LUX2100::SCIWriteBuf(UInt8 address, const UInt8 * data, UInt32 dataLen)
 {
 	//Clear RW and reset FIFO
 	gpmc->write16(SENSOR_SCI_CONTROL_ADDR, 0x8000 | (gpmc->read16(SENSOR_SCI_CONTROL_ADDR) & ~SENSOR_SCI_CONTROL_RW_MASK));
@@ -427,25 +431,42 @@ void LUX2100::setResolution(FrameGeometry *size)
 	memcpy(&currentRes, size, sizeof(currentRes));
 }
 
-//Used by init functions only
+UInt32 LUX2100::getMinWavetablePeriod(FrameGeometry *frameSize, UInt32 wtSize)
+{
+	if(!isValidResolution(frameSize))
+		return 0;
+
+	/* Updated to v3.0 datasheet and computed directly in LUX2100 clocks. */
+	unsigned int tRead = frameSize->hRes / LUX2100_HRES_INCREMENT;
+	unsigned int tTx = 50; /* TODO: Need to check the FPGA build for the TXN pulse width. */
+	unsigned int tRow = max(tRead + LUX2100_MIN_HBLANK, wtSize + 3);
+	unsigned int tFovf = LUX2100_SOF_DELAY + wtSize + LUX2100_LV_DELAY + 10;
+	unsigned int tFovfb = 50; /* TODO: It's not entirely clear what the minimum limit is here. */
+	unsigned int tFrame = tRow * (frameSize->vRes + frameSize->vDarkRows) + tTx + tFovf + tFovfb - LUX2100_MIN_HBLANK;
+
+	/* Convert from 75MHz sensor clocks to 100MHz FPGA clocks. */
+	qDebug() << "getMinFramePeriod:" << tFrame;
+	return ceil(tFrame * 100 / 75);
+}
+
 UInt32 LUX2100::getMinFramePeriod(FrameGeometry *frameSize)
 {
-	UInt32 wtSize = 66; /* Only 1080p supported for now. */
+	unsigned int wtIdeal = (frameSize->hRes / LUX2100_HRES_INCREMENT);
+	unsigned int wtSize = lux2100wt[0]->clocks;
 
 	if(!isValidResolution(frameSize))
 		return 0;
 
-	double tRead = (double)(frameSize->hRes / LUX2100_HRES_INCREMENT) * LUX2100_CLOCK_PERIOD;
-	double tHBlank = 2.0 * LUX2100_CLOCK_PERIOD;
-	double tWavetable = wtSize * LUX2100_CLOCK_PERIOD;
-	double tRow = max(tRead+tHBlank, tWavetable+3*LUX2100_CLOCK_PERIOD);
-	double tTx = 50 * LUX2100_CLOCK_PERIOD;
-	double tFovf = 50 * LUX2100_CLOCK_PERIOD;
-	double tFovb = (50) * LUX2100_CLOCK_PERIOD;//Duration between PRSTN falling and TXN falling (I think)
-	double tFrame = tRow * (frameSize->vRes + frameSize->vDarkRows) + tTx + tFovf + tFovb;
-	qDebug() << "getMinFramePeriod:" << tFrame;
-	/* 1.01 is a fudge factor to account for errors in Luxima's datasheet. */
-	return (UInt64)(ceil(tFrame * 100000000.0 * 1.01));
+	/*
+	 * Select the longest wavetable that exceeds line readout time,
+	 * or fall back to the shortest wavetable for small resolutions.
+	 */
+	for (int i = 0; lux2100wt[i] != NULL; i++) {
+		if (lux2100wt[i]->clocks < wtIdeal) break;
+		wtSize = lux2100wt[i]->clocks;
+	}
+
+	return getMinWavetablePeriod(frameSize, wtSize);
 }
 
 UInt32 LUX2100::getFramePeriod(void)
@@ -463,6 +484,34 @@ UInt32 LUX2100::getActualFramePeriod(double targetPeriod, FrameGeometry *size)
 	return within(clocks, minPeriod, maxPeriod);
 }
 
+void LUX2100::updateWavetableSetting(void)
+{
+	/* Search for the longest wavetable that it shorter than the current frame period. */
+	const lux2100wavetab_t *wt = NULL;
+	int i;
+
+	qDebug() << "Selecting wavetable for period of" << currentPeriod;
+
+	for (i = 0; lux2100wt[i] != NULL; i++) {
+		wt = lux2100wt[i];
+		if (currentPeriod >= getMinWavetablePeriod(&currentRes, wt->clocks)) break;
+	}
+
+	/* Update the wavetable. */
+	if (wt) {
+		SCIWrite(0x01, 0x0010);         //Disable internal timing engine
+		SCIWrite(0x34, wt->clocks);		//non-overlapping readout delay
+		//SCIWrite(0x7A, wt->clocks);     //wavetable size ???
+		SCIWriteBuf(0x7F, wt->wavetab, wt->length);
+		SCIWrite(0x01, 0x0011);			// enable the internal timing engine
+
+		wavetableSize = wt->clocks;
+		gpmc->write16(SENSOR_MAGIC_START_DELAY_ADDR, wt->abnDelay);
+
+		qDebug() << "Wavetable size set to" << wavetableSize;
+	}
+}
+
 UInt32 LUX2100::setFramePeriod(UInt32 period, FrameGeometry *size)
 {
 	qDebug() << "Requested period" << period;
@@ -472,6 +521,7 @@ UInt32 LUX2100::setFramePeriod(UInt32 period, FrameGeometry *size)
 	currentPeriod = within(period, minPeriod, maxPeriod);
 
 	// Set the timing generator to handle the frame and line period
+	updateWavetableSetting();
 	gpmc->write16(SENSOR_LINE_PERIOD_ADDR, max((size->hRes / LUX2100_HRES_INCREMENT)+2, (wavetableSize + 3)) - 1);
 	gpmc->write32(IMAGER_FRAME_PERIOD_ADDR, period);
 	return currentPeriod;
@@ -934,8 +984,7 @@ Int32 LUX2100::initLUX2100(void)
     SCIWrite(0x76, 0x0079);    //Serial gain setting V2: Serial Gain = (#1's in 0x76[8:4])/(#1's in 0x58[10:8]+1) = 3/3
 
     //Set up for 66Tclk wavetable
-    SCIWrite(0x34, 0x0042); //Readout delay
-    SCIWrite(0x30, 0x0A00); //Start of frame delay
+	SCIWrite(0x34, 0x0042); //Readout delay
     SCIWrite(0x56, colorBinning ? 0xA120 : 0xA121); //Set up binning mode for mono sensor
     SCIWrite(0x06, 0x0040); //Start of standard window (x direction)
     SCIWrite(0x07, 0x0F3F); //End of standard window (x direction)
@@ -943,7 +992,9 @@ Int32 LUX2100::initLUX2100(void)
     SCIWrite(0x09, 0x087E); //End of standard window (Y direction)
 
     //Internal control registers
-    SCIWrite(0x5B, 0x0008); // line valid delay to match ADC latency
+	SCIWrite(0x03, LUX2100_MIN_HBLANK);
+	SCIWrite(0x30, LUX2100_SOF_DELAY << 8); //Start of frame delay
+	SCIWrite(0x5B, LUX2100_LV_DELAY);       // line valid delay to match ADC latency
     SCIWrite(0x5F, 0x0000); // internal control register
     SCIWrite(0x78, 0x0803); // internal clock timing
     SCIWrite(0x2D, 0x0084); // state for idle controls
@@ -979,10 +1030,7 @@ Int32 LUX2100::initLUX2100(void)
     SCIWrite(0x04, 0x0000); // switch to sensor register space
 
     //Load the wavetable
-    SCIWriteBuf(0x7F, LUX2100_sram66Clk, 414 /*sizeof(sram80Clk)*/);
-
-    //Load the wavetable
-    //SCIWriteBuf(0x7F, LUX8M_sram126Clk, 774 /*sizeof(sram80Clk)*/);
+	SCIWriteBuf(0x7F, lux2100wt[0]->wavetab, lux2100wt[0]->length);
 
     for(int i = 0; i < LUX2100_HRES_INCREMENT; i++)
         setADCOffset(i, 0);

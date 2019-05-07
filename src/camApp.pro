@@ -112,7 +112,8 @@ SOURCES += main.cpp\
     colorwindow.cpp \
     colordoublespinbox.cpp \
     aptupdate.cpp \
-    errorStrings.cpp
+    errorStrings.cpp \
+    lux2100wt.cpp
 
 ## Generate version.cpp on every build
 versionTarget.target = version.cpp
