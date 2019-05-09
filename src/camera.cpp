@@ -550,6 +550,7 @@ Int32 Camera::startRecording(void)
 	double wbTest[3];
 	double cmTest[9];
 
+	double testArray[9] = {1,2,3,4,5,6,7,8,9};
 	CameraStatus cs;
 	QString str;
 	UInt32 i;
@@ -560,10 +561,25 @@ Int32 Camera::startRecording(void)
 	//testExec();
 
 	FrameGeometry geometry;
+	geometry.hRes          = 1280;
+	geometry.vRes          = 1024;
+	geometry.hOffset       = 0;
+	geometry.vOffset       = 0;
+	geometry.vDarkRows     = 0;
+	geometry.bitDepth	   = 12;
+	geometry.minFrameTime  = 0.002;
+
+
+	cinst->setResolution(&geometry);
+
+
+	//cinst->setArray("wbMatrix", 3, (double *)&testArray);
+	//cinst->setArray("colorMatrix", 9, (double *)&testArray);
+
 
 	cinst->getResolution(&geometry);
 
-	cinst->getString("exposureMode", &str);
+	cinst->getString("cameraDescription", &str);
 	QString ws = "wbMatrix";
 	cinst->getArray("wbMatrix", 3, (double *)&wbTest);
 	cinst->getArray("colorMatrix", 9, (double *)&cmTest);
@@ -577,6 +593,7 @@ Int32 Camera::startRecording(void)
 	cinst->setInt("exposurePeriod", 9876);
 	//cinst->setFloat("frameRate", 555);
 	cinst->setString("cameraDescription", "this model");
+	cinst->getString("cameraDescription", &str);
 //	cinst->setBool("overlayEnable", true);
 	cinst->getInt("exposurePeriod", &i);
 	cinst->getFloat("frameRate", &d);

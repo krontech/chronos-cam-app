@@ -273,9 +273,13 @@ CameraErrortype Control::getResolution(FrameGeometry *geometry)
 
 }
 
+CameraErrortype Control::setResolution(FrameGeometry *geometry)
+{
+	QString jsonString;
 
-
-
+	buildJsonResolution(&jsonString, geometry);
+	setCamJson(jsonString);
+}
 
 CameraErrortype Control::getArray(QString parameter, UInt32 size, double *values)
 {
@@ -285,6 +289,18 @@ CameraErrortype Control::getArray(QString parameter, UInt32 size, double *values
 	parseJsonArray(parameter, jsonString, size, values);
 
 }
+
+CameraErrortype Control::setArray(QString parameter, UInt32 size, double *values)
+{
+	QString jsonString;
+	//buildJsonArray(parameter, jsonString, size, values);
+	//setCamJson(parameter, &jsonString);
+	qDebug() << jsonString;
+
+
+}
+
+
 
 CameraErrortype Control::oldGetArray(QString parameter, bool *value)
 {

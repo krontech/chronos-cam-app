@@ -112,6 +112,7 @@ public:
 	CameraErrortype setString(QString parameter, QString str);
 	CameraErrortype setFloat(QString parameter, double value);
 	CameraErrortype setBool(QString parameter, bool value);
+	CameraErrortype setArray(QString parameter, UInt32 size, double *values);
 
 
 
@@ -130,12 +131,13 @@ public:
     CameraErrortype reinitSystem(void);
 	//CameraErrortype setSensorTiming(long framePeriod, long exposure);
     CameraErrortype setSensorSettings(int hRes, int vRes);
-	CameraErrortype setResolution(int hRes,
+	/* CameraErrortype setResolution(int hRes,
 		int vRes,
 		int hOffset,
 		int vOffset,
 		int vDarkRows,
-		int bitDepth);
+		int bitDepth); */
+	CameraErrortype setResolution(FrameGeometry *geometry);
 	CameraErrortype setGain(UInt32 gainSetting);
 	CameraErrortype setFramePeriod(UInt32 period);
 	CameraErrortype setIntegrationTime(UInt32 exposure);
