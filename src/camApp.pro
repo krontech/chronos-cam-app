@@ -104,7 +104,17 @@ SOURCES += main.cpp\
     colordoublespinbox.cpp \
     lux2100.cpp \
     sensor.cpp \
-    control.cpp
+    control.cpp \
+    exec.cpp \
+    ecp5Config.cpp \
+    myinputpanel.cpp \
+    qjson4/QJsonArray.cpp \
+    qjson4/QJsonDocument.cpp \
+    qjson4/QJsonObject.cpp \
+    qjson4/QJsonParseError.cpp \
+    qjson4/QJsonParser.cpp \
+    qjson4/QJsonValue.cpp \
+    qjson4/QJsonValueRef.cpp
 
 ## Generate version.cpp on every build
 versionTarget.target = version.cpp
@@ -162,7 +172,18 @@ HEADERS  += mainwindow.h \
     frameGeometry.h \
     lux2100.h \
     sensor.h \
-    control.h
+    control.h \
+    exec.h \
+    myinputpanel.h \
+    ecp5Config.h \
+    ui_myinputpanelform.h \
+    qjson4/QJsonArray.h \
+    qjson4/QJsonDocument.h \
+    qjson4/QJsonParseError.h \
+    qjson4/QJsonParser.h \
+    qjson4/QJsonRoot.h \
+    qjson4/QJsonValue.h \
+    qjson4/QJsonValueRef.h
 
 FORMS    += mainwindow.ui \
     cammainwindow.ui \

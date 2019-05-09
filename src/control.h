@@ -90,8 +90,6 @@ public:
 	CameraErrortype testResolution(void);
 	CameraErrortype startAnalogCalibration(void);
 	CameraErrortype set(void);
-	CameraErrortype setFloat(QString parameter, float value);
-	CameraErrortype setInt(QString parameter, int value);
 	CameraErrortype startAutoWhiteBalance(void);
 	CameraErrortype revertAutoWhiteBalance(void);
 	CameraErrortype startZeroTimeBlackCal(void);
@@ -100,6 +98,18 @@ public:
 	CameraErrortype status(CameraStatus *cs);
 	CameraErrortype availableKeys(void);
 	CameraErrortype availableCalls(void);
+	CameraErrortype getInt(QString parameter, UInt32 *value);
+	CameraErrortype getString(QString parameter, QString *str);
+	CameraErrortype getFloat(QString parameter, double *value);
+	CameraErrortype getBool(QString parameter, bool *value);
+	CameraErrortype getArray(QString parameter, UInt32 size, double *values);
+	CameraErrortype oldGetArray(QString parameter, bool *value);
+	CameraErrortype oldGetDict(QString parameter);
+
+	CameraErrortype setInt(QString parameter, UInt32 value);
+	CameraErrortype setString(QString parameter, QString str);
+	CameraErrortype setFloat(QString parameter, double value);
+	CameraErrortype setBool(QString parameter, bool value);
 
 
 

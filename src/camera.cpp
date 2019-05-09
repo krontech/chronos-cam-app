@@ -39,7 +39,7 @@
 #include "defines.h"
 #include <QWSDisplay>
 #include "control.h"
-
+#include "exec.h"
 
 void* recDataThread(void *arg);
 void recordEosCallback(void * arg);
@@ -360,8 +360,8 @@ UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 		//cinst->setGain(settings.gain);
 
 
-		cinst->setIntegrationTime(settings.exposure);
-		cinst->setFramePeriod(settings.period);
+		//cinst->setIntegrationTime(settings.exposure);
+		//cinst->setFramePeriod(settings.period);
 
 
 	}
@@ -540,11 +540,45 @@ void Camera::updateVideoPosition()
 
 Int32 Camera::startRecording(void)
 {
+	double wbTest[3];
+	double cmTest[9];
+
 	CameraStatus cs;
 	QString str;
-	qDebug("===== Camera::startRecording()", &str);
+	UInt32 i;
+	double d;
+	bool b;
+	qDebug("===== Camera::startRecording()");
 
-	cinst->get("cameraApiVersion");
+	testExec();
+
+	cinst->getString("exposureMode", &str);
+	QString ws = "wbMatrix";
+	cinst->getArray("wbMatrix", 3, (double *)&wbTest);
+	cinst->getArray("colorMatrix", 9, (double *)&cmTest);
+	//cinst->getDict("resolution");
+	cinst->getString("exposureMode", &str);
+	cinst->getInt("exposureMode", &i);
+
+
+	//cinst->startRecording();
+	//cinst->getString("cameraApiVersion");
+	cinst->setInt("exposurePeriod", 9876);
+	//cinst->setFloat("frameRate", 555);
+	cinst->setString("cameraDescription", "this model");
+//	cinst->setBool("overlayEnable", true);
+	cinst->getInt("exposurePeriod", &i);
+	cinst->getFloat("frameRate", &d);
+	cinst->getString("cameraDescription", &str);
+	cinst->getString("cameraDescription", &str);
+	cinst->getBool("overlayEnable", &b);
+	//cinst->status();
+	//cinst->startZeroTimeBlackCal();
+	//cinst->startAutoWhiteBalance();
+	//cinst->startBlackCalibration();
+	//cinst->revertAutoWhiteBalance();
+
+
 
 	//Now do dbus call
 	//TESTING Control dbus on pressing record

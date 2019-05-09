@@ -2,7 +2,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <string>
 #include <QDebug>
+//#include <qjsonobject.h>
 #include <memory.h>
 #include <getopt.h>
 #include <string.h>
@@ -16,6 +18,7 @@
 #include <fcntl.h>
 #include <poll.h>
 #include "control.h"
+#include "exec.h"
 #include "camera.h"
 #include "util.h"
 
@@ -54,6 +57,330 @@ static CameraStatus *parseCameraStatus(const QVariantMap &args, CameraStatus *cs
 }
 
 
+
+CameraErrortype Control::setInt(QString parameter, UInt32 value)
+{
+	QVariantMap args;
+	QDBusPendingReply<QVariantMap> reply;
+	QVariantMap map;
+
+	qDebug() << "setInt " << parameter << value;
+
+	args.insert(parameter, QVariant(value));
+
+	pthread_mutex_lock(&mutex);
+	reply = iface.set(args);
+	reply.waitForFinished();
+	pthread_mutex_unlock(&mutex);
+
+	if (reply.isError()) {
+		QDBusError err = reply.error();
+		fprintf(stderr, "Failed to set int: %s - %s\n", err.name().data(), err.message().toAscii().data());
+	}
+
+	return SUCCESS;
+}
+
+CameraErrortype Control::setFloat(QString parameter, double value)
+{
+	QVariantMap args;
+	QDBusPendingReply<QVariantMap> reply;
+
+	qDebug("setFloat");
+
+	args.insert(parameter, QVariant(value));
+	//args.insert("error", QVariant(error));
+
+	pthread_mutex_lock(&mutex);
+	reply = iface.set(args);
+	reply.waitForFinished();
+	pthread_mutex_unlock(&mutex);
+
+	if (reply.isError()) {
+		QDBusError err = reply.error();
+		fprintf(stderr, "Failed - setFloat: %s - %s\n", err.name().data(), err.message().toAscii().data());
+	}
+}
+
+CameraErrortype Control::setString(QString parameter, QString str)
+{
+	QVariantMap args;
+	QDBusPendingReply<QVariantMap> reply;
+
+	qDebug("setString");
+
+	args.insert(parameter, QVariant(str));
+	//args.insert("error", QVariant(error));
+
+	pthread_mutex_lock(&mutex);
+	reply = iface.set(args);
+	reply.waitForFinished();
+	pthread_mutex_unlock(&mutex);
+
+	if (reply.isError()) {
+		QDBusError err = reply.error();
+		fprintf(stderr, "Failed - setString: %s - %s\n", err.name().data(), err.message().toAscii().data());
+	}
+}
+
+
+CameraErrortype Control::getInt(QString parameter, UInt32 *value)
+{
+	QVariantMap args;
+	QDBusPendingReply<QVariantMap> reply;
+	QVariantMap map;
+
+	//TODO - is this the way to do this?
+	args.insert(parameter, 0);
+
+	pthread_mutex_lock(&mutex);
+	reply = iface.get(args);
+	reply.waitForFinished();
+	pthread_mutex_unlock(&mutex);
+
+	if (reply.isError()) {
+		QDBusError err = reply.error();
+		fprintf(stderr, "Failed to get int: %s - %s\n", err.name().data(), err.message().toAscii().data());
+	}
+	map = reply.value();
+	qDebug() << "map:" << map;
+
+
+	*value = map[parameter].toUInt();
+
+	qDebug() << "getInt():" << *value;
+
+	return SUCCESS;
+}
+
+CameraErrortype Control::getFloat(QString parameter, double *value)
+{
+	QVariantMap args;
+	QDBusPendingReply<QVariantMap> reply;
+	QVariantMap map;
+
+	//TODO - is this the way to do this?
+	args.insert(parameter, 0);
+
+	pthread_mutex_lock(&mutex);
+	reply = iface.get(args);
+	reply.waitForFinished();
+	pthread_mutex_unlock(&mutex);
+
+	if (reply.isError()) {
+		QDBusError err = reply.error();
+		fprintf(stderr, "Failed to get float: %s - %s\n", err.name().data(), err.message().toAscii().data());
+	}
+	map = reply.value();
+	*value = map[parameter].toDouble();
+
+	qDebug() << "getFloat():" << *value;
+
+	return SUCCESS;
+}
+
+
+
+CameraErrortype Control::getString(QString parameter, QString *str)
+{
+	QVariantMap args;
+	QDBusPendingReply<QVariantMap> reply;
+	QVariantMap map;
+
+	//TODO - is this the way to do this?
+	args.insert(parameter, true);
+
+	pthread_mutex_lock(&mutex);
+	reply = iface.get(args);
+	reply.waitForFinished();
+	pthread_mutex_unlock(&mutex);
+
+	if (reply.isError()) {
+		QDBusError err = reply.error();
+		fprintf(stderr, "Failed to get string: %s - %s\n", err.name().data(), err.message().toAscii().data());
+	}
+	map = reply.value();
+	qDebug() << map;
+	*str = map[parameter].toString();
+	qDebug() << "getString():" << *str;
+	qDebug() << "map[p]:" << map[parameter];
+
+	return SUCCESS;
+}
+
+
+CameraErrortype Control::getBool(QString parameter, bool *value)
+{
+	QVariantMap args;
+	QDBusPendingReply<QVariantMap> reply;
+	QVariantMap map;
+
+	//TODO - is this the way to do this?
+	args.insert(parameter, 0);
+
+	pthread_mutex_lock(&mutex);
+	reply = iface.get(args);
+	reply.waitForFinished();
+	pthread_mutex_unlock(&mutex);
+
+	if (reply.isError()) {
+		QDBusError err = reply.error();
+		fprintf(stderr, "Failed to get bool %s: %s - %s\n", parameter, err.name().data(), err.message().toAscii().data());
+	}
+	map = reply.value();
+	*value = map[parameter].toBool();
+
+	qDebug() << "boolMap" << map;
+
+	qDebug() << "getBool():" << *value;
+
+	return SUCCESS;
+}
+
+/*
+const QDBusArgument &operator>>(const QDBusArgument &argument, QList &mystruct)
+{
+	argument.beginStructure();
+	argument >> mystruct.count >> mystruct.name;
+	argument.endStructure();
+	return argument;
+}*/
+
+// extract a MyArray array of MyElement elements
+void parseArray(QDBusArgument &argument)
+{
+	argument.beginArray();
+	//myarray.clear();
+
+	while ( !argument.atEnd() ) {
+		//MyElement element;
+		qDebug() << "argument";
+		//myarray.append( element );
+	}
+
+	argument.endArray();
+	//return argument;
+}
+
+/*
+CameraErrortype Control::getResolution(QString parameter, UInt32 size, double *values)
+{
+	QString jsonString;
+	getCamJson(parameter, &jsonString);
+	qDebug() << jsonString;
+	parseJsonArray(parameter, jsonString, size, values);
+
+}
+*/
+
+
+
+
+CameraErrortype Control::getArray(QString parameter, UInt32 size, double *values)
+{
+	QString jsonString;
+	getCamJson(parameter, &jsonString);
+	qDebug() << jsonString;
+	parseJsonArray(parameter, jsonString, size, values);
+
+}
+
+CameraErrortype Control::oldGetArray(QString parameter, bool *value)
+{
+	QVariantMap args;
+	QDBusPendingReply<QVariantMap> reply;
+	QVariantMap map, map2;
+
+	//TODO - is this the way to do this?
+	args.insert(parameter, 0);
+
+	pthread_mutex_lock(&mutex);
+	reply = iface.get(args);
+	reply.waitForFinished();
+	pthread_mutex_unlock(&mutex);
+
+	if (reply.isError()) {
+		QDBusError err = reply.error();
+		fprintf(stderr, "Failed to get array: %s - %s\n", err.name().data(), err.message().toAscii().data());
+	}
+	map = reply.value();
+
+	//parseArray(map[parameter].convert(QDBusArgument);
+	qDebug() << "map.data:" << map[parameter].data();
+
+	//QVariantMap elems = qdbus_cast<QVariantMap>( map.value<QDBusArgument>() );
+
+	QList<QVariant> lst = map[parameter].toList();
+	//QJsonObject jobj = map[parameter].toJsonObject();
+
+	qDebug() << "map[parameter].typeName:" << map[parameter].typeName();
+	qDebug() << "map[parameter].isValid:" << map[parameter].isValid();
+
+	qDebug() << "map:" << map;
+	qDebug() << "map[parameter]:" << map[parameter];
+
+	qDebug() << map[parameter];
+	qDebug() << map["wbMatrix"];
+
+	qDebug() << "toMap:" << map[parameter].toMap();
+
+	qDebug() << "lst:" << lst << lst.size();
+
+	qDebug() << "arrayMap" << map;
+
+	//qDebug() << "getArray():" << *value;
+
+	//qDebug() << (map[parameter].key().asVariant());
+
+
+	//map2 = map[parameter];
+	//for(QVariantMap::const_iterator iter = map2.begin(); iter != map2.end(); ++iter) {
+	//  qDebug() << iter.key() << iter.value();
+	//}
+
+
+
+	return SUCCESS;
+}
+
+
+CameraErrortype Control::oldGetDict(QString parameter)
+{
+	QVariantMap args;
+	QDBusPendingReply<QVariantMap> reply;
+	QVariantMap map;
+	QVariantMap map2;
+	QVariant qv;
+
+	//TODO - is this the way to do this?
+	args.insert(parameter, 0);
+
+	pthread_mutex_lock(&mutex);
+	reply = iface.get(args);
+	reply.waitForFinished();
+	pthread_mutex_unlock(&mutex);
+
+	if (reply.isError()) {
+		QDBusError err = reply.error();
+		fprintf(stderr, "Failed to get array: %s - %s\n", err.name().data(), err.message().toAscii().data());
+	}
+	map = reply.value();
+
+	qDebug() << "map:" << map["hRes"];
+
+	qDebug() << map[parameter].toMap();
+
+	//int h = map["horizontal"].toString().toAscii();
+	//qDebug() << "getArray():" << *value;
+	qv = map[0];
+	//qv = map["resolution"];
+	//qDebug() << qv.key;
+	QVariant someValue = map.value(0);
+
+	qDebug() << map2[0] << someValue;
+
+	return SUCCESS;
+}
 
 
 
@@ -187,48 +514,6 @@ CameraErrortype Control::set(void)
 	}
 }
 
-CameraErrortype Control::setFloat(QString parameter, float value)
-{
-	QVariantMap args;
-	QDBusPendingReply<QVariantMap> reply;
-
-	qDebug("set");
-
-	//args.insert("lastState", QVariant(lastState));
-	//args.insert("error", QVariant(error));
-
-	pthread_mutex_lock(&mutex);
-	reply = iface.set(args);
-	reply.waitForFinished();
-	pthread_mutex_unlock(&mutex);
-
-	if (reply.isError()) {
-		QDBusError err = reply.error();
-		fprintf(stderr, "Failed - set: %s - %s\n", err.name().data(), err.message().toAscii().data());
-	}
-}
-
-CameraErrortype Control::setInt(QString parameter, int value)
-{
-	QVariantMap args;
-	QDBusPendingReply<QVariantMap> reply;
-
-	qDebug("set");
-
-	//args.insert("lastState", QVariant(lastState));
-	//args.insert("error", QVariant(error));
-
-	pthread_mutex_lock(&mutex);
-	reply = iface.set(args);
-	reply.waitForFinished();
-	pthread_mutex_unlock(&mutex);
-
-	if (reply.isError()) {
-		QDBusError err = reply.error();
-		fprintf(stderr, "Failed - set: %s - %s\n", err.name().data(), err.message().toAscii().data());
-	}
-}
-
 
 
 CameraErrortype Control::startAutoWhiteBalance(void)
@@ -328,8 +613,6 @@ CameraErrortype Control::status(CameraStatus *cs){
 	QDBusPendingReply<QVariantMap> reply;
 	QVariantMap map;
 	static CameraStatus st;
-
-	qDebug("status");
 
 	//args.insert("lastState", QVariant(lastState));
 	//args.insert("error", QVariant(error));
