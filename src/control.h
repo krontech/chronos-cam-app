@@ -103,6 +103,8 @@ public:
 	CameraErrortype getFloat(QString parameter, double *value);
 	CameraErrortype getBool(QString parameter, bool *value);
 	CameraErrortype getArray(QString parameter, UInt32 size, double *values);
+	CameraErrortype getResolution(FrameGeometry *geometry);
+
 	CameraErrortype oldGetArray(QString parameter, bool *value);
 	CameraErrortype oldGetDict(QString parameter);
 

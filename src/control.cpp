@@ -262,16 +262,17 @@ void parseArray(QDBusArgument &argument)
 	//return argument;
 }
 
-/*
-CameraErrortype Control::getResolution(QString parameter, UInt32 size, double *values)
+
+CameraErrortype Control::getResolution(FrameGeometry *geometry)
 {
 	QString jsonString;
-	getCamJson(parameter, &jsonString);
+	getCamJson("resolution", &jsonString);
 	qDebug() << jsonString;
-	parseJsonArray(parameter, jsonString, size, values);
+
+	parseJsonResolution(jsonString, geometry);
 
 }
-*/
+
 
 
 

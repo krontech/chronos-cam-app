@@ -13,6 +13,7 @@ public:
 	unsigned int vOffset;	/* Vertical offset from first active row. */
 	unsigned int vDarkRows;	/* Number of vertical dark rows read out before active pixels. */
 	unsigned int bitDepth;	/* Bits per pixel. */
+	double minFrameTime;	/* ADDED FOR PYCHRONOS */
 
 	/* Some Helper routines */
 	unsigned long pixels() const { return (hRes * (vRes + vDarkRows)); }

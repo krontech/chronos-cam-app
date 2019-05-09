@@ -133,6 +133,13 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, Control * cinst
 
 		err = pthread_create(&recDataThreadID, NULL, &recDataThread, this);
 
+		io = new IO(gpmc);
+		retVal = io->init();
+		if(retVal != SUCCESS)
+			return retVal;
+
+
+
 		/* Load default recording from sensor limits. */
 		imagerSettings.geometry = sensor->getMaxGeometry();
 		imagerSettings.geometry.vDarkRows = 0;
@@ -550,7 +557,11 @@ Int32 Camera::startRecording(void)
 	bool b;
 	qDebug("===== Camera::startRecording()");
 
-	testExec();
+	//testExec();
+
+	FrameGeometry geometry;
+
+	cinst->getResolution(&geometry);
 
 	cinst->getString("exposureMode", &str);
 	QString ws = "wbMatrix";

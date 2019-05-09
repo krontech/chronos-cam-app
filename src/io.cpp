@@ -26,6 +26,7 @@
 
 #include "types.h"
 
+extern bool pych;
 
 IO::IO(GPMC* gpmcInst)
 {
@@ -34,6 +35,11 @@ IO::IO(GPMC* gpmcInst)
 
 CameraErrortype IO::init()
 {
+	if (pych)
+	{
+		return SUCCESS;
+	}
+
 	QSettings appSettings;
 	IO2InFD = open(IO2IN_PATH, O_RDONLY);
 
