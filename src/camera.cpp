@@ -570,36 +570,38 @@ Int32 Camera::startRecording(void)
 	geometry.minFrameTime  = 0.002;
 
 
-	cinst->setResolution(&geometry);
-
+	//cinst->setResolution(&geometry);
+	//cinst->setWbMatrix();
 
 	//cinst->setArray("wbMatrix", 3, (double *)&testArray);
 	//cinst->setArray("colorMatrix", 9, (double *)&testArray);
 
 
-	cinst->getResolution(&geometry);
+	//cinst->getIoSettings();
+	//cinst->setIoSettings();
 
-	cinst->getString("cameraDescription", &str);
-	QString ws = "wbMatrix";
-	cinst->getArray("wbMatrix", 3, (double *)&wbTest);
-	cinst->getArray("colorMatrix", 9, (double *)&cmTest);
+	//cinst->getResolution(&geometry);
+
+	//cinst->getString("cameraDescription", &str);
+	//cinst->getArray("wbMatrix", 3, (double *)&wbTest);
+	//cinst->getArray("colorMatrix", 9, (double *)&cmTest);
 	//cinst->getDict("resolution");
-	cinst->getString("exposureMode", &str);
-	cinst->getInt("exposureMode", &i);
+	//cinst->getString("exposureMode", &str);
+	//cinst->getInt("exposureMode", &i);
 
 
 	//cinst->startRecording();
 	//cinst->getString("cameraApiVersion");
-	cinst->setInt("exposurePeriod", 9876);
+	//cinst->setInt("exposurePeriod", 9876);
 	//cinst->setFloat("frameRate", 555);
-	cinst->setString("cameraDescription", "this model");
-	cinst->getString("cameraDescription", &str);
-//	cinst->setBool("overlayEnable", true);
-	cinst->getInt("exposurePeriod", &i);
-	cinst->getFloat("frameRate", &d);
-	cinst->getString("cameraDescription", &str);
-	cinst->getString("cameraDescription", &str);
-	cinst->getBool("overlayEnable", &b);
+	//cinst->setString("cameraDescription", "this model");
+	//cinst->getString("cameraDescription", &str);
+	//cinst->setBool("overlayEnable", true);
+	//cinst->getInt("exposurePeriod", &i);
+	//cinst->getFloat("frameRate", &d);
+	//cinst->getString("cameraDescription", &str);
+	//cinst->getString("cameraDescription", &str);
+	//cinst->getBool("overlayEnable", &b);
 	//cinst->status();
 	//cinst->startZeroTimeBlackCal();
 	//cinst->startAutoWhiteBalance();

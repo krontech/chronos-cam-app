@@ -21,18 +21,18 @@
 #include <QtDBus/QtDBus>
 
 /*
- * Proxy class for interface com.krontech.chronos.control
+ * Proxy class for interface ca.krontech.chronos.control
  */
-class ComKrontechChronosControlInterface: public QDBusAbstractInterface
+class CaKrontechChronosControlInterface: public QDBusAbstractInterface
 {
     Q_OBJECT
 public:
     static inline const char *staticInterfaceName()
-    { return "com.krontech.chronos.control"; }
+	{ return "ca.krontech.chronos.control"; }
 
 public:
-    ComKrontechChronosControlInterface(const QString &service, const QString &path, const QDBusConnection &connection, QObject *parent = 0);
-    ~ComKrontechChronosControlInterface();
+	CaKrontechChronosControlInterface(const QString &service, const QString &path, const QDBusConnection &connection, QObject *parent = 0);
+	~CaKrontechChronosControlInterface();
 
 public Q_SLOTS: // METHODS
 
@@ -234,7 +234,7 @@ Q_SIGNALS: // SIGNALS
 namespace com {
   namespace krontech {
     namespace chronos {
-      typedef ::ComKrontechChronosControlInterface control;
+	  typedef ::CaKrontechChronosControlInterface control;
     }
   }
 }

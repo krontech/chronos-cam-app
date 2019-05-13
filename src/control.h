@@ -104,6 +104,8 @@ public:
 	CameraErrortype getBool(QString parameter, bool *value);
 	CameraErrortype getArray(QString parameter, UInt32 size, double *values);
 	CameraErrortype getResolution(FrameGeometry *geometry);
+	CameraErrortype getIoSettings(void);
+	CameraErrortype setIoSettings(void);
 
 	CameraErrortype oldGetArray(QString parameter, bool *value);
 	CameraErrortype oldGetDict(QString parameter);
@@ -113,6 +115,7 @@ public:
 	CameraErrortype setFloat(QString parameter, double value);
 	CameraErrortype setBool(QString parameter, bool value);
 	CameraErrortype setArray(QString parameter, UInt32 size, double *values);
+	CameraErrortype setWbMatrix(void);
 
 
 
@@ -173,7 +176,7 @@ private:
 
     void checkpid(void);
 
-    ComKrontechChronosControlInterface iface;
+	CaKrontechChronosControlInterface iface;
 
 
     /* D-Bus signal handlers. */

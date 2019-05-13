@@ -135,7 +135,7 @@ private:
 	void checkpid(void);
 	int mkfilename(char *path, save_mode_type save_mode);
 
-	ComKrontechChronosVideoInterface iface;
+	CaKrontechChronosVideoInterface iface;
 
 	UInt32 displayWindowXSize;
 	UInt32 displayWindowYSize;

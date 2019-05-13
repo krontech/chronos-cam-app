@@ -28,6 +28,26 @@
 
 extern bool pych;
 
+UInt32 	ioShadowRegister[16];
+double pychIo1Threshold;
+double pychIo2Threshold;
+
+
+
+
+void ioShadowWrite(UInt32 reg, UInt32 value)
+{
+	ioShadowRegister[reg] = value;
+}
+
+UInt32 ioShadowRead(UInt32 reg)
+{
+	return ioShadowRegister[reg];
+}
+
+
+
+
 IO::IO(GPMC* gpmcInst)
 {
 	gpmc = gpmcInst;
@@ -84,6 +104,7 @@ void IO::resetToDefaults(Int32 flags) {
 
 bool IO::readIO(UInt32 io)
 {
+	// pych note: unused
 	char buf[2];
 
 	switch(io)
@@ -106,6 +127,7 @@ bool IO::readIO(UInt32 io)
 
 void IO::writeIO(UInt32 io, UInt32 val)
 {
+	//pych note: unused
 	switch(io)
 	{
 	case 1:
@@ -131,7 +153,14 @@ void IO::setThreshold(UInt32 io, double thresholdVolts, Int32 flags)
 		io1Thresh = within(thresholdVolts, 0, IO_DAC_FS);
 		if (!(flags & FLAG_TEMPORARY) && !(flags & FLAG_USESAVED))
 			appSettings.setValue("io/thresh1", io1Thresh);
-		io1DAC.setDuty(io1Thresh / IO_DAC_FS);
+		if (pych)
+		{
+			pychIo1Threshold = thresholdVolts;
+		}
+		else
+		{
+			io1DAC.setDuty(io1Thresh / IO_DAC_FS);
+		}
 		break;
 
 	case 2:
@@ -140,7 +169,14 @@ void IO::setThreshold(UInt32 io, double thresholdVolts, Int32 flags)
 		io2Thresh = within(thresholdVolts, 0, IO_DAC_FS);
 		if (!(flags & FLAG_TEMPORARY) && !(flags & FLAG_USESAVED))
 			appSettings.setValue("io/thresh2", io2Thresh);
-		io2DAC.setDuty(io2Thresh / IO_DAC_FS);
+		if (pych)
+		{
+			pychIo2Threshold = thresholdVolts;
+		}
+		else
+		{
+			io2DAC.setDuty(io2Thresh / IO_DAC_FS);
+		}
 		break;
 	}
 }
@@ -166,7 +202,14 @@ void IO::setTriggerEnable(UInt32 source, Int32 flags)
 	QSettings appSettings;
 	if (flags & FLAG_USESAVED)
 		source = appSettings.value("io/triggerEnable", 1).toUInt();
-	gpmc->write16(TRIG_ENABLE_ADDR, source);
+	if (pych)
+	{
+		ioShadowWrite(PYCH_TRIG_ENABLE, source);
+	}
+	else
+	{
+		gpmc->write16(TRIG_ENABLE_ADDR, source);
+	}
 	if (!(flags & FLAG_TEMPORARY) && !(flags & FLAG_USESAVED))
 		appSettings.setValue("io/triggerEnable", source);
 }
@@ -176,7 +219,14 @@ void IO::setTriggerInvert(UInt32 invert, Int32 flags)
 	QSettings appSettings;
 	if (flags & FLAG_USESAVED)
 		invert = appSettings.value("io/triggerInvert", 1).toUInt();
-	gpmc->write16(TRIG_INVERT_ADDR, invert);
+	if (pych)
+	{
+		ioShadowWrite(PYCH_TRIG_INVERT, invert);
+	}
+	else
+	{
+		gpmc->write16(TRIG_INVERT_ADDR, invert);
+	}
 	if (!(flags & FLAG_TEMPORARY) && !(flags & FLAG_USESAVED))
 		appSettings.setValue("io/triggerInvert", invert);
 }
@@ -186,7 +236,14 @@ void IO::setTriggerDebounceEn(UInt32 dbEn, Int32 flags)
 	QSettings appSettings;
 	if (flags & FLAG_USESAVED)
 		dbEn = appSettings.value("io/triggerDebounce", 0).toUInt();
-	gpmc->write16(TRIG_DEBOUNCE_ADDR, dbEn);
+	if (pych)
+	{
+		ioShadowWrite(PYCH_TRIG_DEBOUNCE, dbEn);
+	}
+	else
+	{
+		gpmc->write16(TRIG_DEBOUNCE_ADDR, dbEn);
+	}
 	if (!(flags & FLAG_TEMPORARY) && !(flags & FLAG_USESAVED))
 		appSettings.setValue("io/triggerDebounce", dbEn);
 }
@@ -196,29 +253,64 @@ void IO::setTriggerDelayFrames(UInt32 delayFrames, Int32 flags)
 	QSettings appSettings;
 	if (flags & FLAG_USESAVED)
 		delayFrames = appSettings.value("io/triggerDelayFrames", 0).toUInt();
-	gpmc->write32(SEQ_TRIG_DELAY_ADDR, delayFrames);
+	if (pych)
+	{
+		ioShadowWrite(PYCH_SEQ_TRIG_DELAY, delayFrames);
+	}
+	else
+	{
+		gpmc->write32(SEQ_TRIG_DELAY_ADDR, delayFrames);
+	}
 	if (!(flags & FLAG_TEMPORARY) && !(flags & FLAG_USESAVED))
 		appSettings.setValue("io/triggerDelayFrames", delayFrames);
 }
 
 UInt32 IO::getTriggerEnable()
 {
-	return gpmc->read16(TRIG_ENABLE_ADDR);
+	if (pych)
+	{
+		return ioShadowRead(PYCH_TRIG_ENABLE);
+	}
+	else
+	{
+		return gpmc->read16(TRIG_ENABLE_ADDR);
+	}
 }
 
 UInt32 IO::getTriggerInvert()
 {
-	return gpmc->read16(TRIG_INVERT_ADDR);
+	if (pych)
+	{
+		return ioShadowRead(PYCH_TRIG_INVERT);
+	}
+	else
+	{
+		return gpmc->read16(TRIG_INVERT_ADDR);
+	}
 }
 
 UInt32 IO::getTriggerDebounceEn()
 {
-	return gpmc->read16(TRIG_DEBOUNCE_ADDR);
+	if (pych)
+	{
+		return ioShadowRead(PYCH_TRIG_DEBOUNCE);
+	}
+	else
+	{
+		return gpmc->read16(TRIG_DEBOUNCE_ADDR);
+	}
 }
 
 UInt32 IO::getTriggerDelayFrames()
 {
-	return gpmc->read32(SEQ_TRIG_DELAY_ADDR);
+	if (pych)
+	{
+		return ioShadowRead(PYCH_SEQ_TRIG_DELAY);
+	}
+	else
+	{
+		return gpmc->read32(SEQ_TRIG_DELAY_ADDR);
+	}
 }
 
 void IO::setOutLevel(UInt32 level, Int32 flags)
@@ -226,7 +318,14 @@ void IO::setOutLevel(UInt32 level, Int32 flags)
 	QSettings appSettings;
 	if (flags & FLAG_USESAVED)
 		level = appSettings.value("io/outLevel", 2).toUInt();
-	gpmc->write16(IO_OUT_LEVEL_ADDR, level);
+	if (pych)
+	{
+		ioShadowWrite(PYCH_IO_OUT_LEVEL, level);
+	}
+	else
+	{
+		gpmc->write16(IO_OUT_LEVEL_ADDR, level);
+	}
 	if (!(flags & FLAG_TEMPORARY) && !(flags & FLAG_USESAVED))
 		appSettings.setValue("io/outLevel", level);
 }
@@ -236,7 +335,14 @@ void IO::setOutSource(UInt32 source, Int32 flags)
 	QSettings appSettings;
 	if (flags & FLAG_USESAVED)
 		source = appSettings.value("io/outSource", 0).toUInt();
-	gpmc->write16(IO_OUT_SOURCE_ADDR, source);
+	if (pych)
+	{
+		ioShadowWrite(PYCH_IO_OUT_SOURCE, source);
+	}
+	else
+	{
+		gpmc->write16(IO_OUT_SOURCE_ADDR, source);
+	}
 	if (!(flags & FLAG_TEMPORARY) && !(flags & FLAG_USESAVED))
 		appSettings.setValue("io/outSource", source);
 }
@@ -246,44 +352,100 @@ void IO::setOutInvert(UInt32 invert, Int32 flags)
 	QSettings appSettings;
 	if (flags & FLAG_USESAVED)
 		invert = appSettings.value("io/outInvert", 0).toUInt();
-	gpmc->write16(IO_OUT_INVERT_ADDR, invert);
+	if (pych)
+	{
+		ioShadowWrite(PYCH_IO_OUT_INVERT, invert);
+	}
+	else
+	{
+		gpmc->write16(IO_OUT_INVERT_ADDR, invert);
+	}
 	if (!(flags & FLAG_TEMPORARY) && !(flags & FLAG_USESAVED))
 		appSettings.setValue("io/outInvert", invert);
 }
 
 UInt32 IO::getOutLevel()
 {
-	return gpmc->read16(IO_OUT_LEVEL_ADDR);
+	if (pych)
+	{
+		return ioShadowRead(PYCH_IO_OUT_LEVEL);
+	}
+	else
+	{
+		return gpmc->read16(IO_OUT_LEVEL_ADDR);
+	}
 }
 
 UInt32 IO::getOutSource()
 {
-	return gpmc->read16(IO_OUT_SOURCE_ADDR);
+	if (pych)
+	{
+		return ioShadowRead(PYCH_IO_OUT_SOURCE);
+	}
+	else
+	{
+		return gpmc->read16(IO_OUT_SOURCE_ADDR);
+	}
 }
 
 UInt32 IO::getOutInvert()
 {
-	return gpmc->read16(IO_OUT_INVERT_ADDR);
+	if (pych)
+	{
+		return ioShadowRead(PYCH_IO_OUT_INVERT);
+	}
+	else
+	{
+		return gpmc->read16(IO_OUT_INVERT_ADDR);
+	}
 }
 
 UInt32 IO::getIn()
 {
-	return gpmc->read16(IO_IN_ADDR);
+	if (pych)
+	{
+		return ioShadowRead(PYCH_IO_IN);
+	}
+	else
+	{
+		return gpmc->read16(IO_IN_ADDR);
+	}
 }
 
 bool IO::getTriggeredExpEnable()
 {
-	return gpmc->read16(EXT_SHUTTER_CTL_ADDR) & EXT_SH_TRIGD_EXP_EN_MASK;
+	if (pych)
+	{
+		return ioShadowRead(PYCH_EXT_SHUTTER_EXP);
+	}
+	else
+	{
+		return gpmc->read16(EXT_SHUTTER_CTL_ADDR) & EXT_SH_TRIGD_EXP_EN_MASK;
+	}
 }
 
 UInt32 IO::getExtShutterSrcEn()
 {
-	return (gpmc->read16(EXT_SHUTTER_CTL_ADDR) & EXT_SH_SRC_EN_MASK) >> EXT_SH_SRC_EN_OFFSET;
+	if (pych)
+	{
+		return ioShadowRead(PYCH_EXT_SHUTTER_SRC_EN);
+	}
+	else
+	{
+		return (gpmc->read16(EXT_SHUTTER_CTL_ADDR) & EXT_SH_SRC_EN_MASK) >> EXT_SH_SRC_EN_OFFSET;
+	}
 }
 
 bool IO::getShutterGatingEnable()
 {
-	return gpmc->read16(EXT_SHUTTER_CTL_ADDR) & EXT_SH_GATING_EN_MASK;
+	if (pych)
+	{
+		return ioShadowRead(PYCH_SHUTTER_GATING_ENABLE);
+	}
+	else
+	{
+		return gpmc->read16(EXT_SHUTTER_CTL_ADDR) & EXT_SH_GATING_EN_MASK;\
+	}
 }
 
 void IO::setTriggeredExpEnable(bool en, Int32 flags)
@@ -291,7 +453,14 @@ void IO::setTriggeredExpEnable(bool en, Int32 flags)
 	QSettings appSettings;
 	if (flags & FLAG_USESAVED)
 		en = appSettings.value("io/triggeredExpEnable", false).toBool();
-	gpmc->write16(EXT_SHUTTER_CTL_ADDR, (gpmc->read16(EXT_SHUTTER_CTL_ADDR) & ~EXT_SH_TRIGD_EXP_EN_MASK) | (en ? EXT_SH_TRIGD_EXP_EN_MASK : 0));
+	if (pych)
+	{
+		ioShadowWrite(PYCH_EXT_SHUTTER_EXP, en);
+	}
+	else
+	{
+		gpmc->write16(EXT_SHUTTER_CTL_ADDR, (gpmc->read16(EXT_SHUTTER_CTL_ADDR) & ~EXT_SH_TRIGD_EXP_EN_MASK) | (en ? EXT_SH_TRIGD_EXP_EN_MASK : 0));
+	}
 	if (!(flags & FLAG_TEMPORARY) && !(flags & FLAG_USESAVED))
 		appSettings.setValue("io/triggeredExpEnable", en);
 }
@@ -301,7 +470,14 @@ void IO::setExtShutterSrcEn(UInt32 extShutterSrcEn, Int32 flags)
 	QSettings appSettings;
 	if (flags & FLAG_USESAVED)
 		extShutterSrcEn = appSettings.value("io/extShutterSrcEn", 0).toUInt();
-	gpmc->write16(EXT_SHUTTER_CTL_ADDR, (gpmc->read16(EXT_SHUTTER_CTL_ADDR) & ~EXT_SH_SRC_EN_MASK) | (extShutterSrcEn << EXT_SH_SRC_EN_OFFSET));
+	if (pych)
+	{
+		ioShadowWrite(PYCH_EXT_SHUTTER_SRC_EN, extShutterSrcEn);
+	}
+	else
+	{
+		gpmc->write16(EXT_SHUTTER_CTL_ADDR, (gpmc->read16(EXT_SHUTTER_CTL_ADDR) & ~EXT_SH_SRC_EN_MASK) | (extShutterSrcEn << EXT_SH_SRC_EN_OFFSET));
+	}
 	if (!(flags & FLAG_TEMPORARY) && !(flags & FLAG_USESAVED))
 		appSettings.setValue("io/extShutterSrcEn", extShutterSrcEn);
 }
@@ -311,7 +487,14 @@ void IO::setShutterGatingEnable(bool en, Int32 flags)
 	QSettings appSettings;
 	if (flags & FLAG_USESAVED) 
 		en = appSettings.value("io/shutterGatingEnable", false).toBool();
-	gpmc->write16(EXT_SHUTTER_CTL_ADDR, (gpmc->read16(EXT_SHUTTER_CTL_ADDR) & ~EXT_SH_GATING_EN_MASK) | (en ? EXT_SH_GATING_EN_MASK : 0));
+	if (pych)
+	{
+		ioShadowWrite(PYCH_SHUTTER_GATING_ENABLE, en);
+	}
+	else
+	{
+		gpmc->write16(EXT_SHUTTER_CTL_ADDR, (gpmc->read16(EXT_SHUTTER_CTL_ADDR) & ~EXT_SH_GATING_EN_MASK) | (en ? EXT_SH_GATING_EN_MASK : 0));
+	}
 	if (!(flags & FLAG_TEMPORARY) && !(flags & FLAG_USESAVED))
 		appSettings.setValue("io/shutterGatingEnable", en);
 }

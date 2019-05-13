@@ -81,6 +81,30 @@ CameraErrortype Control::setInt(QString parameter, UInt32 value)
 	return SUCCESS;
 }
 
+
+CameraErrortype Control::setBool(QString parameter, bool value)
+{
+	QVariantMap args;
+	QDBusPendingReply<QVariantMap> reply;
+	QVariantMap map;
+
+	qDebug() << "setBool " << parameter << value;
+
+	args.insert(parameter, QVariant(value));
+
+	pthread_mutex_lock(&mutex);
+	reply = iface.set(args);
+	reply.waitForFinished();
+	pthread_mutex_unlock(&mutex);
+
+	if (reply.isError()) {
+		QDBusError err = reply.error();
+		fprintf(stderr, "Failed to set int: %s - %s\n", err.name().data(), err.message().toAscii().data());
+	}
+
+	return SUCCESS;
+}
+
 CameraErrortype Control::setFloat(QString parameter, double value)
 {
 	QVariantMap args;
@@ -273,6 +297,16 @@ CameraErrortype Control::getResolution(FrameGeometry *geometry)
 
 }
 
+CameraErrortype Control::getIoSettings(void)
+{
+	QString jsonString;
+	getCamJson("ioMapping", &jsonString);
+	qDebug() << jsonString;
+
+	parseJsonIoSettings(jsonString);
+
+}
+
 CameraErrortype Control::setResolution(FrameGeometry *geometry)
 {
 	QString jsonString;
@@ -287,17 +321,29 @@ CameraErrortype Control::getArray(QString parameter, UInt32 size, double *values
 	getCamJson(parameter, &jsonString);
 	qDebug() << jsonString;
 	parseJsonArray(parameter, jsonString, size, values);
-
 }
 
 CameraErrortype Control::setArray(QString parameter, UInt32 size, double *values)
 {
 	QString jsonString;
-	//buildJsonArray(parameter, jsonString, size, values);
-	//setCamJson(parameter, &jsonString);
+	buildJsonArray(parameter, &jsonString, size, values);
+	setCamJson(jsonString);
 	qDebug() << jsonString;
+}
 
+CameraErrortype Control::setIoSettings(void)
+{
+	QString jsonString;
+	buildJsonIo(&jsonString);
+	setCamJson(jsonString);
+	//qDebug() << jsonString;
+}
 
+CameraErrortype Control::setWbMatrix(void)
+{
+	QString jsonString;
+	buildJsonIo(&jsonString);
+	//qDebug() << jsonString;
 }
 
 
@@ -1435,7 +1481,7 @@ void Control::controlTest(const QVariantMap &args)
 
 
 
-Control::Control() : iface("com.krontech.chronos.control", "/com/krontech/chronos/control", QDBusConnection::systemBus())
+Control::Control() : iface("ca.krontech.chronos.control", "/ca/krontech/chronos/control", QDBusConnection::systemBus())
 {
     QDBusConnection conn = iface.connection();
     //int i;
@@ -1447,7 +1493,7 @@ Control::Control() : iface("com.krontech.chronos.control", "/com/krontech/chrono
     //pthread_mutex_lock(&mutex);
 
 	// Connect DBus signals
-    conn.connect("com.krontech.chronos.control", "/com/krontech/chronos/control", "com.krontech.chronos.control",
+	conn.connect("ca.krontech.chronos.control", "/ca/krontech/chronos/control", "ca.krontech.chronos.control",
                  "controltest", this, SLOT(segment(const QVariantMap&)));
 
     /* Try to get the PID of the controller. */

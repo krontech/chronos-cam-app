@@ -70,5 +70,23 @@ enum {
 };
 */
 
+extern UInt32 	ioShadowRegister[16];
+extern double pychIo1Threshold;
+extern double pychIo2Threshold;
+
+
+enum {
+	PYCH_TRIG_ENABLE = 0,
+	PYCH_TRIG_INVERT,
+	PYCH_TRIG_DEBOUNCE,
+	PYCH_SEQ_TRIG_DELAY,
+	PYCH_IO_OUT_LEVEL,
+	PYCH_IO_OUT_SOURCE,
+	PYCH_IO_OUT_INVERT,
+	PYCH_IO_IN,
+	PYCH_EXT_SHUTTER_EXP,
+	PYCH_EXT_SHUTTER_SRC_EN,
+	PYCH_SHUTTER_GATING_ENABLE
+};
 
 

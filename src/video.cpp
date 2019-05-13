@@ -429,7 +429,7 @@ void Video::segment(const QVariantMap &args)
 	emit newSegment(parseVideoStatus(args, &st));
 }
 
-Video::Video() : iface("com.krontech.chronos.video", "/com/krontech/chronos/video", QDBusConnection::systemBus())
+Video::Video() : iface("ca.krontech.chronos.video", "/ca/krontech/chronos/video", QDBusConnection::systemBus())
 {
 	QDBusConnection conn = iface.connection();
 	int i;
@@ -463,11 +463,11 @@ Video::Video() : iface("com.krontech.chronos.video", "/com/krontech/chronos/vide
 	pthread_mutex_init(&mutex, NULL);
 
 	/* Connect DBus signals */
-	conn.connect("com.krontech.chronos.video", "/com/krontech/chronos/video", "com.krontech.chronos.video",
+	conn.connect("ca.krontech.chronos.video", "/ca/krontech/chronos/video", "ca.krontech.chronos.video",
 				 "sof", this, SLOT(sof(const QVariantMap&)));
-	conn.connect("com.krontech.chronos.video", "/com/krontech/chronos/video", "com.krontech.chronos.video",
+	conn.connect("ca.krontech.chronos.video", "/ca/krontech/chronos/video", "ca.krontech.chronos.video",
 				 "eof", this, SLOT(eof(const QVariantMap&)));
-	conn.connect("com.krontech.chronos.video", "/com/krontech/chronos/video", "com.krontech.chronos.video",
+	conn.connect("ca.krontech.chronos.video", "/ca/krontech/chronos/video", "ca.krontech.chronos.video",
 				 "segment", this, SLOT(segment(const QVariantMap&)));
 
 	/* Try to get the PID of the video pipeline. */
