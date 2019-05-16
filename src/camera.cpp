@@ -113,7 +113,7 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, Control * cinst
 	{
 
 		gpmc = nullptr;		//trap any remaining gpmc calls!
-
+		//sensor = nullptr;
 
 		//testing:
 
@@ -141,6 +141,8 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, Control * cinst
 
 
 		/* Load default recording from sensor limits. */
+
+		//pych to do:
 		imagerSettings.geometry = sensor->getMaxGeometry();
 		imagerSettings.geometry.vDarkRows = 0;
 		imagerSettings.recRegionSizeFrames = getMaxRecordRegionSizeFrames(&imagerSettings.geometry);
@@ -374,6 +376,13 @@ UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 	}
 	else
 	{
+		if(!sensor->isValidResolution(&settings.geometry) ||
+			settings.recRegionSizeFrames < RECORD_LENGTH_MIN ||
+			settings.segments > settings.recRegionSizeFrames) {
+			return CAMERA_INVALID_IMAGER_SETTINGS;
+		}
+
+
 		sensor->seqOnOff(false);
 		delayms(10);
 		qDebug() << "Settings.period is" << settings.period;
@@ -550,7 +559,8 @@ Int32 Camera::startRecording(void)
 	double wbTest[3];
 	double cmTest[9];
 
-	double testArray[9] = {1,2,3,4,5,6,7,8,9};
+	//double testArray[9] = {1,2,3,4,5,6,7,8,9};
+	double testArray[9] = {1,0,0,0,1,0,0,0,1};
 	CameraStatus cs;
 	QString str;
 	UInt32 i;
@@ -570,6 +580,9 @@ Int32 Camera::startRecording(void)
 	geometry.minFrameTime  = 0.002;
 
 
+	//cinst->getString("cameraDescription", &str);
+	//cinst->getString("state", &str);
+
 	//cinst->setResolution(&geometry);
 	//cinst->setWbMatrix();
 
@@ -582,7 +595,8 @@ Int32 Camera::startRecording(void)
 
 	//cinst->getResolution(&geometry);
 
-	//cinst->getString("cameraDescription", &str);
+	cinst->getString("cameraDescription", &str);
+
 	//cinst->getArray("wbMatrix", 3, (double *)&wbTest);
 	//cinst->getArray("colorMatrix", 9, (double *)&cmTest);
 	//cinst->getDict("resolution");
@@ -671,15 +685,21 @@ Int32 Camera::startRecording(void)
 
 	if (pych)
 	{
-		cinst->startRecording();
+		//cinst->startRecording();
+		//try cam-json method
+		QString jsonReturn;
+		startRecordingCamJson(&jsonReturn);
+		//methodCamJson("startRecording", &jsonReturn);
+
+
 	}
 	else
 	{
 		vinst->liveDisplay(imagerSettings.geometry.hRes, imagerSettings.geometry.vRes);
 		startSequencer();
+		ui->setRecLEDFront(true);
+		ui->setRecLEDBack(true);
 	}
-	ui->setRecLEDFront(true);
-	ui->setRecLEDBack(true);
 	recording = true;
 	videoHasBeenReviewed = false;
 
@@ -860,9 +880,11 @@ Int32 Camera::stopRecording(void)
 
 	if (pych)
 	{
-		cinst->status(&cs);
 
-		cinst->stopRecording();
+		//cinst->stopRecording();
+		QString jsonReturn;
+		stopRecordingCamJson(&jsonReturn);
+
 	}
 	else
 	{

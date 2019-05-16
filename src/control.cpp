@@ -226,8 +226,8 @@ CameraErrortype Control::getString(QString parameter, QString *str)
 	map = reply.value();
 	qDebug() << map;
 	*str = map[parameter].toString();
-	qDebug() << "getString():" << *str;
-	qDebug() << "map[p]:" << map[parameter];
+	//qDebug() << "getString():" << *str;
+	//qDebug() << "map[p]:" << map[parameter];
 
 	return SUCCESS;
 }

@@ -41,7 +41,7 @@ public Q_SLOTS: // METHODS
 	inline QDBusPendingReply<QVariantMap> startRecording(const QVariantMap &args)
 	{
 		QList<QVariant> argumentList;
-		qDebug() << "startRecording ";
+		qDebug() << "startRecording";
 		argumentList << qVariantFromValue(args);
 		return asyncCallWithArgumentList(QLatin1String("startRecording"), argumentList);
 	}
@@ -97,7 +97,7 @@ public Q_SLOTS: // METHODS
 	inline QDBusPendingReply<QVariantMap> get(const QVariantMap &args)
 	{
 		QList<QVariant> argumentList;
-		qDebug() << "get";
+		//qDebug() << "get";
 		argumentList << qVariantFromValue(args);
 		return asyncCallWithArgumentList(QLatin1String("get"), argumentList);
 	}

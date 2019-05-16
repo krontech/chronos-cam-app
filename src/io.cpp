@@ -28,21 +28,224 @@
 
 extern bool pych;
 
-UInt32 	ioShadowRegister[16];
+UInt32 	ioShadow[16];
 double pychIo1Threshold;
 double pychIo2Threshold;
 
+ioElement io1;
+ioElement io2;
+ioElement io3;
+ioElement combOr1;
+ioElement combOr2;
+ioElement combOr3;
+ioElement combXor;
+ioElement combAnd;
+ioElement out1;
+ioElement out2;
+
+enum {
+	io_none = 0,
+	io_end,
+	io_exposure,
+	io_shuttergating,
+	io_framesync
+};
+
+UInt32 io1Mode;
+UInt32 io2Mode;
+UInt32 io3Mode;
+
+void resetElement(ioElement *e)
+{
+	e->debounce = false;
+	e->invert = false;
+	e->source = SRC_NONE;
+}
+
+void translateToComb(void)
+{
+	io1Mode = io_none;
+	io2Mode = io_none;
+	io3Mode = io_none;
+
+	resetElement(&io1);
+	resetElement(&io2);
+	resetElement(&io3);
+	resetElement(&combOr1);
+	resetElement(&combOr2);
+	resetElement(&combOr3);
+	resetElement(&combXor);
+	resetElement(&combAnd);
+	resetElement(&out1);
+	resetElement(&out2);
+
+	bool io1Pullup1mA = false;
+	bool io1Pullup20mA = false;
+	bool io2Pullup20mA = false;
+
+	qDebug() << "-----------------------------";
+	qDebug() << "PYCH_TRIG_ENABLE: " << ioShadow[PYCH_TRIG_ENABLE];
+	qDebug() << "PYCH_TRIG_INVERT: " << ioShadow[PYCH_TRIG_INVERT];
+	qDebug() << "PYCH_TRIG_DEBOUNCE: " << ioShadow[PYCH_TRIG_DEBOUNCE];
+	qDebug() << "PYCH_SEQ_TRIG_DELAY: " << ioShadow[PYCH_SEQ_TRIG_DELAY];
+	qDebug() << "PYCH_IO_OUT_LEVEL: " << ioShadow[PYCH_IO_OUT_LEVEL];
+	qDebug() << "PYCH_IO_OUT_SOURCE: " << ioShadow[PYCH_IO_OUT_SOURCE];
+	qDebug() << "PYCH_IO_OUT_INVERT: " << ioShadow[PYCH_IO_OUT_INVERT];
+	qDebug() << "PYCH_IO_IN: " << ioShadow[PYCH_IO_IN];
+	qDebug() << "PYCH_EXT_SHUTTER_EXP: " << ioShadow[PYCH_EXT_SHUTTER_EXP];
+	qDebug() << "PYCH_EXT_SHUTTER_SRC_EN: " << ioShadow[PYCH_EXT_SHUTTER_SRC_EN];
+	qDebug() << "PYCH_SHUTTER_GATING_ENABLE: " << ioShadow[PYCH_SHUTTER_GATING_ENABLE];
+
+	// check for exposure trigger and shutter gating
+	if (ioShadow[PYCH_EXT_SHUTTER_EXP])
+	{
+		qDebug() << "Exposure Trigger";
+		if (ioShadow[PYCH_EXT_SHUTTER_SRC_EN] == 1)
+		{
+			qDebug() << "  io1";
+			io1Mode = io_exposure;
+		}
+		else if (ioShadow[PYCH_EXT_SHUTTER_SRC_EN] == 2)
+		{
+			qDebug() << "  io2";
+			io2Mode = io_exposure;
+		}
+		else
+		{
+			qDebug ("ERROR!");
+		}
+	}
+	else if (ioShadow[PYCH_SHUTTER_GATING_ENABLE])
+	{
+		qDebug() << "Shutter Gating";
+		if (ioShadow[PYCH_EXT_SHUTTER_SRC_EN] == 1)
+		{
+			qDebug() << "  io1";
+			io1Mode = io_shuttergating;
+		}
+		else if (ioShadow[PYCH_EXT_SHUTTER_SRC_EN] == 2)
+		{
+			qDebug() << "  io2";
+			io2Mode = io_shuttergating;
+		}
+		else
+		{
+			qDebug ("ERROR!");
+		}
+	}
+
+	// Frame Sync
+	if ((ioShadow[PYCH_IO_IN] & 1) && ioShadow[PYCH_IO_OUT_SOURCE] & 2)
+	{
+		qDebug() << "Frame Sync Output io1";
+		io1Mode = io_framesync;
+	}
+	if ((ioShadow[PYCH_IO_IN] & 2) && ioShadow[PYCH_IO_OUT_SOURCE] & 4)
+	{
+		qDebug() << "Frame Sync Output io2";
+		io2Mode = io_framesync;
+	}
+
+	// Record End Trigger
+	if (ioShadow[PYCH_TRIG_ENABLE] & 1)
+	{
+		qDebug() << "Record End Trigger io1";
+		io1Mode = io_end;
+	}
+	if (ioShadow[PYCH_TRIG_ENABLE] & 2)
+	{
+		qDebug() << "Record End Trigger io2";
+		io2Mode = io_end;
+	}
+	if (ioShadow[PYCH_TRIG_ENABLE] & 4)
+	{
+		qDebug() << "Record End Trigger io3";
+		io3Mode = io_end;
+	}
+
+	// pullups
+	if (ioShadow[PYCH_IO_OUT_LEVEL] & 1)
+	{
+		qDebug() << "   1 mA Pullup io1 ";
+		io1Pullup1mA = true;
+	}
+	if (ioShadow[PYCH_IO_OUT_LEVEL] & 2)
+	{
+		qDebug() << "   20 mA Pullup io1 ";
+		io1Pullup20mA = true;
+	}
+
+	if (ioShadow[PYCH_IO_OUT_LEVEL] & 4)
+	{
+		qDebug() << "   20 mA Pullup io2 ";
+		io2Pullup20mA = true;
+	}
+
+	// invert
+	if (ioShadow[PYCH_TRIG_INVERT] & 1)
+	{
+		qDebug() << "Invert io1";
+		io1.invert = true;
+	}
+	if (ioShadow[PYCH_TRIG_INVERT] & 2)
+	{
+		qDebug() << "Invert io2";
+		io2.invert = true;
+	}
+	if (ioShadow[PYCH_TRIG_INVERT] & 4)
+	{
+		qDebug() << "Invert io3";
+		io3.invert = true;
+	}
+
+	if (ioShadow[PYCH_TRIG_DEBOUNCE] & 1)
+	{
+		qDebug() << "Debounce io1";
+		io1.debounce = true;
+	}
+	if (ioShadow[PYCH_TRIG_DEBOUNCE] & 2)
+	{
+		qDebug() << "Debounce io2";
+		io2.debounce = true;
+	}
+	if (ioShadow[PYCH_TRIG_DEBOUNCE] & 4)
+	{
+		qDebug() << "Debounce io3";
+		io3.debounce = true;
+	}
+
+	// invert outputs
+	if ((ioShadow[PYCH_IO_OUT_INVERT] & 3) == 3)
+	{
+		qDebug() << "Invert output 1";
+		out1.invert = true;
+	}
+	if (ioShadow[PYCH_IO_OUT_INVERT] & 4)
+	{
+		qDebug() << "Invert output 2";
+		out2.invert = true;
+	}
+
+
+
+
+}
+
+void translateFromComb(void)
+{
+
+}
 
 
 
 void ioShadowWrite(UInt32 reg, UInt32 value)
 {
-	ioShadowRegister[reg] = value;
+	ioShadow[reg] = value;
 }
 
 UInt32 ioShadowRead(UInt32 reg)
 {
-	return ioShadowRegister[reg];
+	return ioShadow[reg];
 }
 
 

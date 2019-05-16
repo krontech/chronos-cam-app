@@ -70,10 +70,9 @@ enum {
 };
 */
 
-extern UInt32 	ioShadowRegister[16];
+extern UInt32 	ioShadow[16];
 extern double pychIo1Threshold;
 extern double pychIo2Threshold;
-
 
 enum {
 	PYCH_TRIG_ENABLE = 0,
@@ -89,4 +88,53 @@ enum {
 	PYCH_SHUTTER_GATING_ENABLE
 };
 
+enum {
+	SRC_NONE = 0,
+	SRC_IO1,
+	SRC_IO2,
+	SRC_IO3,
+	SRC_COMB,
+	SRC_DELAY,
+	SRC_TOGGLE,
+	SRC_SHUTTER,
+	SRC_RECORDING,
+	SRC_DISPFRAME,
+	SRC_STARTREC,
+	SRC_ENDREC,
+	SRC_NEXTSEG,
+	SRC_TIMINGIO,
+	SRC_ALWAYSHIGH
+};
 
+enum {
+	EXP_NORMAL = 0,
+	EXP_FRAMETRIGGER,
+	EXP_SHUTTERGATING,
+	EXP_HDR2SLOPE,
+	EXP_HDR3SLOPE
+};
+
+class ioElement
+{
+public:
+	bool debounce;
+	bool invert;
+	unsigned int source;
+
+};
+
+extern ioElement io1;
+extern ioElement io2;
+extern ioElement combOr1;
+extern ioElement combOr2;
+extern ioElement combOr3;
+extern ioElement combXor;
+extern ioElement combAnd;
+extern ioElement start;
+extern ioElement stop;
+extern ioElement shutter;
+extern ioElement gate;
+
+
+void translateToComb(void);
+void translateFromComb(void);

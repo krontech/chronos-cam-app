@@ -18,6 +18,8 @@
 #include "iosettingswindow.h"
 #include "ui_iosettingswindow.h"
 
+extern bool pych;
+
 IOSettingsWindow::IOSettingsWindow(QWidget *parent, Camera * cameraInst) :
 	QWidget(parent),
 	ui(new Ui::IOSettingsWindow)
@@ -130,6 +132,12 @@ void IOSettingsWindow::on_cmdApply_clicked()
 	qDebug() << "Trig Ena" << camera->io->getTriggerEnable() << "Trig Inv" << camera->io->getTriggerInvert() << "Trig Deb" << camera->io->getTriggerDebounceEn();
 	qDebug() << "Source En" << camera->io->getOutSource() << "Source Level" << camera->io->getOutLevel() << "Source Inv" << camera->io->getOutInvert();
 	qDebug() << "IO1 Thresh" << camera->io->getThreshold(1) << "IO2 Thresh" << camera->io->getThreshold(2);
+
+	if (pych)
+	{
+
+		translateToComb();
+	}
 }
 
 void IOSettingsWindow::on_radioIO1TriggeredShutter_toggled(bool checked)

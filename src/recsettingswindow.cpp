@@ -211,6 +211,8 @@ void RecSettingsWindow::on_cmdOK_clicked()
 	if (pych)
 	{
 		//add
+		FrameGeometry *geo = &is->geometry;
+		camera->cinst->setResolution(geo);
 	}
 	else
 	{
