@@ -158,7 +158,7 @@ void MainWindow::on_cmdSeqOff_clicked()
 void MainWindow::on_cmdSetOffset_clicked()
 {
 	FILE * fp;
-	UInt32 pixelsPerFrame = camera->recordingData.is.stride * camera->recordingData.is.vRes;
+	UInt32 pixelsPerFrame = camera->recordingData.is.geometry.hRes * camera->recordingData.is.geometry.vRes;
 
 	UInt16 * frameBuffer = new UInt16[pixelsPerFrame];
 	camera->getRawCorrectedFramesAveraged(0, 16, frameBuffer);

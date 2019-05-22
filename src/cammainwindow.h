@@ -67,7 +67,7 @@ private slots:
 
 	void UtilWindow_closed();
 
-	void on_expSlider_valueChanged(int shutterAngle);
+	void on_expSlider_valueChanged(int exposure);
 
 	void recSettingsClosed();
 

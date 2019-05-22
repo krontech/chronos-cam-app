@@ -405,7 +405,7 @@ void CamMainWindow::on_chkFocusAid_clicked(bool focusAidEnabled)
 
 void CamMainWindow::on_expSlider_valueChanged(int exposure)
 {
-	camera->setIntegrationTime((double)exposure / TIMING_CLOCK_FREQ, camera->sensor->currentHRes, camera->sensor->currentVRes, 0);
+	camera->setIntegrationTime((double)exposure / TIMING_CLOCK_FREQ, NULL, 0);
 	updateCurrentSettingsLabel();
 }
 
@@ -460,7 +460,7 @@ void CamMainWindow::updateCurrentSettingsLabel()
 		sprintf(battStr, "No Batt");
 	}
 
-	sprintf(str, "%s\r\n%ux%u %sfps\r\nExp %ss (%u\xb0)", battStr, camera->sensor->currentHRes, camera->sensor->currentVRes, fpsString, expString, shutterAngle);
+	sprintf(str, "%s\r\n%ux%u %sfps\r\nExp %ss (%u\xb0)", battStr, camera->sensor->currentRes.hRes, camera->sensor->currentRes.vRes, fpsString, expString, shutterAngle);
 	ui->lblCurrent->setText(str);
 }
 

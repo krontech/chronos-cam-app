@@ -117,9 +117,9 @@ void Camera::writeSeqPgmMem(SeqPgmMemWord pgmWord, UInt32 address)
 	gpmc->write32((SEQ_PGM_MEM_START_ADDR + address * 16)+0, pgmWord.data.low/*0x00282084*/);
 }
 
-void Camera::setFrameSizeWords(UInt16 frameSize)
+void Camera::setFrameGeometry(FrameGeometry *geometry)
 {
-	gpmc->write16(SEQ_FRAME_SIZE_ADDR, frameSize);
+	gpmc->write16(SEQ_FRAME_SIZE_ADDR, getFrameSizeWords(geometry));
 }
 
 void Camera::setRecRegionStartWords(UInt32 start)

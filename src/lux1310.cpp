@@ -334,11 +334,14 @@ CameraErrortype LUX1310::initSensor()
 	delayms(50);
 
 
-	currentHRes = 1280;
-	currentVRes = 1024;
-	setFramePeriod(getMinFramePeriod(currentHRes, currentVRes)/100000000.0, currentHRes, currentVRes);
+	currentRes.hRes = LUX1310_MAX_H_RES;
+	currentRes.vRes = LUX1310_MAX_V_RES;
+	currentRes.hOffset = 0;
+	currentRes.vOffset = 0;
+	currentRes.vDarkRows = 0;
+	setFramePeriod(getMinFramePeriod(&currentRes)/100000000.0, &currentRes);
 	//mem problem before this
-	setIntegrationTime((double)getMaxExposure(currentPeriod) / 100000000.0, currentHRes, currentVRes);
+	setIntegrationTime((double)getMaxExposure(currentPeriod) / 100000000.0, &currentRes);
 
 	return SUCCESS;
 }
@@ -546,33 +549,55 @@ void LUX1310::setSyncToken(UInt16 token)
 	gpmc->write16(IMAGE_SENSOR_SYNC_TOKEN_ADDR, token);
 }
 
-void LUX1310::setResolution(UInt32 hStart, UInt32 hWidth, UInt32 vStart, UInt32 vEnd)
+FrameGeometry LUX1310::getMaxGeometry(void)
 {
-	UInt32 hStartBlocks = hStart / LUX1310_HRES_INCREMENT;
-	UInt32 hWidthblocks = hWidth / LUX1310_HRES_INCREMENT;
-	SCIWrite(0x05, 0x20 + hStartBlocks * LUX1310_HRES_INCREMENT);//X Start
-	SCIWrite(0x06, 0x20 + (hStartBlocks + hWidthblocks) * LUX1310_HRES_INCREMENT - 1);//X End
-	SCIWrite(0x07, vStart);//Y Start
-	SCIWrite(0x08, vEnd);//Y End
-
-	currentHRes = hWidth;
-	currentVRes = vEnd - vStart + 1;
+	FrameGeometry size = {
+		.hRes = LUX1310_MAX_H_RES,
+		.vRes = LUX1310_MAX_V_RES,
+		.hOffset = 0,
+		.vOffset = 0,
+		.vDarkRows = LUX1310_MAX_V_DARK,
+		.bitDepth = LUX1310_BITS_PER_PIXEL,
+	};
+	return size;
 }
 
-bool LUX1310::isValidResolution(UInt32 hRes, UInt32 vRes, UInt32 hOffset, UInt32 vOffset)
+void LUX1310::setResolution(FrameGeometry *size)
+{
+	UInt32 hStartBlocks = size->hOffset / LUX1310_HRES_INCREMENT;
+	UInt32 hWidthblocks = size->hRes / LUX1310_HRES_INCREMENT;
+	SCIWrite(0x05, 0x20 + hStartBlocks * LUX1310_HRES_INCREMENT);//X Start
+	SCIWrite(0x06, 0x20 + (hStartBlocks + hWidthblocks) * LUX1310_HRES_INCREMENT - 1);//X End
+	SCIWrite(0x07, size->vOffset);							//Y Start
+	SCIWrite(0x08, size->vOffset + size->vRes - 1);	//Y End
+	SCIWrite(0x29, (size->vDarkRows << 12) + (LUX1310_MAX_V_RES + LUX1310_MAX_V_DARK - size->vDarkRows));
+
+	memcpy(&currentRes, size, sizeof(currentRes));
+}
+
+bool LUX1310::isValidResolution(FrameGeometry *size)
 {
 	/* Enforce resolution limits. */
-	if ((hRes < LUX1310_MIN_HRES) || (hRes + hOffset > LUX1310_MAX_H_RES)) {
+	if ((size->hRes < LUX1310_MIN_HRES) || (size->hRes + size->hOffset > LUX1310_MAX_H_RES)) {
 		return false;
 	}
-	if ((vRes < LUX1310_MIN_VRES) || (vRes + vOffset > LUX1310_MAX_V_RES)) {
+	if ((size->vRes < LUX1310_MIN_VRES) || (size->vRes + size->vOffset > LUX1310_MAX_V_RES)) {
+		return false;
+	}
+	if (size->vDarkRows > LUX1310_MAX_V_DARK) {
+		return false;
+	}
+	if (size->bitDepth != LUX1310_BITS_PER_PIXEL) {
 		return false;
 	}
 	/* Enforce minimum pixel increments. */
-	if ((hRes % LUX1310_HRES_INCREMENT) || (hOffset % LUX1310_HRES_INCREMENT)) {
+	if ((size->hRes % LUX1310_HRES_INCREMENT) || (size->hOffset % LUX1310_HRES_INCREMENT)) {
 		return false;
 	}
-	if ((vRes % LUX1310_VRES_INCREMENT) || (vOffset % LUX1310_VRES_INCREMENT)) {
+	if ((size->vRes % LUX1310_VRES_INCREMENT) || (size->vOffset % LUX1310_VRES_INCREMENT)) {
+		return false;
+	}
+	if (size->vDarkRows % LUX1310_VRES_INCREMENT) {
 		return false;
 	}
 	/* Otherwise, the resultion and offset are valid. */
@@ -580,49 +605,32 @@ bool LUX1310::isValidResolution(UInt32 hRes, UInt32 vRes, UInt32 hOffset, UInt32
 }
 
 //Used by init functions only
-UInt32 LUX1310::getMinFramePeriod(UInt32 hRes, UInt32 vRes, UInt32 wtSize)
+UInt32 LUX1310::getMinFramePeriod(FrameGeometry *frameSize, UInt32 wtSize)
 {
-	if(!isValidResolution(hRes, vRes, 0, 0))
+	if(!isValidResolution(frameSize))
 		return 0;
 
-	if(hRes == 1280)
+	if(frameSize->hRes == 1280)
 		wtSize = 80;
 
-	double tRead = (double)(hRes / LUX1310_HRES_INCREMENT) * LUX1310_CLOCK_PERIOD;
+	double tRead = (double)(frameSize->hRes / LUX1310_HRES_INCREMENT) * LUX1310_CLOCK_PERIOD;
 	double tHBlank = 2.0 * LUX1310_CLOCK_PERIOD;
 	double tWavetable = wtSize * LUX1310_CLOCK_PERIOD;
 	double tRow = max(tRead+tHBlank, tWavetable+3*LUX1310_CLOCK_PERIOD);
 	double tTx = 25 * LUX1310_CLOCK_PERIOD;
 	double tFovf = 50 * LUX1310_CLOCK_PERIOD;
 	double tFovb = (50) * LUX1310_CLOCK_PERIOD;//Duration between PRSTN falling and TXN falling (I think)
-	double tFrame = tRow * vRes + tTx + tFovf + tFovb;
+	double tFrame = tRow * (frameSize->vRes + frameSize->vDarkRows) + tTx + tFovf + tFovb;
 	qDebug() << "getMinFramePeriod:" << tFrame;
 	return (UInt64)(ceil(tFrame * 100000000.0));
 }
 
-double LUX1310::getMinMasterFramePeriod(UInt32 hRes, UInt32 vRes)
+double LUX1310::getMinMasterFramePeriod(FrameGeometry *frameSize)
 {
-	if(!isValidResolution(hRes, vRes, 0, 0))
+	if(!isValidResolution(frameSize))
 		return 0.0;
 
-	return (double)getMinFramePeriod(hRes, vRes) / 100000000.0;
-	int wtSize;
-
-	if(hRes == 1280)
-		wtSize = 80;
-	else
-		wtSize = LUX1310_MIN_WAVETABLE_SIZE;
-
-	double tRead = (double)(hRes / LUX1310_HRES_INCREMENT) * LUX1310_CLOCK_PERIOD;
-	double tHBlank = 2.0 * LUX1310_CLOCK_PERIOD;
-	double tWavetable = wtSize * LUX1310_CLOCK_PERIOD;
-	double tRow = max(tRead+tHBlank, tWavetable+3*LUX1310_CLOCK_PERIOD);
-	double tTx = 25 * LUX1310_CLOCK_PERIOD;
-	double tFovf = 50 * LUX1310_CLOCK_PERIOD;
-	double tFovb = (50) * LUX1310_CLOCK_PERIOD;//Duration between PRSTN falling and TXN falling (I think)
-	double tFrame = tRow * vRes + tTx + tFovf + tFovb;
-	qDebug() << "getMinMasterFramePeriod:" << tFrame;
-	return tFrame;
+	return (double)getMinFramePeriod(frameSize) / 100000000.0;
 }
 
 UInt32 LUX1310::getMaxExposure(UInt32 period)
@@ -642,23 +650,23 @@ double LUX1310::getCurrentExposureDouble(void)
 	return (double)currentExposure / 100000000.0;
 }
 
-double LUX1310::getActualFramePeriod(double targetPeriod, UInt32 hRes, UInt32 vRes)
+double LUX1310::getActualFramePeriod(double targetPeriod, FrameGeometry *size)
 {
 	//Round to nearest 10ns period
 	targetPeriod = round(targetPeriod * (100000000.0)) / 100000000.0;
 
-	double minPeriod = getMinMasterFramePeriod(hRes, vRes);
+	double minPeriod = getMinMasterFramePeriod(size);
 	double maxPeriod = LUX1310_MAX_SLAVE_PERIOD;
 
 	return within(targetPeriod, minPeriod, maxPeriod);
 }
 
-double LUX1310::setFramePeriod(double period, UInt32 hRes, UInt32 vRes)
+double LUX1310::setFramePeriod(double period, FrameGeometry *size)
 {
 	//Round to nearest 10ns period
 	period = round(period * (100000000.0)) / 100000000.0;
 	qDebug() << "Requested period" << period;
-	double minPeriod = getMinMasterFramePeriod(hRes, vRes);
+	double minPeriod = getMinMasterFramePeriod(size);
 	double maxPeriod = LUX1310_MAX_SLAVE_PERIOD / 100000000.0;
 
 	period = within(period, minPeriod, maxPeriod);
@@ -676,7 +684,7 @@ double LUX1310::setFramePeriod(double period, UInt32 hRes, UInt32 vRes)
  *
  * returns: Maximum integration time
  */
-double LUX1310::getMaxIntegrationTime(double period, UInt32 hRes, UInt32 vRes)
+double LUX1310::getMaxIntegrationTime(double period, FrameGeometry *size)
 {
 	//Round to nearest 10ns period
 	period = round(period * (100000000.0)) / 100000000.0;
@@ -703,7 +711,7 @@ double LUX1310::getMaxCurrentIntegrationTime(void)
  *
  * returns: Actual closest integration time
  */
-double LUX1310::getActualIntegrationTime(double intTime, double period, UInt32 hRes, UInt32 vRes)
+double LUX1310::getActualIntegrationTime(double intTime, double period, FrameGeometry *size)
 {
 
 	//Round to nearest 10ns period
@@ -724,7 +732,7 @@ double LUX1310::getActualIntegrationTime(double intTime, double period, UInt32 h
  *
  * returns: Actual integration time that was set
  */
-double LUX1310::setIntegrationTime(double intTime, UInt32 hRes, UInt32 vRes)
+double LUX1310::setIntegrationTime(double intTime, FrameGeometry *size)
 {
 	//Round to nearest 10ns period
 	intTime = round(intTime * (100000000.0)) / 100000000.0;
@@ -759,7 +767,7 @@ void LUX1310::setSlavePeriod(UInt32 period)
 void LUX1310::setSlaveExposure(UInt32 exposure)
 {
 	//hack to fix line issue. Not perfect, need to properly register this on the sensor clock.
-	double linePeriod = max((currentHRes / LUX1310_HRES_INCREMENT)+2, (wavetableSize + 3)) * 1.0/LUX1310_SENSOR_CLOCK;	//Line period in seconds
+	double linePeriod = max((currentRes.hRes / LUX1310_HRES_INCREMENT)+2, (wavetableSize + 3)) * 1.0/LUX1310_SENSOR_CLOCK;	//Line period in seconds
 	UInt32 startDelay = (double)startDelaySensorClocks * TIMING_CLOCK_FREQ / LUX1310_SENSOR_CLOCK;
 	double targetExp = (double)exposure / 100000000.0;
 	UInt32 expLines = round(targetExp / linePeriod);
@@ -912,14 +920,14 @@ void LUX1310::updateWavetableSetting()
 {
 	if(wavetableSelect == LUX1310_WAVETABLE_AUTO)
 	{
-		qDebug() << "currentPeriod" << currentPeriod << "Min period" << getMinFramePeriod(currentHRes, currentVRes, 80);
-		if(currentPeriod < getMinFramePeriod(currentHRes, currentVRes, 80))
+		qDebug() << "currentPeriod" << currentPeriod << "Min period" << getMinFramePeriod(&currentRes, 80);
+		if(currentPeriod < getMinFramePeriod(&currentRes, 80))
 		{
-			if(currentPeriod < getMinFramePeriod(currentHRes, currentVRes, 39))
+			if(currentPeriod < getMinFramePeriod(&currentRes, 39))
 			{
-				if(currentPeriod < getMinFramePeriod(currentHRes, currentVRes, 30))
+				if(currentPeriod < getMinFramePeriod(&currentRes, 30))
 				{
-					if(currentPeriod < getMinFramePeriod(currentHRes, currentVRes, 25))
+					if(currentPeriod < getMinFramePeriod(&currentRes, 25))
 					{
 						setWavetable(LUX1310_WAVETABLE_20);
 					}
