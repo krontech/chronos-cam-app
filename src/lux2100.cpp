@@ -223,7 +223,7 @@ CameraErrortype LUX2100::initSensor()
 	initDAC();
 
 #if LUX2100_BINNING_MODE
-	colorBinning = true;
+	colorBinning = false;
 	initLUX2100();
 #else
 	initLUX8M();
@@ -410,7 +410,7 @@ void LUX2100::setResolution(FrameGeometry *size)
 	/* Binned operation - everything is x2 because it's really a 4K sensor. */
 	SCIWrite(0x06, (LUX2100_LEFT_DARK_COLUMNS + hStartBlocks * LUX2100_HRES_INCREMENT) * 2);
 	SCIWrite(0x07, (LUX2100_LEFT_DARK_COLUMNS + hEndblocks * LUX2100_HRES_INCREMENT) * 2 - 1);
-	SCIWrite(0x08, (LUX2100_LOW_BOUNDARY_ROWS + size->vOffset * 2));
+	SCIWrite(0x08, (LUX2100_LOW_BOUNDARY_ROWS + size->vOffset) * 2);
 	SCIWrite(0x09, (LUX2100_LOW_BOUNDARY_ROWS + size->vOffset + size->vRes - 1) * 2);
 	if (size->vDarkRows) {
 		SCIWrite(0x2A, (vLastRow - size->vDarkRows) * 2);
@@ -975,12 +975,9 @@ Int32 LUX2100::initLUX2100(void)
     SCIWrite(0x7E, 0);	//reset all registers
     //delayms(1);
 
-    //Set gain to 2.6
+    //Set gain to 1.33
     SCIWrite(0x57, 0x007F);     //gain = gain=(#1's in 0x57[11:0]+4)/(#1's in 0x58[6:0]+1) = 12/8 = 1.333
     SCIWrite(0x58, 0x037F);
-
-//    SCIWrite(0x57, 0x01FF);     //gain = gain=(#1's in 0x57[11:0]+4)/(#1's in 0x58[6:0]+1) = 13/5 = 2.5
-//    SCIWrite(0x58, 0x030F);
     SCIWrite(0x76, 0x0079);    //Serial gain setting V2: Serial Gain = (#1's in 0x76[8:4])/(#1's in 0x58[10:8]+1) = 3/3
 
     //Set up for 66Tclk wavetable
@@ -997,7 +994,7 @@ Int32 LUX2100::initLUX2100(void)
 	SCIWrite(0x5B, LUX2100_LV_DELAY);       // line valid delay to match ADC latency
     SCIWrite(0x5F, 0x0000); // internal control register
     SCIWrite(0x78, 0x0803); // internal clock timing
-    SCIWrite(0x2D, 0x0084); // state for idle controls
+    SCIWrite(0x2D, 0x008C); // state for idle controls
     SCIWrite(0x2E, 0x0000); // state for idle controls
     SCIWrite(0x2F, 0x0040); // state for idle controls
     SCIWrite(0x62, 0x2603); // ADC clock controls
