@@ -372,35 +372,41 @@ void UtilWindow::on_cmdColumnGain_clicked()
 
 void UtilWindow::on_cmdBlackCalAll_clicked()
 {
-	StatusWindow sw;
+	QString title = QString("Factory Black Calibration");
+	QProgressDialog *progress;
 	Int32 retVal;
 	char text[100];
 
-	sw.setText("Performing black cal on all standard resolutions. Please wait...");
-	sw.show();
+	progress = new QProgressDialog(this);
+	progress->setWindowTitle(title);
+	progress->setWindowModality(Qt::WindowModal);
+	progress->show();
+
 	QCoreApplication::processEvents();
 
 	//Turn off calibration light
 	camera->io->setOutLevel(0);	//Turn off output drive
 
 	//Black cal all standard resolutions
-	retVal = camera->blackCalAllStdRes(true);
+	retVal = camera->blackCalAllStdRes(true, progress);
+
+	delete progress;
 
 	if(SUCCESS != retVal)
 	{
-		sw.hide();
 		QMessageBox msg;
 		sprintf(text, "Error during black calibration, error %d: %s", retVal, errorCodeString(retVal));
 		msg.setText(text);
+		msg.setWindowTitle(title);
 		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
 		msg.exec();
 	}
 	else
 	{
-		sw.hide();
 		QMessageBox msg;
 		sprintf(text, "Black cal of all standard resolutions was successful");
 		msg.setText(text);
+		msg.setWindowTitle(title);
 		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
 		msg.exec();
 	}

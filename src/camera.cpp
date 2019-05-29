@@ -2358,14 +2358,16 @@ round(UInt32  x, UInt32 mult)
 	return (offset >= mult/2) ? x - offset + mult : x - offset;
 }
 
-Int32 Camera::blackCalAllStdRes(bool factory)
+Int32 Camera::blackCalAllStdRes(bool factory, QProgressDialog *dialog)
 {
+	int g;
 	ImagerSettings_t settings;
 	FrameGeometry	maxSize = sensor->getMaxGeometry();
 
 	//Populate the common resolution combo box from the list of resolutions
 	QFile fp;
 	UInt32 retVal = SUCCESS;
+	QStringList resolutions;
 	QString filename;
 	QString line;
 
@@ -2384,22 +2386,64 @@ Int32 Camera::blackCalAllStdRes(bool factory)
 		return CAMERA_FILE_ERROR;
 	}
 
+	/* Read the resolutions file into a list. */
+	while (true) {
+		QString tmp = fp.readLine(30);
+		QStringList strlist;
+		FrameGeometry size;
 
-	int g;
+		/* Try to read another resolution from the file. */
+		if (tmp.isEmpty() || tmp.isNull()) break;
+		strlist = tmp.split('x');
+		if (strlist.count() < 2) break;
 
-	//For each gain
-	for(g = sensor->getMinGain(); g <= sensor->getMaxGain(); g *= 2)
-	{
-		if (!fp.reset()) {
-			return CAMERA_FILE_ERROR;
+		/* If it's a supported resolution, add it to the list. */
+		size.hRes = strlist[0].toInt(); //pixels
+		size.vRes = strlist[1].toInt(); //pixels
+		size.vDarkRows = 0;	//dark rows
+		size.bitDepth = maxSize.bitDepth;
+		size.hOffset = round((maxSize.hRes - size.hRes) / 2, sensor->getHResIncrement());
+		size.vOffset = round((maxSize.vRes - size.vRes) / 2, sensor->getVResIncrement());
+		if (sensor->isValidResolution(&size)) {
+			line.sprintf("%ux%u", size.hRes, size.vRes);
+			resolutions.append(line);
+		}
+	}
+	fp.close();
+
+	/* Ensure that the maximum sensor size is also included. */
+	line.sprintf("%ux%u", maxSize.hRes, maxSize.vRes);
+	if (!resolutions.contains(line)) {
+		resolutions.prepend(line);
+	}
+
+	/* If we have a progress dialog - figure out how many calibration steps to do. */
+	if (dialog) {
+		int maxcals = 0;
+
+		/* Count up the number of gain settings to calibrate for. */
+		for (g = sensor->getMinGain(); g <= sensor->getMaxGain(); g *= 2) {
+			 maxcals += resolutions.count();
 		}
 
-		line.sprintf("%ux%u", maxSize.hRes, maxSize.vRes);
-		do {
+		dialog->setMaximum(maxcals);
+		dialog->setValue(0);
+		dialog->setAutoClose(false);
+		dialog->setAutoReset(false);
+	}
+
+	//For each gain
+	int progress = 0;
+	for(g = sensor->getMinGain(); g <= sensor->getMaxGain(); g *= 2)
+	{
+		QStringListIterator iter(resolutions);
+		while (iter.hasNext()) {
+			QString value = iter.next();
+			QStringList tmp = value.split('x');
+
 			// Split the resolution string on 'x' into horizontal and vertical sizes.
-			QStringList strlist = line.split('x');
-			settings.geometry.hRes = strlist[0].toInt(); //pixels
-			settings.geometry.vRes = strlist[1].toInt(); //pixels
+			settings.geometry.hRes = tmp[0].toInt(); //pixels
+			settings.geometry.vRes = tmp[1].toInt(); //pixels
 			settings.geometry.vDarkRows = 0;	//dark rows
 			settings.geometry.bitDepth = maxSize.bitDepth;
 			settings.geometry.hOffset = round((maxSize.hRes - settings.geometry.hRes) / 2, sensor->getHResIncrement());
@@ -2414,22 +2458,31 @@ Int32 Camera::blackCalAllStdRes(bool factory)
 			settings.segmentLengthFrames = imagerSettings.recRegionSizeFrames;
 			settings.segments = 1;
 			settings.temporary = 0;
-			if (sensor->isValidResolution(&settings.geometry)) {
-				retVal = setImagerSettings(settings);
-				if(SUCCESS != retVal)
-					return retVal;
 
-				qDebug("Doing FPN correction for %ux%u...", settings.geometry.hRes, settings.geometry.vRes);
-				retVal = autoFPNCorrection(16, true, false, factory);	//Factory mode
-				if(SUCCESS != retVal)
-					return retVal;
-
-				qDebug() << "Done.";
+			/* Update the progress dialog. */
+			progress++;
+			if (dialog) {
+				QString label;
+				if (dialog->wasCanceled()) {
+					goto exit_calibration;
+				}
+				label.sprintf("Computing calibration for %ux%u at x%d gain",
+							  settings.geometry.hRes, settings.geometry.vRes, settings.gain);
+				dialog->setValue(progress);
+				dialog->setLabelText(label);
+				QCoreApplication::processEvents();
 			}
 
-			line = fp.readLine(30);
-		} while (!line.isEmpty() && !line.isNull());
+			qDebug("Doing FPN correction for %ux%u...", settings.geometry.hRes, settings.geometry.vRes);
+			retVal = autoFPNCorrection(16, true, false, factory);	//Factory mode
+			if(SUCCESS != retVal)
+				return retVal;
+
+			qDebug() << "Done.";
+		}
 	}
+exit_calibration:
+
 	fp.close();
 
 	memcpy(&settings.geometry, &maxSize, sizeof(maxSize));
