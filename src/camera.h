@@ -20,6 +20,8 @@
 #include <pthread.h>
 #include <semaphore.h>
 
+#include <QProgressDialog>
+
 #include "errorCodes.h"
 #include "defines.h"
 
@@ -234,7 +236,7 @@ public:
 	int autoWhiteBalance(unsigned int x, unsigned int y);
 	void setFocusAid(bool enable);
 	bool getFocusAid();
-	int blackCalAllStdRes(bool factory = false);
+	int blackCalAllStdRes(bool factory = false, QProgressDialog *dialog = NULL);
 
 	Int32 checkForDeadPixels(int* resultCount = NULL, int* resultMax = NULL);
 
