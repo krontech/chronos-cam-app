@@ -323,6 +323,12 @@ public:
 	void set_demoMode(bool state);
 	bool get_demoMode();
 
+    bool shippingMode;
+    void set_shippingMode(bool state);
+    bool get_shippingMode();
+
+    int get_batteryData(char *buf, size_t bufSize);
+
 	bool getButtonsOnLeft();
 	void setButtonsOnLeft(bool en);
 	bool getUpsideDownDisplay();

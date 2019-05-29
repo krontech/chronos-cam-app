@@ -20,6 +20,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <QSettings>
+#include <QLocalSocket>
 
 #include "cameraRegisters.h"
 #include "userInterface.h"
@@ -52,6 +53,7 @@ Video * vinst;
 UserInterface * userInterface;
 bool focusAidEnabled = false;
 
+uint_fast8_t powerLoopCount = 0;
 
 CamMainWindow::CamMainWindow(QWidget *parent) :
 	QDialog(parent),
@@ -104,15 +106,18 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	ui->cmdWB->setEnabled(camera->getIsColor());
 	ui->chkFocusAid->setChecked(camera->getFocusPeakEnable());
 
-	const char * myfifo = "/var/run/bmsFifo";
-
-	/* open, read, and display the message from the FIFO */
-	bmsFifoFD = ::open(myfifo, O_RDONLY|O_NONBLOCK);
+    /* Connect to pcUtil socket to get battery data
+    powerDataSocket.connectToServer("/tmp/pcUtil_socket");
+    if(powerDataSocket.waitForConnected(500)){
+        qDebug("connected to pcUtil server");
+    } else {
+        qDebug("could not connect to pcUtil socket");
+    }*/
 
 	sw = new StatusWindow;
 
 	updateExpSliderLimits();
-	updateCurrentSettingsLabel();
+    updateCurrentSettingsLabel();
 
 	lastShutterButton = camera->ui->getShutterButton();
 	lastRecording = camera->getIsRecording();
@@ -148,8 +153,8 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 CamMainWindow::~CamMainWindow()
 {
 	timer->stop();
-	::close(bmsFifoFD);
 	delete sw;
+    //powerDataSocket.close();
 
 	delete ui;
 	delete camera;
@@ -347,7 +352,7 @@ void CamMainWindow::updateRecordingState(bool recording)
 void CamMainWindow::on_MainWindowTimer()
 {
 	bool shutterButton = camera->ui->getShutterButton();
-	char buf[300];
+    char buf[256] = {'\0'};
 	Int32 len;
 	QSettings appSettings;
 
@@ -392,8 +397,13 @@ void CamMainWindow::on_MainWindowTimer()
 
 	lastShutterButton = shutterButton;
 
-	//If new data comes in from the BMS, get the battery SOC and updates the info label
-	len = read(bmsFifoFD, buf, 300);
+    /*
+    if(powerLoopCount == 248){
+        len = camera->get_batteryData(buf, sizeof(buf));
+        powerLoopCount = 0;
+    }
+    powerLoopCount++;
+    */
 
 	if(len > 0)
 	{
@@ -410,6 +420,15 @@ void CamMainWindow::on_MainWindowTimer()
 			   &mbTemperature,
 			   &flags,
 			   &fanPWM);
+
+    /*  //UI prompt for shutdown confirmation:
+        if(flags &= 0x40){
+            if(QMessageBox::Yes == question("Power Down?","Press yes to turn off camera.")){
+                powerDataSocket.write("SHUTDOWN");
+            }
+        }
+    */
+
 		updateCurrentSettingsLabel();
 	}
 
@@ -500,8 +519,8 @@ void CamMainWindow::updateCurrentSettingsLabel()
 		sprintf(battStr, "Batt %d%% %.2fV", (UInt32)battPercent,  (double)battVoltageCam / 1000.0);
 	}
 	else
-	{
-		sprintf(battStr, "No Batt");
+    {
+        sprintf(battStr, "No Batt");
 	}
 
 	sprintf(str, "%s\r\n%ux%u %sfps\r\nExp %ss (%u\xb0)", battStr, is.geometry.hRes, is.geometry.vRes, fpsString, expString, shutterAngle);
@@ -601,6 +620,7 @@ static int expSliderLog(unsigned int angle, int delta)
 	while (n <  0) { x = (x * 2) / 3; n += 4; };
 	return (int)(x + 0.5);
 }
+
 
 void CamMainWindow::keyPressEvent(QKeyEvent *ev)
 {

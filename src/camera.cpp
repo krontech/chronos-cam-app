@@ -25,6 +25,7 @@
 #include <QScreen>
 #include <QIODevice>
 #include <QApplication>
+#include <QLocalSocket>
 
 #include "font.h"
 #include "camera.h"
@@ -44,9 +45,19 @@ void* recDataThread(void *arg);
 void recordEosCallback(void * arg);
 void recordErrorCallback(void * arg, const char * message);
 
+QLocalSocket powerDataSocket;
+
 Camera::Camera()
 {
 	QSettings appSettings;
+
+    /* Connect to pcUtil UNIX socket*/
+    powerDataSocket.connectToServer("/tmp/pcUtil_socket");
+    if(powerDataSocket.waitForConnected(500)){
+        qDebug("connected to pcUtil server");
+    } else {
+        qDebug("could not connect to pcUtil socket");
+    }
 
 	terminateRecDataThread = false;
 	lastRecording = false;
@@ -68,6 +79,7 @@ Camera::~Camera()
 {
 	terminateRecDataThread = true;
 	pthread_join(recDataThreadID, NULL);
+
 }
 
 CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, ImageSensor * sensorInst, UserInterface * userInterface, UInt32 ramSizeVal, bool color)
@@ -2931,6 +2943,56 @@ bool Camera::get_demoMode() {
 	QSettings appSettings;
 	return appSettings.value("camera/demoMode", false).toBool();
 }
+
+
+void Camera::set_shippingMode(bool state) {
+    QSettings appSettings;
+    shippingMode = state;
+    char buf[300];
+
+    if(state == TRUE){
+       powerDataSocket.write("SET_SHIPPING_MODE_ENABLED");
+       if(powerDataSocket.waitForReadyRead()){
+           powerDataSocket.read(buf, sizeof(buf));
+           qDebug() << buf;
+           if(!strncmp(buf,"shipping mode enabled",21)){
+               appSettings.setValue("camera/shippingMode", TRUE);
+           } else {
+               appSettings.setValue("camera/shippingMode", FALSE);
+           }
+       }
+    } else {
+       powerDataSocket.write("SET_SHIPPING_MODE_DISABLED");
+       if(powerDataSocket.waitForReadyRead()){
+           powerDataSocket.read(buf, sizeof(buf));
+           qDebug() << buf;
+           if(!strncmp(buf,"shipping mode disabled",22)){
+               appSettings.setValue("camera/shippingMode", FALSE);
+           } else {
+               appSettings.setValue("camera/shippingMode", TRUE);
+           }
+       }
+    }
+
+}
+
+bool Camera::get_shippingMode() {
+    QSettings appSettings;
+    return appSettings.value("camera/shippingMode", false).toBool();
+}
+
+int Camera::get_batteryData(char *buf, size_t bufSize) {
+    int len = 0;
+    powerDataSocket.write("GET_BATTERY_DATA");
+    if(powerDataSocket.waitForReadyRead()){
+        len = powerDataSocket.read(buf, bufSize);
+        qDebug() << buf;
+        return len;
+    } else {
+        return 0;
+    }
+}
+
 
 void* recDataThread(void *arg)
 {
