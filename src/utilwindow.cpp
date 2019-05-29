@@ -103,6 +103,7 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	ui->comboFPColor->addItem("White");
 	ui->comboFPColor->setCurrentIndex(camera->getFocusPeakColor() - 1);
 	ui->chkZebraEnable->setChecked(camera->getZebraEnable());
+    ui->chkShippingMode->setChecked(camera->get_shippingMode());
 
 	if(camera->getFocusPeakThresholdLL() == FOCUS_PEAK_THRESH_HIGH)
 		ui->radioFPSensHigh->setChecked(true);
@@ -970,6 +971,21 @@ void UtilWindow::on_chkAutoRecord_stateChanged(int arg1)
 void UtilWindow::on_chkDemoMode_stateChanged(int arg1)
 {
 	camera->set_demoMode(ui->chkDemoMode->isChecked());
+}
+
+void UtilWindow::on_chkAutoPowerOn_stateChanged(int arg1)
+{
+
+}
+
+void UtilWindow::on_chkAutoPowerOff_stateChanged(int arg1)
+{
+
+}
+
+void UtilWindow::on_chkShippingMode_stateChanged()
+{
+    camera->set_shippingMode(ui->chkShippingMode->isChecked());
 }
 
 void UtilWindow::on_cmdDefaults_clicked()
