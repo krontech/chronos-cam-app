@@ -639,15 +639,15 @@ UInt32 Camera::setPlayMode(bool playMode)
  **/
 UInt16 Camera::readPixelCal(UInt32 x, UInt32 y, UInt32 wordAddr, FrameGeometry *geometry)
 {
-	UInt32 pixel = gpmc->readPixel12(y * geometry->hRes + x, wordAddr * BYTES_PER_WORD);
+	Int32 pixel = gpmc->readPixel12(y * geometry->hRes + x, wordAddr * BYTES_PER_WORD);
 	UInt32 pxGain = (pixel * gpmc->read16(COL_GAIN_MEM_START_ADDR + (2 * x))) >> COL_GAIN_FRAC_BITS;
 
 	/* Apply column curvature and offset terms for 3-point cal. */
 	if (gpmc->read16(DISPLAY_GAIN_CONTROL_ADDR) & DISPLAY_GAIN_CONTROL_3POINT) {
 		Int32 pxCurve = (pixel * pixel * (Int16)gpmc->read16(COL_CURVE_MEM_START_ADDR + (2 * x))) >> COL_CURVE_FRAC_BITS;
-		UInt32 pxOffset = gpmc->read16(COL_OFFSET_MEM_START_ADDR + (2 * x));
+		Int32 pxOffset = (Int16)gpmc->read16(COL_OFFSET_MEM_START_ADDR + (2 * x));
 		/* TODO: FPN is a bit messy in 3-point world (signed 12-bit). */
-		return pxGain + pxCurve - pxOffset;
+		return pxGain + pxCurve + pxOffset;
 	}
 	/* Otherwise - 2-point calibration requires FPN subtraction. */
 	else {
