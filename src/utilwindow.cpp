@@ -948,6 +948,7 @@ void UtilWindow::on_chkAutoPowerOff_stateChanged(int arg1)
 
 void UtilWindow::on_chkShippingMode_stateChanged()
 {
+    QMessageBox::information(this, "Shipping Mode","Enabling this will require the AC adapter to be plugged in to turn the camera on next time.", QMessageBox::Ok);
     camera->set_shippingMode(ui->chkShippingMode->isChecked());
 }
 

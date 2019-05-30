@@ -397,13 +397,14 @@ void CamMainWindow::on_MainWindowTimer()
 
 	lastShutterButton = shutterButton;
 
-    /*
-    if(powerLoopCount == 248){
+    //Request battery information from the PMIC every two seconds (16ms * 125 loops)
+    if(powerLoopCount == 125){
         len = camera->get_batteryData(buf, sizeof(buf));
         powerLoopCount = 0;
+    } else {
+        len = 0;
     }
     powerLoopCount++;
-    */
 
 	if(len > 0)
 	{
@@ -419,18 +420,10 @@ void CamMainWindow::on_MainWindowTimer()
 			   &battCurrentCam,
 			   &mbTemperature,
 			   &flags,
-			   &fanPWM);
+               &fanPWM);
 
-    /*  //UI prompt for shutdown confirmation:
-        if(flags &= 0x40){
-            if(QMessageBox::Yes == question("Power Down?","Press yes to turn off camera.")){
-                powerDataSocket.write("SHUTDOWN");
-            }
-        }
-    */
-
-		updateCurrentSettingsLabel();
-	}
+        updateCurrentSettingsLabel();
+    }
 
 	if (appSettings.value("debug/hideDebug", true).toBool()) {
 		ui->cmdDebugWnd->setVisible(false);
