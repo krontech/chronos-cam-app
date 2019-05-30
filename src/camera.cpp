@@ -48,14 +48,6 @@ Camera::Camera()
 {
 	QSettings appSettings;
 
-    /* Connect to pcUtil UNIX socket*/
-    powerDataSocket.connectToServer("/tmp/pcUtil_socket");
-    if(powerDataSocket.waitForConnected(500)){
-        qDebug("connected to pcUtil server");
-    } else {
-        qDebug("could not connect to pcUtil socket");
-    }
-
 	terminateRecDataThread = false;
 	lastRecording = false;
 	playbackMode = false;
@@ -68,13 +60,25 @@ Camera::Camera()
 	ButtonsOnLeft = getButtonsOnLeft();
 	UpsideDownDisplay = getUpsideDownDisplay();
 	strcpy(serialNumber, "Not_Set");
+
+    //Connect to pcUtil UNIX socket to get power/battery data
+    powerDataSocket.connectToServer("/tmp/pcUtil_socket");
+    if(powerDataSocket.waitForConnected(500)){
+        qDebug("connected to pcUtil server");
+    } else {
+        qDebug("could not connect to pcUtil socket");
+    }
+
+    //Disable Shipping Mode
+    this->set_shippingMode(FALSE);
+
 }
 
 Camera::~Camera()
 {
 	terminateRecDataThread = true;
 	pthread_join(recDataThreadID, NULL);
-
+    powerDataSocket.close();
 }
 
 CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * sensorInst, UserInterface * userInterface, UInt32 ramSizeVal, bool color)
@@ -2912,7 +2916,6 @@ int Camera::get_batteryData(char *buf, size_t bufSize) {
     powerDataSocket.write("GET_BATTERY_DATA");
     if(powerDataSocket.waitForReadyRead()){
         len = powerDataSocket.read(buf, bufSize);
-        qDebug() << buf;
         return len;
     } else {
         return 0;

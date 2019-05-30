@@ -29,7 +29,7 @@
     <enum>QTabWidget::East</enum>
    </property>
    <property name="currentIndex">
-    <number>0</number>
+    <number>4</number>
    </property>
    <widget class="QWidget" name="tabMain">
     <attribute name="title">
@@ -456,30 +456,6 @@ Display</string>
      </property>
      <property name="text">
       <string>Demo Mode</string>
-     </property>
-    </widget>
-    <widget class="QCheckBox" name="chkShippingMode">
-     <property name="geometry">
-      <rect>
-       <x>480</x>
-       <y>320</y>
-       <width>201</width>
-       <height>51</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <pointsize>16</pointsize>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QCheckBox::indicator {
-     width: 40px;
-     height: 40px;
-}</string>
-     </property>
-     <property name="text">
-      <string>Shipping Mode</string>
      </property>
     </widget>
    </widget>
@@ -1238,6 +1214,30 @@ calibration data
      </property>
      <property name="text">
       <string>Close</string>
+     </property>
+    </widget>
+    <widget class="QCheckBox" name="chkShippingMode">
+     <property name="geometry">
+      <rect>
+       <x>440</x>
+       <y>330</y>
+       <width>201</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>16</pointsize>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QCheckBox::indicator {
+     width: 40px;
+     height: 40px;
+}</string>
+     </property>
+     <property name="text">
+      <string>Shipping Mode</string>
      </property>
     </widget>
    </widget>
