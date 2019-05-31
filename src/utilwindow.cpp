@@ -138,8 +138,8 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	ui->chkAutoRecord->setChecked(camera->get_autoRecord());
 	ui->chkDemoMode->setChecked(camera->get_demoMode());
 	ui->chkUiOnLeft->setChecked(camera->getButtonsOnLeft());
-    ui->comboDisableUnsavedWarning->setCurrentIndex(camera->getUnsavedWarnEnable());
-    ui->autoPowerSetting->setCurrentIndex(camera->get_autoPowerMode());
+	ui->comboDisableUnsavedWarning->setCurrentIndex(camera->getUnsavedWarnEnable());
+	ui->autoPowerSetting->setCurrentIndex(camera->get_autoPowerMode());
 
 	ui->cmdSshApply->setEnabled(false);
 	ui->lineSshPassword->setText("********");
