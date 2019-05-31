@@ -47,7 +47,7 @@ Camera * camera;
 Video * vinst;
 UserInterface * userInterface;
 bool focusAidEnabled = false;
-
+uint_fast8_t powerLoopCount = 0;
 
 CamMainWindow::CamMainWindow(QWidget *parent) :
 	QDialog(parent),
@@ -84,15 +84,10 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	ui->cmdWB->setEnabled(camera->getIsColor());
 	ui->chkFocusAid->setChecked(camera->getFocusPeakEnable());
 
-	const char * myfifo = "/var/run/bmsFifo";
-
-	/* open, read, and display the message from the FIFO */
-	bmsFifoFD = ::open(myfifo, O_RDONLY|O_NONBLOCK);
-
 	sw = new StatusWindow;
 
 	updateExpSliderLimits();
-	updateCurrentSettingsLabel();
+    updateCurrentSettingsLabel();
 
 	lastShutterButton = camera->ui->getShutterButton();
 	lastRecording = camera->getIsRecording();
@@ -128,7 +123,6 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 CamMainWindow::~CamMainWindow()
 {
 	timer->stop();
-	::close(bmsFifoFD);
 	delete sw;
 
 	delete ui;
@@ -329,7 +323,7 @@ void CamMainWindow::updateRecordingState(bool recording)
 void CamMainWindow::on_MainWindowTimer()
 {
 	bool shutterButton = camera->ui->getShutterButton();
-	char buf[300];
+	char buf[256] = {'\0'};
 	Int32 len;
 	QSettings appSettings;
 
@@ -374,8 +368,14 @@ void CamMainWindow::on_MainWindowTimer()
 
 	lastShutterButton = shutterButton;
 
-	//If new data comes in from the BMS, get the battery SOC and updates the info label
-	len = read(bmsFifoFD, buf, 300);
+	//Request battery information from the PMIC every two seconds (16ms * 125 loops)
+	if(powerLoopCount == 125){
+		len = camera->get_batteryData(buf, sizeof(buf));
+		powerLoopCount = 0;
+	} else {
+		len = 0;
+	}
+	powerLoopCount++;
 
 	if(len > 0)
 	{
@@ -392,6 +392,7 @@ void CamMainWindow::on_MainWindowTimer()
 			   &mbTemperature,
 			   &flags,
 			   &fanPWM);
+
 		updateCurrentSettingsLabel();
 	}
 
@@ -577,6 +578,7 @@ static int expSliderLog(unsigned int angle, int delta)
 	while (n <  0) { x = (x * 2) / 3; n += 4; };
 	return (int)(x + 0.5);
 }
+
 
 void CamMainWindow::keyPressEvent(QKeyEvent *ev)
 {

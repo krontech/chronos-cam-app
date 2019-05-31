@@ -86,6 +86,10 @@ private slots:
 
 	void on_chkDemoMode_stateChanged(int arg1);
 
+	void on_autoPowerSetting_currentIndexChanged(int index);
+
+	void on_chkShippingMode_clicked();
+
 	void on_cmdDefaults_clicked();
 
 	void on_cmdRestoreSettings_clicked();

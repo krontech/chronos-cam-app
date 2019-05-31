@@ -41,6 +41,7 @@ void* recDataThread(void *arg);
 void recordEosCallback(void * arg);
 void recordErrorCallback(void * arg, const char * message);
 
+
 Camera::Camera()
 {
 	QSettings appSettings;
@@ -57,12 +58,25 @@ Camera::Camera()
 	ButtonsOnLeft = getButtonsOnLeft();
 	UpsideDownDisplay = getUpsideDownDisplay();
 	strcpy(serialNumber, "Not_Set");
+
+	//Connect to pcUtil UNIX socket to get power/battery data
+	powerDataSocket.connectToServer("/tmp/pcUtil.socket");
+	if(powerDataSocket.waitForConnected(500)){
+		qDebug("connected to pcUtil server");
+	} else {
+		qDebug("could not connect to pcUtil socket");
+	}
+
+	//Disable Shipping Mode
+	this->set_shippingMode(FALSE);
+
 }
 
 Camera::~Camera()
 {
 	terminateRecDataThread = true;
 	pthread_join(recDataThreadID, NULL);
+	powerDataSocket.close();
 }
 
 CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * sensorInst, UserInterface * userInterface, UInt32 ramSizeVal, bool color)
@@ -2900,6 +2914,115 @@ bool Camera::get_demoMode() {
 	QSettings appSettings;
 	return appSettings.value("camera/demoMode", false).toBool();
 }
+
+
+void Camera::set_shippingMode(bool state) {
+	QSettings appSettings;
+	shippingMode = state;
+	char buf[256];
+
+	if(state == TRUE){
+		powerDataSocket.write("SET_SHIPPING_MODE_ENABLED");
+		if(powerDataSocket.waitForReadyRead()){
+			powerDataSocket.read(buf, sizeof(buf));
+			qDebug() << buf;
+			if(!strncmp(buf,"shipping mode enabled",21)){
+				appSettings.setValue("camera/shippingMode", TRUE);
+			} else {
+				appSettings.setValue("camera/shippingMode", FALSE);
+			}
+		}
+	} else {
+		powerDataSocket.write("SET_SHIPPING_MODE_DISABLED");
+		if(powerDataSocket.waitForReadyRead()){
+			powerDataSocket.read(buf, sizeof(buf));
+			qDebug() << buf;
+			if(!strncmp(buf,"shipping mode disabled",22)){
+				appSettings.setValue("camera/shippingMode", FALSE);
+			} else {
+				appSettings.setValue("camera/shippingMode", TRUE);
+			}
+		}
+	}
+
+}
+
+bool Camera::get_shippingMode() {
+	QSettings appSettings;
+	return appSettings.value("camera/shippingMode", false).toBool();
+}
+
+void Camera::set_autoPowerMode(int mode) {
+	QSettings appSettings;
+	char buf[256];
+
+	autoPowerMode = mode;
+
+	switch (mode)
+	{
+	case AUTO_POWER_DISABLED:
+		powerDataSocket.write("SET_POWERUP_MODE_0");
+		if(powerDataSocket.waitForReadyRead()){
+			powerDataSocket.read(buf, sizeof(buf));
+			if(!strncmp(buf,"pwrmode0",8)){
+				appSettings.setValue("camera/autoPowerMode", AUTO_POWER_DISABLED);
+			}
+		}
+		break;
+
+	case AUTO_POWER_RESTORE_ONLY: //Turn the camera on when the AC adapter is plugged in
+		powerDataSocket.write("SET_POWERUP_MODE_1");
+		if(powerDataSocket.waitForReadyRead()){
+			powerDataSocket.read(buf, sizeof(buf));
+			if(!strncmp(buf,"pwrmode1",8)){
+				appSettings.setValue("camera/autoPowerMode", AUTO_POWER_RESTORE_ONLY);
+			}
+		}
+		break;
+
+	case AUTO_POWER_REMOVE_ONLY: //Turn the camera off when the AC adapter is removed
+		powerDataSocket.write("SET_POWERUP_MODE_2");
+		if(powerDataSocket.waitForReadyRead()){
+			powerDataSocket.read(buf, sizeof(buf));
+			if(!strncmp(buf,"pwrmode2",8)){
+				appSettings.setValue("camera/autoPowerMode", AUTO_POWER_REMOVE_ONLY);
+			}
+		}
+		break;
+
+	case AUTO_POWER_BOTH:
+		powerDataSocket.write("SET_POWERUP_MODE_3");
+		if(powerDataSocket.waitForReadyRead()){
+			powerDataSocket.read(buf, sizeof(buf));
+			if(!strncmp(buf,"pwrmode3",8)){
+				appSettings.setValue("camera/autoPowerMode", AUTO_POWER_BOTH);
+			}
+		}
+		break;
+
+	default:
+		appSettings.setValue("camera/autoPowerMode", AUTO_POWER_DISABLED);
+		break;
+	}
+}
+
+int Camera::get_autoPowerMode() {
+	QSettings appSettings;
+	return appSettings.value("camera/autoPowerMode", 0).toInt();
+}
+
+
+int Camera::get_batteryData(char *buf, size_t bufSize) {
+	int len = 0;
+	powerDataSocket.write("GET_BATTERY_DATA");
+	if(powerDataSocket.waitForReadyRead()){
+		len = powerDataSocket.read(buf, bufSize);
+		return len;
+	} else {
+		return 0;
+	}
+}
+
 
 void* recDataThread(void *arg)
 {
