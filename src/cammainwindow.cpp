@@ -274,7 +274,12 @@ void CamMainWindow::on_cmdFPNCal_clicked()//Black cal
 	sw->setText("Performing black calibration...");
 	sw->show();
 	QCoreApplication::processEvents();
-	camera->liveColumnCalibration();
+
+	/* Run the calibration routines. */
+	if ((sensor->getSensorQuirks() & SENSOR_QUIRK_SLOW_OFFSET_CAL) == 0) {
+		camera->autoOffsetCalibration();
+	}
+	camera->liveGainCalibration();
 	camera->autoFPNCorrection(16, true);
 	sw->hide();
 }

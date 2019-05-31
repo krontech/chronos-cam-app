@@ -763,12 +763,16 @@ void LUX1310::offsetCorrectionIteration(FrameGeometry *geometry, int *offsets, U
 	}
 }
 
-
 void LUX1310::adcOffsetTraining(FrameGeometry *size, UInt32 address, UInt32 numFrames)
 {
 	int offsets[LUX1310_HRES_INCREMENT];
 	unsigned int iterations = 32;
 	struct timespec tRefresh;
+	char debugstr[8*LUX1310_HRES_INCREMENT];
+	int debuglen = 0;
+
+	std::string filename = getFilename("cal/lux1310Offsets", ".bin");
+	FILE *fp;
 
 	tRefresh.tv_sec = 0;
 	tRefresh.tv_nsec = ((numFrames+10) * currentPeriod * 1000000000ULL) / LUX1310_TIMING_CLOCK;
@@ -784,4 +788,65 @@ void LUX1310::adcOffsetTraining(FrameGeometry *size, UInt32 address, UInt32 numF
 		nanosleep(&tRefresh, NULL);
 		offsetCorrectionIteration(size, offsets, address, numFrames);
 	}
+
+	debuglen = 0;
+	for (int col=0; col < LUX1310_HRES_INCREMENT; col++) {
+		debuglen += sprintf(debugstr + debuglen, " %+4d", offsets[col]);
+	}
+	qDebug("Calculated ADC Offsets:%s", debugstr);
+	qDebug("Writing ADC offsets to %s", filename.c_str());
+
+	fp = fopen(filename.c_str(), "wb");
+	if (fp) {
+		Int16 off16[LUX1310_HRES_INCREMENT];
+		for (int col = 0; col < LUX1310_HRES_INCREMENT; col++) {
+			off16[col] = offsets[col];
+		}
+		fwrite(off16, sizeof(off16[0]), LUX1310_HRES_INCREMENT, fp);
+		fclose(fp);
+	}
+}
+
+Int32 LUX1310::loadADCOffsetsFromFile(FrameGeometry *size)
+{
+	Int16 offsets[LUX1310_HRES_INCREMENT];
+
+	QString filename;
+
+	//Generate the filename for this particular resolution and offset
+	filename.sprintf("cal:lux1310Offsets");
+
+	std::string fn;
+	fn = getFilename("", ".bin");
+	filename.append(fn.c_str());
+	QFileInfo adcOffsetsFile(filename);
+	if (adcOffsetsFile.exists() && adcOffsetsFile.isFile())
+		fn = adcOffsetsFile.absoluteFilePath().toLocal8Bit().constData();
+	else
+		return CAMERA_FILE_NOT_FOUND;
+
+	qDebug() << "Loading ADC offsets from" << fn.c_str();
+
+	//If the offsets file exists, read it in
+	if( access( fn.c_str(), R_OK ) == -1 )
+		return CAMERA_FILE_NOT_FOUND;
+
+	FILE * fp;
+	fp = fopen(fn.c_str(), "rb");
+	if(!fp)
+		return CAMERA_FILE_ERROR;
+
+	fread(offsets, sizeof(offsets[0]), LUX1310_HRES_INCREMENT, fp);
+	fclose(fp);
+
+	//Write the values into the sensor
+	char debugstr[8*LUX1310_HRES_INCREMENT];
+	int debuglen = 0;
+	for(int col = 0; col < LUX1310_HRES_INCREMENT; col++) {
+		debuglen += sprintf(debugstr + debuglen, " %+4d", offsets[col]);
+		setADCOffset(col, offsets[col]);
+	}
+	qDebug("ADC Offsets: %s", debugstr);
+
+	return SUCCESS;
 }

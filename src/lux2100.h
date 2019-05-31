@@ -120,6 +120,8 @@ public:
     ~LUX2100();
 	CameraErrortype init(GPMC * gpmc_inst);
 
+	UInt32 getSensorQuirks() { return SENSOR_QUIRK_SLOW_OFFSET_CAL; }
+
 	/* Frame Geometry Functions. */
 	void setResolution(FrameGeometry *frameSize);
 	FrameGeometry getMaxGeometry(void);
@@ -153,6 +155,7 @@ public:
 	void disableAnalogTestMode(void);
 	void setAnalogTestVoltage(unsigned int);
 	void adcOffsetTraining(FrameGeometry *frameSize, UInt32 address, UInt32 numFrames);
+	Int32 loadADCOffsetsFromFile(FrameGeometry *size);
 	std::string getFilename(const char * filename, const char * extension);
 
 private:

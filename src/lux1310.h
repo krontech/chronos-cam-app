@@ -128,6 +128,7 @@ public:
 	void disableAnalogTestMode(void);
 	void setAnalogTestVoltage(unsigned int);
 	void adcOffsetTraining(FrameGeometry *frameSize, UInt32 address, UInt32 numFrames);
+	Int32 loadADCOffsetsFromFile(FrameGeometry *frameSize);
 	std::string getFilename(const char * filename, const char * extension);
 
 	UInt32 getMinGain() { return 1; }

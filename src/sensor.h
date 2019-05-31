@@ -22,7 +22,8 @@
 #include <string>
 
 /* Bitmask of quirky sensor behavior for the UI to deal with. */
-#define SENSOR_QUIRK_UPSIDE_DOWN	0x00000001
+#define SENSOR_QUIRK_UPSIDE_DOWN		0x00000001
+#define SENSOR_QUIRK_SLOW_OFFSET_CAL	0x00000002
 
 class ImageSensor
 {
@@ -79,6 +80,9 @@ public:
 	virtual void setAnalogTestVoltage(unsigned int) {}
 	virtual void adcOffsetTraining(FrameGeometry *frameSize, UInt32 address, UInt32 numFrames) {}
 	virtual std::string getFilename(const char * filename, const char * extension) = 0;
+
+	/* Load sensor calibration data after changing frame geometry. */
+	virtual Int32 loadADCOffsetsFromFile(FrameGeometry *frameSize) { return CAMERA_FILE_NOT_FOUND; }
 
 	/* Helper Functions */
 	inline double getCurrentFramePeriodDouble() { return (double)getFramePeriod() / getFramePeriodClock(); }

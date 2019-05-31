@@ -228,9 +228,11 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, ImageSensor * s
 		if(!fileDirFoundOnUSB) strcpy(vinst->fileDirectory, "/media/mmcblk1p1");
 	}
 
-	liveColumnCalibration();
-
 	maxPostFramesRatio = 1;
+
+	/* Load calibration and perform perform automated cal. */
+	sensor->loadADCOffsetsFromFile(&settings.geometry);
+	liveGainCalibration();
 
 	if(CAMERA_FILE_NOT_FOUND == loadFPNFromFile()) {
 		fastFPNCorrection();
@@ -294,6 +296,9 @@ UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 		imagerSettings.recRegionSizeFrames = settings.recRegionSizeFrames;
 	}
 	setRecRegion(REC_REGION_START, imagerSettings.recRegionSizeFrames, &imagerSettings.geometry);
+
+	/* Load calibration, or perform quick calibration if appropriate. */
+	sensor->loadADCOffsetsFromFile(&imagerSettings.geometry);
 
 	qDebug()	<< "\nSet imager settings:\nhRes" << imagerSettings.geometry.hRes
 				<< "vRes" << imagerSettings.geometry.vRes
@@ -1549,12 +1554,11 @@ cleanup:
 	}
 }
 
-Int32 Camera::liveColumnCalibration(unsigned int iterations)
+Int32 Camera::autoOffsetCalibration(unsigned int iterations)
 {
 	ImagerSettings_t isPrev = imagerSettings;
 	ImagerSettings_t isDark;
 	FrameGeometry isMaxSize = sensor->getMaxGeometry();
-	struct timespec tRefresh;
 	Int32 retVal;
 
 	/* Swap the black rows into the top of the frame. */
@@ -1587,12 +1591,8 @@ Int32 Camera::liveColumnCalibration(unsigned int iterations)
 	ui->setRecLEDFront(true);
 	ui->setRecLEDBack(true);
 
-	/* Compute the live display worst-case frame refresh time. */
-	tRefresh.tv_sec = 0;
-	tRefresh.tv_nsec = (CAL_REGION_FRAMES+10) * (isDark.period * 1000000000ULL) / sensor->getFramePeriodClock();
-
+	/* Run the ADC training algorithm. */
 	sensor->adcOffsetTraining(&isDark.geometry, CAL_REGION_START, CAL_REGION_FRAMES);
-	computeGainColumns(&isDark.geometry, CAL_REGION_START, &tRefresh);
 
 	terminateRecord();
 	ui->setRecLEDFront(false);
@@ -1600,6 +1600,34 @@ Int32 Camera::liveColumnCalibration(unsigned int iterations)
 
 	/* Restore the sensor settings. */
 	return setImagerSettings(isPrev);
+}
+
+Int32 Camera::liveGainCalibration(unsigned int iterations)
+{
+	struct timespec tRefresh;
+	Int32 retVal;
+
+	/* Record frames continuously into a small loop buffer. */
+	retVal = setRecSequencerModeCalLoop();
+	if (SUCCESS != retVal) {
+		return retVal;
+	}
+
+	/* Activate the recording sequencer. */
+	startSequencer();
+	ui->setRecLEDFront(true);
+	ui->setRecLEDBack(true);
+
+	/* Run the gain calibration algorithm. */
+	tRefresh.tv_sec = 0;
+	tRefresh.tv_nsec = (CAL_REGION_FRAMES+10) * (imagerSettings.period * 1000000000ULL) / sensor->getFramePeriodClock();
+	computeGainColumns(&imagerSettings.geometry, CAL_REGION_START, &tRefresh);
+
+	terminateRecord();
+	ui->setRecLEDFront(false);
+	ui->setRecLEDBack(false);
+
+	return SUCCESS;
 }
 
 /* Compute the gain columns by controlling exposure. */
@@ -2472,6 +2500,11 @@ Int32 Camera::blackCalAllStdRes(bool factory, QProgressDialog *dialog)
 				dialog->setLabelText(label);
 				QCoreApplication::processEvents();
 			}
+
+			qDebug("Doing offset correction for %ux%u...", settings.geometry.hRes, settings.geometry.vRes);
+			retVal = autoOffsetCalibration();
+			if(SUCCESS != retVal)
+				return retVal;
 
 			qDebug("Doing FPN correction for %ux%u...", settings.geometry.hRes, settings.geometry.vRes);
 			retVal = autoFPNCorrection(16, true, false, factory);	//Factory mode
