@@ -20,7 +20,6 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <QSettings>
-#include <QLocalSocket>
 
 #include "cameraRegisters.h"
 #include "userInterface.h"
@@ -52,7 +51,6 @@ Camera * camera;
 Video * vinst;
 UserInterface * userInterface;
 bool focusAidEnabled = false;
-
 uint_fast8_t powerLoopCount = 0;
 
 CamMainWindow::CamMainWindow(QWidget *parent) :
@@ -106,14 +104,6 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	ui->cmdWB->setEnabled(camera->getIsColor());
 	ui->chkFocusAid->setChecked(camera->getFocusPeakEnable());
 
-    /* Connect to pcUtil socket to get battery data
-    powerDataSocket.connectToServer("/tmp/pcUtil_socket");
-    if(powerDataSocket.waitForConnected(500)){
-        qDebug("connected to pcUtil server");
-    } else {
-        qDebug("could not connect to pcUtil socket");
-    }*/
-
 	sw = new StatusWindow;
 
 	updateExpSliderLimits();
@@ -154,7 +144,6 @@ CamMainWindow::~CamMainWindow()
 {
 	timer->stop();
 	delete sw;
-    //powerDataSocket.close();
 
 	delete ui;
 	delete camera;
@@ -352,7 +341,7 @@ void CamMainWindow::updateRecordingState(bool recording)
 void CamMainWindow::on_MainWindowTimer()
 {
 	bool shutterButton = camera->ui->getShutterButton();
-    char buf[256] = {'\0'};
+	char buf[256] = {'\0'};
 	Int32 len;
 	QSettings appSettings;
 
@@ -397,14 +386,14 @@ void CamMainWindow::on_MainWindowTimer()
 
 	lastShutterButton = shutterButton;
 
-    //Request battery information from the PMIC every two seconds (16ms * 125 loops)
-    if(powerLoopCount == 125){
-        len = camera->get_batteryData(buf, sizeof(buf));
-        powerLoopCount = 0;
-    } else {
-        len = 0;
-    }
-    powerLoopCount++;
+	//Request battery information from the PMIC every two seconds (16ms * 125 loops)
+	if(powerLoopCount == 125){
+		len = camera->get_batteryData(buf, sizeof(buf));
+		powerLoopCount = 0;
+	} else {
+		len = 0;
+	}
+	powerLoopCount++;
 
 	if(len > 0)
 	{
@@ -420,10 +409,10 @@ void CamMainWindow::on_MainWindowTimer()
 			   &battCurrentCam,
 			   &mbTemperature,
 			   &flags,
-               &fanPWM);
+			   &fanPWM);
 
-        updateCurrentSettingsLabel();
-    }
+		updateCurrentSettingsLabel();
+	}
 
 	if (appSettings.value("debug/hideDebug", true).toBool()) {
 		ui->cmdDebugWnd->setVisible(false);
@@ -512,8 +501,8 @@ void CamMainWindow::updateCurrentSettingsLabel()
 		sprintf(battStr, "Batt %d%% %.2fV", (UInt32)battPercent,  (double)battVoltageCam / 1000.0);
 	}
 	else
-    {
-        sprintf(battStr, "No Batt");
+	{
+		sprintf(battStr, "No Batt");
 	}
 
 	sprintf(str, "%s\r\n%ux%u %sfps\r\nExp %ss (%u\xb0)", battStr, is.geometry.hRes, is.geometry.vRes, fpsString, expString, shutterAngle);

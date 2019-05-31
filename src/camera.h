@@ -19,6 +19,7 @@
 
 #include <pthread.h>
 #include <semaphore.h>
+#include <QLocalSocket>
 
 #include <QProgressDialog>
 
@@ -168,6 +169,13 @@ typedef struct {
 	double matrix[9];
 } ColorMatrix_t;
 
+typedef enum AutoPowerModes{
+	AUTO_POWER_DISABLED = 0,
+	AUTO_POWER_RESTORE_ONLY,
+	AUTO_POWER_REMOVE_ONLY,
+	AUTO_POWER_BOTH
+} AutoPowerModesType;
+
 class Camera
 {
 public:
@@ -186,6 +194,7 @@ public:
 	ImageSensor * sensor;
 	UserInterface * ui;
 	IO * io;
+	QLocalSocket powerDataSocket;
 
 	RecordSettings_t recordingData;
 	ImagerSettings_t getImagerSettings() { return imagerSettings; }
@@ -323,11 +332,15 @@ public:
 	void set_demoMode(bool state);
 	bool get_demoMode();
 
-    bool shippingMode;
-    void set_shippingMode(bool state);
-    bool get_shippingMode();
+	bool shippingMode;
+	void set_shippingMode(bool state);
+	bool get_shippingMode();
 
-    int get_batteryData(char *buf, size_t bufSize);
+	int autoPowerMode;
+	void set_autoPowerMode(int mode);
+	int get_autoPowerMode();
+
+	int get_batteryData(char *buf, size_t bufSize);
 
 	bool getButtonsOnLeft();
 	void setButtonsOnLeft(bool en);
