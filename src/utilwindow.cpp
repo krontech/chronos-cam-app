@@ -142,7 +142,8 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	ui->chkAutoRecord->setChecked(camera->get_autoRecord());
 	ui->chkDemoMode->setChecked(camera->get_demoMode());
 	ui->chkUiOnLeft->setChecked(camera->getButtonsOnLeft());
-	ui->comboDisableUnsavedWarning->setCurrentIndex(camera->getUnsavedWarnEnable());
+    ui->comboDisableUnsavedWarning->setCurrentIndex(camera->getUnsavedWarnEnable());
+    ui->autoPowerSetting->setCurrentIndex(camera->get_autoPowerMode());
 
 	if(camera->RotationArgumentIsSet())
 		ui->chkUpsideDownDisplay->setChecked(camera->getUpsideDownDisplay());
@@ -973,20 +974,15 @@ void UtilWindow::on_chkDemoMode_stateChanged(int arg1)
 	camera->set_demoMode(ui->chkDemoMode->isChecked());
 }
 
-void UtilWindow::on_chkAutoPowerOn_stateChanged(int arg1)
+void UtilWindow::on_chkShippingMode_clicked()
 {
+	bool state = ui->chkShippingMode->isChecked();
 
-}
+	if(state == TRUE){
+		QMessageBox::information(this, "Shipping Mode Enabled","On the next restart, the AC adapter must be plugged in to turn the camera on.", QMessageBox::Ok);
+	}
 
-void UtilWindow::on_chkAutoPowerOff_stateChanged(int arg1)
-{
-
-}
-
-void UtilWindow::on_chkShippingMode_stateChanged()
-{
-    QMessageBox::information(this, "Shipping Mode","Enabling this will require the AC adapter to be plugged in to turn the camera on next time.", QMessageBox::Ok);
-    camera->set_shippingMode(ui->chkShippingMode->isChecked());
+	camera->set_shippingMode(state);
 }
 
 void UtilWindow::on_cmdDefaults_clicked()
@@ -1202,4 +1198,9 @@ void UtilWindow::on_tabWidget_currentChanged(int index)
 		ui->textKickstarter->setEditFocus(true);
 	}
 #endif
+}
+
+void UtilWindow::on_autoPowerSetting_currentIndexChanged(int index)
+{
+    camera->set_autoPowerMode(index);
 }

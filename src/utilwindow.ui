@@ -409,7 +409,7 @@ Display</string>
       <rect>
        <x>200</x>
        <y>250</y>
-       <width>201</width>
+       <width>231</width>
        <height>41</height>
       </rect>
      </property>
@@ -456,6 +456,61 @@ Display</string>
      </property>
      <property name="text">
       <string>Demo Mode</string>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="autoPowerSetting">
+     <property name="geometry">
+      <rect>
+       <x>200</x>
+       <y>310</y>
+       <width>231</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>16</pointsize>
+       <italic>false</italic>
+      </font>
+     </property>
+     <item>
+      <property name="text">
+       <string>Disabled</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Turn on if AC inserted</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Turn off if AC removed</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Both</string>
+      </property>
+     </item>
+    </widget>
+    <widget class="QLabel" name="label_2">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>310</y>
+       <width>161</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>15</pointsize>
+       <italic>false</italic>
+      </font>
+     </property>
+     <property name="text">
+      <string>Auto Power Mode</string>
      </property>
     </widget>
    </widget>
@@ -1018,23 +1073,23 @@ p, li { white-space: pre-wrap; }
     <widget class="QPushButton" name="cmdColumnGain">
      <property name="geometry">
       <rect>
-       <x>160</x>
+       <x>10</x>
        <y>170</y>
-       <width>91</width>
+       <width>151</width>
        <height>51</height>
       </rect>
      </property>
      <property name="text">
       <string>Column Gain
-Cal</string>
+Calibration</string>
      </property>
     </widget>
     <widget class="QPushButton" name="cmdBlackCalAll">
      <property name="geometry">
       <rect>
-       <x>420</x>
+       <x>190</x>
        <y>90</y>
-       <width>131</width>
+       <width>151</width>
        <height>61</height>
       </rect>
      </property>
@@ -1046,9 +1101,9 @@ All Resolutions</string>
     <widget class="QPushButton" name="cmdCloseApp">
      <property name="geometry">
       <rect>
-       <x>520</x>
-       <y>170</y>
-       <width>91</width>
+       <x>190</x>
+       <y>240</y>
+       <width>151</width>
        <height>51</height>
       </rect>
      </property>
@@ -1060,9 +1115,9 @@ Application</string>
     <widget class="QPushButton" name="cmdAutoCal">
      <property name="geometry">
       <rect>
-       <x>280</x>
+       <x>190</x>
        <y>170</y>
-       <width>91</width>
+       <width>151</width>
        <height>51</height>
       </rect>
      </property>
@@ -1077,23 +1132,23 @@ Calibration</string>
     <widget class="QPushButton" name="cmdWhiteRef">
      <property name="geometry">
       <rect>
-       <x>400</x>
-       <y>170</y>
-       <width>91</width>
+       <x>10</x>
+       <y>240</y>
+       <width>151</width>
        <height>51</height>
       </rect>
      </property>
      <property name="text">
-      <string>White Ref</string>
+      <string>White Reference</string>
      </property>
     </widget>
     <widget class="CamLineEdit" name="lineSerialNumber">
      <property name="geometry">
       <rect>
-       <x>280</x>
-       <y>260</y>
-       <width>331</width>
-       <height>31</height>
+       <x>130</x>
+       <y>310</y>
+       <width>211</width>
+       <height>51</height>
       </rect>
      </property>
      <property name="font">
@@ -1111,9 +1166,9 @@ Calibration</string>
     <widget class="QPushButton" name="cmdSetSN">
      <property name="geometry">
       <rect>
-       <x>160</x>
-       <y>250</y>
-       <width>91</width>
+       <x>10</x>
+       <y>310</y>
+       <width>101</width>
        <height>51</height>
       </rect>
      </property>
@@ -1125,7 +1180,7 @@ Number</string>
     <widget class="CamLineEdit" name="linePassword">
      <property name="geometry">
       <rect>
-       <x>220</x>
+       <x>10</x>
        <y>40</y>
        <width>331</width>
        <height>31</height>
@@ -1146,7 +1201,7 @@ Number</string>
     <widget class="QLabel" name="label">
      <property name="geometry">
       <rect>
-       <x>220</x>
+       <x>10</x>
        <y>20</y>
        <width>121</width>
        <height>17</height>
@@ -1159,8 +1214,8 @@ Number</string>
     <widget class="QCheckBox" name="chkShowDebugControls">
      <property name="geometry">
       <rect>
-       <x>160</x>
-       <y>330</y>
+       <x>410</x>
+       <y>80</y>
        <width>281</width>
        <height>41</height>
       </rect>
@@ -1186,16 +1241,16 @@ Number</string>
     <widget class="QPushButton" name="cmdRevertCalData">
      <property name="geometry">
       <rect>
-       <x>220</x>
+       <x>10</x>
        <y>90</y>
-       <width>181</width>
+       <width>151</width>
        <height>61</height>
       </rect>
      </property>
      <property name="text">
-      <string>Remove user
-calibration data
-(revert to factory)</string>
+      <string>Remove User
+Calibration Data
+(Revert to Factory)</string>
      </property>
     </widget>
     <widget class="QPushButton" name="cmdClose_4">
@@ -1219,8 +1274,8 @@ calibration data
     <widget class="QCheckBox" name="chkShippingMode">
      <property name="geometry">
       <rect>
-       <x>440</x>
-       <y>330</y>
+       <x>410</x>
+       <y>30</y>
        <width>201</width>
        <height>41</height>
       </rect>
