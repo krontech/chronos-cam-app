@@ -18,6 +18,11 @@
 #include "frameGeometry.h"
 #include "sensor.h"
 
+extern bool pych;
+extern UInt32 pyCurrentPeriod;
+extern UInt32 pyCurrentExposure;
+
+
 /* Default implementations and helper functions for the ImageSensor class. */
 
 /* Frame size validation function. */
@@ -66,4 +71,44 @@ UInt32 ImageSensor::getActualIntegrationTime(double target, UInt32 period, Frame
 
 	return within(intTime, minIntTime, maxIntTime);
 }
+
+
+double ImageSensor::getCurrentFramePeriodDouble()
+{
+	if (pych)
+	{
+		//return this->getPyFramePeriod()
+		return pyCurrentPeriod;
+	}
+	else
+	{
+		return (double)getFramePeriod() / getFramePeriodClock();
+	}
+}
+
+double ImageSensor::getCurrentExposureDouble()
+{
+	if (pych & 0)
+	{
+		return pyCurrentExposure;
+	}
+	else
+	{
+		return (double)getIntegrationTime() / getIntegrationClock();
+	}
+}
+
+double ImageSensor::getCurrentExposureAngle()
+{
+	if (pych)
+	{
+
+		return 360.0 * pyCurrentExposure / pyCurrentPeriod;
+	}
+	else
+	{
+		return getCurrentExposureDouble() * 360.0 / getCurrentFramePeriodDouble();
+	}
+}
+
 

@@ -22,6 +22,8 @@
 #include <QResource>
 #include <QDir>
 #include "camLineEdit.h"
+#include "pych.h"
+#include "exec.h"
 
 #include <QDebug>
 #include <cstdio>
@@ -36,6 +38,8 @@ extern "C" {
 #define DEF_SI_OPTS	SI_DELIM_SPACE | SI_SPACE_BEFORE_PREFIX
 
 extern bool pych;
+extern UInt32 pyCurrentPeriod;
+extern UInt32 pyCurrentExposure;
 
 //Round an integer (x) to the nearest multiple of mult
 template<typename T>
@@ -46,6 +50,9 @@ RecSettingsWindow::RecSettingsWindow(QWidget *parent, Camera * cameraInst) :
 	ui(new Ui::RecSettingsWindow)
 {
 	char str[100];
+
+	getRecShadow();
+
 
 	// as non-static data member initializers can't happen in the .h, making sure it's set correct here.
 	windowInitComplete = false;
@@ -123,7 +130,9 @@ RecSettingsWindow::RecSettingsWindow(QWidget *parent, Camera * cameraInst) :
 		fSize.hOffset = fSize.vOffset = fSize.vDarkRows = 0;
 		
 		int fr =  100000000.0 / (double)camera->sensor->getMinFramePeriod(&fSize);
-		qDebug() << "hres" << fSize.hRes << "vRes" << fSize.vRes << "mperiod" << camera->sensor->getMinFramePeriod(&fSize) << "fr" << fr;
+		//int fr = 1000;
+		//qDebug() << "hRes" << fSize.hRes << "vRes" << fSize.vRes << "mperiod" << camera->sensor->getMinFramePeriod(&fSize) << "fr" << fr;
+		qDebug() << "hRes" << fSize.hRes << "vRes" << fSize.vRes << "fr" << fr;
 
 		lineText.sprintf("%dx%d %d fps", fSize.hRes, fSize.vRes, fr);
 		
@@ -213,6 +222,9 @@ void RecSettingsWindow::on_cmdOK_clicked()
 		//add
 		FrameGeometry *geo = &is->geometry;
 		camera->cinst->setResolution(geo);
+		pyCurrentExposure = intTime;
+		pyCurrentPeriod = period;
+		setRecShadow();
 	}
 	else
 	{
@@ -226,7 +238,15 @@ void RecSettingsWindow::on_cmdOK_clicked()
 	if(CAMERA_FILE_NOT_FOUND == camera->loadFPNFromFile()) {
 		if (pych)
 		{
-			// add this
+			QString jsonInString;
+			QString jsonOutString;
+			buildJsonCalibration(&jsonInString, "zeroTimeBlackCal");
+			//jsonInString = "{ \"zeroTimeBlackCal\" : True }";
+			//jsonInString = "{\"wbMatrix\" : 0}";
+
+
+			startCalibrationCamJson(&jsonOutString, &jsonInString);
+
 		}
 		else
 		{
@@ -409,7 +429,8 @@ void RecSettingsWindow::on_lineRate_returnPressed()
 	ui->lineRate->setText(str);
 
 	//Make sure exposure is within limits
-	UInt32 intTime = camera->sensor->getActualIntegrationTime(ui->lineExp->siText(), period, &frameSize);
+	double target = ui->lineExp->siText();
+	UInt32 intTime = camera->sensor->getActualIntegrationTime(target, period, &frameSize);
 
 	//Format the entered value nicely
 	getSIText(str, (double)intTime / camera->sensor->getIntegrationClock(), 10, DEF_SI_OPTS, 8);

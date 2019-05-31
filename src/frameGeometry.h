@@ -20,4 +20,13 @@ public:
 	unsigned long size() const { return (bitDepth * pixels()) / 8; }
 };
 
+class FrameTiming
+{
+public:
+	unsigned int exposureMax;
+	unsigned int minFramePeriod;
+	unsigned int exposureMin;
+	unsigned int cameraMaxFrames;
+};
+
 #endif // FRAMEGEOMETRY_H

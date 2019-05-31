@@ -48,6 +48,21 @@ void Control::checkpid(void)
 // parsers
 //
 
+UInt32 sensorHIncrement = 0;
+UInt32 sensorVIncrement = 0;
+UInt32 sensorHMax = 0;
+UInt32 sensorVMax = 0;
+UInt32 sensorHMin = 0;
+UInt32 sensorVMin = 0;
+UInt32 sensorVDark = 0;
+UInt32 sensorBitDepth = 0;
+double sensorMinFrameTime = 0.001;
+
+
+
+
+
+
 
 static CameraStatus *parseCameraStatus(const QVariantMap &args, CameraStatus *cs)
 {
@@ -224,7 +239,7 @@ CameraErrortype Control::getString(QString parameter, QString *str)
 		fprintf(stderr, "Failed to get string: %s - %s\n", err.name().data(), err.message().toAscii().data());
 	}
 	map = reply.value();
-	qDebug() << map;
+	//qDebug() << map;
 	*str = map[parameter].toString();
 	//qDebug() << "getString():" << *str;
 	//qDebug() << "map[p]:" << map[parameter];
@@ -284,6 +299,18 @@ void parseArray(QDBusArgument &argument)
 
 	argument.endArray();
 	//return argument;
+}
+
+
+UInt32 Control::getTiming(FrameGeometry *geometry, FrameTiming *timing)
+{
+	QString jsonString;
+	//getCamJson("testResolution", &jsonString);
+	//methodCamJson("testResolution", &jsonString);
+	testResolutionCamJson(&jsonString, geometry);
+	qDebug() << jsonString;
+
+	parseJsonTiming(jsonString, geometry, timing);
 }
 
 
@@ -653,9 +680,9 @@ CameraErrortype Control::startBlackCalibration(void)
 	QVariantMap args;
 	QDBusPendingReply<QVariantMap> reply;
 
-	qDebug("startBlackCalibration");
+	qDebug("startCalibration");
 
-	//args.insert("lastState", QVariant(lastState));
+	args.insert("zeroTimeBlackCal", 1);
 	//args.insert("error", QVariant(error));
 
 	pthread_mutex_lock(&mutex);

@@ -40,6 +40,7 @@
 #include <QWSDisplay>
 #include "control.h"
 #include "exec.h"
+#include "pysensor.h"
 
 void* recDataThread(void *arg);
 void recordEosCallback(void * arg);
@@ -51,6 +52,10 @@ bool pych = true;
 #else
 bool pych = false;
 #endif
+
+UInt32 pyCurrentPeriod;
+UInt32 pyCurrentExposure;
+
 
 
 Camera::Camera()
@@ -69,6 +74,7 @@ Camera::Camera()
 	ButtonsOnLeft = getButtonsOnLeft();
 	UpsideDownDisplay = getUpsideDownDisplay();
 	strcpy(serialNumber, "Not_Set");
+
 }
 
 Camera::~Camera()
@@ -107,6 +113,8 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, Control * cinst
 	isColor = true;//readIsColor();
 	int err;
 
+	//QString str;
+	//cinst->getString("cameraDescription", &str);
 
 	//PYCHRONOS
 	if (pych)
@@ -244,6 +252,7 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, Control * cinst
 	settings.geometry.vOffset       = appSettings.value("camera/vOffset", 0).toInt();
 	settings.geometry.vDarkRows     = 0;
 	settings.geometry.bitDepth		= imagerSettings.geometry.bitDepth;
+	settings.geometry.minFrameTime	= 0.001;
 	settings.gain                   = appSettings.value("camera/gain", 0).toInt();
 	settings.period                 = appSettings.value("camera/period", sensor->getMinFramePeriod(&settings.geometry)).toInt();
 	settings.exposure               = appSettings.value("camera/exposure", sensor->getMaxIntegrationTime(settings.period, &settings.geometry)).toInt();
@@ -356,6 +365,15 @@ UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 	if (pych)
 	{
 		//add cinst calls
+
+		QString str;
+		cinst->setString("cameraDescription", "this model");
+		sensor->setResolution(&settings.geometry);
+		sensor->setGain(settings.gain);
+		sensor->setFramePeriod(settings.period, &settings.geometry);
+		delayms(10);
+		sensor->setIntegrationTime(settings.exposure, &settings.geometry);
+
 		//cinst->setResolution(&settings.geometry);
 /*
 		cinst->setResolution(settings.geometry.hRes,
@@ -467,6 +485,7 @@ UInt32 Camera::getFrameSizeWords(FrameGeometry *geometry)
 
 UInt32 Camera::getMaxRecordRegionSizeFrames(FrameGeometry *geometry)
 {
+
 	return (ramSize - REC_REGION_START) / getFrameSizeWords(geometry);
 }
 
@@ -554,6 +573,19 @@ void Camera::updateVideoPosition()
 }
 
 
+void Camera::getSensorInfo(Control *c)
+{
+	c->getInt("sensorHIncrement", &sensorHIncrement);
+	c->getInt("sensorVIncrement", &sensorVIncrement);
+	c->getInt("sensorHMax", &sensorHMax);
+	c->getInt("sensorVMax", &sensorVMax);
+	c->getInt("sensorHMin", &sensorHMin);
+	c->getInt("sensorVMin", &sensorVMin);
+	c->getInt("sensorVDark", &sensorVDark);
+	c->getInt("sensorBitDepth", &sensorBitDepth);
+
+}
+
 Int32 Camera::startRecording(void)
 {
 	double wbTest[3];
@@ -577,9 +609,19 @@ Int32 Camera::startRecording(void)
 	geometry.vOffset       = 0;
 	geometry.vDarkRows     = 0;
 	geometry.bitDepth	   = 12;
-	geometry.minFrameTime  = 0.002;
+	geometry.minFrameTime  = 0.0002; //arbitrary here!
 
 
+	//cinst->stopRecording();
+	stopRecordingCamJson(&str);
+	qDebug() << str;
+
+	str = "ok then";
+	qDebug() << str;
+
+	testResolutionCamJson(&str, &geometry);
+	qDebug() << str;
+	//methodCamJson("startRecording", &str);
 	//cinst->getString("cameraDescription", &str);
 	//cinst->getString("state", &str);
 
@@ -595,7 +637,7 @@ Int32 Camera::startRecording(void)
 
 	//cinst->getResolution(&geometry);
 
-	cinst->getString("cameraDescription", &str);
+	//cinst->getString("cameraDescription", &str);
 
 	//cinst->getArray("wbMatrix", 3, (double *)&wbTest);
 	//cinst->getArray("colorMatrix", 9, (double *)&cmTest);
@@ -1317,8 +1359,10 @@ Int32 Camera::loadFPNFromFile(void)
 	filename.sprintf("fpn:fpn_%dx%doff%dx%d", getImagerSettings().geometry.hRes, getImagerSettings().geometry.vRes, getImagerSettings().geometry.hOffset, getImagerSettings().geometry.vOffset);
 
 	std::string fn;
+
 	fn = sensor->getFilename("", ".raw");
 	filename.append(fn.c_str());
+	qDebug();
 	QFileInfo fpnResFile(filename);
 	if (fpnResFile.exists() && fpnResFile.isFile())
 		fn = fpnResFile.absoluteFilePath().toLocal8Bit().constData();

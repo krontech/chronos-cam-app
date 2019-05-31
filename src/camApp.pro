@@ -114,7 +114,9 @@ SOURCES += main.cpp\
     qjson4/QJsonParseError.cpp \
     qjson4/QJsonParser.cpp \
     qjson4/QJsonValue.cpp \
-    qjson4/QJsonValueRef.cpp
+    qjson4/QJsonValueRef.cpp \
+    pysensor.cpp \
+    pych.cpp
 
 ## Generate version.cpp on every build
 versionTarget.target = version.cpp
@@ -183,7 +185,9 @@ HEADERS  += mainwindow.h \
     qjson4/QJsonParser.h \
     qjson4/QJsonRoot.h \
     qjson4/QJsonValue.h \
-    qjson4/QJsonValueRef.h
+    qjson4/QJsonValueRef.h \
+    pysensor.h \
+    pych.h
 
 FORMS    += mainwindow.ui \
     cammainwindow.ui \

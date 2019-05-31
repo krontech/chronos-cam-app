@@ -146,6 +146,8 @@ public:
 	CameraErrortype setIntegrationTime(UInt32 exposure);
 
 
+	UInt32 getTiming(FrameGeometry *geometry, FrameTiming *timing);
+
     CameraErrortype getIoMapping(void);
     CameraErrortype setIoMapping(void);
     CameraErrortype calibrate(void);
@@ -159,6 +161,7 @@ public:
     CameraErrortype getSequencerCapabilities(void);
     CameraErrortype getSequencerProgram(void);
     CameraErrortype setSequencerProgram(void);
+
 
 
 

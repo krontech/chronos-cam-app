@@ -67,10 +67,15 @@ public:
 	/* TODO: Need a better way to communicate what gains are valid to the GUI. */
 	virtual Int32 setGain(UInt32 gainSetting) = 0;
 
-	/* Helper Functions */
-	inline double getCurrentFramePeriodDouble() { return (double)getFramePeriod() / getFramePeriodClock(); }
-	inline double getCurrentExposureDouble() { return (double)getIntegrationTime() / getIntegrationClock(); }
-	inline double getCurrentExposureAngle() { return getCurrentExposureDouble() * 360.0 / getCurrentFramePeriodDouble(); }
+	/* Helper Functions  - now overloaded by pysensor*/
+	//inline double getCurrentFramePeriodDouble() { return (double)getFramePeriod() / getFramePeriodClock(); }
+	//inline double getCurrentExposureDouble() { return (double)getIntegrationTime() / getIntegrationClock(); }
+	//inline double getCurrentExposureAngle() { return getCurrentExposureDouble() * 360.0 / getCurrentFramePeriodDouble(); }
+
+	double getCurrentFramePeriodDouble();
+	double getCurrentExposureDouble();
+	double getCurrentExposureAngle();
+
 };
 
 #endif // IMAGE_SENSOR_H

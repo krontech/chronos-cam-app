@@ -204,6 +204,7 @@ public:
 	UInt32 triggerPostFrames;
 	double maxPostFramesRatio;
 
+	void getSensorInfo(Control *c);
 	UInt32 setImagerSettings(ImagerSettings_t settings);
 	UInt32 setIntegrationTime(double intTime, FrameGeometry *geometry, Int32 flags);
 	UInt32 setPlayMode(bool playMode);

@@ -67,7 +67,7 @@ public Q_SLOTS: // METHODS
 		QList<QVariant> argumentList;
 		qDebug() << "doReset";
 		argumentList << qVariantFromValue(args);
-		return asyncCallWithArgumentList(QLatin1String("doReset"), argumentList);
+		return asyncCallWithArgumentList(QLatin1String("softReset"), argumentList);
 	}
 
 	inline QDBusPendingReply<QVariantMap> startAnalogCalibration(const QVariantMap &args)
@@ -115,7 +115,7 @@ public Q_SLOTS: // METHODS
 		QList<QVariant> argumentList;
 		qDebug() << "startBlackCalibration";
 		argumentList << qVariantFromValue(args);
-		return asyncCallWithArgumentList(QLatin1String("startBlackCalibration"), argumentList);
+		return asyncCallWithArgumentList(QLatin1String("startCalibration"), argumentList);
 	}
 
 	inline QDBusPendingReply<QVariantMap> revertAutoWhiteBalance(const QVariantMap &args)

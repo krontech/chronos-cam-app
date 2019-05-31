@@ -37,6 +37,7 @@
 
 #include "lux1310.h"
 #include "lux2100.h"
+#include "pysensor.h"
 
 
 extern "C" {
@@ -69,13 +70,21 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	vinst = new Video();
     cinst = new Control();
 
-    userInterface = new UserInterface();
+	userInterface = new UserInterface();
 
-	/* FIXME: We need a better method for detecting the attached sensor. */
-	if (false)
-		sensor = new LUX2100();
+	camera->getSensorInfo(cinst);
+
+	if (pych)
+	{
+		sensor = new PySensor(cinst);
+	}
 	else
-		sensor = new LUX1310();
+	{
+		if (false)
+			sensor = new LUX2100();
+		else
+			sensor = new LUX1310();
+	}
 
 	battCapacityPercent = 0;
 
@@ -100,7 +109,7 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 
 	sw = new StatusWindow;
 \
-	if (pych)
+	if (0 & pych)
 	{
 		//TODO sliders
 	}
