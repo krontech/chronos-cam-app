@@ -240,9 +240,11 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 		if(!fileDirFoundOnUSB) strcpy(vinst->fileDirectory, "/media/mmcblk1p1");
 	}
 
-	liveColumnCalibration();
-
 	maxPostFramesRatio = 1;
+
+	/* Load calibration and perform perform automated cal. */
+	sensor->loadADCOffsetsFromFile();
+	liveGainCalibration();
 
 	if(CAMERA_FILE_NOT_FOUND == loadFPNFromFile()) {
 		fastFPNCorrection();
@@ -306,6 +308,9 @@ UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 		imagerSettings.recRegionSizeFrames = settings.recRegionSizeFrames;
 	}
 	setRecRegion(REC_REGION_START, imagerSettings.recRegionSizeFrames, &imagerSettings.geometry);
+
+	/* Load calibration, or perform quick calibration if appropriate. */
+	sensor->loadADCOffsetsFromFile();
 
 	qDebug()	<< "\nSet imager settings:\nhRes" << imagerSettings.geometry.hRes
 				<< "vRes" << imagerSettings.geometry.vRes
@@ -1671,7 +1676,7 @@ void Camera::computeGainColumns(FrameGeometry *geometry, UInt32 wordAddress, con
 	}
 }
 
-Int32 Camera::liveColumnCalibration(unsigned int iterations)
+Int32 Camera::autoOffsetCalibration(unsigned int iterations)
 {
 	ImagerSettings_t isPrev = imagerSettings;
 	ImagerSettings_t isDark;
@@ -1724,12 +1729,7 @@ Int32 Camera::liveColumnCalibration(unsigned int iterations)
 		nanosleep(&tRefresh, NULL);
 		offsetCorrectionIteration(&isDark.geometry, CAL_REGION_START, CAL_REGION_FRAMES);
 	}
-
-	sensor->seqOnOff(false);
-	delayms(10);
-	sensor->updateWavetableSetting(true);
-	sensor->seqOnOff(true);
-	computeGainColumns(&isDark.geometry, CAL_REGION_START, &tRefresh);
+	sensor->saveADCOffsetsToFile();
 
 	terminateRecord();
 	ui->setRecLEDFront(false);
@@ -1737,6 +1737,43 @@ Int32 Camera::liveColumnCalibration(unsigned int iterations)
 
 	/* Restore the sensor settings. */
 	return setImagerSettings(isPrev);
+}
+
+Int32 Camera::liveGainCalibration(unsigned int iterations)
+{
+	struct timespec tRefresh;
+	Int32 retVal;
+
+	/* Record frames continuously into a small loop buffer. */
+	retVal = setRecSequencerModeCalLoop();
+	if (SUCCESS != retVal) {
+		return retVal;
+	}
+
+	/* Activate the recording sequencer. */
+	startSequencer();
+	ui->setRecLEDFront(true);
+	ui->setRecLEDBack(true);
+
+	/* Run the gain calibration algorithm. */
+	tRefresh.tv_sec = 0;
+	tRefresh.tv_nsec = (CAL_REGION_FRAMES+1) * imagerSettings.period * 10;
+	sensor->seqOnOff(false);
+	delayms(10);
+	sensor->updateWavetableSetting(true);
+	sensor->seqOnOff(true);
+	computeGainColumns(&imagerSettings.geometry, CAL_REGION_START, &tRefresh);
+
+	terminateRecord();
+	ui->setRecLEDFront(false);
+	ui->setRecLEDBack(false);
+
+	sensor->seqOnOff(false);
+	delayms(10);
+	sensor->updateWavetableSetting(false);
+	sensor->seqOnOff(true);
+
+	return SUCCESS;
 }
 
 Int32 Camera::autoColGainCorrection(void)
@@ -2565,11 +2602,12 @@ Int32 Camera::blackCalAllStdRes(bool factory, QProgressDialog *dialog)
 			if (SUCCESS != retVal)
 				return retVal;
 
-			qDebug("Doing FPN correction for %ux%u...", settings.geometry.hRes, settings.geometry.vRes);
-			retVal = liveColumnCalibration();
-			if (SUCCESS != retVal)
+			qDebug("Doing offset correction for %ux%u...", settings.geometry.hRes, settings.geometry.vRes);
+			retVal = autoOffsetCalibration();
+			if(SUCCESS != retVal)
 				return retVal;
 
+			qDebug("Doing FPN correction for %ux%u...", settings.geometry.hRes, settings.geometry.vRes);
 			retVal = autoFPNCorrection(16, true, false, factory);	//Factory mode
 			if(SUCCESS != retVal)
 				return retVal;

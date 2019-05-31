@@ -846,7 +846,6 @@ void UtilWindow::formatStorageDevice(const char *blkdev)
 	char diskname[128];
 	int filepathlen;
 	FILE *fp;
-	int ret;
 
 	/* Read the disk name from sysfs. */
 	sprintf(filepath, "/sys/block/%s/device/model", blkdev);
