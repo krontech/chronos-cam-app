@@ -29,7 +29,7 @@ bool ImageSensor::isValidResolution(FrameGeometry *frameSize)
 	if ((frameSize->hRes < getMinHRes()) || (frameSize->hRes + frameSize->hOffset > maxFrame.hRes)) {
 		return false;
 	}
-	if ((frameSize->vRes < getMinVRes()) || (frameSize->vRes + frameSize->vOffset > maxFrame.vRes)) {
+	if ((frameSize->vRes + frameSize->vDarkRows < getMinVRes()) || (frameSize->vRes + frameSize->vOffset > maxFrame.vRes)) {
 		return false;
 	}
 	if (frameSize->vDarkRows > maxFrame.vDarkRows) {
