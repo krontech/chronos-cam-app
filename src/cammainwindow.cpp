@@ -279,7 +279,7 @@ void CamMainWindow::on_cmdFPNCal_clicked()//Black cal
 	if ((sensor->getSensorQuirks() & SENSOR_QUIRK_SLOW_OFFSET_CAL) == 0) {
 		camera->autoOffsetCalibration();
 	}
-	camera->liveGainCalibration();
+	camera->autoGainCalibration();
 	camera->autoFPNCorrection(16, true);
 	sw->hide();
 }

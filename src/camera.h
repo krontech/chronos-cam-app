@@ -205,15 +205,16 @@ public:
 	UInt16 readPixelCal(UInt32 x, UInt32 y, UInt32 wordAddress, FrameGeometry *geometry);
 	void computeFPNCorrection(FrameGeometry *geometry, UInt32 wordAddress, UInt32 framesToAverage, bool writeToFile = false, bool factory = false);
 	void computeFPNColumns(FrameGeometry *geometry, UInt32 wordAddress, UInt32 framesToAverage);
-	void computeGainColumns(FrameGeometry *geometry, UInt32 wordAddress, const struct timespec *interval);
+	void computeGainColumns(FrameGeometry *geometry, UInt32 wordAddress, const struct timespec *interval, const char *gName);
 	void factoryGainColumns(FrameGeometry *geometry, UInt32 wordAddress, const struct timespec *interval);
 	UInt32 autoFPNCorrection(UInt32 framesToAverage, bool writeToFile = false, bool noCap = false, bool factory = false);
 	Int32 fastFPNCorrection();
 	Int32 loadFPNFromFile(void);
 	void loadFPNCorrection(FrameGeometry *geometry, const UInt16 *fpnBuffer, UInt32 framesToAverage);
+	void loadColGainFromFile(void);
 	Int32 computeColGainCorrection(UInt32 framesToAverage, bool writeToFile = false);
 	Int32 autoOffsetCalibration(unsigned int iterations = 32);
-	Int32 liveGainCalibration(unsigned int iterations = 32);
+	Int32 autoGainCalibration(unsigned int iterations = 32);
 	Int32 autoColGainCorrection(void);
 	Int32 adjustExposureToValue(UInt32 level, UInt32 tolerance = 100, bool includeFPNCorrection = true);
 	Int32 recordFrames(UInt32 numframes);
