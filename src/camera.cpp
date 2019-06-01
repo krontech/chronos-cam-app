@@ -254,9 +254,11 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 		if(!fileDirFoundOnUSB) strcpy(vinst->fileDirectory, "/media/mmcblk1p1");
 	}
 
-	liveColumnCalibration();
-
 	maxPostFramesRatio = 1;
+
+	/* Load calibration and perform perform automated cal. */
+	sensor->loadADCOffsetsFromFile();
+	liveGainCalibration();
 
 	if(CAMERA_FILE_NOT_FOUND == loadFPNFromFile()) {
 		fastFPNCorrection();
@@ -320,6 +322,9 @@ UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 		imagerSettings.recRegionSizeFrames = settings.recRegionSizeFrames;
 	}
 	setRecRegion(REC_REGION_START, imagerSettings.recRegionSizeFrames, &imagerSettings.geometry);
+
+	/* Load calibration, or perform quick calibration if appropriate. */
+	sensor->loadADCOffsetsFromFile();
 
 	qDebug()	<< "\nSet imager settings:\nhRes" << imagerSettings.geometry.hRes
 				<< "vRes" << imagerSettings.geometry.vRes
@@ -660,49 +665,6 @@ UInt32 Camera::setPlayMode(bool playMode)
 	return SUCCESS;
 }
 
-/* Camera::readPixel
- *
- * Reads a 10-bit pixel out of acquisition RAM
- *
- * pixel:	Number of pixels into the image to read from
- * offset:	Offset in bytes
- *
- * returns: Pixel value
- **/
-UInt16 Camera::readPixel(UInt32 pixel, UInt32 offset)
-{
-	UInt32 address = pixel * 10 / 8 + offset;
-	UInt8 shift = (pixel & 0x3) * 2;
-	return ((gpmc->readRam8(address) >> shift) | (((UInt16)gpmc->readRam8(address+1)) << (8 - shift))) & ((1 << BITS_PER_PIXEL) - 1);
-}
-
-/* Camera::writePixel
- *
- * Writes a 10-bit pixel into acquisition RAM
- *
- * pixel:	Number of pixels into the image to write to
- * offset:	Offset in bytes
- * value:	Pixel value to write
- *
- * returns: nothing
- **/
-void Camera::writePixel(UInt32 pixel, UInt32 offset, UInt16 value)
-{
-	UInt32 address = pixel * 10 / 8 + offset;
-	UInt8 shift = (pixel & 0x3) * 2;
-	UInt8 dataL = gpmc->readRam8(address), dataH = gpmc->readRam8(address+1);
-
-	UInt8 maskL = ~(0xFF << shift);
-	UInt8 maskH = ~(0x3FF >> (8 - shift));
-	dataL &= maskL;
-	dataH &= maskH;
-
-	dataL |= (value << shift);
-	dataH |= (value >> (8 - shift));
-	gpmc->writeRam8(address, dataL);
-	gpmc->writeRam8(address+1, dataH);
-}
-
 /* Camera::readPixel12
  *
  * Reads a 12-bit pixel out of acquisition RAM
@@ -719,48 +681,34 @@ UInt16 Camera::readPixel12(UInt32 pixel, UInt32 offset)
 	return ((gpmc->readRam8(address) >> shift) | (((UInt16)gpmc->readRam8(address+1)) << (8 - shift))) & ((1 << BITS_PER_PIXEL) - 1);
 }
 
-/* Camera::readPixel
+/* Camera::readPixelCal
  *
- * Reads a 10-bit pixel out of a local buffer containing 10-bit packed data
+ * Reads a 12-bit pixel out of acquisition RAM with calibration applied.
  *
- * buf:		Pointer to image buffer
- * pixel:	Number of pixels into the buffer to read from
+ * x:		Horizontal pixel offset into the frame.
+ * y:		Vertical pixel offset into the frame.
+ * wordAddr: Memory address of the frame.
+ * size:	Frame geometry.
  *
- * returns: Pixel value
+ * returns: Calibrated pixel value
  **/
-UInt16 Camera::readPixelBuf(UInt8 * buf, UInt32 pixel)
+UInt16 Camera::readPixelCal(UInt32 x, UInt32 y, UInt32 wordAddr, FrameGeometry *geometry)
 {
-	UInt32 address = pixel * 10 / 8;
-	UInt8 shift = (pixel & 0x3) * 2;
-	return ((buf[address] >> shift) | (((UInt16)buf[address+1]) << (8 - shift))) & ((1 << BITS_PER_PIXEL) - 1);
-}
+	Int32 pixel = readPixel12(y * geometry->hRes + x, wordAddr * BYTES_PER_WORD);
+	UInt32 pxGain = (pixel * gpmc->read16(COL_GAIN_MEM_START_ADDR + (2 * x))) >> COL_GAIN_FRAC_BITS;
 
-/* Camera::writePixel
- *
- * Writes a 10-bit pixel into a local buffer containing 10-bit packed data
- *
- * buf:		Pointer to image buffer
- * pixel:	Number of pixels into the image to write to
- * value:	Pixel value to write
- *
- * returns: nothing
- **/
-void Camera::writePixelBuf(UInt8 * buf, UInt32 pixel, UInt16 value)
-{
-	UInt32 address = pixel * 10 / 8;
-	UInt8 shift = (pixel & 0x3) * 2;
-	UInt8 dataL = buf[address], dataH = buf[address+1];
-	//uint8 dataL = 0, dataH = 0;
-
-	UInt8 maskL = ~(0xFF << shift);
-	UInt8 maskH = ~(0x3FF >> (8 - shift));
-	dataL &= maskL;
-	dataH &= maskH;
-
-	dataL |= (value << shift);
-	dataH |= (value >> (8 - shift));
-	buf[address] = dataL;
-	buf[address+1] = dataH;
+	/* Apply column curvature and offset terms for 3-point cal. */
+	if (gpmc->read16(DISPLAY_GAIN_CONTROL_ADDR) & DISPLAY_GAIN_CONTROL_3POINT) {
+		Int32 pxCurve = (pixel * pixel * (Int16)gpmc->read16(COL_CURVE_MEM_START_ADDR + (2 * x))) >> COL_CURVE_FRAC_BITS;
+		Int32 pxOffset = (Int16)gpmc->read16(COL_OFFSET_MEM_START_ADDR + (2 * x));
+		/* TODO: FPN is a bit messy in 3-point world (signed 12-bit). */
+		return pxGain + pxCurve + pxOffset;
+	}
+	/* Otherwise - 2-point calibration requires FPN subtraction. */
+	else {
+		UInt32 fpn = readPixel12(y * geometry->hRes + x, FPN_ADDRESS * BYTES_PER_WORD);
+		return pxGain - fpn;
+	}
 }
 
 /* Camera::readPixel12
@@ -779,9 +727,9 @@ UInt16 Camera::readPixelBuf12(UInt8 * buf, UInt32 pixel)
 	return ((buf[address] >> shift) | (((UInt16)buf[address+1]) << (8 - shift))) & ((1 << BITS_PER_PIXEL) - 1);
 }
 
-/* Camera::writePixel
+/* Camera::writePixelBuf12
  *
- * Writes a 12-bit pixel into a local buffer containing 10-bit packed data
+ * Writes a 12-bit pixel into a local buffer containing 12-bit packed data
  *
  * buf:		Pointer to image buffer
  * pixel:	Number of pixels into the image to write to
@@ -1742,7 +1690,7 @@ void Camera::computeGainColumns(FrameGeometry *geometry, UInt32 wordAddress, con
 	}
 }
 
-Int32 Camera::liveColumnCalibration(unsigned int iterations)
+Int32 Camera::autoOffsetCalibration(unsigned int iterations)
 {
 	ImagerSettings_t isPrev = imagerSettings;
 	ImagerSettings_t isDark;
@@ -1795,12 +1743,7 @@ Int32 Camera::liveColumnCalibration(unsigned int iterations)
 		nanosleep(&tRefresh, NULL);
 		offsetCorrectionIteration(&isDark.geometry, CAL_REGION_START, CAL_REGION_FRAMES);
 	}
-
-	sensor->seqOnOff(false);
-	delayms(10);
-	sensor->updateWavetableSetting(true);
-	sensor->seqOnOff(true);
-	computeGainColumns(&isDark.geometry, CAL_REGION_START, &tRefresh);
+	sensor->saveADCOffsetsToFile();
 
 	terminateRecord();
 	ui->setRecLEDFront(false);
@@ -1808,6 +1751,43 @@ Int32 Camera::liveColumnCalibration(unsigned int iterations)
 
 	/* Restore the sensor settings. */
 	return setImagerSettings(isPrev);
+}
+
+Int32 Camera::liveGainCalibration(unsigned int iterations)
+{
+	struct timespec tRefresh;
+	Int32 retVal;
+
+	/* Record frames continuously into a small loop buffer. */
+	retVal = setRecSequencerModeCalLoop();
+	if (SUCCESS != retVal) {
+		return retVal;
+	}
+
+	/* Activate the recording sequencer. */
+	startSequencer();
+	ui->setRecLEDFront(true);
+	ui->setRecLEDBack(true);
+
+	/* Run the gain calibration algorithm. */
+	tRefresh.tv_sec = 0;
+	tRefresh.tv_nsec = (CAL_REGION_FRAMES+1) * imagerSettings.period * 10;
+	sensor->seqOnOff(false);
+	delayms(10);
+	sensor->updateWavetableSetting(true);
+	sensor->seqOnOff(true);
+	computeGainColumns(&imagerSettings.geometry, CAL_REGION_START, &tRefresh);
+
+	terminateRecord();
+	ui->setRecLEDFront(false);
+	ui->setRecLEDBack(false);
+
+	sensor->seqOnOff(false);
+	delayms(10);
+	sensor->updateWavetableSetting(false);
+	sensor->seqOnOff(true);
+
+	return SUCCESS;
 }
 
 Int32 Camera::autoColGainCorrection(void)
@@ -2377,60 +2357,55 @@ void Camera::setWhiteBalance(const double *rgb)
 
 Int32 Camera::autoWhiteBalance(UInt32 x, UInt32 y)
 {
-	const UInt32 min_sum = 100 * (LUX1310_HRES_INCREMENT * LUX1310_HRES_INCREMENT) / 2;
+	UInt32 numChannels = sensor->getHResIncrement();
+	const UInt32 min_sum = 100 * (numChannels * numChannels) / 2;
 
-	UInt32 offset = (y & 0xFFFFFFF0) * imagerSettings.geometry.hRes + (x & 0xFFFFFFF0);
-	double gain[LUX1310_HRES_INCREMENT];
 	UInt32 r_sum = 0;
 	UInt32 g_sum = 0;
 	UInt32 b_sum = 0;
 	double scale;
 	int i, j;
 
-	/* Attempt to get the current column gain data, or default to 1.0 (no gain). */
-	if (readDCG(gain) != SUCCESS) {
-		for (i = 0; i < LUX1310_HRES_INCREMENT; i++) gain[i] = 1.0;
-	}
+	/* Round x and y down to units of 16 pixels. */
+	/* This only really needs to be rounded down to match the bayer pattern. */
+	x &= 0xFFFFFFF0;
+	y &= 0xFFFFFFF0;
 
-	for (i = 0; i < LUX1310_HRES_INCREMENT; i += 2) {
+	for (i = 0; i < numChannels; i += 2) {
 		/* Even Rows - Green/Red Pixels */
-		for (j = 0; j < LUX1310_HRES_INCREMENT; j++) {
-			UInt16 fpn = readPixel12(offset + j, FPN_ADDRESS * BYTES_PER_WORD);
-			UInt16 pix = readPixel12(offset + j, LIVE_REGION_START * BYTES_PER_WORD);
-			if (pix >= (4096 - 128)) {
+		for (j = 0; j < numChannels; j++) {
+			UInt16 pix = readPixelCal(x + j, y + i, LIVE_REGION_START, &imagerSettings.geometry);
+			if (((pix + 128) >> imagerSettings.geometry.bitDepth) != 0) {
 				return CAMERA_CLIPPED_ERROR;
 			}
 			if (j & 1) {
-				r_sum += gain[j] * (pix - fpn) * 2;
+				r_sum += pix * 2;
 			} else {
-				g_sum += gain[j] * (pix - fpn);
+				g_sum += pix;
 			}
 		}
-		offset += imagerSettings.geometry.hRes;
 
 		/* Odd Rows - Blue/Green Pixels */
-		for (j = 0; j < LUX1310_HRES_INCREMENT; j++) {
-			UInt16 fpn = readPixel12(offset + j, FPN_ADDRESS * BYTES_PER_WORD);
-			UInt16 pix = readPixel12(offset + j, LIVE_REGION_START * BYTES_PER_WORD);
-			if (pix >= (4096 - 128)) {
+		for (j = 0; j < numChannels; j++) {
+			UInt16 pix = readPixelCal(x + j, y + i + 1, LIVE_REGION_START, &imagerSettings.geometry);
+			if (((pix + 128) >> imagerSettings.geometry.bitDepth) != 0) {
 				return CAMERA_CLIPPED_ERROR;
 			}
 			if (j & 1) {
-				g_sum += (pix - fpn) * gain[j];
+				g_sum += pix;
 			} else {
-				b_sum += (pix - fpn) * gain[j] * 2;
+				b_sum += pix * 2;
 			}
 		}
-		offset += imagerSettings.geometry.hRes;
 	}
+
+	qDebug("WhiteBalance RGB average: %d %d %d",
+			(2*r_sum) / (numChannels * numChannels),
+			(2*g_sum) / (numChannels * numChannels),
+			(2*b_sum) / (numChannels * numChannels));
 
 	if ((r_sum < min_sum) || (g_sum < min_sum) || (b_sum < min_sum))
         	return CAMERA_LOW_SIGNAL_ERROR;
-
-	fprintf(stderr, "WhiteBalance RGB average: %d %d %d\n",
-			(2*r_sum) / (LUX1310_HRES_INCREMENT * LUX1310_HRES_INCREMENT),
-			(2*g_sum) / (LUX1310_HRES_INCREMENT * LUX1310_HRES_INCREMENT),
-			(2*b_sum) / (LUX1310_HRES_INCREMENT * LUX1310_HRES_INCREMENT));
 
 	/* Find the highest channel (probably green) */
 	scale = g_sum;
@@ -2510,14 +2485,16 @@ round(UInt32  x, UInt32 mult)
 	return (offset >= mult/2) ? x - offset + mult : x - offset;
 }
 
-Int32 Camera::blackCalAllStdRes(bool factory)
+Int32 Camera::blackCalAllStdRes(bool factory, QProgressDialog *dialog)
 {
+	int g;
 	ImagerSettings_t settings;
 	FrameGeometry	maxSize = sensor->getMaxGeometry();
 
 	//Populate the common resolution combo box from the list of resolutions
 	QFile fp;
 	UInt32 retVal = SUCCESS;
+	QStringList resolutions;
 	QString filename;
 	QString line;
 
@@ -2538,22 +2515,64 @@ Int32 Camera::blackCalAllStdRes(bool factory)
 		return CAMERA_FILE_ERROR;
 	}
 
-	
-	int g;
+	/* Read the resolutions file into a list. */
+	while (true) {
+		QString tmp = fp.readLine(30);
+		QStringList strlist;
+		FrameGeometry size;
 
-	//For each gain
-	for(g = LUX1310_GAIN_1; g <= LUX1310_GAIN_16; g++)
-	{
-		if (!fp.reset()) {
-			return CAMERA_FILE_ERROR;
+		/* Try to read another resolution from the file. */
+		if (tmp.isEmpty() || tmp.isNull()) break;
+		strlist = tmp.split('x');
+		if (strlist.count() < 2) break;
+
+		/* If it's a supported resolution, add it to the list. */
+		size.hRes = strlist[0].toInt(); //pixels
+		size.vRes = strlist[1].toInt(); //pixels
+		size.vDarkRows = 0;	//dark rows
+		size.bitDepth = maxSize.bitDepth;
+		size.hOffset = round((maxSize.hRes - size.hRes) / 2, sensor->getHResIncrement());
+		size.vOffset = round((maxSize.vRes - size.vRes) / 2, sensor->getVResIncrement());
+		if (sensor->isValidResolution(&size)) {
+			line.sprintf("%ux%u", size.hRes, size.vRes);
+			resolutions.append(line);
+		}
+	}
+	fp.close();
+
+	/* Ensure that the maximum sensor size is also included. */
+	line.sprintf("%ux%u", maxSize.hRes, maxSize.vRes);
+	if (!resolutions.contains(line)) {
+		resolutions.prepend(line);
+	}
+
+	/* If we have a progress dialog - figure out how many calibration steps to do. */
+	if (dialog) {
+		int maxcals = 0;
+
+		/* Count up the number of gain settings to calibrate for. */
+		for (g = LUX1310_GAIN_1; g <= LUX1310_GAIN_16; g++) {
+			 maxcals += resolutions.count();
 		}
 
-		line.sprintf("%ux%u", maxSize.hRes, maxSize.vRes);
-		do {
+		dialog->setMaximum(maxcals);
+		dialog->setValue(0);
+		dialog->setAutoClose(false);
+		dialog->setAutoReset(false);
+	}
+
+	//For each gain
+	int progress = 0;
+	for(g = LUX1310_GAIN_1; g <= LUX1310_GAIN_16; g++)
+	{
+		QStringListIterator iter(resolutions);
+		while (iter.hasNext()) {
+			QString value = iter.next();
+			QStringList tmp = value.split('x');
+
 			// Split the resolution string on 'x' into horizontal and vertical sizes.
-			QStringList strlist = line.split('x');
-			settings.geometry.hRes = strlist[0].toInt(); //pixels
-			settings.geometry.vRes = strlist[1].toInt(); //pixels
+			settings.geometry.hRes = tmp[0].toInt(); //pixels
+			settings.geometry.vRes = tmp[1].toInt(); //pixels
 			settings.geometry.vDarkRows = 0;	//dark rows
 			settings.geometry.bitDepth = maxSize.bitDepth;
 			settings.geometry.hOffset = round((maxSize.hRes - settings.geometry.hRes) / 2, sensor->getHResIncrement());
@@ -2568,26 +2587,50 @@ Int32 Camera::blackCalAllStdRes(bool factory)
 			settings.segmentLengthFrames = imagerSettings.recRegionSizeFrames;
 			settings.segments = 1;
 			settings.temporary = 0;
-			if (sensor->isValidResolution(&settings.geometry)) {
-				retVal = setImagerSettings(settings);
-				if(SUCCESS != retVal)
-					return retVal;
 
-				qDebug("Doing FPN correction for %ux%u...", settings.geometry.hRes, settings.geometry.vRes);
-				retVal = liveColumnCalibration();
-				if (SUCCESS != retVal)
-					return retVal;
-
-				retVal = autoFPNCorrection(16, true, false, factory);	//Factory mode
-				if(SUCCESS != retVal)
-					return retVal;
-
-				qDebug() << "Done.";
+			/* Update the progress dialog. */
+			progress++;
+			if (dialog) {
+				QString label;
+				const char *gName;
+				if (dialog->wasCanceled()) {
+					goto exit_calibration;
+				}
+				switch(g)
+				{
+					case LUX1310_GAIN_1:		gName = LUX1310_GAIN_1_FN;		break;
+					case LUX1310_GAIN_2:		gName = LUX1310_GAIN_2_FN;		break;
+					case LUX1310_GAIN_4:		gName = LUX1310_GAIN_4_FN;		break;
+					case LUX1310_GAIN_8:		gName = LUX1310_GAIN_8_FN;		break;
+					case LUX1310_GAIN_16:		gName = LUX1310_GAIN_16_FN;		break;
+					default:					gName = "";						break;
+				}
+				label.sprintf("Computing calibration for %ux%u at gain %s",
+							  settings.geometry.hRes, settings.geometry.vRes, gName);
+				dialog->setValue(progress);
+				dialog->setLabelText(label);
+				QCoreApplication::processEvents();
 			}
 
-			line = fp.readLine(30);
-		} while (!line.isEmpty() && !line.isNull());
+			retVal = setImagerSettings(settings);
+			if (SUCCESS != retVal)
+				return retVal;
+
+			qDebug("Doing offset correction for %ux%u...", settings.geometry.hRes, settings.geometry.vRes);
+			retVal = autoOffsetCalibration();
+			if(SUCCESS != retVal)
+				return retVal;
+
+			qDebug("Doing FPN correction for %ux%u...", settings.geometry.hRes, settings.geometry.vRes);
+			retVal = autoFPNCorrection(16, true, false, factory);	//Factory mode
+			if(SUCCESS != retVal)
+				return retVal;
+
+			qDebug() << "Done.";
+		}
 	}
+exit_calibration:
+
 	fp.close();
 
 	memcpy(&settings.geometry, &maxSize, sizeof(maxSize));

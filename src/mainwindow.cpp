@@ -247,29 +247,6 @@ void MainWindow::on_cmdReset_clicked()
 	//camera->gpmc->write16(SYSTEM_RESET_ADDR, 1);
 }
 
-UInt16 MainWindow::readPixel(UInt32 pixel, UInt32 offset)
-{
-	UInt32 address = pixel * 10 / 8 + offset;
-	UInt8 shift = (pixel & 0x3) * 2;
-	return (camera->gpmc->readRam8(address) >> shift) | (((UInt16)camera->gpmc->readRam8(address+1)) << (8 - shift));
-}
-
-void MainWindow::writePixel(UInt32 pixel, UInt32 offset, UInt16 value)
-{
-	UInt32 address = pixel * 10 / 8 + offset;
-	UInt8 shift = (pixel & 0x3) * 2;
-	UInt8 dataL = camera->gpmc->readRam8(address), dataH = camera->gpmc->readRam8(address+1);
-	//uint8 dataL = 0, dataH = 0;
-
-	dataL &= ~(0xFF << shift);
-	dataH &= ~(0xFF >> (8 - shift));
-
-	dataL |= value << shift;
-	dataH |= value >> (8 - shift);
-	camera->gpmc->writeRam8(address, dataL);
-	camera->gpmc->writeRam8(address+1, dataH);
-}
-
 void MainWindow::writePixel12(UInt32 pixel, UInt32 offset, UInt16 value)
 {
 	UInt32 address = pixel * 12 / 8 + offset;

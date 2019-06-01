@@ -20,6 +20,7 @@
 #include <pthread.h>
 #include <semaphore.h>
 #include <QLocalSocket>
+#include <QProgressDialog>
 
 #include "errorCodes.h"
 #include "defines.h"
@@ -211,11 +212,8 @@ public:
 	UInt32 setIntegrationTime(double intTime, FrameGeometry *geometry, Int32 flags);
 	UInt32 setDisplaySettings(bool encoderSafe, UInt32 maxFps);
 	UInt32 setPlayMode(bool playMode);
-	UInt16 readPixel(UInt32 pixel, UInt32 offset);
-	void writePixel(UInt32 pixel, UInt32 offset, UInt16 value);
 	UInt16 readPixel12(UInt32 pixel, UInt32 offset);
-	UInt16 readPixelBuf(UInt8 * buf, UInt32 pixel);
-	void writePixelBuf(UInt8 * buf, UInt32 pixel, UInt16 value);
+	UInt16 readPixelCal(UInt32 x, UInt32 y, UInt32 wordAddress, FrameGeometry *geometry);
 	UInt16 readPixelBuf12(UInt8 * buf, UInt32 pixel);
 	void writePixelBuf12(UInt8 * buf, UInt32 pixel, UInt16 value);
 	void computeFPNCorrection(FrameGeometry *geometry, UInt32 wordAddress, UInt32 framesToAverage, bool writeToFile = false, bool factory = false);
@@ -227,7 +225,8 @@ public:
 	void loadFPNCorrection(FrameGeometry *geometry, const UInt16 *fpnBuffer, UInt32 framesToAverage);
 	Int32 computeColGainCorrection(UInt32 framesToAverage, bool writeToFile = false);
 	void offsetCorrectionIteration(FrameGeometry *geometry, UInt32 wordAddress, UInt32 framesToAverage = 1);
-	Int32 liveColumnCalibration(unsigned int iterations = 32);
+	Int32 autoOffsetCalibration(unsigned int iterations = 32);
+	Int32 liveGainCalibration(unsigned int iterations = 32);
 	Int32 autoColGainCorrection(void);
 	Int32 adjustExposureToValue(UInt32 level, UInt32 tolerance = 100, bool includeFPNCorrection = true);
 	Int32 recordFrames(UInt32 numframes);
@@ -246,7 +245,7 @@ public:
 	int autoWhiteBalance(unsigned int x, unsigned int y);
 	void setFocusAid(bool enable);
 	bool getFocusAid();
-	int blackCalAllStdRes(bool factory = false);
+	int blackCalAllStdRes(bool factory = false, QProgressDialog *dialog = NULL);
 
 	Int32 checkForDeadPixels(int* resultCount = NULL, int* resultMax = NULL);
 
