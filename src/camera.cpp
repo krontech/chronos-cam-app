@@ -258,7 +258,7 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 
 	/* Load calibration and perform perform automated cal. */
 	sensor->loadADCOffsetsFromFile();
-	liveGainCalibration();
+	loadColGainFromFile();
 
 	if(CAMERA_FILE_NOT_FOUND == loadFPNFromFile()) {
 		fastFPNCorrection();
@@ -323,8 +323,9 @@ UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 	}
 	setRecRegion(REC_REGION_START, imagerSettings.recRegionSizeFrames, &imagerSettings.geometry);
 
-	/* Load calibration, or perform quick calibration if appropriate. */
+	/* Load calibration. */
 	sensor->loadADCOffsetsFromFile();
+	loadColGainFromFile();
 
 	qDebug()	<< "\nSet imager settings:\nhRes" << imagerSettings.geometry.hRes
 				<< "vRes" << imagerSettings.geometry.vRes
@@ -1526,7 +1527,7 @@ void Camera::computeFPNColumns(FrameGeometry *geometry, UInt32 wordAddress, UInt
 	free(fpnColumns);
 }
 
-void Camera::computeGainColumns(FrameGeometry *geometry, UInt32 wordAddress, const struct timespec *interval)
+void Camera::computeGainColumns(FrameGeometry *geometry, UInt32 wordAddress, const struct timespec *interval, const char *gName)
 {
 	UInt32 numRows = 64;
 	UInt32 scale = numRows * geometry->hRes / LUX1310_HRES_INCREMENT;
@@ -1682,6 +1683,39 @@ void Camera::computeGainColumns(FrameGeometry *geometry, UInt32 wordAddress, con
 #endif
 	}
 
+	/* Save the gain calibration data to a file. */
+	if (gName) {
+		double gainCorrection[LUX1310_HRES_INCREMENT];
+		double curveCorrection[LUX1310_HRES_INCREMENT];
+		QString filename;
+		QFile fp;
+
+		for (int col = 0; col < LUX1310_HRES_INCREMENT; col++) {
+			gainCorrection[col] = (double)colGain[col] / (1 << COL_GAIN_FRAC_BITS);
+			curveCorrection[col] = (double)colCurve[col] / (1 << COL_CURVE_FRAC_BITS);
+		}
+
+		/* Save column gain data. */
+		filename.sprintf("cal/colGain_%s.bin", gName);
+		fp.setFileName(filename);
+		fp.open(QIODevice::WriteOnly);
+		if(fp.isOpen()) {
+			fp.write((const char*)gainCorrection, sizeof(gainCorrection));
+			fp.flush();
+			fp.close();
+		}
+
+		/* Save column curvature data. */
+		filename.sprintf("cal/colCurve_%s.bin", gName);
+		fp.setFileName(filename);
+		fp.open(QIODevice::WriteOnly);
+		if(fp.isOpen()) {
+			fp.write((const char*)curveCorrection, sizeof(curveCorrection));
+			fp.flush();
+			fp.close();
+		}
+	}
+
 	/* Enable 3-point calibration and load the column gains */
 	gpmc->write16(DISPLAY_GAIN_CONTROL_ADDR, DISPLAY_GAIN_CONTROL_3POINT);
 	for (int col = 0; col < geometry->hRes; col++) {
@@ -1753,10 +1787,13 @@ Int32 Camera::autoOffsetCalibration(unsigned int iterations)
 	return setImagerSettings(isPrev);
 }
 
-Int32 Camera::liveGainCalibration(unsigned int iterations)
+Int32 Camera::autoGainCalibration(unsigned int iterations)
 {
 	struct timespec tRefresh;
+	char gName[16];
 	Int32 retVal;
+
+	snprintf(gName, sizeof(gName), "G%d", imagerSettings.gain);
 
 	/* Record frames continuously into a small loop buffer. */
 	retVal = setRecSequencerModeCalLoop();
@@ -1776,7 +1813,7 @@ Int32 Camera::liveGainCalibration(unsigned int iterations)
 	delayms(10);
 	sensor->updateWavetableSetting(true);
 	sensor->seqOnOff(true);
-	computeGainColumns(&imagerSettings.geometry, CAL_REGION_START, &tRefresh);
+	computeGainColumns(&imagerSettings.geometry, CAL_REGION_START, &tRefresh, gName);
 
 	terminateRecord();
 	ui->setRecLEDFront(false);
@@ -1786,8 +1823,62 @@ Int32 Camera::liveGainCalibration(unsigned int iterations)
 	delayms(10);
 	sensor->updateWavetableSetting(false);
 	sensor->seqOnOff(true);
-
 	return SUCCESS;
+}
+
+void Camera::loadColGainFromFile(void)
+{
+	QString filename;
+	UInt32 numChannels = sensor->getHResIncrement();
+
+	filename.sprintf("cal:colGain_G%d.bin", imagerSettings.gain);
+	QFileInfo colGainFile(filename);
+	if (colGainFile.exists() && colGainFile.isFile()) {
+		double gainCorrection[numChannels];
+		QFile fp;
+
+		qDebug("Found colGain file %s", colGainFile.absoluteFilePath().toLocal8Bit().constData());
+
+		fp.setFileName(filename);
+		fp.open(QIODevice::ReadOnly);
+		if (fp.read((char*)gainCorrection, sizeof(gainCorrection)) < sizeof(gainCorrection)) {
+			for (int col = 0; col < numChannels; col++) {
+				gainCorrection[col] = 1.0;
+			}
+			qDebug("Error: File couldn't be opened");
+		}
+		fp.close();
+
+		for (int col = 0; col < imagerSettings.geometry.hRes; col++) {
+			gpmc->write16(COL_GAIN_MEM_START_ADDR + (2 * col), gainCorrection[col % numChannels] * (1 << COL_GAIN_FRAC_BITS));
+		}
+	}
+
+	filename.sprintf("cal:colCurve_G%d.bin", imagerSettings.gain);
+	QFileInfo colCurveFile(filename);
+	if (colCurveFile.exists() && colCurveFile.isFile()) {
+		double curveCorrection[numChannels];
+		QFile fp;
+
+		qDebug("Found colCurve file %s", colCurveFile.absoluteFilePath().toLocal8Bit().constData());
+
+		fp.setFileName(filename);
+		fp.open(QIODevice::ReadOnly);
+		if (fp.read((char*)curveCorrection, sizeof(curveCorrection)) < sizeof(curveCorrection)) {
+			for (int col = 0; col < numChannels; col++) {
+				curveCorrection[col] = 0.0;
+			}
+			qDebug("Error: File couldn't be opened");
+		}
+		fp.close();
+
+		for (int col = 0; col < imagerSettings.geometry.hRes; col++) {
+			gpmc->write16(COL_CURVE_MEM_START_ADDR + (2 * col), curveCorrection[col % numChannels] * (1 << COL_CURVE_FRAC_BITS));
+		}
+	}
+
+	/* Enable 3-point calibration. */
+	gpmc->write16(DISPLAY_GAIN_CONTROL_ADDR, DISPLAY_GAIN_CONTROL_3POINT);
 }
 
 Int32 Camera::autoColGainCorrection(void)
@@ -2565,6 +2656,33 @@ Int32 Camera::blackCalAllStdRes(bool factory, QProgressDialog *dialog)
 	int progress = 0;
 	for(g = LUX1310_GAIN_1; g <= LUX1310_GAIN_16; g++)
 	{
+		// Configure for maximum resolution
+		memcpy(&settings.geometry, &maxSize, sizeof(FrameGeometry));
+		settings.geometry.hRes = maxSize.hRes;
+		settings.geometry.vRes = maxSize.vRes;
+		settings.geometry.vDarkRows = 0;
+		settings.geometry.bitDepth = maxSize.bitDepth;
+		settings.geometry.hOffset = 0;
+		settings.geometry.vOffset = 0;
+		settings.gain = g;
+		settings.recRegionSizeFrames = getMaxRecordRegionSizeFrames(&settings.geometry);
+		settings.period = sensor->getMinFramePeriod(&settings.geometry);
+		settings.exposure = sensor->getMaxIntegrationTime(settings.period, &settings.geometry);
+		settings.disableRingBuffer = 0;
+		settings.mode = RECORD_MODE_NORMAL;
+		settings.prerecordFrames = 1;
+		settings.segmentLengthFrames = imagerSettings.recRegionSizeFrames;
+		settings.segments = 1;
+		settings.temporary = 0;
+		retVal = setImagerSettings(settings);
+		if (SUCCESS != retVal)
+			return retVal;
+
+		/* Perform gain calibraton. */
+		retVal = autoGainCalibration();
+		if (SUCCESS != retVal)
+			return retVal;
+
 		QStringListIterator iter(resolutions);
 		while (iter.hasNext()) {
 			QString value = iter.next();
@@ -2662,9 +2780,6 @@ exit_calibration:
 
 	return SUCCESS;
 }
-
-
-
 
 Int32 Camera::takeWhiteReferences(void)
 {

@@ -255,7 +255,7 @@ void CamMainWindow::on_cmdFPNCal_clicked()//Black cal
 
 	/* Run the calibration routines. */
 	camera->autoOffsetCalibration();
-	camera->liveGainCalibration();
+	camera->autoGainCalibration();
 	camera->autoFPNCorrection(16, true);
 	sw->hide();
 }
