@@ -20,7 +20,6 @@
 #include <pthread.h>
 #include <semaphore.h>
 #include <QLocalSocket>
-
 #include <QProgressDialog>
 
 #include "errorCodes.h"
