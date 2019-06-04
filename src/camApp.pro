@@ -108,15 +108,15 @@ SOURCES += main.cpp\
     exec.cpp \
     ecp5Config.cpp \
     myinputpanel.cpp \
+    pysensor.cpp \
+    pych.cpp \
     qjson4/QJsonArray.cpp \
     qjson4/QJsonDocument.cpp \
     qjson4/QJsonObject.cpp \
     qjson4/QJsonParseError.cpp \
     qjson4/QJsonParser.cpp \
     qjson4/QJsonValue.cpp \
-    qjson4/QJsonValueRef.cpp \
-    pysensor.cpp \
-    pych.cpp
+    qjson4/QJsonValueRef.cpp
 
 ## Generate version.cpp on every build
 versionTarget.target = version.cpp
