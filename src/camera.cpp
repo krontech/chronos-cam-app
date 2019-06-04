@@ -1735,10 +1735,8 @@ Int32 Camera::autoOffsetCalibration(unsigned int iterations)
 	memcpy(&isDark, &isPrev, sizeof(isDark));
 	if (!isDark.geometry.vDarkRows) {
 		isDark.geometry.vDarkRows = LUX1310_MAX_V_DARK / 2;
-		if ((isDark.geometry.vRes - isDark.geometry.vDarkRows) > sensor->getMinVRes()) {
-			isDark.geometry.vRes -= isDark.geometry.vDarkRows;
-			isDark.geometry.vOffset += isDark.geometry.vDarkRows;
-		}
+		isDark.geometry.vRes -= isDark.geometry.vDarkRows;
+		isDark.geometry.vOffset += isDark.geometry.vDarkRows;
 	}
 	isDark.recRegionSizeFrames = CAL_REGION_FRAMES;
 	isDark.disableRingBuffer = 0;

@@ -445,7 +445,7 @@ bool LUX1310::isValidResolution(FrameGeometry *size)
 	if ((size->hRes < LUX1310_MIN_HRES) || (size->hRes + size->hOffset > LUX1310_MAX_H_RES)) {
 		return false;
 	}
-	if ((size->vRes < LUX1310_MIN_VRES) || (size->vRes + size->vOffset > LUX1310_MAX_V_RES)) {
+	if ((size->vRes + size->vDarkRows < LUX1310_MIN_VRES) || (size->vRes + size->vOffset > LUX1310_MAX_V_RES)) {
 		return false;
 	}
 	if (size->vDarkRows > LUX1310_MAX_V_DARK) {
