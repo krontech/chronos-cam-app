@@ -156,7 +156,8 @@ UInt32 PySensor::getMinFramePeriod(FrameGeometry *frameSize)
 	FrameTiming timing;
 
 	cinst->getTiming(frameSize, &timing);
-	return timing.minFramePeriod / 10;		//in tens of nanoseconds, as wanted by camApp!
+	//return timing.minFramePeriod / 10;		//in tens of nanoseconds, as wanted by camApp!
+	return timing.minFramePeriod;		//now in nanoseconds, as wanted by camApp!
 }
 
 UInt32 PySensor::getFramePeriod(void)
@@ -201,6 +202,8 @@ UInt32 PySensor::getActualFramePeriod(double target, FrameGeometry *size)
 	return within(clocks, minPeriod, maxPeriod);
 }
 
+extern UInt32 pyCurrentPeriod;
+
 UInt32 PySensor::setFramePeriod(UInt32 period, FrameGeometry *size)
 {
 	//pych
@@ -209,8 +212,9 @@ UInt32 PySensor::setFramePeriod(UInt32 period, FrameGeometry *size)
 	UInt32 maxPeriod = PYSENSOR_MAX_SLAVE_PERIOD;
 
 	currentPeriod = within(period, minPeriod, maxPeriod);
+	pyCurrentPeriod = currentPeriod;
 
-	cinst->setInt("framePeriod", currentPeriod * 10); //* 10 is needed for pych
+	cinst->setInt("framePeriod", currentPeriod * 1); //* 10 WAS needed for pych
 
 	return currentPeriod;
 }
@@ -264,6 +268,7 @@ void PySensor::setSlaveExposure(UInt32 exposure)
 {
 	//pych
 	recShadowExposure = exposure;
+	cinst->setIntegrationTime(exposure);
 }
 
 //Set up DAC

@@ -2,6 +2,9 @@
 #include "ui_recmodewindow.h"
 #include "camera.h"
 
+//#define SYSTEMCLOCK (camera->sensor->getIntegrationClock())
+#define SYSTEMCLOCK (100000000.0)
+
 recModeWindow::recModeWindow(QWidget *parent, Camera * cameraInst, ImagerSettings_t * settings) :
     QWidget(parent),
     ui(new Ui::recModeWindow)
@@ -46,21 +49,21 @@ recModeWindow::recModeWindow(QWidget *parent, Camera * cameraInst, ImagerSetting
 	ui->spinRecLengthFrames->setMaximum(camera->getMaxRecordRegionSizeFrames(&is->geometry));
     ui->spinRecLengthFrames->setValue(is->recRegionSizeFrames);
 
-	ui->spinRecLengthSeconds->setMaximum((double)(camera->getMaxRecordRegionSizeFrames(&is->geometry)) * ((double) is->period / 100000000.0));
-    ui->spinRecLengthSeconds->setValue((double)is->period / 100000000.0 * is->recRegionSizeFrames);
+	ui->spinRecLengthSeconds->setMaximum((double)(camera->getMaxRecordRegionSizeFrames(&is->geometry)) * ((double) is->period / SYSTEMCLOCK));
+	ui->spinRecLengthSeconds->setValue((double)is->period / SYSTEMCLOCK * is->recRegionSizeFrames);
 
     ui->spinSegmentCount->setValue(is->segments);
 
 	ui->spinPrerecordFrames->setMaximum(camera->getMaxRecordRegionSizeFrames(&is->geometry) / 2);
-    ui->spinPrerecordSeconds->setMaximum(ui->spinPrerecordFrames->maximum() * (double)is->period / 100000000.0);
-    ui->spinPrerecordSeconds->setMinimum((double)is->period / 100000000.0);
+	ui->spinPrerecordSeconds->setMaximum(ui->spinPrerecordFrames->maximum() * (double)is->period / SYSTEMCLOCK);
+	ui->spinPrerecordSeconds->setMinimum((double)is->period / SYSTEMCLOCK);
 
     ui->spinPrerecordFrames->setValue(is->prerecordFrames);
-    ui->spinPrerecordSeconds->setValue(((double)is->period / 100000000.0 * is->prerecordFrames));
+	ui->spinPrerecordSeconds->setValue(((double)is->period / SYSTEMCLOCK * is->prerecordFrames));
 
 
 
-    ui->lblSegmentSize->setText("Segment size:\n" + QString::number(ui->spinRecLengthFrames->value() / ui->spinSegmentCount->value() * ((double) is->period / 100000000.0)) + " s\n(" + QString::number(ui->spinRecLengthFrames->value() / ui->spinSegmentCount->value()) + " frames)");
+	ui->lblSegmentSize->setText("Segment size:\n" + QString::number(ui->spinRecLengthFrames->value() / ui->spinSegmentCount->value() * ((double) is->period / SYSTEMCLOCK)) + " s\n(" + QString::number(ui->spinRecLengthFrames->value() / ui->spinSegmentCount->value()) + " frames)");
 
 
 }
@@ -126,7 +129,7 @@ void recModeWindow::on_cmdMax_clicked()
 {
 	UInt32 recLenFrames = camera->getMaxRecordRegionSizeFrames(&is->geometry);
     ui->spinRecLengthFrames->setValue(recLenFrames);
-    ui->spinRecLengthSeconds->setValue((double)recLenFrames * (double) is->period / 100000000.0);
+	ui->spinRecLengthSeconds->setValue((double)recLenFrames * (double) is->period / SYSTEMCLOCK);
     ui->spinSegmentCount->setMaximum(min(SEGMENT_COUNT_MAX, recLenFrames));
     updateSegmentSizeText(ui->spinSegmentCount->value());
 }
@@ -135,12 +138,12 @@ void recModeWindow::on_spinRecLengthSeconds_valueChanged(double arg1)
 {
     if(ui->spinRecLengthSeconds->hasFocus())
     {
-        UInt32 recLenFrames = arg1 / ((double) is->period / 100000000.0);
+		UInt32 recLenFrames = arg1 / ((double) is->period / SYSTEMCLOCK);
 
         if(recLenFrames < RECORD_LENGTH_MIN)
         {
             recLenFrames = RECORD_LENGTH_MIN;
-            ui->spinRecLengthSeconds->setValue(recLenFrames * ((double) is->period / 100000000.0));
+			ui->spinRecLengthSeconds->setValue(recLenFrames * ((double) is->period / SYSTEMCLOCK));
 
         }
 
@@ -157,7 +160,7 @@ void recModeWindow::on_spinRecLengthFrames_valueChanged(int arg1)
 {
     if(ui->spinRecLengthFrames->hasFocus())
     {
-        ui->spinRecLengthSeconds->setValue((double)arg1 * ((double) is->period / 100000000.0));
+		ui->spinRecLengthSeconds->setValue((double)arg1 * ((double) is->period / SYSTEMCLOCK));
         ui->spinSegmentCount->setMaximum(min(SEGMENT_COUNT_MAX, arg1));
 
         if(ui->radioSegmented->isChecked())
@@ -173,7 +176,7 @@ void recModeWindow::on_spinSegmentCount_valueChanged(int arg1)
 void recModeWindow::updateSegmentSizeText(UInt32 segmentCount)
 {
     ui->lblSegmentSize->setText("Segment size:\n" +
-        QString::number(ui->spinRecLengthFrames->value() / segmentCount * ((double) is->period / 100000000.0)) +
+		QString::number(ui->spinRecLengthFrames->value() / segmentCount * ((double) is->period / SYSTEMCLOCK)) +
         " s\n(" + QString::number(ui->spinRecLengthFrames->value() / segmentCount) + " frames)");
 }
 
@@ -181,7 +184,7 @@ void recModeWindow::on_spinPrerecordSeconds_valueChanged(double arg1)
 {
     if(ui->spinPrerecordSeconds->hasFocus())
     {
-        ui->spinPrerecordFrames->setValue(ui->spinPrerecordSeconds->value() / ((double) is->period / 100000000.0));
+		ui->spinPrerecordFrames->setValue(ui->spinPrerecordSeconds->value() / ((double) is->period / SYSTEMCLOCK));
     }
 }
 
@@ -189,13 +192,13 @@ void recModeWindow::on_spinPrerecordFrames_valueChanged(int arg1)
 {
     if(ui->spinPrerecordFrames->hasFocus())
     {
-        ui->spinPrerecordSeconds->setValue((double)ui->spinPrerecordFrames->value() * ((double) is->period / 100000000.0));
+		ui->spinPrerecordSeconds->setValue((double)ui->spinPrerecordFrames->value() * ((double) is->period / SYSTEMCLOCK));
     }
 }
 
 //Update seconds spinbox so that it reflects the exact delay after editing is finished
 void recModeWindow::on_spinPrerecordSeconds_editingFinished()
 {
-    ui->spinPrerecordFrames->setValue(ui->spinPrerecordSeconds->value() / ((double) is->period / 100000000.0));
-    ui->spinPrerecordSeconds->setValue((double)ui->spinPrerecordFrames->value() * ((double) is->period / 100000000.0));
+	ui->spinPrerecordFrames->setValue(ui->spinPrerecordSeconds->value() / ((double) is->period / SYSTEMCLOCK));
+	ui->spinPrerecordSeconds->setValue((double)ui->spinPrerecordFrames->value() * ((double) is->period / SYSTEMCLOCK));
 }

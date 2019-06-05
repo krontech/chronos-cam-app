@@ -308,7 +308,7 @@ UInt32 Control::getTiming(FrameGeometry *geometry, FrameTiming *timing)
 	//getCamJson("testResolution", &jsonString);
 	//methodCamJson("testResolution", &jsonString);
 	testResolutionCamJson(&jsonString, geometry);
-	qDebug() << jsonString;
+	//qDebug() << jsonString;
 
 	parseJsonTiming(jsonString, geometry, timing);
 }
@@ -1214,6 +1214,7 @@ CameraErrortype setGain(UInt32 gainSetting)
 
 CameraErrortype Control::setIntegrationTime(UInt32 exposure)
 {
+
 	setInt("exposurePeriod", exposure);
 }
 

@@ -78,7 +78,8 @@ double ImageSensor::getCurrentFramePeriodDouble()
 	if (pych)
 	{
 		//return this->getPyFramePeriod()
-		return pyCurrentPeriod;
+		//return currentPeriod;
+		return pyCurrentPeriod / 1000000000.0;
 	}
 	else
 	{

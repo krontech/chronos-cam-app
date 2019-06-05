@@ -128,8 +128,9 @@ RecSettingsWindow::RecSettingsWindow(QWidget *parent, Camera * cameraInst) :
 		sscanf(line.constData(), "%dx%d", &fSize.hRes, &fSize.vRes);
 		fSize.bitDepth = BITS_PER_PIXEL;
 		fSize.hOffset = fSize.vOffset = fSize.vDarkRows = 0;
-		
-		int fr =  100000000.0 / (double)camera->sensor->getMinFramePeriod(&fSize);
+
+		//int fr =  1000000000.0 / (double)camera->sensor->getMinFramePeriod(&fSize);
+		int fr =  camera->sensor->getIntegrationClock() / (double)camera->sensor->getMinFramePeriod(&fSize);
 		//int fr = 1000;
 		//qDebug() << "hRes" << fSize.hRes << "vRes" << fSize.vRes << "mperiod" << camera->sensor->getMinFramePeriod(&fSize) << "fr" << fr;
 		qDebug() << "hRes" << fSize.hRes << "vRes" << fSize.vRes << "fr" << fr;
@@ -163,14 +164,14 @@ RecSettingsWindow::RecSettingsWindow(QWidget *parent, Camera * cameraInst) :
 
 
 	//Set the frame period
-    double framePeriod = (double)is->period / 100000000.0;
+	double framePeriod = (double)is->period / camera->sensor->getIntegrationClock();
 	getSIText(str, framePeriod, 10, DEF_SI_OPTS, 8);
 	ui->linePeriod->setText(str);
 	ui->linePeriod->setHasUnits(true);
 
 	//Set the frame rate
 	double frameRate = 1.0 / framePeriod;
-	getSIText(str, frameRate, ceil(log10(framePeriod*100000000.0)+1), DEF_SI_OPTS, 1000);
+	getSIText(str, frameRate, ceil(log10(framePeriod*camera->sensor->getIntegrationClock())+1), DEF_SI_OPTS, 1000);
 	ui->lineRate->setText(str);
 	ui->lineRate->setHasUnits(true);
 
@@ -222,6 +223,7 @@ void RecSettingsWindow::on_cmdOK_clicked()
 		//add
 		FrameGeometry *geo = &is->geometry;
 		camera->cinst->setResolution(geo);
+		//camera->cinst->setIntegrationTime(intTime); -- we don't need this here, it's done by setImagerSettings
 		pyCurrentExposure = intTime;
 		pyCurrentPeriod = period;
 		setRecShadow();

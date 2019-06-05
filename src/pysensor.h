@@ -51,8 +51,8 @@ extern double sensorMinFrameTime;
 #define PYSENSOR_BITS_PER_PIXEL		sensorBitDepth
 #define PYSENSOR_MINFRAMETIME		sensorMinFrameTime
 
-#define PYSENSOR_TIMING_CLOCK		100000000.0	//pych - do properly
-#define PYSENSOR_SENSOR_CLOCK		90000000.0	//pych - do properly
+#define PYSENSOR_TIMING_CLOCK		1000000000.0	//this clock is set to 1 ns for math purposes
+//#define PYSENSOR_SENSOR_CLOCK		90000000.0	//pych - do properly
 
 //#define PYSENSOR_ROT			(9+4)		//Granularity clock cycles (63MHz periods by default)
 //#define PYSENSOR_FOT			315		//Granularity clock cycles (63MHz periods by default)
