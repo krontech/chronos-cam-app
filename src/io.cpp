@@ -62,6 +62,46 @@ void resetElement(ioElement *e)
 	e->source = SRC_NONE;
 }
 
+QString ioSources[] = {
+	"NONE",
+	"IO1",
+	"IO2",
+	"IO3",
+	"COMB",
+	"DELAY",
+	"TOGGLE",
+	"SHUTTER",
+	"RECORDING",
+	"DISPFRAME",
+	"STARTREC",
+	"ENDREC",
+	"NEXTSEG",
+	"TIMINGIO",
+	"ALWAYSHIGH"
+};
+
+void printIoElement(QString name, ioElement *e)
+{
+	QString debounceStr = e->debounce ? "debounce" : "-";
+	QString invertStr = e->invert ? "invert" : "-";
+	qDebug() << name << ": "  << ioSources[e->source] << debounceStr << invertStr;
+}
+
+void printIoElements(void)
+{
+	printIoElement("io1", &io1);
+	printIoElement("io2", &io2);
+	printIoElement("io3", &io3);
+	printIoElement("combOr1", &combOr1);
+	printIoElement("combOr2", &combOr2);
+	printIoElement("combOr3", &combOr3);
+	printIoElement("combXor", &combXor);
+	printIoElement("combAnd", &combAnd);
+	printIoElement("out1", &out2);
+	printIoElement("out2", &out2);
+}
+
+
 void translateToComb(void)
 {
 	io1Mode = io_none;
@@ -225,15 +265,7 @@ void translateToComb(void)
 		qDebug() << "Invert output 2";
 		out2.invert = true;
 	}
-
-
-
-
-}
-
-void translateFromComb(void)
-{
-
+	printIoElements();
 }
 
 

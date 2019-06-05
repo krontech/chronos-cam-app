@@ -137,6 +137,7 @@ void IOSettingsWindow::on_cmdApply_clicked()
 	{
 
 		translateToComb();
+		camera->cinst->setIoSettings();
 	}
 }
 

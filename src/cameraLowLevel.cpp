@@ -342,6 +342,7 @@ UInt8 Camera::getFocusPeakColorLL(void)
 {
 	if (pych)
 	{
+		//TODO - when implemented in API
 		return 4;
 	}
 	else
@@ -353,8 +354,16 @@ UInt8 Camera::getFocusPeakColorLL(void)
 
 void Camera::setFocusPeakColorLL(UInt8 color)
 {
-	UInt32 reg = gpmc->read32(DISPLAY_CTL_ADDR);
-	gpmc->write32(DISPLAY_CTL_ADDR, (reg & ~DISPLAY_CTL_FOCUS_PEAK_COLOR_MASK) | ((color & 7) << DISPLAY_CTL_FOCUS_PEAK_COLOR_OFFSET));
+
+	if (pych)
+	{
+		//TODO - when implemented in API
+	}
+	else
+	{
+		UInt32 reg = gpmc->read32(DISPLAY_CTL_ADDR);
+		gpmc->write32(DISPLAY_CTL_ADDR, (reg & ~DISPLAY_CTL_FOCUS_PEAK_COLOR_MASK) | ((color & 7) << DISPLAY_CTL_FOCUS_PEAK_COLOR_OFFSET));
+	}
 }
 
 
@@ -376,7 +385,7 @@ void Camera::setZebraEnableLL(bool en)
 {
 	if (pych)
 	{
-
+		//TODO - when implemented in API
 	}
 	else
 	{
