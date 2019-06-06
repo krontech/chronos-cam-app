@@ -302,15 +302,39 @@ void parseArray(QDBusArgument &argument)
 }
 
 
-UInt32 Control::getTiming(FrameGeometry *geometry, FrameTiming *timing)
+CameraErrortype Control::getTiming(FrameGeometry *geometry, FrameTiming *timing)
 {
-	QString jsonString;
-	//getCamJson("testResolution", &jsonString);
-	//methodCamJson("testResolution", &jsonString);
-	testResolutionCamJson(&jsonString, geometry);
-	//qDebug() << jsonString;
+	QVariantMap args;
+	QVariantMap map;
+	QDBusPendingReply<QVariantMap> reply;
 
-	parseJsonTiming(jsonString, geometry, timing);
+	args.insert("hRes", QVariant(geometry->hRes));
+	args.insert("vRes", QVariant(geometry->vRes));
+	args.insert("vDarkRows", QVariant(geometry->vDarkRows));
+
+	pthread_mutex_lock(&mutex);
+	reply = iface.testResolution(args);
+	reply.waitForFinished();
+	pthread_mutex_unlock(&mutex);
+
+	if (reply.isError()) {
+		QDBusError err = reply.error();
+		fprintf(stderr, "Failed - testResolution: %s - %s\n", err.name().data(), err.message().toAscii().data());
+		memset(timing, 0, sizeof(FrameTiming));
+		return CAMERA_API_CALL_FAIL;
+	}
+
+	map = reply.value();
+	if (map.contains("error")) {
+		memset(timing, 0, sizeof(FrameTiming));
+		return CAMERA_INVALID_SETTINGS;
+	}
+
+	timing->exposureMax = map["exposureMax"].toInt();
+	timing->minFramePeriod = map["minFramePeriod"].toInt();
+	timing->exposureMin = map["exposureMin"].toInt();
+	timing->cameraMaxFrames = map["cameraMaxFrames"].toInt();
+	return SUCCESS;
 }
 
 

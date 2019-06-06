@@ -52,6 +52,7 @@ typedef enum CameraErrortype
 	CAMERA_WRONG_FPGA_VERSION                 =  19,
 	CAMERA_DEAD_PIXEL_RECORD_ERROR            =  20,
 	CAMERA_DEAD_PIXEL_FAILED                  =  21,
+	CAMERA_API_CALL_FAIL                      =  22,
 	
 	
 	ECP5_ALREAY_OPEN                          = 101,
