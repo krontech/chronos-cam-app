@@ -191,6 +191,25 @@ QVariant Control::getProperty(QString parameter)
 	return map[parameter];
 }
 
+/* Get multiple properties. */
+QVariantMap Control::getPropertyGroup(QStringList paramters)
+{
+	QDBusPendingReply<QVariantMap> reply;
+
+	pthread_mutex_lock(&mutex);
+	reply = iface.get(paramters);
+	reply.waitForFinished();
+	pthread_mutex_unlock(&mutex);
+
+	if (reply.isError()) {
+		QDBusError err = reply.error();
+		qDebug() << "Failed to get parameters: " + err.name() + " - " + err.message();
+		return QVariantMap();
+	}
+
+	return reply.value();
+}
+
 /* Set a single property */
 CameraErrortype Control::setProperty(QString parameter, QVariant value)
 {
