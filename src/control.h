@@ -82,7 +82,9 @@ class Control : public QObject {
 
 public:
     Control();
-    ~Control();
+	~Control();
+
+	QVariant getProperty(QString parameter);
 
 	CameraErrortype startRecording(void);
 	CameraErrortype stopRecording(void);
