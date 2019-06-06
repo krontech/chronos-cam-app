@@ -85,6 +85,8 @@ public:
 	~Control();
 
 	QVariant getProperty(QString parameter);
+	CameraErrortype setProperty(QString parameter, QVariant value);
+	CameraErrortype setPropertyGroup(QVariantMap values);
 
 	CameraErrortype startRecording(void);
 	CameraErrortype stopRecording(void);

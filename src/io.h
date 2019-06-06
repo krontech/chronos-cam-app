@@ -62,13 +62,6 @@ private:
 	UInt32 IO2InFD;
 	double io1Thresh, io2Thresh;
 };
-/*
-enum {
-	IO_SUCCESS = 0,
-	IO_ERROR_OPEN,
-	IO_FILE_ERROR
-};
-*/
 
 extern UInt32 	ioShadow[16];
 extern double pychIo1Threshold;

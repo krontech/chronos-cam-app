@@ -175,7 +175,7 @@ QVariant Control::getProperty(QString parameter)
 
 	if (reply.isError()) {
 		QDBusError err = reply.error();
-		qDebug("Failed to get parameter: %s - %s", err.name().data(), err.message().toAscii().data());
+		qDebug() << "Failed to get parameter: " + err.name() + " - " + err.message();
 		return QVariant();
 	}
 
@@ -184,11 +184,75 @@ QVariant Control::getProperty(QString parameter)
 		QVariantMap errdict;
 		map["error"].value<QDBusArgument>() >> errdict;
 
-		qDebug("Failed to get parameter: %s", errdict[parameter].toString());
+		qDebug() << "Failed to get parameter: " + errdict[parameter].toString();
 		return QVariant();
 	}
 
 	return map[parameter];
+}
+
+/* Set a single property */
+CameraErrortype Control::setProperty(QString parameter, QVariant value)
+{
+	QVariantMap args;
+	QVariantMap map;
+	QDBusPendingReply<QVariantMap> reply;
+
+	args.insert(parameter, value);
+
+	pthread_mutex_lock(&mutex);
+	reply = iface.set(args);
+	reply.waitForFinished();
+	pthread_mutex_unlock(&mutex);
+
+	if (reply.isError()) {
+		QDBusError err = reply.error();
+		qDebug() << "Failed to get parameter: " + err.name() + " - " + err.message();
+		return CAMERA_API_CALL_FAIL;
+	}
+
+	map = reply.value();
+	if (map.contains("error")) {
+		QVariantMap errdict;
+		map["error"].value<QDBusArgument>() >> errdict;
+
+		qDebug() << "Failed to get parameter: " + errdict[parameter].toString();
+		return CAMERA_API_CALL_FAIL;
+	}
+
+	return SUCCESS;
+}
+
+/* Attempt to set multiple properties together as a group. */
+CameraErrortype Control::setPropertyGroup(QVariantMap values)
+{
+	QVariantMap map;
+	QDBusPendingReply<QVariantMap> reply;
+
+	pthread_mutex_lock(&mutex);
+	reply = iface.set(values);
+	reply.waitForFinished();
+	pthread_mutex_unlock(&mutex);
+
+	if (reply.isError()) {
+		QDBusError err = reply.error();
+		qDebug() << "Failed to set parameters: " + err.name() + " - " + err.message();
+		return CAMERA_API_CALL_FAIL;
+	}
+
+	map = reply.value();
+	if (map.contains("error")) {
+		QVariantMap errdict;
+		QVariantMap::const_iterator i;
+		map["error"].value<QDBusArgument>() >> errdict;
+
+		for (i = errdict.begin(); i != errdict.end(); i++) {
+			qDebug() << "Failed to get parameter " + i.key() + ": " + i.value().toString();
+		}
+		return CAMERA_API_CALL_FAIL;
+	}
+
+	return SUCCESS;
 }
 
 CameraErrortype Control::getInt(QString parameter, UInt32 *value)
@@ -239,8 +303,6 @@ CameraErrortype Control::getFloat(QString parameter, double *value)
 
 	return SUCCESS;
 }
-
-
 
 CameraErrortype Control::getString(QString parameter, QString *str)
 {
@@ -415,10 +477,23 @@ CameraErrortype Control::setArray(QString parameter, UInt32 size, double *values
 
 CameraErrortype Control::setIoSettings(void)
 {
-	QString jsonString;
-	buildJsonIo(&jsonString);
-	setCamJson(jsonString);
-	//qDebug() << jsonString;
+	QVariantMap ioGroup;
+	QVariantMap ioStart;
+	QVariantMap io1In;
+	QVariantMap io2In;
+
+	ioStart.insert("source", "none");
+	ioStart.insert("debounce", QVariant(false));
+	ioStart.insert("invert", QVariant(false));
+
+	io1In.insert("threshold", QVariant(pychIo1Threshold));
+	io2In.insert("threshold", QVariant(pychIo2Threshold));
+
+	ioGroup.insert("start", QVariant(ioStart));
+	ioGroup.insert("io1In", QVariant(io1In));
+	ioGroup.insert("io2In", QVariant(io2In));
+
+	return setProperty("ioMapping", ioGroup);
 }
 
 CameraErrortype Control::setWbMatrix(void)
