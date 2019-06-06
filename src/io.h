@@ -137,4 +137,3 @@ extern ioElement gate;
 
 
 void translateToComb(void);
-void translateFromComb(void);

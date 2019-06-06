@@ -540,7 +540,7 @@ UInt32 Camera::setIntegrationTime(double intTime, FrameGeometry *fSize, Int32 fl
 		qDebug("--- Using old settings --- Exposure time: %d (default: %d)", validTime, defaultTime);
 		if (pych)
 		{
-			//cinst->setSensorTiming()
+			cinst->setInt("exposurePeriod", validTime * 1e9);
 		}
 		else
 		{
@@ -550,8 +550,8 @@ UInt32 Camera::setIntegrationTime(double intTime, FrameGeometry *fSize, Int32 fl
 	else {
 		if (pych)
 		{
-			//add call to cinst->setSensorTiming()
-
+			cinst->setInt("exposurePeriod", intTime * 1e9);
+			validTime = intTime;
 		}
 		else
 		{
