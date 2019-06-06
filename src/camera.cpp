@@ -1670,51 +1670,59 @@ void Camera::loadColGainFromFile(void)
 {
 	QString filename;
 	UInt32 numChannels = sensor->getHResIncrement();
+	double gainCorrection[numChannels];
+	double curveCorrection[numChannels];
 
+	/* Prepare a sensible default gain. */
+	for (int col = 0; col < numChannels; col++) {
+		gainCorrection[col] = 1.0;
+		curveCorrection[col] = 0.0;
+	}
+
+	/* Load gain correction. */
 	filename.sprintf("cal:colGain_G%d.bin", imagerSettings.gain);
 	QFileInfo colGainFile(filename);
+	if (!colGainFile.exists() || !colGainFile.isFile()) {
+		/* Fall back to legacy 2-point gain files. */
+		filename = (imagerSettings.gain < 4) ? "cal:dcgL.bin" : "cal:dcgH.bin";
+		colGainFile.setFile(filename);
+	}
 	if (colGainFile.exists() && colGainFile.isFile()) {
-		double gainCorrection[numChannels];
 		QFile fp;
 
 		qDebug("Found colGain file %s", colGainFile.absoluteFilePath().toLocal8Bit().constData());
 
 		fp.setFileName(filename);
 		fp.open(QIODevice::ReadOnly);
-		if (fp.read((char*)gainCorrection, sizeof(gainCorrection)) < sizeof(gainCorrection)) {
-			for (int col = 0; col < numChannels; col++) {
-				gainCorrection[col] = 1.0;
-			}
-			qDebug("Error: File couldn't be opened");
+		qint64 ret = fp.read((char*)gainCorrection, sizeof(gainCorrection));
+		if (ret < sizeof(gainCorrection)) {
+			qDebug("Error: File couldn't be opened (ret=%d)", (int)ret);
 		}
 		fp.close();
-
-		for (int col = 0; col < imagerSettings.geometry.hRes; col++) {
-			gpmc->write16(COL_GAIN_MEM_START_ADDR + (2 * col), gainCorrection[col % numChannels] * (1 << COL_GAIN_FRAC_BITS));
-		}
+	}
+	for (int col = 0; col < imagerSettings.geometry.hRes; col++) {
+		gpmc->write16(COL_GAIN_MEM_START_ADDR + (2 * col), (int)(gainCorrection[col % numChannels] * (1 << COL_GAIN_FRAC_BITS)));
 	}
 
+	/* Load curvature correction. */
 	filename.sprintf("cal:colCurve_G%d.bin", imagerSettings.gain);
 	QFileInfo colCurveFile(filename);
 	if (colCurveFile.exists() && colCurveFile.isFile()) {
-		double curveCorrection[numChannels];
 		QFile fp;
 
 		qDebug("Found colCurve file %s", colCurveFile.absoluteFilePath().toLocal8Bit().constData());
 
 		fp.setFileName(filename);
 		fp.open(QIODevice::ReadOnly);
-		if (fp.read((char*)curveCorrection, sizeof(curveCorrection)) < sizeof(curveCorrection)) {
-			for (int col = 0; col < numChannels; col++) {
-				curveCorrection[col] = 0.0;
-			}
-			qDebug("Error: File couldn't be opened");
+		qint64 ret = fp.read((char*)curveCorrection, sizeof(curveCorrection));
+		if (ret < sizeof(curveCorrection)) {
+			qDebug("Error: File couldn't be opened (ret=%d)", (int)ret);
 		}
 		fp.close();
-
-		for (int col = 0; col < imagerSettings.geometry.hRes; col++) {
-			gpmc->write16(COL_CURVE_MEM_START_ADDR + (2 * col), curveCorrection[col % numChannels] * (1 << COL_CURVE_FRAC_BITS));
-		}
+	}
+	for (int col = 0; col < imagerSettings.geometry.hRes; col++) {
+		Int16 curve16 = curveCorrection[col % numChannels] * (1 << COL_CURVE_FRAC_BITS);
+		gpmc->write16(COL_CURVE_MEM_START_ADDR + (2 * col), (unsigned)curve16);
 	}
 
 	/* Enable 3-point calibration. */
