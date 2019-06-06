@@ -146,7 +146,7 @@ public:
 	CameraErrortype setIntegrationTime(UInt32 exposure);
 
 
-	UInt32 getTiming(FrameGeometry *geometry, FrameTiming *timing);
+	CameraErrortype getTiming(FrameGeometry *geometry, FrameTiming *timing);
 
     CameraErrortype getIoMapping(void);
     CameraErrortype setIoMapping(void);
