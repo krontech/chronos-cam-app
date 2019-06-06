@@ -174,11 +174,7 @@ CameraErrortype LUX1310::initSensor()
 	}
 
 	/* Load and enable ADC offsets. */
-	if (loadADCOffsetsFromFile() != SUCCESS) {
-		for (int i = 0; i < LUX1310_HRES_INCREMENT; i++) {
-			setADCOffset(i, 0);
-		}
-	}
+	loadADCOffsetsFromFile();
 	SCIWrite(0x39, 0x1); //ADC offset enable??
 
 	//Set Gain
@@ -785,40 +781,53 @@ Int16 LUX1310::getADCOffset(UInt8 channel)
 Int32 LUX1310::loadADCOffsetsFromFile(void)
 {
 	Int16 offsets[LUX1310_HRES_INCREMENT];
-
+	Int32 ret = SUCCESS;
 	QString filename;
 	
-	//Generate the filename for this particular resolution and offset
-	filename.sprintf("cal:lux1310Offsets");
-	
-	std::string fn;
-	fn = getFilename("", ".bin");
-	filename.append(fn.c_str());
-	QFileInfo adcOffsetsFile(filename);
-	if (adcOffsetsFile.exists() && adcOffsetsFile.isFile()) 
+	do {
+		//Generate the filename for this particular resolution and offset
+		filename.sprintf("cal:lux1310Offsets");
+
+		std::string fn;
+		fn = getFilename("", ".bin");
+		filename.append(fn.c_str());
+		QFileInfo adcOffsetsFile(filename);
+		if (!adcOffsetsFile.exists() || !adcOffsetsFile.isFile()) {
+			ret = CAMERA_FILE_NOT_FOUND;
+			break;
+		}
+
 		fn = adcOffsetsFile.absoluteFilePath().toLocal8Bit().constData();
-	else 
-		return CAMERA_FILE_NOT_FOUND;
+		qDebug() << "attempting to load ADC offsets from" << fn.c_str();
 
-	qDebug() << "attempting to load ADC offsets from" << fn.c_str();
+		//If the offsets file exists, read it in
+		if( access( fn.c_str(), R_OK ) == -1 ) {
+			ret = CAMERA_FILE_NOT_FOUND;
+			break;
+		}
 
-	//If the offsets file exists, read it in
-	if( access( fn.c_str(), R_OK ) == -1 )
-		return CAMERA_FILE_NOT_FOUND;
+		FILE * fp;
+		fp = fopen(fn.c_str(), "rb");
+		if(!fp) {
+			ret = CAMERA_FILE_ERROR;
+			break;
+		}
 
-	FILE * fp;
-	fp = fopen(fn.c_str(), "rb");
-	if(!fp)
-		return CAMERA_FILE_ERROR;
+		fread(offsets, sizeof(offsets[0]), LUX1310_HRES_INCREMENT, fp);
+		fclose(fp);
 
-	fread(offsets, sizeof(offsets[0]), LUX1310_HRES_INCREMENT, fp);
-	fclose(fp);
+		//Write the values into the sensor
+		for(int i = 0; i < LUX1310_HRES_INCREMENT; i++) {
+			setADCOffset(i, offsets[i]);
+		}
+		return SUCCESS;
+	} while (0);
 
-	//Write the values into the sensor
-	for(int i = 0; i < LUX1310_HRES_INCREMENT; i++)
-		setADCOffset(i, offsets[i]);
-
-	return SUCCESS;
+	/* Otherwise, if there is no cal, clear the offsets to zero. */
+	for (int i = 0; i < LUX1310_HRES_INCREMENT; i++) {
+		setADCOffset(i, 0);
+	}
+	return ret;
 }
 
 Int32 LUX1310::saveADCOffsetsToFile(void)

@@ -1788,10 +1788,19 @@ Int32 Camera::autoOffsetCalibration(unsigned int iterations)
 Int32 Camera::autoGainCalibration(unsigned int iterations)
 {
 	struct timespec tRefresh;
-	char gName[16];
+	const char *gName;
 	Int32 retVal;
 
-	snprintf(gName, sizeof(gName), "G%d", imagerSettings.gain);
+	//Get the filename
+	switch(imagerSettings.gain)
+	{
+		case LUX1310_GAIN_1:		gName = LUX1310_GAIN_1_FN;		break;
+		case LUX1310_GAIN_2:		gName = LUX1310_GAIN_2_FN;		break;
+		case LUX1310_GAIN_4:		gName = LUX1310_GAIN_4_FN;		break;
+		case LUX1310_GAIN_8:		gName = LUX1310_GAIN_8_FN;		break;
+		case LUX1310_GAIN_16:		gName = LUX1310_GAIN_16_FN;		break;
+		default:					gName = "";						break;
+	}
 
 	/* Record frames continuously into a small loop buffer. */
 	retVal = setRecSequencerModeCalLoop();
@@ -1828,51 +1837,71 @@ void Camera::loadColGainFromFile(void)
 {
 	QString filename;
 	UInt32 numChannels = sensor->getHResIncrement();
+	double gainCorrection[numChannels];
+	double curveCorrection[numChannels];
+	const char *gName;
 
-	filename.sprintf("cal:colGain_G%d.bin", imagerSettings.gain);
+	//Get the filename
+	switch(imagerSettings.gain)
+	{
+		case LUX1310_GAIN_1:		gName = LUX1310_GAIN_1_FN;		break;
+		case LUX1310_GAIN_2:		gName = LUX1310_GAIN_2_FN;		break;
+		case LUX1310_GAIN_4:		gName = LUX1310_GAIN_4_FN;		break;
+		case LUX1310_GAIN_8:		gName = LUX1310_GAIN_8_FN;		break;
+		case LUX1310_GAIN_16:		gName = LUX1310_GAIN_16_FN;		break;
+		default:					gName = "";						break;
+	}
+
+	/* Prepare a sensible default gain. */
+	for (int col = 0; col < numChannels; col++) {
+		gainCorrection[col] = 1.0;
+		curveCorrection[col] = 0.0;
+	}
+
+	/* Load gain correction. */
+	filename.sprintf("cal:colGain_%s.bin", gName);
 	QFileInfo colGainFile(filename);
+	if (!colGainFile.exists() || !colGainFile.isFile()) {
+		/* Fall back to legacy 2-point gain files. */
+		filename = (imagerSettings.gain < LUX1310_GAIN_4) ? "cal:dcgL.bin" : "cal:dcgH.bin";
+		colGainFile.setFile(filename);
+	}
 	if (colGainFile.exists() && colGainFile.isFile()) {
-		double gainCorrection[numChannels];
 		QFile fp;
 
 		qDebug("Found colGain file %s", colGainFile.absoluteFilePath().toLocal8Bit().constData());
 
 		fp.setFileName(filename);
 		fp.open(QIODevice::ReadOnly);
-		if (fp.read((char*)gainCorrection, sizeof(gainCorrection)) < sizeof(gainCorrection)) {
-			for (int col = 0; col < numChannels; col++) {
-				gainCorrection[col] = 1.0;
-			}
-			qDebug("Error: File couldn't be opened");
+		qint64 ret = fp.read((char*)gainCorrection, sizeof(gainCorrection));
+		if (ret < sizeof(gainCorrection)) {
+			qDebug("Error: File couldn't be opened (ret=%d)", (int)ret);
 		}
 		fp.close();
-
-		for (int col = 0; col < imagerSettings.geometry.hRes; col++) {
-			gpmc->write16(COL_GAIN_MEM_START_ADDR + (2 * col), gainCorrection[col % numChannels] * (1 << COL_GAIN_FRAC_BITS));
-		}
+	}
+	for (int col = 0; col < imagerSettings.geometry.hRes; col++) {
+		gpmc->write16(COL_GAIN_MEM_START_ADDR + (2 * col), (int)(gainCorrection[col % numChannels] * (1 << COL_GAIN_FRAC_BITS)));
 	}
 
-	filename.sprintf("cal:colCurve_G%d.bin", imagerSettings.gain);
+	/* Load curvature correction. */
+	filename.sprintf("cal:colCurve_%s.bin", gName);
 	QFileInfo colCurveFile(filename);
 	if (colCurveFile.exists() && colCurveFile.isFile()) {
-		double curveCorrection[numChannels];
 		QFile fp;
 
 		qDebug("Found colCurve file %s", colCurveFile.absoluteFilePath().toLocal8Bit().constData());
 
 		fp.setFileName(filename);
 		fp.open(QIODevice::ReadOnly);
-		if (fp.read((char*)curveCorrection, sizeof(curveCorrection)) < sizeof(curveCorrection)) {
-			for (int col = 0; col < numChannels; col++) {
-				curveCorrection[col] = 0.0;
-			}
-			qDebug("Error: File couldn't be opened");
+		qint64 ret = fp.read((char*)curveCorrection, sizeof(curveCorrection));
+		if (ret < sizeof(curveCorrection)) {
+			qDebug("Error: File couldn't be opened (ret=%d)", (int)ret);
 		}
 		fp.close();
-
-		for (int col = 0; col < imagerSettings.geometry.hRes; col++) {
-			gpmc->write16(COL_CURVE_MEM_START_ADDR + (2 * col), curveCorrection[col % numChannels] * (1 << COL_CURVE_FRAC_BITS));
-		}
+	}
+	for (int col = 0; col < imagerSettings.geometry.hRes; col++) {
+		Int16 curve16 = curveCorrection[col % numChannels] * (1 << COL_CURVE_FRAC_BITS);
+		gpmc->write16(COL_CURVE_MEM_START_ADDR + (2 * col), (unsigned)curve16);
 	}
 
 	/* Enable 3-point calibration. */
