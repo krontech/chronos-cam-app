@@ -805,8 +805,8 @@ void Camera::loadFPNCorrection(FrameGeometry *geometry, const UInt16 *fpnBuffer,
 	for(int row = 0; row < geometry->vRes; row++) {
 		for(int col = 0; col < geometry->hRes; col++) {
 			int i = row * geometry->hRes + col;
-			Int32 fpn = (fpnBuffer[i] - (fpnColumns[col] / geometry->vRes)) / framesToAverage;
-			writePixelBuf12(pixBuffer, i, (unsigned)fpn & 0xfff);
+			Int32 fpn = fpnBuffer[i] - (fpnColumns[col] / geometry->vRes);
+			writePixelBuf12(pixBuffer, i, (unsigned)(fpn / (int)framesToAverage) & 0xfff);
 		}
 	}
 	writeAcqMem((UInt32 *)pixBuffer, FPN_ADDRESS, geometry->size());
