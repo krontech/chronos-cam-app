@@ -38,6 +38,7 @@
 #include "lux1310.h"
 #include "lux2100.h"
 #include "pysensor.h"
+#include "exec.h"
 
 
 extern "C" {
@@ -294,7 +295,10 @@ void CamMainWindow::on_cmdFPNCal_clicked()//Black cal
 
 	if (pych)
 	{
-		camera->cinst->startBlackCalibration();
+		QString jsonInString;
+		QString jsonOutString;
+		buildJsonCalibration(&jsonInString, "blackCal");
+		startCalibrationCamJson(&jsonOutString, &jsonInString);
 	}
 	else
 	{

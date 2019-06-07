@@ -243,12 +243,7 @@ void RecSettingsWindow::on_cmdOK_clicked()
 			QString jsonInString;
 			QString jsonOutString;
 			buildJsonCalibration(&jsonInString, "zeroTimeBlackCal");
-			//jsonInString = "{ \"zeroTimeBlackCal\" : True }";
-			//jsonInString = "{\"wbMatrix\" : 0}";
-
-
 			startCalibrationCamJson(&jsonOutString, &jsonInString);
-
 		}
 		else
 		{

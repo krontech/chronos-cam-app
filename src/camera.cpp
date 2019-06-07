@@ -245,7 +245,6 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, Control * cinst
 
 	//Set to full resolution
 	ImagerSettings_t settings;
-
 	settings.geometry.hRes          = appSettings.value("camera/hRes", imagerSettings.geometry.hRes).toInt();
 	settings.geometry.vRes          = appSettings.value("camera/vRes", imagerSettings.geometry.vRes).toInt();
 	settings.geometry.hOffset       = appSettings.value("camera/hOffset", 0).toInt();
@@ -255,7 +254,8 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, Control * cinst
 	settings.geometry.minFrameTime	= 0.001;
 	settings.gain                   = appSettings.value("camera/gain", 0).toInt();
 	settings.period                 = appSettings.value("camera/period", sensor->getMinFramePeriod(&settings.geometry)).toInt();
-	settings.exposure               = appSettings.value("camera/exposure", sensor->getMaxIntegrationTime(settings.period, &settings.geometry)).toInt();
+	//settings.exposure               = appSettings.value("camera/exposure", sensor->getMaxIntegrationTime(settings.period, &settings.geometry)).toInt();
+	settings.exposure               = sensor->getMaxIntegrationTime(settings.period, &settings.geometry); //PYCH - this is needed but suboptimal
 	settings.recRegionSizeFrames    = appSettings.value("camera/recRegionSizeFrames", getMaxRecordRegionSizeFrames(&settings.geometry)).toInt();
 	settings.disableRingBuffer      = appSettings.value("camera/disableRingBuffer", 0).toInt();
 	settings.mode                   = (CameraRecordModeType)appSettings.value("camera/mode", RECORD_MODE_NORMAL).toInt();
@@ -2557,6 +2557,8 @@ void Camera::loadCCMFromSettings(void)
 
 void Camera::setCCMatrix(const double *matrix)
 {
+	double ccmd[9];
+
 	int ccm[] = {
 		/* First row */
 		(int)(4096.0 * matrix[0]),
@@ -2589,101 +2591,132 @@ void Camera::setCCMatrix(const double *matrix)
 	fprintf(stderr, "\t%06f %06f %06f\n",   ccm[3] / 4096.0, ccm[4] / 4096.0, ccm[5] / 4096.0);
 	fprintf(stderr, "\t%06f %06f %06f\n\n", ccm[6] / 4096.0, ccm[7] / 4096.0, ccm[8] / 4096.0);
 
-	gpmc->write16(CCM_11_ADDR, ccm[0]);
-	gpmc->write16(CCM_12_ADDR, ccm[1]);
-	gpmc->write16(CCM_13_ADDR, ccm[2]);
+	if (pych)
+	{
+		for (i = 0; i < 9; i++) ccmd[i] = ccm[i] / 4096.0;
+		cinst->setArray("colorMatrix", 9, (double *)&ccmd);
+	}
+	else
+	{
+		gpmc->write16(CCM_11_ADDR, ccm[0]);
+		gpmc->write16(CCM_12_ADDR, ccm[1]);
+		gpmc->write16(CCM_13_ADDR, ccm[2]);
 
-	gpmc->write16(CCM_21_ADDR, ccm[3]);
-	gpmc->write16(CCM_22_ADDR, ccm[4]);
-	gpmc->write16(CCM_23_ADDR, ccm[5]);
+		gpmc->write16(CCM_21_ADDR, ccm[3]);
+		gpmc->write16(CCM_22_ADDR, ccm[4]);
+		gpmc->write16(CCM_23_ADDR, ccm[5]);
 
-	gpmc->write16(CCM_31_ADDR, ccm[6]);
-	gpmc->write16(CCM_32_ADDR, ccm[7]);
-	gpmc->write16(CCM_33_ADDR, ccm[8]);
+		gpmc->write16(CCM_31_ADDR, ccm[6]);
+		gpmc->write16(CCM_32_ADDR, ccm[7]);
+		gpmc->write16(CCM_33_ADDR, ccm[8]);
+	}
 }
 
 void Camera::setWhiteBalance(const double *rgb)
 {
-	double r = within(rgb[0] * imgGain, 0.0, 8.0);
-	double g = within(rgb[1] * imgGain, 0.0, 8.0);
-	double b = within(rgb[2] * imgGain, 0.0, 8.0);
 
-	fprintf(stderr, "Setting WB Matrix: %06f %06f %06f\n", r, g, b);
 
-	gpmc->write16(WBAL_RED_ADDR,   (int)(4096.0 * r));
-	gpmc->write16(WBAL_GREEN_ADDR, (int)(4096.0 * g));
-	gpmc->write16(WBAL_BLUE_ADDR,  (int)(4096.0 * b));
+	if (pych)
+	{
+		double wrgb[3];
+		wrgb[0] = within(rgb[0] * imgGain, 0.0, 8.0);
+		wrgb[1] = within(rgb[1] * imgGain, 0.0, 8.0);
+		wrgb[2] = within(rgb[2] * imgGain, 0.0, 8.0);
+
+		fprintf(stderr, "Setting WB Matrix: %06f %06f %06f\n", wrgb[0], wrgb[1], wrgb[2]);
+
+		cinst->setArray("wbMatrix", 3, (double *)&wrgb);
+	}
+	else
+	{
+		double r = within(rgb[0] * imgGain, 0.0, 8.0);
+		double g = within(rgb[1] * imgGain, 0.0, 8.0);
+		double b = within(rgb[2] * imgGain, 0.0, 8.0);
+
+		fprintf(stderr, "Setting WB Matrix: %06f %06f %06f\n", r, g, b);
+
+		gpmc->write16(WBAL_RED_ADDR,   (int)(4096.0 * r));
+		gpmc->write16(WBAL_GREEN_ADDR, (int)(4096.0 * g));
+		gpmc->write16(WBAL_BLUE_ADDR,  (int)(4096.0 * b));
+	}
 }
 
 Int32 Camera::autoWhiteBalance(UInt32 x, UInt32 y)
 {
-	UInt32 numChannels = sensor->getHResIncrement();
-	const UInt32 min_sum = 100 * (LUX1310_HRES_INCREMENT * LUX1310_HRES_INCREMENT) / 2;
-
-	UInt32 offset = (y & 0xFFFFFFF0) * imagerSettings.geometry.hRes + (x & 0xFFFFFFF0);
-	double gain[numChannels];
-	UInt32 r_sum = 0;
-	UInt32 g_sum = 0;
-	UInt32 b_sum = 0;
-	double scale;
-	int i, j;
-
-	/* Attempt to get the current column gain data, or default to 1.0 (no gain). */
-	if (readDCG(gain) != SUCCESS) {
-		for (i = 0; i < numChannels; i++) gain[i] = 1.0;
+	if (pych)
+	{
+		cinst->startAutoWhiteBalance();
 	}
+	else
+	{
+		UInt32 numChannels = sensor->getHResIncrement();
+		const UInt32 min_sum = 100 * (LUX1310_HRES_INCREMENT * LUX1310_HRES_INCREMENT) / 2;
 
-	for (i = 0; i < numChannels; i += 2) {
-		/* Even Rows - Green/Red Pixels */
-		for (j = 0; j < numChannels; j++) {
-			UInt16 fpn = readPixel12(offset + j, FPN_ADDRESS * BYTES_PER_WORD);
-			UInt16 pix = readPixel12(offset + j, LIVE_REGION_START * BYTES_PER_WORD);
-			if (pix >= (4096 - 128)) {
-				return CAMERA_CLIPPED_ERROR;
-			}
-			if (j & 1) {
-				r_sum += gain[j] * (pix - fpn) * 2;
-			} else {
-				g_sum += gain[j] * (pix - fpn);
-			}
-		}
-		offset += imagerSettings.geometry.hRes;
+		UInt32 offset = (y & 0xFFFFFFF0) * imagerSettings.geometry.hRes + (x & 0xFFFFFFF0);
+		double gain[numChannels];
+		UInt32 r_sum = 0;
+		UInt32 g_sum = 0;
+		UInt32 b_sum = 0;
+		double scale;
+		int i, j;
 
-		/* Odd Rows - Blue/Green Pixels */
-		for (j = 0; j < numChannels; j++) {
-			UInt16 fpn = readPixel12(offset + j, FPN_ADDRESS * BYTES_PER_WORD);
-			UInt16 pix = readPixel12(offset + j, LIVE_REGION_START * BYTES_PER_WORD);
-			if (pix >= (4096 - 128)) {
-				return CAMERA_CLIPPED_ERROR;
-			}
-			if (j & 1) {
-				g_sum += (pix - fpn) * gain[j];
-			} else {
-				b_sum += (pix - fpn) * gain[j] * 2;
-			}
+		/* Attempt to get the current column gain data, or default to 1.0 (no gain). */
+		if (readDCG(gain) != SUCCESS) {
+			for (i = 0; i < numChannels; i++) gain[i] = 1.0;
 		}
-		offset += imagerSettings.geometry.hRes;
+
+		for (i = 0; i < numChannels; i += 2) {
+			/* Even Rows - Green/Red Pixels */
+			for (j = 0; j < numChannels; j++) {
+				UInt16 fpn = readPixel12(offset + j, FPN_ADDRESS * BYTES_PER_WORD);
+				UInt16 pix = readPixel12(offset + j, LIVE_REGION_START * BYTES_PER_WORD);
+				if (pix >= (4096 - 128)) {
+					return CAMERA_CLIPPED_ERROR;
+				}
+				if (j & 1) {
+					r_sum += gain[j] * (pix - fpn) * 2;
+				} else {
+					g_sum += gain[j] * (pix - fpn);
+				}
+			}
+			offset += imagerSettings.geometry.hRes;
+
+			/* Odd Rows - Blue/Green Pixels */
+			for (j = 0; j < numChannels; j++) {
+				UInt16 fpn = readPixel12(offset + j, FPN_ADDRESS * BYTES_PER_WORD);
+				UInt16 pix = readPixel12(offset + j, LIVE_REGION_START * BYTES_PER_WORD);
+				if (pix >= (4096 - 128)) {
+					return CAMERA_CLIPPED_ERROR;
+				}
+				if (j & 1) {
+					g_sum += (pix - fpn) * gain[j];
+				} else {
+					b_sum += (pix - fpn) * gain[j] * 2;
+				}
+			}
+			offset += imagerSettings.geometry.hRes;
+		}
+
+		if ((r_sum < min_sum) || (g_sum < min_sum) || (b_sum < min_sum))
+			return CAMERA_LOW_SIGNAL_ERROR;
+
+		fprintf(stderr, "WhiteBalance RGB average: %d %d %d\n",
+				(2*r_sum) / (LUX1310_HRES_INCREMENT * LUX1310_HRES_INCREMENT),
+				(2*g_sum) / (LUX1310_HRES_INCREMENT * LUX1310_HRES_INCREMENT),
+				(2*b_sum) / (LUX1310_HRES_INCREMENT * LUX1310_HRES_INCREMENT));
+
+		/* Find the highest channel (probably green) */
+		scale = g_sum;
+		if (scale < r_sum) scale = r_sum;
+		if (scale < b_sum) scale = b_sum;
+
+		whiteBalMatrix[0] = scale / r_sum;
+		whiteBalMatrix[1] = scale / g_sum;
+		whiteBalMatrix[2] = scale / b_sum;
+
+		setWhiteBalance(whiteBalMatrix);
+		return SUCCESS;
 	}
-
-	if ((r_sum < min_sum) || (g_sum < min_sum) || (b_sum < min_sum))
-		return CAMERA_LOW_SIGNAL_ERROR;
-
-	fprintf(stderr, "WhiteBalance RGB average: %d %d %d\n",
-			(2*r_sum) / (LUX1310_HRES_INCREMENT * LUX1310_HRES_INCREMENT),
-			(2*g_sum) / (LUX1310_HRES_INCREMENT * LUX1310_HRES_INCREMENT),
-			(2*b_sum) / (LUX1310_HRES_INCREMENT * LUX1310_HRES_INCREMENT));
-
-	/* Find the highest channel (probably green) */
-	scale = g_sum;
-	if (scale < r_sum) scale = r_sum;
-	if (scale < b_sum) scale = b_sum;
-
-	whiteBalMatrix[0] = scale / r_sum;
-	whiteBalMatrix[1] = scale / g_sum;
-	whiteBalMatrix[2] = scale / b_sum;
-
-	setWhiteBalance(whiteBalMatrix);
-	return SUCCESS;
 }
 
 UInt8 Camera::getWBIndex(){
