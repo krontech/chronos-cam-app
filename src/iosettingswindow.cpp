@@ -32,38 +32,42 @@ IOSettingsWindow::IOSettingsWindow(QWidget *parent, Camera * cameraInst) :
 
 	camera = cameraInst;
 
-	ui->spinIO1Thresh->setValue(camera->io->getThreshold(1));
+	if (pych) {
+		getIoSettings();
+	}
+	else {
+		ui->spinIO1Thresh->setValue(camera->io->getThreshold(1));
+		ui->spinIO2Thresh->setValue(camera->io->getThreshold(2));
 
-	ui->spinIO2Thresh->setValue(camera->io->getThreshold(2));
+		ui->radioIO1None->setChecked(true);
+		ui->radioIO2None->setChecked(true);
 
-	ui->radioIO1None->setChecked(true);
-	ui->radioIO2None->setChecked(true);
+		ui->chkIO1InvertIn->setChecked(camera->io->getTriggerInvert() & (1 << 0));
+		ui->chkIO2InvertIn->setChecked(camera->io->getTriggerInvert() & (1 << 1));
+		ui->chkIO3InvertIn->setChecked(camera->io->getTriggerInvert() & (1 << 2));
 
-	ui->chkIO1InvertIn->setChecked(camera->io->getTriggerInvert() & (1 << 0));
-	ui->chkIO2InvertIn->setChecked(camera->io->getTriggerInvert() & (1 << 1));
-	ui->chkIO3InvertIn->setChecked(camera->io->getTriggerInvert() & (1 << 2));
+		ui->radioIO1TrigIn->setChecked(camera->io->getTriggerEnable() & (1 << 0));
+		ui->radioIO2TrigIn->setChecked(camera->io->getTriggerEnable() & (1 << 1));
+		ui->chkIO3TriggerInEn->setChecked(camera->io->getTriggerEnable() & (1 << 2));
+		ui->radioIO1TriggeredShutter->setChecked(camera->io->getTriggeredExpEnable()  && (camera->io->getExtShutterSrcEn() & (1 << 0)));
+		ui->radioIO1ShutterGating->   setChecked(camera->io->getShutterGatingEnable() && (camera->io->getExtShutterSrcEn() & (1 << 0)));
+		ui->radioIO2TriggeredShutter->setChecked(camera->io->getTriggeredExpEnable()  && (camera->io->getExtShutterSrcEn() & (1 << 1)));
+		ui->radioIO2ShutterGating->   setChecked(camera->io->getShutterGatingEnable() && (camera->io->getExtShutterSrcEn() & (1 << 1)));
 
-	ui->radioIO1TrigIn->setChecked(camera->io->getTriggerEnable() & (1 << 0));
-	ui->radioIO2TrigIn->setChecked(camera->io->getTriggerEnable() & (1 << 1));
-	ui->chkIO3TriggerInEn->setChecked(camera->io->getTriggerEnable() & (1 << 2));
-	ui->radioIO1TriggeredShutter->setChecked(camera->io->getTriggeredExpEnable()  && (camera->io->getExtShutterSrcEn() & (1 << 0)));
-	ui->radioIO1ShutterGating->   setChecked(camera->io->getShutterGatingEnable() && (camera->io->getExtShutterSrcEn() & (1 << 0)));
-	ui->radioIO2TriggeredShutter->setChecked(camera->io->getTriggeredExpEnable()  && (camera->io->getExtShutterSrcEn() & (1 << 1)));
-	ui->radioIO2ShutterGating->   setChecked(camera->io->getShutterGatingEnable() && (camera->io->getExtShutterSrcEn() & (1 << 1)));
+		ui->chkIO1Debounce->setChecked(camera->io->getTriggerDebounceEn() & (1 << 0));
+		ui->chkIO2Debounce->setChecked(camera->io->getTriggerDebounceEn() & (1 << 1));
+		ui->chkIO3Debounce->setChecked(camera->io->getTriggerDebounceEn() & (1 << 2));
 
-	ui->chkIO1Debounce->setChecked(camera->io->getTriggerDebounceEn() & (1 << 0));
-	ui->chkIO2Debounce->setChecked(camera->io->getTriggerDebounceEn() & (1 << 1));
-	ui->chkIO3Debounce->setChecked(camera->io->getTriggerDebounceEn() & (1 << 2));
+		ui->radioIO1FSOut->setChecked(camera->io->getOutSource() & (1 << 1));
+		ui->radioIO2FSOut->setChecked(camera->io->getOutSource() & (1 << 2));
 
-	ui->radioIO1FSOut->setChecked(camera->io->getOutSource() & (1 << 1));
-	ui->radioIO2FSOut->setChecked(camera->io->getOutSource() & (1 << 2));
+		ui->chkIO1Pull->setChecked(camera->io->getOutLevel() & (1 << 1));
+		ui->chkIO1WeakPull->setChecked(camera->io->getOutLevel() & (1 << 0));
+		ui->chkIO2Pull->setChecked(camera->io->getOutLevel() & (1 << 2));
 
-	ui->chkIO1Pull->setChecked(camera->io->getOutLevel() & (1 << 1));
-	ui->chkIO1WeakPull->setChecked(camera->io->getOutLevel() & (1 << 0));
-	ui->chkIO2Pull->setChecked(camera->io->getOutLevel() & (1 << 2));
-
-	ui->chkIO1InvertOut->setChecked(camera->io->getOutInvert() & (1 << 1));
-	ui->chkIO2InvertOut->setChecked(camera->io->getOutInvert() & (1 << 2));
+		ui->chkIO1InvertOut->setChecked(camera->io->getOutInvert() & (1 << 1));
+		ui->chkIO2InvertOut->setChecked(camera->io->getOutInvert() & (1 << 2));
+	}
 
 	lastIn = camera->io->getIn();
 
@@ -72,8 +76,6 @@ IOSettingsWindow::IOSettingsWindow(QWidget *parent, Camera * cameraInst) :
 	timer->start(30);
 
 	updateIO();
-
-
 }
 
 IOSettingsWindow::~IOSettingsWindow()
@@ -108,8 +110,263 @@ void IOSettingsWindow::on_cmdOK_clicked()
 	close();
 }
 
+void IOSettingsWindow::setIoConfig1(QVariantMap &config)
+{
+	config.insert("debounce", QVariant(ui->chkIO1Debounce->isChecked()));
+	config.insert("invert", QVariant(ui->chkIO1InvertIn->isChecked()));
+	config.insert("source", QVariant("io1"));
+}
+
+void IOSettingsWindow::setIoConfig2(QVariantMap &config)
+{
+	config.insert("debounce", QVariant(ui->chkIO2Debounce->isChecked()));
+	config.insert("invert", QVariant(ui->chkIO2InvertIn->isChecked()));
+	config.insert("source", QVariant("io2"));
+}
+
+void IOSettingsWindow::setIoConfig3(QVariantMap &config)
+{
+	config.insert("debounce", QVariant(ui->chkIO3Debounce->isChecked()));
+	config.insert("invert", QVariant(ui->chkIO3InvertIn->isChecked()));
+	config.insert("source", QVariant("io3"));
+}
+
+/* Generate the IO configuration and apply it via the API. */
+void IOSettingsWindow::setIoSettings()
+{
+	QVariantMap values;
+
+	QVariantMap orConfig[3];
+	QVariantMap andConfig;
+	QVariantMap xorConfig;
+
+	QVariantMap stopConfig;
+	QVariantMap shutterConfig;
+
+	QVariantMap io1config;
+	QVariantMap io2config;
+	QVariantMap io1thresh;
+	QVariantMap io2thresh;
+
+	int io1pull = 0;
+	int io2pull = 0;
+
+	int nRecTrig = 0;
+	int nExpTrig = 0;
+	int nShGate = 0;
+
+	if (ui->chkIO1WeakPull->isChecked()) io1pull += 1;
+	if (ui->chkIO1Pull->isChecked()) io1pull += 2;
+	if (ui->chkIO2Pull->isChecked()) io2pull += 1;
+
+	/* If multiple inputs are mapped to the same thing, we need to use a combinatorial block. */
+	if (ui->radioIO1TrigIn->isChecked()) nRecTrig++;
+	if (ui->radioIO2TrigIn->isChecked()) nRecTrig++;
+	if (ui->chkIO3TriggerInEn->isChecked()) nRecTrig++;
+	if (ui->radioIO1TriggeredShutter->isChecked()) nExpTrig++;
+	if (ui->radioIO2TriggeredShutter->isChecked()) nExpTrig++;
+	if (ui->radioIO1ShutterGating->isChecked()) nShGate++;
+	if (ui->radioIO2ShutterGating->isChecked()) nShGate++;
+
+	/* Prepare the combinatorial block. */
+	orConfig[0].insert("source", QVariant("none"));
+	orConfig[1].insert("source", QVariant("none"));
+	orConfig[2].insert("source", QVariant("none"));
+	andConfig.insert("source", QVariant("alwaysHigh"));
+	xorConfig.insert("source", QVariant("none"));
+
+	stopConfig.insert("source", QVariant("none"));
+	shutterConfig.insert("shutter", QVariant("none"));
+
+	/* Prepare the combinatorial block for recording end trigger. */
+	if (nRecTrig > 1) {
+		if (ui->radioIO1TrigIn->isChecked()) setIoConfig1(orConfig[0]);
+		if (ui->radioIO2TrigIn->isChecked()) setIoConfig2(orConfig[1]);
+		if (ui->chkIO3TriggerInEn->isChecked()) setIoConfig3(orConfig[2]);
+		stopConfig.insert("source", QVariant("comb"));
+	}
+	/* Otherwise directly connect the recording end trigger. */
+	else if (ui->radioIO1TrigIn->isChecked()) setIoConfig1(stopConfig);
+	else if (ui->radioIO2TrigIn->isChecked()) setIoConfig2(stopConfig);
+	else if (ui->chkIO3TriggerInEn->isChecked()) setIoConfig3(stopConfig);
+
+	/* Prepare the combinatorial block for exposure trigger and/or shutter gating. */
+	if ((nExpTrig + nShGate) > 1) {
+		if (ui->radioIO1TriggeredShutter->isChecked()) setIoConfig1(orConfig[0]);
+		else if (ui->radioIO1ShutterGating->isChecked()) setIoConfig1(orConfig[0]);
+		if (ui->radioIO2TriggeredShutter->isChecked()) setIoConfig2(orConfig[1]);
+		else if (ui->radioIO2ShutterGating->isChecked()) setIoConfig2(orConfig[1]);
+		shutterConfig.insert("source", QVariant("comb"));
+	}
+	/* Otherwise directly connect the frame trigger. */
+	else if (ui->radioIO1TriggeredShutter->isChecked()) setIoConfig1(shutterConfig);
+	else if (ui->radioIO2TriggeredShutter->isChecked()) setIoConfig2(shutterConfig);
+	else if (ui->radioIO1ShutterGating->isChecked()) setIoConfig1(shutterConfig);
+	else if (ui->radioIO2ShutterGating->isChecked()) setIoConfig2(shutterConfig);
+
+	/* HACK: This feels like the wrong place to be selecting the exposure program. */
+	if (nShGate) {
+		values.insert("exposureMode", QVariant("shutterGating"));
+	} else if (nExpTrig) {
+		values.insert("exposureMode", QVariant("frameTrigger"));
+	} else {
+		values.insert("exposureMode", QVariant("normal"));
+	}
+
+	/* Configure the IO output drivers. */
+	io1config.insert("invert", QVariant(ui->chkIO1InvertOut->isChecked()));
+	io1config.insert("driveStrength", QVariant(io1pull));
+	io1config.insert("source", QVariant(ui->radioIO1FSOut->isChecked() ? "timingIo" : "none"));
+	io1thresh.insert("threshold", QVariant(ui->spinIO1Thresh->value()));
+	io2config.insert("invert", QVariant(ui->chkIO2InvertOut->isChecked()));
+	io2config.insert("driveStrength", QVariant(io2pull));
+	io2config.insert("source", QVariant(ui->radioIO2FSOut->isChecked() ? "timingIo" : "none"));
+	io2thresh.insert("threshold", QVariant(ui->spinIO2Thresh->value()));
+
+	/* Load up the IO mapping configuration */
+	values.insert("ioMappingCombOr1", QVariant(orConfig[0]));
+	values.insert("ioMappingCombOr2", QVariant(orConfig[1]));
+	values.insert("ioMappingCombOr3", QVariant(orConfig[2]));
+	values.insert("ioMappingCombAnd", QVariant(andConfig));
+	values.insert("ioMappingCombXor", QVariant(xorConfig));
+	values.insert("ioMappingStopRec", QVariant(stopConfig));
+	values.insert("ioMappingShutter", QVariant(shutterConfig));
+	values.insert("ioMappingIo1", QVariant(io1config));
+	values.insert("ioMappingIo2", QVariant(io2config));
+	values.insert("ioInputConfigIo1", QVariant(io1thresh));
+	values.insert("ioInputConfigIo2", QVariant(io2thresh));
+
+	/* Apply the settings via D-Bus */
+	camera->cinst->setPropertyGroup(values);
+}
+
+void IOSettingsWindow::getIoTriggerConfig(QVariantMap &config)
+{
+	QString source = config["source"].toString();
+	if (source == "io1") {
+		ui->radioIO1TrigIn->setChecked(true);
+		ui->chkIO1Debounce->setChecked(config["debounce"].toBool());
+		ui->chkIO1InvertIn->setChecked(config["invert"].toBool());
+	}
+	else if (source == "io2") {
+		ui->radioIO2TrigIn->setChecked(true);
+		ui->chkIO2Debounce->setChecked(config["debounce"].toBool());
+		ui->chkIO2InvertIn->setChecked(config["invert"].toBool());
+	}
+	else if (source == "io3") {
+		ui->chkIO3TriggerInEn->setChecked(true);
+		ui->chkIO3Debounce->setChecked(config["debounce"].toBool());
+		ui->chkIO3InvertIn->setChecked(config["invert"].toBool());
+	}
+}
+
+void IOSettingsWindow::getIoShutterConfig(QVariantMap &config, QString expMode)
+{
+	QString source = config["source"].toString();
+	if (source == "io1") {
+		if (expMode == "shutterGating") {
+			ui->radioIO1ShutterGating->setChecked(true);
+		} else {
+			ui->radioIO1TriggeredShutter->setChecked(true);
+		}
+
+		ui->chkIO1Debounce->setChecked(config["debounce"].toBool());
+		ui->chkIO1InvertIn->setChecked(config["invert"].toBool());
+	}
+	else if (source == "io2") {
+		if (expMode == "shutterGating") {
+			ui->radioIO2ShutterGating->setChecked(true);
+		} else {
+			ui->radioIO2TriggeredShutter->setChecked(true);
+		}
+
+		ui->chkIO2Debounce->setChecked(config["debounce"].toBool());
+		ui->chkIO2InvertIn->setChecked(config["invert"].toBool());
+	}
+}
+
+void IOSettingsWindow::getIoSettings()
+{
+	QStringList names = {
+		"ioMappingCombOr1",
+		"ioMappingCombOr2",
+		"ioMappingCombOr3",
+		"ioMappingStopRec",
+		"ioMappingShutter",
+		"ioMappingIo1",
+		"ioMappingIo2",
+		"ioInputConfigIo1",
+		"ioInputConfigIo2",
+		"exposureMode"
+	};
+
+	QVariantMap orConfig[3];
+	QVariantMap stopConfig;
+	QVariantMap shutterConfig;
+
+	QVariantMap io1config;
+	QVariantMap io2config;
+	QVariantMap io1thresh;
+	QVariantMap io2thresh;
+
+	QVariantMap ioMapping = camera->cinst->getPropertyGroup(names);
+
+	int io1pull;
+
+	ioMapping["ioMappingCombOr1"].value<QDBusArgument>() >> orConfig[0];
+	ioMapping["ioMappingCombOr2"].value<QDBusArgument>() >> orConfig[1];
+	ioMapping["ioMappingCombOr3"].value<QDBusArgument>() >> orConfig[2];
+	ioMapping["ioMappingStopRec"].value<QDBusArgument>() >> stopConfig;
+	ioMapping["ioMappingShutter"].value<QDBusArgument>() >> shutterConfig;
+
+	ioMapping["ioMappingIo1"].value<QDBusArgument>() >> io1config;
+	ioMapping["ioMappingIo2"].value<QDBusArgument>() >> io2config;
+	ioMapping["ioInputConfigIo1"].value<QDBusArgument>() >> io1thresh;
+	ioMapping["ioInputConfigIo2"].value<QDBusArgument>() >> io2thresh;
+
+	ui->chkIO1InvertOut->setChecked(io1config["invert"].toBool());
+	ui->radioIO1FSOut->setChecked(io1config["source"].toString() == "timingIo");
+	ui->spinIO1Thresh->setValue(io1thresh["threshold"].toDouble());
+	ui->chkIO2InvertOut->setChecked(io2config["invert"].toBool());
+	ui->radioIO2FSOut->setChecked(io2config["source"].toString() == "timingIo");
+	ui->spinIO2Thresh->setValue(io2thresh["threshold"].toDouble());
+	ui->chkIO2Pull->setChecked(io2config["driveStrength"].toInt() != 0);
+
+	io1pull = io1config["driveStrength"].toInt();
+	ui->chkIO1WeakPull->setChecked((io1pull & 1) != 0);
+	ui->chkIO1Pull->setChecked((io1pull & 2) != 0);
+
+	/* Load the record-end configuration. */
+	ui->radioIO1None->setChecked(true);
+	ui->radioIO2None->setChecked(true);
+	ui->chkIO3TriggerInEn->setChecked(false);
+	if (stopConfig["source"].toString() == "comb") {
+		getIoTriggerConfig(orConfig[0]);
+		getIoTriggerConfig(orConfig[1]);
+		getIoTriggerConfig(orConfig[2]);
+	} else {
+		getIoTriggerConfig(stopConfig);
+	}
+
+	/* Load the exposure trigger or shutter gating configuration. */
+	if (shutterConfig["source"].toString() == "comb") {
+		QString expMode = ioMapping["exposureMode"].toString();
+		getIoShutterConfig(orConfig[0], expMode);
+		getIoShutterConfig(orConfig[1], expMode);
+		getIoShutterConfig(orConfig[2], expMode);
+	} else {
+		getIoShutterConfig(shutterConfig, ioMapping["exposureMode"].toString());
+	}
+}
+
 void IOSettingsWindow::on_cmdApply_clicked()
 {
+	/* Do it the new way using the D-Bus API */
+	if (pych) {
+		setIoSettings();
+		return;
+	}
+
 	camera->io->setTriggerInvert(ui->chkIO3InvertIn->isChecked() << 2 | ui->chkIO2InvertIn->isChecked() << 1 | ui->chkIO1InvertIn->isChecked());
 	camera->io->setTriggerEnable(ui->chkIO3TriggerInEn->isChecked() << 2 | ui->radioIO2TrigIn->isChecked() << 1 |  ui->radioIO1TrigIn->isChecked());
 	camera->io->setTriggerDebounceEn(ui->chkIO3Debounce->isChecked() << 2 | ui->chkIO2Debounce->isChecked() << 1 | ui->chkIO1Debounce->isChecked());
@@ -132,13 +389,6 @@ void IOSettingsWindow::on_cmdApply_clicked()
 	qDebug() << "Trig Ena" << camera->io->getTriggerEnable() << "Trig Inv" << camera->io->getTriggerInvert() << "Trig Deb" << camera->io->getTriggerDebounceEn();
 	qDebug() << "Source En" << camera->io->getOutSource() << "Source Level" << camera->io->getOutLevel() << "Source Inv" << camera->io->getOutInvert();
 	qDebug() << "IO1 Thresh" << camera->io->getThreshold(1) << "IO2 Thresh" << camera->io->getThreshold(2);
-
-	if (pych)
-	{
-
-		translateToComb();
-		camera->cinst->setIoSettings();
-	}
 }
 
 void IOSettingsWindow::on_radioIO1TriggeredShutter_toggled(bool checked)

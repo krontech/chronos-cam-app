@@ -54,6 +54,16 @@ private slots:
 	void on_radioIO2ShutterGating_toggled(bool checked);
 
 private:
+	void getIoTriggerConfig(QVariantMap &config);
+	void getIoShutterConfig(QVariantMap &config, QString expMode);
+	void getIoSettings(void);
+
+	void setIoConfig1(QVariantMap &config);
+	void setIoConfig2(QVariantMap &config);
+	void setIoConfig3(QVariantMap &config);
+	void setIoSettings(void);
+
+
 	Ui::IOSettingsWindow *ui;
 	Camera * camera;
 	UInt32 lastIn;

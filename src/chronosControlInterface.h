@@ -94,11 +94,10 @@ public Q_SLOTS: // METHODS
 		return asyncCallWithArgumentList(QLatin1String("startAutoWhiteBalance"), argumentList);
 	}
 
-	inline QDBusPendingReply<QVariantMap> get(const QVariantMap &args)
+	inline QDBusPendingReply<QVariantMap> get(const QStringList &names)
 	{
 		QList<QVariant> argumentList;
-		//qDebug() << "get";
-		argumentList << qVariantFromValue(args);
+		argumentList << QVariant::fromValue(names);
 		return asyncCallWithArgumentList(QLatin1String("get"), argumentList);
 	}
 
