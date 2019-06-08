@@ -430,6 +430,7 @@ UInt32 Camera::setIntegrationTime(double intTime, FrameGeometry *fSize, Int32 fl
 	if (!(flags & SETTING_FLAG_TEMPORARY)) {
 		qDebug("--- Saving settings --- Exposure time: %d", validTime);
 		appSettings.setValue("camera/exposure", validTime);
+		imagerSettings.exposure = validTime;
 	}
 	return SUCCESS;
 }
