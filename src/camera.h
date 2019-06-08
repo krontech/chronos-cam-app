@@ -147,6 +147,8 @@ typedef struct {
 	ImagerSettings_t is;
 	bool valid;
 	bool hasBeenSaved;
+	bool hasBeenViewed;
+	UInt32 ignoreSegments;
 } RecordSettings_t;
 
 typedef struct {
@@ -309,7 +311,6 @@ public:
 	UInt8 getWBIndex();
 	void  setWBIndex(UInt8 index);
 	int unsavedWarnEnabled;
-	bool videoHasBeenReviewed;
 	bool autoSave;
 	void set_autoSave(bool state);
 	bool get_autoSave();

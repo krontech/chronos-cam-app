@@ -51,7 +51,9 @@ Camera::Camera()
 	playbackMode = false;
 	recording = false;
 	imgGain = 1.0;
-	recordingData.hasBeenSaved = true;		//Nothing in RAM at power up so there's nothing to lose
+	recordingData.ignoreSegments = 0;
+	recordingData.hasBeenSaved = true;
+	recordingData.hasBeenViewed = true;
 	unsavedWarnEnabled = getUnsavedWarnEnable();
 	autoSave = appSettings.value("camera/autoSave", 0).toBool();
 	autoRecord = appSettings.value("camera/autoRecord", 0).toBool();
@@ -423,6 +425,11 @@ Int32 Camera::startRecording(void)
 	if(playbackMode)
 		return CAMERA_IN_PLAYBACK_MODE;
 
+	recordingData.valid = false;
+	recordingData.hasBeenSaved = false;
+	recordingData.hasBeenViewed = false;
+	recordingData.ignoreSegments = 0;
+
 	switch(imagerSettings.mode)
 	{
 	case RECORD_MODE_NORMAL:
@@ -435,19 +442,16 @@ Int32 Camera::startRecording(void)
 	break;
 
 	case RECORD_MODE_FPN:
-		//setRecSequencerModeSingleBlock(17);   //Don't set this here, leave blank so the existing sequencer mode setting for FPN still works
+		recordingData.ignoreSegments = 1;
 	break;
 
 	}
 
-	recordingData.valid = false;
-	recordingData.hasBeenSaved = false;
 	vinst->flushRegions();
 	startSequencer();
 	ui->setRecLEDFront(true);
 	ui->setRecLEDBack(true);
 	recording = true;
-	videoHasBeenReviewed = false;
 
 	return SUCCESS;
 }
