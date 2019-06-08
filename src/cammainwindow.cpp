@@ -169,7 +169,7 @@ void CamMainWindow::on_cmdRec_clicked()
 	else
 	{
 		//If there is unsaved video in RAM, prompt to start record.  unsavedWarnEnabled values: 0=always, 1=if not reviewed, 2=never
-		if(false == camera->recordingData.hasBeenSaved && (0 != camera->unsavedWarnEnabled && (2 == camera->unsavedWarnEnabled || !camera->videoHasBeenReviewed)))
+		if(false == camera->recordingData.hasBeenSaved && (0 != camera->unsavedWarnEnabled && (2 == camera->unsavedWarnEnabled || !camera->recordingData.hasBeenViewed)))
 		{
 			if(QMessageBox::Yes != question("Unsaved video in RAM", "Start recording anyway and discard the unsaved video in RAM?"))
 				return;
@@ -339,7 +339,7 @@ void CamMainWindow::on_MainWindowTimer()
 			if(qwl.count() <= windowsAlwaysOpen)				//Now that the numeric keypad has been added, there are four windows: cammainwindow, debug buttons window, and both keyboards
 			{
 				//If there is unsaved video in RAM, prompt to start record.  unsavedWarnEnabled values: 0=always, 1=if not reviewed, 2=never
-				if(false == camera->recordingData.hasBeenSaved && (0 != camera->unsavedWarnEnabled && (2 == camera->unsavedWarnEnabled || !camera->videoHasBeenReviewed)) && false == camera->get_autoSave())	//If there is unsaved video in RAM, prompt to start record
+				if(false == camera->recordingData.hasBeenSaved && (0 != camera->unsavedWarnEnabled && (2 == camera->unsavedWarnEnabled || !camera->recordingData.hasBeenViewed)) && false == camera->get_autoSave())	//If there is unsaved video in RAM, prompt to start record
 
 				{
 					if(QMessageBox::Yes == question("Unsaved video in RAM", "Start recording anyway and discard the unsaved video in RAM?"))
@@ -412,7 +412,10 @@ void CamMainWindow::on_newVideoSegment(VideoStatus *st)
 {
 	/* Flag that we have unsaved video. */
 	qDebug("--- Sequencer --- Total recording size: %u", st->totalFrames);
-	if (st->totalFrames) {
+	if (camera->recordingData.ignoreSegments) {
+		camera->recordingData.ignoreSegments--;
+	}
+	else if (st->totalFrames) {
 		camera->recordingData.is = camera->getImagerSettings();
 		camera->recordingData.valid = true;
 		camera->recordingData.hasBeenSaved = false;
