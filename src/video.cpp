@@ -183,16 +183,24 @@ void Video::setDisplayOptions(bool zebra, FocusPeakColors fpColor)
 	}
 }
 
-void Video::liveDisplay(unsigned int hRes, unsigned int vRes, bool flip)
+void Video::liveDisplay(bool flip)
 {
 	QVariantMap args;
 	QDBusPendingReply<QVariantMap> reply;
-	args.insert("hres", QVariant(hRes));
-	args.insert("vres", QVariant(vRes));
 	args.insert("flip", QVariant(flip));
 
 	pthread_mutex_lock(&mutex);
 	reply = iface.livedisplay(args);
+	reply.waitForFinished();
+	pthread_mutex_unlock(&mutex);
+}
+
+void Video::pauseDisplay(void)
+{
+	QDBusPendingReply<QVariantMap> reply;
+
+	pthread_mutex_lock(&mutex);
+	reply = iface.pause();
 	reply.waitForFinished();
 	pthread_mutex_unlock(&mutex);
 }

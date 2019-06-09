@@ -226,7 +226,7 @@ void RecSettingsWindow::on_cmdOK_clicked()
 	camera->updateTriggerValues(*is);
 
 	camera->setImagerSettings(*is);
-	camera->vinst->liveDisplay(is->geometry.hRes, is->geometry.vRes, videoFlip);
+	camera->vinst->liveDisplay(videoFlip);
 
 	if(CAMERA_FILE_NOT_FOUND == camera->loadFPNFromFile()) {
 		camera->fastFPNCorrection();

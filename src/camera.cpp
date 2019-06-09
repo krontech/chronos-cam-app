@@ -253,7 +253,7 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, ImageSensor * s
 
 	vinst->setDisplayOptions(getZebraEnable(), getFocusPeakEnable() ? (FocusPeakColors)getFocusPeakColor() : FOCUS_PEAK_DISABLE);
 	vinst->setDisplayPosition(ButtonsOnLeft ^ UpsideDownDisplay);
-	vinst->liveDisplay(settings.geometry.hRes, settings.geometry.vRes, (sensor->getSensorQuirks() & SENSOR_QUIRK_UPSIDE_DOWN) != 0);
+	vinst->liveDisplay((sensor->getSensorQuirks() & SENSOR_QUIRK_UPSIDE_DOWN) != 0);
 	setFocusPeakThresholdLL(appSettings.value("camera/focusPeakThreshold", 25).toUInt());
 
 	printf("Video init done\n");
@@ -443,7 +443,6 @@ Int32 Camera::startRecording(void)
 	recordingData.valid = false;
 	recordingData.hasBeenSaved = false;
 	vinst->flushRegions();
-	vinst->liveDisplay(imagerSettings.geometry.hRes, imagerSettings.geometry.vRes, (sensor->getSensorQuirks() & SENSOR_QUIRK_UPSIDE_DOWN) != 0);
 	startSequencer();
 	ui->setRecLEDFront(true);
 	ui->setRecLEDBack(true);
@@ -627,7 +626,7 @@ UInt32 Camera::setPlayMode(bool playMode)
 	else
 	{
 		bool videoFlip = (sensor->getSensorQuirks() & SENSOR_QUIRK_UPSIDE_DOWN) != 0;
-		vinst->liveDisplay(imagerSettings.geometry.hRes, imagerSettings.geometry.vRes, videoFlip);
+		vinst->liveDisplay(videoFlip);
 	}
 	return SUCCESS;
 }
@@ -2552,6 +2551,9 @@ Int32 Camera::blackCalAllStdRes(bool factory, QProgressDialog *dialog)
 		dialog->setAutoReset(false);
 	}
 
+	/* Disable the video port during calibration. */
+	vinst->pauseDisplay();
+
 	//For each gain
 	int progress = 0;
 	for(g = sensor->getMinGain(); g <= sensor->getMaxGain(); g *= 2)
@@ -2649,6 +2651,7 @@ exit_calibration:
 	settings.exposure = sensor->getMaxIntegrationTime(settings.period, &settings.geometry);
 
 	retVal = setImagerSettings(settings);
+	vinst->liveDisplay((sensor->getSensorQuirks() & SENSOR_QUIRK_UPSIDE_DOWN) != 0);
 	if(SUCCESS != retVal) {
 		qDebug("blackCalAllStdRes: Error during setImagerSettings %d", retVal);
 		return retVal;
