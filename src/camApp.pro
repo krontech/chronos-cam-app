@@ -66,6 +66,9 @@ exists( $${QT_SYSROOT}/etc/debian_version ) {
     system($$QMAKE_MKDIR -p $${OUT_PWD}/debian $${OUT_PWD}/debian/source)
     system($$QMAKE_COPY $$DEBFILES $${OUT_PWD}/debian)
     system($${_PRO_FILE_PWD_}/changelog.sh > $${OUT_PWD}/debian/changelog)
+
+    ## Sloppy workaround to ensure a clean build.
+    QMAKE_CLEAN += $$files($${OUT_PWD}/debian/*, false)
 }
 
 SOURCES += main.cpp\
