@@ -105,7 +105,7 @@ CameraErrortype LUX1310::initSensor()
 	SCIWrite(0x7E, 0);	//reset all registers
 	rev = SCIRead(0x00);
 	if ((rev >> 8) != LUX1310_CHIP_ID) {
-		fprintf(stderr, "LUX1310 rev_chip returned invalid ID (0x02x)\n", rev>>8);
+		fprintf(stderr, "LUX1310 rev_chip returned invalid ID (0x%02x)\n", rev>>8);
 		return CAMERA_ERROR_SENSOR;
 	}
 	sensorVersion = rev & 0xFF;
@@ -182,6 +182,7 @@ CameraErrortype LUX1310::initSensor()
 
 	//Load the default wavetable
 	SCIWriteBuf(0x7F, lux1310wt[0]->wavetab, lux1310wt[0]->length);
+	delayms(1);
 
 	//Enable internal timing engine
 	SCIWrite(0x01, 0x0001);
@@ -240,8 +241,10 @@ bool LUX1310::SCIWrite(UInt8 address, UInt16 data, bool readback)
 
 void LUX1310::SCIWriteBuf(UInt8 address, const UInt8 * data, UInt32 dataLen)
 {
+	int i = 0;
+
 	//Clear RW and reset FIFO
-	gpmc->write16(SENSOR_SCI_CONTROL_ADDR, 0x8000 | (gpmc->read16(SENSOR_SCI_CONTROL_ADDR) & ~SENSOR_SCI_CONTROL_RW_MASK));
+	gpmc->write16(SENSOR_SCI_CONTROL_ADDR, 0x8000);
 
 	//Set up address, transfer length and put data into FIFO
 	gpmc->write16(SENSOR_SCI_ADDRESS_ADDR, address);
@@ -251,10 +254,10 @@ void LUX1310::SCIWriteBuf(UInt8 address, const UInt8 * data, UInt32 dataLen)
 	}
 
 	//Start transfer
-	gpmc->write16(SENSOR_SCI_CONTROL_ADDR, gpmc->read16(SENSOR_SCI_CONTROL_ADDR) | SENSOR_SCI_CONTROL_RUN_MASK);
-
-	//Wait for completion
-	while(gpmc->read16(SENSOR_SCI_CONTROL_ADDR) & SENSOR_SCI_CONTROL_RUN_MASK);
+	gpmc->write16(SENSOR_SCI_CONTROL_ADDR, SENSOR_SCI_CONTROL_RUN_MASK);
+	while(gpmc->read16(SENSOR_SCI_CONTROL_ADDR) & SENSOR_SCI_CONTROL_RUN_MASK) {
+		i++;
+	}
 }
 
 UInt16 LUX1310::SCIRead(UInt8 address)
@@ -579,6 +582,7 @@ void LUX1310::updateWavetableSetting(bool gainCalMode)
 		SCIWrite(0x37, wt->clocks);     //non-overlapping readout delay
 		SCIWrite(0x7A, wt->clocks);     //wavetable size
 		SCIWriteBuf(0x7F, gainCalMode ? wt->gaincal : wt->wavetab, wt->length);
+		delayms(1);
 		SCIWrite(0x01, 0x0001);         //Enable internal timing engine
 		wavetableSize = wt->clocks;
 		gpmc->write16(SENSOR_MAGIC_START_DELAY_ADDR, wt->abnDelay);
