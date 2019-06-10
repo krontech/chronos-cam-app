@@ -193,7 +193,7 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, ImageSensor * s
 	settings.geometry.vOffset       = appSettings.value("camera/vOffset", 0).toInt();
 	settings.geometry.vDarkRows     = 0;
 	settings.geometry.bitDepth		= imagerSettings.geometry.bitDepth;
-	settings.gain                   = appSettings.value("camera/gain", 0).toInt();
+	settings.gain                   = appSettings.value("camera/gain", 1).toInt();
 	settings.period                 = appSettings.value("camera/period", sensor->getMinFramePeriod(&settings.geometry)).toInt();
 	settings.exposure               = appSettings.value("camera/exposure", sensor->getMaxIntegrationTime(settings.period, &settings.geometry)).toInt();
 	settings.recRegionSizeFrames    = appSettings.value("camera/recRegionSizeFrames", getMaxRecordRegionSizeFrames(&settings.geometry)).toInt();
