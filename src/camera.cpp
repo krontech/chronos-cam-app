@@ -1577,7 +1577,7 @@ void Camera::computeGainColumns(FrameGeometry *geometry, UInt32 wordAddress, con
 		maxColumn /= scale;
 
 		/* High voltage should be less than 3/4 of full scale */
-		if (maxColumn <= (pixFullScale - (pixFullScale / 8))) {
+		if (maxColumn <= (pixFullScale - (pixFullScale / 16))) {
 			break;
 		}
 	}
@@ -1852,7 +1852,6 @@ void Camera::loadColGainFromFile(void)
 	QString filename;
 	UInt32 numChannels = sensor->getHResIncrement();
 	double gainCorrection[numChannels];
-	double curveCorrection[numChannels];
 	const char *gName;
 
 	//Get the filename
@@ -1869,7 +1868,6 @@ void Camera::loadColGainFromFile(void)
 	/* Prepare a sensible default gain. */
 	for (int col = 0; col < numChannels; col++) {
 		gainCorrection[col] = 1.0;
-		curveCorrection[col] = 0.0;
 	}
 
 	/* Load gain correction. */
@@ -1897,11 +1895,17 @@ void Camera::loadColGainFromFile(void)
 		gpmc->write16(COL_GAIN_MEM_START_ADDR + (2 * col), (int)(gainCorrection[col % numChannels] * (1 << COL_GAIN_FRAC_BITS)));
 	}
 
+#if USE_3POINT_GAIN
 	/* Load curvature correction. */
 	filename.sprintf("cal:colCurve_%s.bin", gName);
 	QFileInfo colCurveFile(filename);
 	if (colCurveFile.exists() && colCurveFile.isFile()) {
+		double curveCorrection[numChannels];
 		QFile fp;
+
+		for (int col = 0; col < numChannels; col++) {
+			curveCorrection[col] = 0.0;
+		}
 
 		qDebug("Found colCurve file %s", colCurveFile.absoluteFilePath().toLocal8Bit().constData());
 
@@ -1919,9 +1923,10 @@ void Camera::loadColGainFromFile(void)
 			Int16 curve16 = curveCorrection[col % numChannels] * (1 << COL_CURVE_FRAC_BITS);
 			gpmc->write16(COL_CURVE_MEM_START_ADDR + (2 * col), (unsigned)curve16);
 		}
-	}
+	} else
+#endif
 	/* Otherwise, use 2-point calibration only */
-	else {
+	{
 		gpmc->write16(DISPLAY_GAIN_CONTROL_ADDR, 0);
 	}
 }
