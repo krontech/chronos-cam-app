@@ -38,8 +38,8 @@ extern "C" {
 #define DEF_SI_OPTS	SI_DELIM_SPACE | SI_SPACE_BEFORE_PREFIX
 
 extern bool pych;
-extern UInt32 pyCurrentPeriod;
-extern UInt32 pyCurrentExposure;
+//extern UInt32 pyCurrentPeriod;
+//extern UInt32 pyCurrentExposure;
 
 //Round an integer (x) to the nearest multiple of mult
 template<typename T>
@@ -224,8 +224,8 @@ void RecSettingsWindow::on_cmdOK_clicked()
 		FrameGeometry *geo = &is->geometry;
 		camera->cinst->setResolution(geo);
 		//camera->cinst->setIntegrationTime(intTime); -- we don't need this here, it's done by setImagerSettings
-		pyCurrentExposure = intTime;
-		pyCurrentPeriod = period;
+		//pyCurrentExposure = intTime;
+		//pyCurrentPeriod = period;
 		setRecShadow();
 	}
 	else

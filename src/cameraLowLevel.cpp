@@ -422,14 +422,18 @@ UInt32 Camera::getFocusPeakThresholdLL(void)
 
 Int32 Camera::getRamSizeGB(UInt32 * stick0SizeGB, UInt32 * stick1SizeGB)
 {
+	int retVal;
+
 	if (pych)
 	{
-		return SUCCESS;
+		//with PyChronos, report all RAM in stick0, and return 0 in stick1;
+		retVal = cinst->getInt("cameraMemoryGB", stick0SizeGB);
+		*stick1SizeGB = 0;
+		return retVal;
 	}
 	else
 	{
 
-		int retVal;
 		int file;
 		unsigned char ram0_buf, ram1_buf;
 
@@ -511,13 +515,19 @@ Int32 Camera::getRamSizeGB(UInt32 * stick0SizeGB, UInt32 * stick1SizeGB)
 //dest must be a char array that can handle SERIAL_NUMBER_MAX_LEN + 1 bytes
 Int32 Camera::readSerialNumber(char * dest)
 {
+	int retVal;
+
 	if (pych)
 	{
-		return SUCCESS;
+		QString serial;
+		cinst->getString("cameraSerial", &serial);
+		//dest = serial.toStdString().c_str();
+		std::copy(serial.toStdString().begin(),serial.toStdString().end(), dest);
+		return retVal;
+;
 	}
 	else
 	{
-		int retVal;
 		int file;
 
 		/* if we are reading, *WRITE* to file */
@@ -586,7 +596,12 @@ UInt16 Camera::getFPGAVersion(void)
 {
 	if (pych)
 	{
-		return 3;
+		bool ok;
+		QString compoundVersion;
+		cinst->getString("cameraFpgaVersion", &compoundVersion);
+		double dVersion = compoundVersion.toDouble(&ok);
+		return (int)dVersion;
+
 	}
 	else
 	{
@@ -598,7 +613,11 @@ UInt16 Camera::getFPGASubVersion(void)
 {
 	if (pych)
 	{
-		return 19;
+		bool ok;
+		QString compoundVersion;
+		cinst->getString("cameraFpgaVersion", &compoundVersion);
+		double dVersion = compoundVersion.toDouble(&ok);
+		return round(100 * (dVersion - (int)dVersion));
 	}
 	else
 	{

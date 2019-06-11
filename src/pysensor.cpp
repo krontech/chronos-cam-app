@@ -212,9 +212,9 @@ UInt32 PySensor::setFramePeriod(UInt32 period, FrameGeometry *size)
 	UInt32 maxPeriod = PYSENSOR_MAX_SLAVE_PERIOD;
 
 	currentPeriod = within(period, minPeriod, maxPeriod);
-	pyCurrentPeriod = currentPeriod;
+	//pyCurrentPeriod = currentPeriod;
 
-	cinst->setInt("framePeriod", currentPeriod * 1); //* 10 WAS needed for pych
+	cinst->setInt("framePeriod", currentPeriod);
 
 	return currentPeriod;
 }
@@ -261,7 +261,9 @@ UInt32 PySensor::setIntegrationTime(UInt32 intTime, FrameGeometry *size)
  */
 UInt32 PySensor::getIntegrationTime(void)
 {
-	return currentExposure;
+	UInt32 exp;
+	cinst->getInt("exposurePeriod", &exp);
+	return exp;
 }
 
 void PySensor::setSlaveExposure(UInt32 exposure)

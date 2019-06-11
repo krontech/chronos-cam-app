@@ -75,33 +75,17 @@ UInt32 ImageSensor::getActualIntegrationTime(double target, UInt32 period, Frame
 
 double ImageSensor::getCurrentFramePeriodDouble()
 {
-	if (pych)
-	{
-		//return this->getPyFramePeriod()
-		//return currentPeriod;
-		return pyCurrentPeriod / 1000000000.0;
-	}
-	else
-	{
-		return (double)getFramePeriod() / getFramePeriodClock();
-	}
+	return (double)getFramePeriod() / getFramePeriodClock();
 }
 
 double ImageSensor::getCurrentExposureDouble()
 {
-	if (pych & 0)
-	{
-		return pyCurrentExposure;
-	}
-	else
-	{
-		return (double)getIntegrationTime() / getIntegrationClock();
-	}
+	return (double)getIntegrationTime() / getIntegrationClock();
 }
 
 double ImageSensor::getCurrentExposureAngle()
 {
-	if (pych)
+	if (pych & 0)
 	{
 
 		return 360.0 * pyCurrentExposure / pyCurrentPeriod;

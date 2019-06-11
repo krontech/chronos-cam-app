@@ -30,6 +30,14 @@ struct ControlStatus {
     UInt32 status3;
 };
 */
+
+typedef enum {
+	CONTROL_STATE_LIVEDISPLAY = 0,
+	CONTROL_STATE_PLAYBACK = 1,
+	CONTROL_STATE_FILESAVE = 2,
+} ControlStatus;
+
+
 struct CameraStatus {
 	char state[128];
 };
@@ -82,7 +90,8 @@ class Control : public QObject {
 
 public:
     Control();
-	~Control();
+    ~Control();
+
 
 	QVariant getProperty(QString parameter);
 	QVariantMap getPropertyGroup(QStringList paramters);
@@ -175,7 +184,8 @@ public:
     CameraData cd;
 
 signals:
-	//void newControlTest(ControlStatus *status);
+	void notified(ControlStatus state);
+
 
 private:
     int pid;
@@ -189,7 +199,7 @@ private:
 
     /* D-Bus signal handlers. */
 private slots:
-    void controlTest(const QVariantMap &args);
+	void notify(const QVariantMap &args);
 };
 
 #endif // CONTROL_H

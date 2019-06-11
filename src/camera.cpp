@@ -42,6 +42,7 @@
 #include "exec.h"
 #include "pysensor.h"
 
+
 void* recDataThread(void *arg);
 void recordEosCallback(void * arg);
 void recordErrorCallback(void * arg, const char * message);
@@ -53,8 +54,8 @@ bool pych = true;
 bool pych = false;
 #endif
 
-UInt32 pyCurrentPeriod;
-UInt32 pyCurrentExposure;
+//UInt32 pyCurrentPeriod;
+//UInt32 pyCurrentExposure;
 
 
 
@@ -93,25 +94,29 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, Control * cinst
 	CameraData cd;
 	VideoStatus st;
 
+	gpmc = gpmcInst;
+	vinst = vinstInst;
+	cinst = cinstInst;
+	sensor = sensorInst;
+	ui = userInterface;
+
+
 	//Get the memory size
 	retVal = (CameraErrortype)getRamSizeGB(&ramSizeGBSlot0, &ramSizeGBSlot1);
 
 	if(retVal != SUCCESS)
 		return retVal;
 
+
 	//Read serial number in
 	retVal = (CameraErrortype)readSerialNumber(serialNumber);
 	if(retVal != SUCCESS)
 		return retVal;
 
-	gpmc = gpmcInst;
-	vinst = vinstInst;
-	cinst = cinstInst;
-	sensor = sensorInst;
-	ui = userInterface;
 	ramSize = (ramSizeGBSlot0 + ramSizeGBSlot1)*1024/32*1024*1024;
 	isColor = true;//readIsColor();
 	int err;
+
 
 	//QString str;
 	//cinst->getString("cameraDescription", &str);
@@ -485,7 +490,6 @@ UInt32 Camera::getFrameSizeWords(FrameGeometry *geometry)
 
 UInt32 Camera::getMaxRecordRegionSizeFrames(FrameGeometry *geometry)
 {
-
 	return (ramSize - REC_REGION_START) / getFrameSizeWords(geometry);
 }
 
@@ -621,6 +625,9 @@ Int32 Camera::startRecording(void)
 
 	testResolutionCamJson(&str, &geometry);
 	qDebug() << str;
+
+	//UInt32 sizeGB;
+	//cinst->getInt("cameraMemoryGB", &sizeGB);
 	//methodCamJson("startRecording", &str);
 	//cinst->getString("cameraDescription", &str);
 	//cinst->getString("state", &str);
@@ -2646,6 +2653,8 @@ Int32 Camera::autoWhiteBalance(UInt32 x, UInt32 y)
 	if (pych)
 	{
 		cinst->startAutoWhiteBalance();
+
+		//now wait for return
 	}
 	else
 	{

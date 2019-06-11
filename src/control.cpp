@@ -79,7 +79,7 @@ CameraErrortype Control::setInt(QString parameter, UInt32 value)
 	QDBusPendingReply<QVariantMap> reply;
 	QVariantMap map;
 
-	qDebug() << "setInt " << parameter << value;
+	//qDebug() << "setInt " << parameter << value;
 
 	args.insert(parameter, QVariant(value));
 
@@ -290,12 +290,12 @@ CameraErrortype Control::getInt(QString parameter, UInt32 *value)
 		fprintf(stderr, "Failed to get int: %s - %s\n", err.name().data(), err.message().toAscii().data());
 	}
 	map = reply.value();
-	qDebug() << "map:" << map;
+	//qDebug() << "map:" << map;
 
 
 	*value = map[parameter].toUInt();
 
-	qDebug() << "getInt():" << *value;
+	//qDebug() << "getInt():" << *value;
 
 	return SUCCESS;
 }
@@ -563,18 +563,6 @@ CameraErrortype Control::oldGetArray(QString parameter, bool *value)
 	qDebug() << "lst:" << lst << lst.size();
 
 	qDebug() << "arrayMap" << map;
-
-	//qDebug() << "getArray():" << *value;
-
-	//qDebug() << (map[parameter].key().asVariant());
-
-
-	//map2 = map[parameter];
-	//for(QVariantMap::const_iterator iter = map2.begin(); iter != map2.end(); ++iter) {
-	//  qDebug() << iter.key() << iter.value();
-	//}
-
-
 
 	return SUCCESS;
 }
@@ -1195,7 +1183,7 @@ CameraErrortype Control::setDescription(const char * description, int idNumber)
 	return SUCCESS;
 }
 
-/*
+
 static SensorWhiteBalance *parseSensorWhiteBalance(const QVariantMap &args, SensorWhiteBalance *swb)
 {
 	swb->red = args["red"].toDouble();
@@ -1643,13 +1631,13 @@ THIS MARKS THE END OF THE OLD API
 
 
 
-
+/*
 void Control::controlTest(const QVariantMap &args)
 {
 	static CameraStatus st;
    // emit newControlTest(parseControlStatus(args, &st));
 }
-
+*/
 
 
 Control::Control() : iface("ca.krontech.chronos.control", "/ca/krontech/chronos/control", QDBusConnection::systemBus())
@@ -1665,7 +1653,7 @@ Control::Control() : iface("ca.krontech.chronos.control", "/ca/krontech/chronos/
 
 	// Connect DBus signals
 	conn.connect("ca.krontech.chronos.control", "/ca/krontech/chronos/control", "ca.krontech.chronos.control",
-                 "controltest", this, SLOT(segment(const QVariantMap&)));
+				 "notify", this, SLOT(notify(const QVariantMap&)));
 
     /* Try to get the PID of the controller. */
     checkpid();
@@ -1675,5 +1663,36 @@ Control::Control() : iface("ca.krontech.chronos.control", "/ca/krontech/chronos/
 Control::~Control()
 {
     pthread_mutex_destroy(&mutex);
+}
+
+static ControlStatus parseNotification(const QVariantMap &args);
+
+void Control::notify(const QVariantMap &args)
+{
+	emit notified(parseNotification(args));
+}
+
+static ControlStatus parseNotification(const QVariantMap &args)
+{
+	qDebug() << "-------------------------------------";
+
+	for(auto e : args.keys())
+	{
+	  qDebug() << e << "," << args.value(e);
+	}
+
+
+
+/*
+	if (args["filesave"].toBool()) {
+		return VIDEO_STATE_FILESAVE;
+	}
+	else if (args["playback"].toBool()) {
+		return VIDEO_STATE_PLAYBACK;
+	}
+	else {
+		return VIDEO_STATE_LIVEDISPLAY;
+	}
+	*/
 }
 
