@@ -143,9 +143,12 @@ public:
 	UInt32 currentExposure;		//moved to public for PyChronos
 
 
+	void slotConnect(void);
+
 	double getCurrentFramePeriodDouble(void);
 	double getCurrentExposureDouble();
 	double getCurrentExposureAngle();
+
 
 
 
@@ -180,6 +183,23 @@ private:
 
 	SPI * spi;
 	GPMC * gpmc;
+protected slots:
+	//void apiDoSetFramePeriod(UInt32 period);
+	void apiDoSetFramePeriod2(UInt32 period);
+	void apiDoSetFramePeriod3(UInt32 period);
+	void apiDoSetCurrentIso(UInt32 iso);
+	void apiDoSetCurrentGain(UInt32 gain );
+	void apiDoSetPlaybackPosition(UInt32 frame);
+	void apiDoSetPlaybackStart(UInt32 frame);
+	void apiDoSetPlaybackLength(UInt32 frames);
+	void apiDoSetWbTemperature(UInt32 temp);
+	void apiDoSetRecMaxFrames(UInt32 frames);
+	void apiDoSetRecSegments(UInt32 seg);
+	void apiDoSetRecPreBurst(UInt32 frames);
+	void apiDoSetExposurePeriod(UInt32 period);
+	void apiDoSetShutterAngle(double angle);
+	//void apiDoSetInt(QString param, UInt32 value);
+
 };
 
 #endif // PYSENSOR_H

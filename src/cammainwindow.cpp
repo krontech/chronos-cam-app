@@ -87,6 +87,9 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 			sensor = new LUX1310();
 	}
 
+	sensor->getCurrentExposureAngle();
+//	sensor->slotConnect();
+
 	battCapacityPercent = 0;
 
 	gpmc->init();
@@ -154,6 +157,45 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	//record the number of widgets that are open before any other windows can be opened
 	QWidgetList qwl = QApplication::topLevelWidgets();
 	windowsAlwaysOpen = qwl.count();
+
+	PySensor *ps = (PySensor *)sensor;
+
+
+	if (!QObject::connect(cinst, SIGNAL(apiSetFramePeriod(UInt32)), ps, SLOT(apiDoSetFramePeriod2(UInt32)))) {
+		qDebug() << "Connect failed"; }
+	if (!QObject::connect(cinst, SIGNAL(apiSetFramePeriod3(UInt32)), ps, SLOT(apiDoSetFramePeriod3(UInt32)))) {
+		qDebug() << "Connect failed"; }
+	if (!QObject::connect(cinst, SIGNAL(apiSetShutterAngle(double)), ps, SLOT(apiDoSetShutterAngle(double)))) {
+		qDebug() << "Connect failed"; }
+	if (!QObject::connect(cinst, SIGNAL(apiSetExposurePeriod(UInt32)), ps, SLOT(apiDoSetExposurePeriod(UInt32)))) {
+		qDebug() << "Connect failed"; }
+	if (!QObject::connect(cinst, SIGNAL(apiSetCurrentIso(UInt32)), ps, SLOT(apiDoSetCurrentIso(UInt32)))) {
+		qDebug() << "Connect failed"; }
+	if (!QObject::connect(cinst, SIGNAL(apiSetCurrentGain(UInt32)), ps, SLOT(apiDoSetCurrentGain(UInt32)))) {
+		qDebug() << "Connect failed"; }
+	if (!QObject::connect(cinst, SIGNAL(apiSetPlaybackPosition(UInt32)), ps, SLOT(apiDoSetPlaybackPosition(UInt32)))) {
+		qDebug() << "Connect failed"; }
+	if (!QObject::connect(cinst, SIGNAL(apiSetPlaybackStart(UInt32)), ps, SLOT(apiDoSetPlaybackStart(UInt32)))) {
+		qDebug() << "Connect failed"; }
+	if (!QObject::connect(cinst, SIGNAL(apiSetPlaybackLength(UInt32)), ps, SLOT(apiDoSetPlaybackLength(UInt32)))) {
+		qDebug() << "Connect failed"; }
+	if (!QObject::connect(cinst, SIGNAL(apiSetWbTemperature(UInt32)), ps, SLOT(apiDoSetWbTemperature(UInt32)))) {
+		qDebug() << "Connect failed"; }
+	if (!QObject::connect(cinst, SIGNAL(apiSetRecMaxFrames(UInt32)), ps, SLOT(apiDoSetRecMaxFrames(UInt32)))) {
+		qDebug() << "Connect failed"; }
+	if (!QObject::connect(cinst, SIGNAL(apiSetRecSegments(UInt32)), ps, SLOT(apiDoSetRecSegments(UInt32)))) {
+		qDebug() << "Connect failed"; }
+	if (!QObject::connect(cinst, SIGNAL(apiSetRecPreBurst(UInt32)), ps, SLOT(apiDoSetRecPreBurst(UInt32)))) {
+		qDebug() << "Connect failed"; }
+
+
+
+
+
+
+	if (!QObject::connect(cinst, SIGNAL(apiSetInt(QString, UInt32)), ps, SLOT(apiDoSetInt(QString,uint)))) {
+		qDebug() << "Connect failed"; }
+
 }
 
 CamMainWindow::~CamMainWindow()

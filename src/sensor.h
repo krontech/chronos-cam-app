@@ -20,9 +20,13 @@
 #include "errorCodes.h"
 #include "gpmc.h"
 #include <string>
+#include <QObject>
 
-class ImageSensor
-{
+//class ImageSensor
+//{
+class ImageSensor : public QObject {
+	Q_OBJECT
+
 public:
 	virtual CameraErrortype init(GPMC * gpmc_inst) = 0;
 
@@ -75,6 +79,26 @@ public:
 	double getCurrentFramePeriodDouble();
 	double getCurrentExposureDouble();
 	double getCurrentExposureAngle();
+	void slotConnect(void);
+
+
+private slots:
+	//virtual void apiDoSetFramePeriod(UInt32 period);
+	virtual void apiDoSetFramePeriod2(UInt32 period);
+	virtual void apiDoSetFramePeriod3(UInt32 period);
+	virtual void apiDoSetExposurePeriod(UInt32 period);
+	virtual void apiDoSetCurrentIso(UInt32 iso);
+	virtual void apiDoSetCurrentGain(UInt32 gain);
+	virtual void apiDoSetPlaybackPosition(UInt32 frame);
+	virtual void apiDoSetPlaybackStart(UInt32 frame);
+	virtual void apiDoSetPlaybackLength(UInt32 frames);
+	virtual void apiDoSetWbTemperature(UInt32 temp);
+	virtual void apiDoSetRecMaxFrames(UInt32 frames);
+	virtual void apiDoSetRecSegments(UInt32 seg);
+	virtual void apiDoSetRecPreBurst(UInt32 frames);
+
+	virtual void apiDoSetShutterAngle(double angle);
+	void apiDoSetInt(QString param, UInt32 value);
 
 };
 

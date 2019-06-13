@@ -521,7 +521,6 @@ Int32 Camera::readSerialNumber(char * dest)
 	{
 		QString serial;
 		cinst->getString("cameraSerial", &serial);
-		//dest = serial.toStdString().c_str();
 		std::copy(serial.toStdString().begin(),serial.toStdString().end(), dest);
 		return retVal;
 ;

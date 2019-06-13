@@ -1657,6 +1657,8 @@ Control::Control() : iface("ca.krontech.chronos.control", "/ca/krontech/chronos/
 
     /* Try to get the PID of the controller. */
     checkpid();
+
+
     qDebug("####### Control DBUS initialized.");
 }
 
@@ -1665,23 +1667,81 @@ Control::~Control()
     pthread_mutex_destroy(&mutex);
 }
 
-static ControlStatus parseNotification(const QVariantMap &args);
 
 void Control::notify(const QVariantMap &args)
 {
 	emit notified(parseNotification(args));
 }
 
-static ControlStatus parseNotification(const QVariantMap &args)
+ControlStatus Control::parseNotification(const QVariantMap &args)
 {
 	qDebug() << "-------------------------------------";
 
 	for(auto e : args.keys())
 	{
-	  qDebug() << e << "," << args.value(e);
+		qDebug() << e << "," << args.value(e);
+
+		if (e == "resolution") qDebug() << "resolution";
+		else if (e == "framePeriod") {
+			int period = args.value(e).toInt();
+			qDebug() << "framePeriod" << period;
+			QString str = "framePeriod";
+			emit apiSetFramePeriod(period);
+			emit apiSetFramePeriod3(period);
+			emit apiSetInt(str, 12345);
+		}
+		else if (e == "exposurePeriod") {
+			int period = args.value(e).toInt();
+			emit apiSetExposurePeriod(period); }
+		else if (e == "currentIso") {
+			int iso = args.value(e).toInt();
+			emit apiSetCurrentIso(iso); }
+		else if (e == "currentGain") {
+			int gain = args.value(e).toInt();
+			emit apiSetCurrentGain(gain); }
+		else if (e == "playbackPosition") {
+			int frame = args.value(e).toInt();
+			emit apiSetPlaybackPosition(frame); }
+		else if (e == "playbackStart") {
+			int frame = args.value(e).toInt();
+			emit apiSetPlaybackStart(frame); }
+		else if (e == "playbackLength") {
+			int frames = args.value(e).toInt();
+			emit apiSetPlaybackLength(frames); }
+		else if (e == "wbTemperature") {
+			int temp = args.value(e).toInt();
+			emit apiSetWbTemperature(temp); }
+		else if (e == "recMaxFrames") {
+			int frames = args.value(e).toInt();
+			emit apiSetRecMaxFrames(frames); }
+		else if (e == "recSegments") {
+			int seg = args.value(e).toInt();
+			emit apiSetRecSegments(seg); }
+		else if (e == "recPreBurst") {
+			int frames = args.value(e).toInt();
+			emit apiSetRecPreBurst(frames); }
+
+
+
+		else if (e == "shutterAngle") {
+			double angle = args.value(e).toInt();
+			qDebug() << "shutterAngle" << angle;
+			emit apiSetShutterAngle(angle);
+		}
+		else if (e == "exposureMax") {
+			qDebug() << "exposureMax" << args.value(e).toInt();
+		}
+
+		else qDebug() << "IGNORED:" << e << "," << args.value(e);
+
+
+
+
+
 	}
 
-
+	qDebug() << "framePeriod:" << args["framePeriod"].toInt();
+	qDebug() << "resolution" << args["resolution"];
 
 /*
 	if (args["filesave"].toBool()) {

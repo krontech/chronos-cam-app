@@ -372,11 +372,10 @@ UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 		//add cinst calls
 
 		QString str;
-		cinst->setString("cameraDescription", "this model");
 		sensor->setResolution(&settings.geometry);
 		sensor->setGain(settings.gain);
 		sensor->setFramePeriod(settings.period, &settings.geometry);
-		delayms(10);
+		//delayms(10);
 		sensor->setIntegrationTime(settings.exposure, &settings.geometry);
 
 		//cinst->setResolution(&settings.geometry);

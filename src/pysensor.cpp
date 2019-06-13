@@ -50,6 +50,20 @@ PySensor::PySensor(Control *control)
 	qDebug() << "PySensor";
 	cinst = control;
 
+//	if (!QObject::connect(cinst, SIGNAL(apiSetFramePeriod(UInt32 period)), this, SLOT(apiDoSetFramePeriod(UInt32 period))))
+	{
+		qDebug() << "Connect failed";
+	}
+
+}
+
+void PySensor::slotConnect(void)
+{
+	//if (!QObject::connect(cinst, SIGNAL(apiSetFramePeriod(UInt32 period)), this, SLOT(apiDoSetFramePeriod(UInt32 period))))
+	{
+		qDebug() << "Connect failed";
+	}
+
 }
 
 PySensor::~PySensor()
@@ -355,3 +369,87 @@ UInt8 PySensor::getFilterColor(UInt32 h, UInt32 v)
 	return 0;
 }
 
+
+/*
+void PySensor::apiDoSetFramePeriod(UInt32 period)
+{
+	currentPeriod = period;
+}
+*/
+
+void PySensor::apiDoSetFramePeriod2(UInt32 period)
+{
+	currentPeriod = period;
+	qDebug() << "apiDoSetFramePeriod2";
+}
+
+void PySensor::apiDoSetFramePeriod3(UInt32 period)
+{
+	currentPeriod = period;
+	qDebug() << "apiDoSetFramePeriod3";
+}
+
+void PySensor::apiDoSetExposurePeriod(UInt32 period)
+{
+	//currentPeriod = period;
+	qDebug() << "apiDoSetShutterAngle";
+}
+
+void PySensor::apiDoSetCurrentIso(UInt32 iso )
+{
+	qDebug() << "apiDoSetCurrentIso";
+}
+
+void PySensor::apiDoSetCurrentGain(UInt32 )
+{
+	qDebug() << "apiDoSetCurrentGain";
+}
+
+void PySensor::apiDoSetPlaybackPosition(UInt32 frame)
+{
+	qDebug() << "apiDoSetPlaybackPosition";
+}
+
+void PySensor::apiDoSetPlaybackStart(UInt32 frame)
+{
+	qDebug() << "apiDoSetPlaybackStart";
+}
+
+void PySensor::apiDoSetPlaybackLength(UInt32 frames)
+{
+	qDebug() << "apiDoSetPlaybackLength";
+}
+
+void PySensor::apiDoSetWbTemperature(UInt32 temp)
+{
+	qDebug() << "apiDoSetWbTemperature";
+}
+
+void PySensor::apiDoSetRecMaxFrames(UInt32 frames)
+{
+	qDebug() << "apiDoSetRecMaxFrames";
+}
+
+void PySensor::apiDoSetRecSegments(UInt32 seg)
+{
+	qDebug() << "apiDoSetRecSegments";
+}
+
+void PySensor::apiDoSetRecPreBurst(UInt32 frames)
+{
+	qDebug() << "apiDoSetRecPreBurst";
+}
+
+
+void PySensor::apiDoSetShutterAngle(double angle)
+{
+	//currentPeriod = period;
+	qDebug() << "apiDoSetShutterAngle";
+}
+
+/*
+void PySensor::apiDoSetInt(QString param, UInt32 value)
+{
+	currentPeriod = value;
+}
+*/

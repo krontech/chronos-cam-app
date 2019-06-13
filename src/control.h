@@ -175,7 +175,7 @@ public:
     CameraErrortype getSequencerCapabilities(void);
     CameraErrortype getSequencerProgram(void);
     CameraErrortype setSequencerProgram(void);
-
+	ControlStatus parseNotification(const QVariantMap &args);
 
 
 
@@ -183,8 +183,6 @@ public:
 
     CameraData cd;
 
-signals:
-	void notified(ControlStatus state);
 
 
 private:
@@ -196,10 +194,31 @@ private:
 
 	CaKrontechChronosControlInterface iface;
 
+signals:
+	void apiSetInt(QString param, UInt32 value);
+	void apiSetFramePeriod(UInt32 period);
+	void apiSetFramePeriod3(UInt32 period);
+	void apiSetExposurePeriod(UInt32 period);
+	void apiSetCurrentIso(UInt32 iso);
+	void apiSetCurrentGain(UInt32 gain);
+	void apiSetPlaybackPosition(UInt32 frame);
+	void apiSetPlaybackStart(UInt32 frame);
+	void apiSetPlaybackLength(UInt32 frames);
+	void apiSetWbTemperature(UInt32 temp);
+	void apiSetRecMaxFrames(UInt32 frames);
+	void apiSetRecSegments(UInt32 seg);
+	void apiSetRecPreBurst(UInt32 frames);
+
+	void apiSetShutterAngle(double angle);
+
+	void notified(ControlStatus state);
+
+
 
     /* D-Bus signal handlers. */
 private slots:
 	void notify(const QVariantMap &args);
+
 };
 
 #endif // CONTROL_H
