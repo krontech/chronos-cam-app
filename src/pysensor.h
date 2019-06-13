@@ -197,6 +197,17 @@ protected slots:
 	void apiDoSetRecSegments(UInt32 seg);
 	void apiDoSetRecPreBurst(UInt32 frames);
 	void apiDoSetExposurePeriod(UInt32 period);
+
+	void apiDoSetExposurePercent(double percent);
+	void apiDoSetExposureNormalized(double norm);
+	void apiDoSetIoDelayTime(double delay);
+	void apiDoSetFrameRate(double rate);
+
+	void apiDoSetExposureMode(QString mode);
+	void apiDoSetCameraTallyMode(QString mode);
+	void apiDoSetCameraDescription(QString desc);
+	void apiDoSetNetworkHostname(QString name);
+
 	void apiDoSetShutterAngle(double angle);
 	//void apiDoSetInt(QString param, UInt32 value);
 

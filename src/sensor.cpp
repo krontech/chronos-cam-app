@@ -101,4 +101,12 @@ void ImageSensor::apiDoSetRecMaxFrames(UInt32 frames) {}
 void ImageSensor::apiDoSetRecSegments(UInt32 seg) {}
 void ImageSensor::apiDoSetRecPreBurst(UInt32 frames) {}
 void ImageSensor::apiDoSetExposurePeriod(UInt32 period) {}
+void ImageSensor::apiDoSetExposurePercent(double percent) {}
+void ImageSensor::apiDoSetExposureNormalized(double norm) {}
+void ImageSensor::apiDoSetIoDelayTime(double delay) {}
+void ImageSensor::apiDoSetFrameRate(double rate) {}
 void ImageSensor::apiDoSetShutterAngle(double angle) {}
+void ImageSensor::apiDoSetExposureMode(QString mode) {}
+void ImageSensor::apiDoSetCameraTallyMode(QString mode) {}
+void ImageSensor::apiDoSetCameraDescription(QString desc) {}
+void ImageSensor::apiDoSetNetworkHostname(QString name) {}

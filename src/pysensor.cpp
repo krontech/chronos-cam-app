@@ -440,12 +440,57 @@ void PySensor::apiDoSetRecPreBurst(UInt32 frames)
 	qDebug() << "apiDoSetRecPreBurst";
 }
 
+void PySensor::apiDoSetExposurePercent(double percent)
+{
+	qDebug() << "apiDoSetExposurePercent" << percent;
+}
+
+void PySensor::apiDoSetExposureNormalized(double norm)
+{
+	qDebug() << "apiDoSetExposureNormalized";
+}
+
+void PySensor::apiDoSetIoDelayTime(double delay)
+{
+	qDebug() << "apiDoSetIoDelayTime" << delay;
+}
+
+void PySensor::apiDoSetFrameRate(double rate)
+{
+	qDebug() << "apiDoSet";
+}
 
 void PySensor::apiDoSetShutterAngle(double angle)
 {
 	//currentPeriod = period;
 	qDebug() << "apiDoSetShutterAngle";
 }
+
+void PySensor::apiDoSetExposureMode(QString mode)
+{
+	qDebug() << "apiDoSetExposureMode";
+}
+
+void PySensor::apiDoSetCameraTallyMode(QString mode)
+{
+	qDebug() << "apiDoSetCameraTallyMode";
+}
+
+void PySensor::apiDoSetCameraDescription(QString desc)
+{
+	qDebug() << "apiDoSetCameraDescription";
+}
+
+void PySensor::apiDoSetNetworkHostname(QString )
+{
+	qDebug() << "apiDoSetNetworkHostname";
+}
+
+
+
+
+
+
 
 /*
 void PySensor::apiDoSetInt(QString param, UInt32 value)

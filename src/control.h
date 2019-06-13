@@ -209,6 +209,16 @@ signals:
 	void apiSetRecSegments(UInt32 seg);
 	void apiSetRecPreBurst(UInt32 frames);
 
+	void apiSetExposurePercent(double percent);
+	void apiSetExposureNormalized(double norm);
+	void apiSetIoDelayTime(double IoDelayTime);
+	void apiSetFrameRate(double rate);
+
+	void apiSetExposureMode(QString mode);
+	void apiSetCameraTallyMode(QString mode);
+	void apiSetCameraDescription(QString desc);
+	void apiSetNetworkHostname(QString name);
+
 	void apiSetShutterAngle(double angle);
 
 	void notified(ControlStatus state);

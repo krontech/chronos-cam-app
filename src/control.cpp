@@ -1681,6 +1681,7 @@ ControlStatus Control::parseNotification(const QVariantMap &args)
 	{
 		qDebug() << e << "," << args.value(e);
 
+//int
 		if (e == "resolution") qDebug() << "resolution";
 		else if (e == "framePeriod") {
 			int period = args.value(e).toInt();
@@ -1721,12 +1722,28 @@ ControlStatus Control::parseNotification(const QVariantMap &args)
 			int frames = args.value(e).toInt();
 			emit apiSetRecPreBurst(frames); }
 
+//float
+		else if (e == "exposurePercent") {
+			emit apiSetExposurePercent(args.value(e).toDouble()); }
+		else if (e == "ExposureNormalized") {
+			emit apiSetExposureNormalized(args.value(e).toDouble()); }
+		else if (e == "ioDelayTime") {
+			emit apiSetIoDelayTime(args.value(e).toDouble()); }
+		else if (e == "frameRate") {
+			emit apiSetFrameRate(args.value(e).toDouble()); }
 
+//string
+		else if (e == "exposureMode") {
+			emit apiSetExposureMode(args.value(e).toString()); }
+		else if (e == "cameraTallyMode") {
+			emit apiSetCameraTallyMode(args.value(e).toString()); }
+		else if (e == "cameraDescription") {
+			emit apiSetCameraDescription(args.value(e).toString()); }
+		else if (e == "networkHostname") {
+			emit apiSetNetworkHostname(args.value(e).toString()); }
 
 		else if (e == "shutterAngle") {
-			double angle = args.value(e).toInt();
-			qDebug() << "shutterAngle" << angle;
-			emit apiSetShutterAngle(angle);
+			emit apiSetShutterAngle(args.value(e).toDouble());
 		}
 		else if (e == "exposureMax") {
 			qDebug() << "exposureMax" << args.value(e).toInt();

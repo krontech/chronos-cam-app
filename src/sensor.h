@@ -97,7 +97,17 @@ private slots:
 	virtual void apiDoSetRecSegments(UInt32 seg);
 	virtual void apiDoSetRecPreBurst(UInt32 frames);
 
+	virtual void apiDoSetExposurePercent(double percent);
+	virtual void apiDoSetExposureNormalized(double norm);
+	virtual void apiDoSetIoDelayTime(double delay);
+	virtual void apiDoSetFrameRate(double rate);
 	virtual void apiDoSetShutterAngle(double angle);
+	virtual void apiDoSetExposureMode(QString mode);
+	virtual void apiDoSetCameraTallyMode(QString mode);
+	virtual void apiDoSetCameraDescription(QString desc);
+	virtual void apiDoSetNetworkHostname(QString name);
+
+
 	void apiDoSetInt(QString param, UInt32 value);
 
 };

@@ -187,7 +187,55 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 		qDebug() << "Connect failed"; }
 	if (!QObject::connect(cinst, SIGNAL(apiSetRecPreBurst(UInt32)), ps, SLOT(apiDoSetRecPreBurst(UInt32)))) {
 		qDebug() << "Connect failed"; }
+	if (!QObject::connect(cinst, SIGNAL(apiSetExposurePercent(double)), ps, SLOT(apiDoSetExposurePercent(double)))) {
+		qDebug() << "Connect failed"; }
+	if (!QObject::connect(cinst, SIGNAL(apiSetExposureNormalized(double)), ps, SLOT(apiDoSetExposureNormalized(double)))) {
+		qDebug() << "Connect failed"; }
+	if (!QObject::connect(cinst, SIGNAL(apiSetIoDelayTime(double)), ps, SLOT(apiDoSetIoDelayTime(double)))) {
+		qDebug() << "Connect failed"; }
+	if (!QObject::connect(cinst, SIGNAL(apiSetFrameRate(double)), ps, SLOT(apiDoSetFrameRate(double)))) {
+		qDebug() << "Connect failed"; }
 
+
+	if (!QObject::connect(cinst, SIGNAL(apiSetExposureMode(QString)), ps, SLOT(apiDoSetExposureMode(QString)))) {
+		qDebug() << "Connect failed"; }
+	if (!QObject::connect(cinst, SIGNAL(apiSetCameraTallyMode(QString)), ps, SLOT(apiDoSetCameraTallyMode(QString)))) {
+		qDebug() << "Connect failed"; }
+	if (!QObject::connect(cinst, SIGNAL(apiSetCameraDescription(QString)), ps, SLOT(apiDoSetCameraDescription(QString)))) {
+		qDebug() << "Connect failed"; }
+	if (!QObject::connect(cinst, SIGNAL(apiSetNetworkHostname(QString)), ps, SLOT(apiDoSetNetworkHostname(QString)))) {
+		qDebug() << "Connect failed"; }
+	if (!QObject::connect(cinst, SIGNAL(apiSet(UInt32)), ps, SLOT(apiDoSet(UInt32)))) {
+		qDebug() << "Connect failed"; }
+
+	/*
+	if (!QObject::connect(cinst, SIGNAL(apiSet(UInt32)), ps, SLOT(apiDoSet(UInt32)))) {
+		qDebug() << "Connect failed"; }
+	if (!QObject::connect(cinst, SIGNAL(apiSet(UInt32)), ps, SLOT(apiDoSet(UInt32)))) {
+		qDebug() << "Connect failed"; }
+	if (!QObject::connect(cinst, SIGNAL(apiSet(UInt32)), ps, SLOT(apiDoSet(UInt32)))) {
+		qDebug() << "Connect failed"; }
+	if (!QObject::connect(cinst, SIGNAL(apiSet(UInt32)), ps, SLOT(apiDoSet(UInt32)))) {
+		qDebug() << "Connect failed"; }
+	if (!QObject::connect(cinst, SIGNAL(apiSet(UInt32)), ps, SLOT(apiDoSet(UInt32)))) {
+		qDebug() << "Connect failed"; }
+	if (!QObject::connect(cinst, SIGNAL(apiSet(UInt32)), ps, SLOT(apiDoSet(UInt32)))) {
+		qDebug() << "Connect failed"; }
+	if (!QObject::connect(cinst, SIGNAL(apiSet(UInt32)), ps, SLOT(apiDoSet(UInt32)))) {
+		qDebug() << "Connect failed"; }
+	if (!QObject::connect(cinst, SIGNAL(apiSet(UInt32)), ps, SLOT(apiDoSet(UInt32)))) {
+		qDebug() << "Connect failed"; }
+	if (!QObject::connect(cinst, SIGNAL(apiSet(UInt32)), ps, SLOT(apiDoSet(UInt32)))) {
+		qDebug() << "Connect failed"; }
+	if (!QObject::connect(cinst, SIGNAL(apiSet(UInt32)), ps, SLOT(apiDoSet(UInt32)))) {
+		qDebug() << "Connect failed"; }
+	if (!QObject::connect(cinst, SIGNAL(apiSet(UInt32)), ps, SLOT(apiDoSet(UInt32)))) {
+		qDebug() << "Connect failed"; }
+	if (!QObject::connect(cinst, SIGNAL(apiSet(UInt32)), ps, SLOT(apiDoSet(UInt32)))) {
+		qDebug() << "Connect failed"; }
+	if (!QObject::connect(cinst, SIGNAL(apiSet(UInt32)), ps, SLOT(apiDoSet(UInt32)))) {
+		qDebug() << "Connect failed"; }
+*/
 
 
 
