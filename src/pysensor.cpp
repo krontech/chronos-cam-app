@@ -481,11 +481,26 @@ void PySensor::apiDoSetCameraDescription(QString desc)
 	qDebug() << "apiDoSetCameraDescription";
 }
 
-void PySensor::apiDoSetNetworkHostname(QString )
+void PySensor::apiDoSetNetworkHostname(QString name)
 {
 	qDebug() << "apiDoSetNetworkHostname";
 }
 
+void PySensor::apiDoSetWbMatrix(QVariant wb)
+{
+	QVariant qv = wb;
+	qDebug() << qv;
+	QDBusArgument dbusArgs = qv.value<QDBusArgument>();
+	qDebug() << dbusArgs.currentType();
+	dbusArgs.beginArray();
+	QVariant var;
+	double r,g,b;
+	r = dbusArgs.asVariant().toDouble();
+	g = dbusArgs.asVariant().toDouble();
+	b = dbusArgs.asVariant().toDouble();
+	dbusArgs.endArray();
+
+}
 
 
 

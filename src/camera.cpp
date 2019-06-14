@@ -632,7 +632,6 @@ Int32 Camera::startRecording(void)
 	//cinst->getString("state", &str);
 
 	//cinst->setResolution(&geometry);
-	//cinst->setWbMatrix();
 
 	//cinst->setArray("wbMatrix", 3, (double *)&testArray);
 	//cinst->setArray("colorMatrix", 9, (double *)&testArray);

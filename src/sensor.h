@@ -21,6 +21,7 @@
 #include "gpmc.h"
 #include <string>
 #include <QObject>
+#include <QtDBus/QtDBus>
 
 //class ImageSensor
 //{
@@ -102,10 +103,13 @@ private slots:
 	virtual void apiDoSetIoDelayTime(double delay);
 	virtual void apiDoSetFrameRate(double rate);
 	virtual void apiDoSetShutterAngle(double angle);
+
 	virtual void apiDoSetExposureMode(QString mode);
 	virtual void apiDoSetCameraTallyMode(QString mode);
 	virtual void apiDoSetCameraDescription(QString desc);
 	virtual void apiDoSetNetworkHostname(QString name);
+
+	virtual void apiDoSetWbMatrix(QVariant wb);
 
 
 	void apiDoSetInt(QString param, UInt32 value);

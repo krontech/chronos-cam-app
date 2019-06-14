@@ -208,9 +208,10 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	if (!QObject::connect(cinst, SIGNAL(apiSet(UInt32)), ps, SLOT(apiDoSet(UInt32)))) {
 		qDebug() << "Connect failed"; }
 
-	/*
-	if (!QObject::connect(cinst, SIGNAL(apiSet(UInt32)), ps, SLOT(apiDoSet(UInt32)))) {
+
+	if (!QObject::connect(cinst, SIGNAL(apiSetWbMatrix(QVariant)), ps, SLOT(apiDoSetWbMatrix(QVariant)))) {
 		qDebug() << "Connect failed"; }
+	/*
 	if (!QObject::connect(cinst, SIGNAL(apiSet(UInt32)), ps, SLOT(apiDoSet(UInt32)))) {
 		qDebug() << "Connect failed"; }
 	if (!QObject::connect(cinst, SIGNAL(apiSet(UInt32)), ps, SLOT(apiDoSet(UInt32)))) {

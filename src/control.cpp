@@ -1731,6 +1731,8 @@ ControlStatus Control::parseNotification(const QVariantMap &args)
 			emit apiSetIoDelayTime(args.value(e).toDouble()); }
 		else if (e == "frameRate") {
 			emit apiSetFrameRate(args.value(e).toDouble()); }
+		else if (e == "shutterAngle") {
+			emit apiSetShutterAngle(args.value(e).toDouble()); }
 
 //string
 		else if (e == "exposureMode") {
@@ -1742,34 +1744,33 @@ ControlStatus Control::parseNotification(const QVariantMap &args)
 		else if (e == "networkHostname") {
 			emit apiSetNetworkHostname(args.value(e).toString()); }
 
-		else if (e == "shutterAngle") {
-			emit apiSetShutterAngle(args.value(e).toDouble());
-		}
-		else if (e == "exposureMax") {
-			qDebug() << "exposureMax" << args.value(e).toInt();
-		}
+//array
+		else if (e == "wbMatrix") {
+			QVariant qv = args.value(e);
+			emit apiSetWbMatrix(qv);
+			}
+
+//dict
+		else if (e == "ioMapping") {
+			qDebug() << args.value(e);}
+		else if (e == "resolution") {
+			qDebug() << args.value(e);}
+
+				//emit apiSetWbMatrix(11);
+				//QVariantMap map2 = args.value(e);
+				//qDebug() << args.value(e)["wbMatrix"];
+				//QList<QVariant> root_map = args.value(e).toList(); //  qjo.toVariantMap();
+				//qDebug() << root_map;
+				//QMap<QString, QVariant> map = args.value(e).toMap();
+				//qDebug() << map << map.size();
+				//qDebug() << args.value(e).toList();
+
+
 
 		else qDebug() << "IGNORED:" << e << "," << args.value(e);
 
 
-
-
-
 	}
 
-	qDebug() << "framePeriod:" << args["framePeriod"].toInt();
-	qDebug() << "resolution" << args["resolution"];
-
-/*
-	if (args["filesave"].toBool()) {
-		return VIDEO_STATE_FILESAVE;
-	}
-	else if (args["playback"].toBool()) {
-		return VIDEO_STATE_PLAYBACK;
-	}
-	else {
-		return VIDEO_STATE_LIVEDISPLAY;
-	}
-	*/
 }
 

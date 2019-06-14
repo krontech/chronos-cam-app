@@ -213,13 +213,15 @@ signals:
 	void apiSetExposureNormalized(double norm);
 	void apiSetIoDelayTime(double IoDelayTime);
 	void apiSetFrameRate(double rate);
+	void apiSetShutterAngle(double angle);
 
 	void apiSetExposureMode(QString mode);
 	void apiSetCameraTallyMode(QString mode);
 	void apiSetCameraDescription(QString desc);
 	void apiSetNetworkHostname(QString name);
 
-	void apiSetShutterAngle(double angle);
+	void apiSetWbMatrix(QVariant wb);
+
 
 	void notified(ControlStatus state);
 

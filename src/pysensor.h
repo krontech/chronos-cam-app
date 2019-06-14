@@ -26,6 +26,7 @@
 #include "spi.h"
 #include "gpmc.h"
 #include <string>
+#include <QtDBus/QtDBus>
 
 
 extern UInt32 sensorHIncrement;
@@ -202,13 +203,15 @@ protected slots:
 	void apiDoSetExposureNormalized(double norm);
 	void apiDoSetIoDelayTime(double delay);
 	void apiDoSetFrameRate(double rate);
+	void apiDoSetShutterAngle(double angle);
 
 	void apiDoSetExposureMode(QString mode);
 	void apiDoSetCameraTallyMode(QString mode);
 	void apiDoSetCameraDescription(QString desc);
 	void apiDoSetNetworkHostname(QString name);
 
-	void apiDoSetShutterAngle(double angle);
+	void apiDoSetWbMatrix(QVariant wb);
+
 	//void apiDoSetInt(QString param, UInt32 value);
 
 };
