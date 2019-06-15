@@ -23,9 +23,8 @@
 #include <QObject>
 #include <QtDBus/QtDBus>
 
-//class ImageSensor
-//{
-class ImageSensor : public QObject {
+class ImageSensor : QObject
+{
 	Q_OBJECT
 
 public:
@@ -68,6 +67,9 @@ public:
 	virtual void setAnalogTestVoltage(unsigned int) {}
 	virtual void setADCOffset(UInt8 channel, Int16 offset) = 0;
 	virtual std::string getFilename(const char * filename, const char * extension) = 0;
+	virtual void setCurrentPeriod(UInt32 period) {}
+	virtual void setCurrentExposure(UInt32 period) {}
+
 
 	/* TODO: Need a better way to communicate what gains are valid to the GUI. */
 	virtual Int32 setGain(UInt32 gainSetting) = 0;
@@ -81,38 +83,6 @@ public:
 	double getCurrentExposureDouble();
 	double getCurrentExposureAngle();
 	void slotConnect(void);
-
-
-private slots:
-	//virtual void apiDoSetFramePeriod(UInt32 period);
-	virtual void apiDoSetFramePeriod2(UInt32 period);
-	virtual void apiDoSetFramePeriod3(UInt32 period);
-	virtual void apiDoSetExposurePeriod(UInt32 period);
-	virtual void apiDoSetCurrentIso(UInt32 iso);
-	virtual void apiDoSetCurrentGain(UInt32 gain);
-	virtual void apiDoSetPlaybackPosition(UInt32 frame);
-	virtual void apiDoSetPlaybackStart(UInt32 frame);
-	virtual void apiDoSetPlaybackLength(UInt32 frames);
-	virtual void apiDoSetWbTemperature(UInt32 temp);
-	virtual void apiDoSetRecMaxFrames(UInt32 frames);
-	virtual void apiDoSetRecSegments(UInt32 seg);
-	virtual void apiDoSetRecPreBurst(UInt32 frames);
-
-	virtual void apiDoSetExposurePercent(double percent);
-	virtual void apiDoSetExposureNormalized(double norm);
-	virtual void apiDoSetIoDelayTime(double delay);
-	virtual void apiDoSetFrameRate(double rate);
-	virtual void apiDoSetShutterAngle(double angle);
-
-	virtual void apiDoSetExposureMode(QString mode);
-	virtual void apiDoSetCameraTallyMode(QString mode);
-	virtual void apiDoSetCameraDescription(QString desc);
-	virtual void apiDoSetNetworkHostname(QString name);
-
-	virtual void apiDoSetWbMatrix(QVariant wb);
-
-
-	void apiDoSetInt(QString param, UInt32 value);
 
 };
 

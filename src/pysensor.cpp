@@ -370,138 +370,24 @@ UInt8 PySensor::getFilterColor(UInt32 h, UInt32 v)
 }
 
 
+void PySensor::setCurrentPeriod(UInt32 period)
+{
+	currentPeriod = period;
+}
+
+void PySensor::setCurrentExposure(UInt32 period)
+{
+	currentExposure = period;
+}
+
+
+
 /*
 void PySensor::apiDoSetFramePeriod(UInt32 period)
 {
 	currentPeriod = period;
 }
 */
-
-void PySensor::apiDoSetFramePeriod2(UInt32 period)
-{
-	currentPeriod = period;
-	qDebug() << "apiDoSetFramePeriod2";
-}
-
-void PySensor::apiDoSetFramePeriod3(UInt32 period)
-{
-	currentPeriod = period;
-	qDebug() << "apiDoSetFramePeriod3";
-}
-
-void PySensor::apiDoSetExposurePeriod(UInt32 period)
-{
-	//currentPeriod = period;
-	qDebug() << "apiDoSetShutterAngle";
-}
-
-void PySensor::apiDoSetCurrentIso(UInt32 iso )
-{
-	qDebug() << "apiDoSetCurrentIso";
-}
-
-void PySensor::apiDoSetCurrentGain(UInt32 )
-{
-	qDebug() << "apiDoSetCurrentGain";
-}
-
-void PySensor::apiDoSetPlaybackPosition(UInt32 frame)
-{
-	qDebug() << "apiDoSetPlaybackPosition";
-}
-
-void PySensor::apiDoSetPlaybackStart(UInt32 frame)
-{
-	qDebug() << "apiDoSetPlaybackStart";
-}
-
-void PySensor::apiDoSetPlaybackLength(UInt32 frames)
-{
-	qDebug() << "apiDoSetPlaybackLength";
-}
-
-void PySensor::apiDoSetWbTemperature(UInt32 temp)
-{
-	qDebug() << "apiDoSetWbTemperature";
-}
-
-void PySensor::apiDoSetRecMaxFrames(UInt32 frames)
-{
-	qDebug() << "apiDoSetRecMaxFrames";
-}
-
-void PySensor::apiDoSetRecSegments(UInt32 seg)
-{
-	qDebug() << "apiDoSetRecSegments";
-}
-
-void PySensor::apiDoSetRecPreBurst(UInt32 frames)
-{
-	qDebug() << "apiDoSetRecPreBurst";
-}
-
-void PySensor::apiDoSetExposurePercent(double percent)
-{
-	qDebug() << "apiDoSetExposurePercent" << percent;
-}
-
-void PySensor::apiDoSetExposureNormalized(double norm)
-{
-	qDebug() << "apiDoSetExposureNormalized";
-}
-
-void PySensor::apiDoSetIoDelayTime(double delay)
-{
-	qDebug() << "apiDoSetIoDelayTime" << delay;
-}
-
-void PySensor::apiDoSetFrameRate(double rate)
-{
-	qDebug() << "apiDoSet";
-}
-
-void PySensor::apiDoSetShutterAngle(double angle)
-{
-	//currentPeriod = period;
-	qDebug() << "apiDoSetShutterAngle";
-}
-
-void PySensor::apiDoSetExposureMode(QString mode)
-{
-	qDebug() << "apiDoSetExposureMode";
-}
-
-void PySensor::apiDoSetCameraTallyMode(QString mode)
-{
-	qDebug() << "apiDoSetCameraTallyMode";
-}
-
-void PySensor::apiDoSetCameraDescription(QString desc)
-{
-	qDebug() << "apiDoSetCameraDescription";
-}
-
-void PySensor::apiDoSetNetworkHostname(QString name)
-{
-	qDebug() << "apiDoSetNetworkHostname";
-}
-
-void PySensor::apiDoSetWbMatrix(QVariant wb)
-{
-	QVariant qv = wb;
-	qDebug() << qv;
-	QDBusArgument dbusArgs = qv.value<QDBusArgument>();
-	qDebug() << dbusArgs.currentType();
-	dbusArgs.beginArray();
-	QVariant var;
-	double r,g,b;
-	r = dbusArgs.asVariant().toDouble();
-	g = dbusArgs.asVariant().toDouble();
-	b = dbusArgs.asVariant().toDouble();
-	dbusArgs.endArray();
-
-}
-
 
 
 
@@ -513,3 +399,4 @@ void PySensor::apiDoSetInt(QString param, UInt32 value)
 	currentPeriod = value;
 }
 */
+

@@ -1682,8 +1682,8 @@ ControlStatus Control::parseNotification(const QVariantMap &args)
 		qDebug() << e << "," << args.value(e);
 
 //int
-		if (e == "resolution") qDebug() << "resolution";
-		else if (e == "framePeriod") {
+
+		if (e == "framePeriod") {
 			int period = args.value(e).toInt();
 			qDebug() << "framePeriod" << period;
 			QString str = "framePeriod";
@@ -1746,15 +1746,15 @@ ControlStatus Control::parseNotification(const QVariantMap &args)
 
 //array
 		else if (e == "wbMatrix") {
-			QVariant qv = args.value(e);
-			emit apiSetWbMatrix(qv);
+			//QVariant qv = args.value(e);
+			emit apiSetWbMatrix(args.value(e));
 			}
 
 //dict
 		else if (e == "ioMapping") {
 			qDebug() << args.value(e);}
 		else if (e == "resolution") {
-			qDebug() << args.value(e);}
+			emit apiSetResolution(args.value(e)); }
 
 				//emit apiSetWbMatrix(11);
 				//QVariantMap map2 = args.value(e);

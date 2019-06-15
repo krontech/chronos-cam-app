@@ -88,7 +88,7 @@ double ImageSensor::getCurrentExposureAngle()
 {
 	return getCurrentExposureDouble() * 360.0 / getCurrentFramePeriodDouble();
 }
-
+/*
 void ImageSensor::apiDoSetInt(QString param, UInt32 value) {}
 void ImageSensor::apiDoSetFramePeriod2(UInt32 period) {}
 void ImageSensor::apiDoSetFramePeriod3(UInt32 period) {}
@@ -115,4 +115,5 @@ void ImageSensor::apiDoSetCameraDescription(QString desc) {}
 void ImageSensor::apiDoSetNetworkHostname(QString name) {}
 
 void ImageSensor::apiDoSetWbMatrix(QVariant wb) {}
-
+void ImageSensor::apiDoSetResolution(QVariant wb) {}
+*/

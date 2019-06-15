@@ -40,6 +40,7 @@
 #include <QWSDisplay>
 #include "control.h"
 #include "exec.h"
+#include "camera.h"
 #include "pysensor.h"
 
 
@@ -3171,3 +3172,195 @@ void* recDataThread(void *arg)
 
 	pthread_exit(NULL);
 }
+
+
+void Camera::apiDoSetFramePeriod2(UInt32 period)
+{
+//	sensor->setCurrentPeriod(period);
+	qDebug() << "apiDoSetFramePeriod2";
+}
+
+void Camera::apiDoSetFramePeriod3(UInt32 period)
+{
+	sensor->setCurrentPeriod(period);
+	qDebug() << "apiDoSetFramePeriod3";
+}
+
+void Camera::apiDoSetExposurePeriod(UInt32 period)
+{
+	sensor->setCurrentExposure(period);
+	qDebug() << "apiDoSetExposurePeriod";
+}
+
+void Camera::apiDoSetCurrentIso(UInt32 iso )
+{
+	qDebug() << "apiDoSetCurrentIso";
+}
+
+void Camera::apiDoSetCurrentGain(UInt32 )
+{
+	qDebug() << "apiDoSetCurrentGain";
+}
+
+void Camera::apiDoSetPlaybackPosition(UInt32 frame)
+{
+	qDebug() << "apiDoSetPlaybackPosition";
+}
+
+void Camera::apiDoSetPlaybackStart(UInt32 frame)
+{
+	qDebug() << "apiDoSetPlaybackStart";
+}
+
+void Camera::apiDoSetPlaybackLength(UInt32 frames)
+{
+	qDebug() << "apiDoSetPlaybackLength";
+}
+
+void Camera::apiDoSetWbTemperature(UInt32 temp)
+{
+	qDebug() << "apiDoSetWbTemperature";
+}
+
+void Camera::apiDoSetRecMaxFrames(UInt32 frames)
+{
+	qDebug() << "apiDoSetRecMaxFrames";
+}
+
+void Camera::apiDoSetRecSegments(UInt32 seg)
+{
+	qDebug() << "apiDoSetRecSegments";
+}
+
+void Camera::apiDoSetRecPreBurst(UInt32 frames)
+{
+	qDebug() << "apiDoSetRecPreBurst";
+}
+
+void Camera::apiDoSetExposurePercent(double percent)
+{
+	qDebug() << "apiDoSetExposurePercent" << percent;
+}
+
+void Camera::apiDoSetExposureNormalized(double norm)
+{
+	qDebug() << "apiDoSetExposureNormalized";
+}
+
+void Camera::apiDoSetIoDelayTime(double delay)
+{
+	qDebug() << "apiDoSetIoDelayTime" << delay;
+}
+
+void Camera::apiDoSetFrameRate(double rate)
+{
+	qDebug() << "apiDoSet";
+}
+
+void Camera::apiDoSetShutterAngle(double angle)
+{
+	//currentPeriod = period;
+	qDebug() << "apiDoSetShutterAngle";
+}
+
+void Camera::apiDoSetExposureMode(QString mode)
+{
+	qDebug() << "apiDoSetExposureMode";
+}
+
+void Camera::apiDoSetCameraTallyMode(QString mode)
+{
+	qDebug() << "apiDoSetCameraTallyMode";
+}
+
+void Camera::apiDoSetCameraDescription(QString desc)
+{
+	qDebug() << "apiDoSetCameraDescription";
+}
+
+void Camera::apiDoSetNetworkHostname(QString name)
+{
+	qDebug() << "apiDoSetNetworkHostname";
+}
+
+void Camera::apiDoSetWbMatrix(QVariant wb)
+{
+	QDBusArgument dbusArgs = wb.value<QDBusArgument>();
+	dbusArgs.beginArray();
+	double r,g,b;
+	r = dbusArgs.asVariant().toDouble();
+	g = dbusArgs.asVariant().toDouble();
+	b = dbusArgs.asVariant().toDouble();
+	dbusArgs.endArray();
+}
+
+void Camera::apiDoSetResolution(QVariant res)
+{
+	ImagerSettings_t is = getImagerSettings();
+	FrameGeometry *geometry = &is.geometry;
+	QVariant qv = res;
+	if (qv.isValid()) {
+		QVariantMap dict;
+		qv.value<QDBusArgument>() >> dict;
+
+		geometry->hRes = dict["hRes"].toInt();
+		geometry->vRes = dict["vRes"].toInt();
+		geometry->hOffset = dict["hOffset"].toInt();
+		geometry->vOffset = dict["vOffset"].toInt();
+		geometry->vDarkRows = dict["vDarkRows"].toInt();
+		geometry->bitDepth = dict["bitDepth"].toInt();
+
+	}
+	else {
+
+	}
+}
+
+/*
+void Camera::apiDoSetResolution(QVariant res)
+{
+	FrameGeometry geometry;
+	QDBusArgument dbusArgs = res.value<QDBusArgument>();
+
+	qDebug() << dbusArgs.currentType();
+
+	dbusArgs.beginMap();
+
+	while ( !dbusArgs.atEnd() ) {
+		QString key;
+		UInt32 value;
+		dbusArgs.beginMapEntry();
+		dbusArgs >> key >> value;
+		dbusArgs.endMapEntry();
+		qDebug() << key << value;
+	 }
+
+
+	//QMap qm = dbusArgs.
+
+	//qDebug() << dbusArgs["hRes"];
+	dbusArgs.beginMap();
+	while (!dbusArgs.atEnd())
+	{
+		//qDebug() << dbusArgs.
+		// append path to a vector here if you want to keep it
+	}
+	dbusArgs.endArray();
+
+
+	QVariantMap root_map = dbusArgs.asVariant().toMap();
+	qDebug() << root_map.size();
+
+	QVariantMap res_map = root_map["resolution"].toMap();
+
+	geometry.hRes = res_map["hRes"].toInt();
+	geometry.vRes = res_map["vRes"].toInt();
+	geometry.hOffset = res_map["hOffset"].toInt();
+	geometry.vOffset = res_map["vOffset"].toInt();
+	geometry.vDarkRows = res_map["vDarkRows"].toInt();
+	geometry.bitDepth = res_map["bitDepth"].toInt();
+	geometry.minFrameTime = res_map["minFrameTime"].toDouble();
+
+}
+*/
+
