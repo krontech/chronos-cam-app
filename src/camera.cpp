@@ -3297,7 +3297,7 @@ void Camera::apiDoSetWbMatrix(QVariant wb)
 void Camera::apiDoSetResolution(QVariant res)
 {
 	ImagerSettings_t is = getImagerSettings();
-	FrameGeometry *geometry = &is.geometry;
+	FrameGeometry *geometry = &this->imagerSettings.geometry;
 	QVariant qv = res;
 	if (qv.isValid()) {
 		QVariantMap dict;
