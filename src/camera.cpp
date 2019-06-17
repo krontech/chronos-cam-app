@@ -1777,7 +1777,7 @@ Int32 Camera::autoOffsetCalibration(unsigned int iterations)
 
 	/* Compute the live display worst-case frame refresh time. */
 	tRefresh.tv_sec = 0;
-	tRefresh.tv_nsec = (CAL_REGION_FRAMES+1) * isDark.period * 10;
+	tRefresh.tv_nsec = (CAL_REGION_FRAMES+10) * isDark.period * 10;
 
 	/* Clear out the ADC Offsets. */
 	for (int i = 0; i < LUX1310_HRES_INCREMENT; i++) {
@@ -1829,7 +1829,7 @@ Int32 Camera::autoGainCalibration(unsigned int iterations)
 
 	/* Run the gain calibration algorithm. */
 	tRefresh.tv_sec = 0;
-	tRefresh.tv_nsec = (CAL_REGION_FRAMES+1) * imagerSettings.period * 10;
+	tRefresh.tv_nsec = (CAL_REGION_FRAMES+10) * imagerSettings.period * 10;
 	sensor->seqOnOff(false);
 	delayms(10);
 	sensor->updateWavetableSetting(true);
