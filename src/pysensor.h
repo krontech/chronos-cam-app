@@ -146,8 +146,6 @@ public:
 	void setCurrentExposure(UInt32 period);
 
 
-	void slotConnect(void);
-
 	double getCurrentFramePeriodDouble(void);
 	double getCurrentExposureDouble();
 	double getCurrentExposureAngle();

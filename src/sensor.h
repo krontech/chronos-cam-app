@@ -82,7 +82,6 @@ public:
 	double getCurrentFramePeriodDouble();
 	double getCurrentExposureDouble();
 	double getCurrentExposureAngle();
-	void slotConnect(void);
 
 };
 

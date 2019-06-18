@@ -121,9 +121,6 @@ public:
 	CameraErrortype getIoSettings(void);
 	CameraErrortype setIoSettings(void);
 
-	CameraErrortype oldGetArray(QString parameter, bool *value);
-	CameraErrortype oldGetDict(QString parameter);
-
 	CameraErrortype setInt(QString parameter, UInt32 value);
 	CameraErrortype setString(QString parameter, QString str);
 	CameraErrortype setFloat(QString parameter, double value);
@@ -197,7 +194,6 @@ private:
 signals:
 	void apiSetInt(QString param, UInt32 value);
 	void apiSetFramePeriod(UInt32 period);
-	void apiSetFramePeriod3(UInt32 period);
 	void apiSetExposurePeriod(UInt32 period);
 	void apiSetCurrentIso(UInt32 iso);
 	void apiSetCurrentGain(UInt32 gain);

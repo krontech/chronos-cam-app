@@ -363,8 +363,7 @@ private:
 	pthread_t recDataThreadID;
 
 protected slots:
-	void apiDoSetFramePeriod2(UInt32 period);
-	void apiDoSetFramePeriod3(UInt32 period);
+	void apiDoSetFramePeriod(UInt32 period);
 	void apiDoSetCurrentIso(UInt32 iso);
 	void apiDoSetCurrentGain(UInt32 gain );
 	void apiDoSetPlaybackPosition(UInt32 frame);

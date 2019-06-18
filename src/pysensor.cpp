@@ -50,20 +50,6 @@ PySensor::PySensor(Control *control)
 	qDebug() << "PySensor";
 	cinst = control;
 
-//	if (!QObject::connect(cinst, SIGNAL(apiSetFramePeriod(UInt32 period)), this, SLOT(apiDoSetFramePeriod(UInt32 period))))
-	{
-		qDebug() << "Connect failed";
-	}
-
-}
-
-void PySensor::slotConnect(void)
-{
-	//if (!QObject::connect(cinst, SIGNAL(apiSetFramePeriod(UInt32 period)), this, SLOT(apiDoSetFramePeriod(UInt32 period))))
-	{
-		qDebug() << "Connect failed";
-	}
-
 }
 
 PySensor::~PySensor()
@@ -379,15 +365,6 @@ void PySensor::setCurrentExposure(UInt32 period)
 {
 	currentExposure = period;
 }
-
-
-
-/*
-void PySensor::apiDoSetFramePeriod(UInt32 period)
-{
-	currentPeriod = period;
-}
-*/
 
 
 

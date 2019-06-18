@@ -87,9 +87,6 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 			sensor = new LUX1310();
 	}
 
-	sensor->getCurrentExposureAngle();
-//	sensor->slotConnect();
-
 	battCapacityPercent = 0;
 
 	gpmc->init();
@@ -160,9 +157,7 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 
 	PySensor *ps = (PySensor *)sensor;
 
-	if (!QObject::connect(cinst, SIGNAL(apiSetFramePeriod(UInt32)), camera, SLOT(apiDoSetFramePeriod2(UInt32)))) {
-		qDebug() << "Connect failed"; }
-	if (!QObject::connect(cinst, SIGNAL(apiSetFramePeriod3(UInt32)), camera, SLOT(apiDoSetFramePeriod3(UInt32)))) {
+	if (!QObject::connect(cinst, SIGNAL(apiSetFramePeriod(UInt32)), camera, SLOT(apiDoSetFramePeriod(UInt32)))) {
 		qDebug() << "Connect failed"; }
 	if (!QObject::connect(cinst, SIGNAL(apiSetShutterAngle(double)), camera, SLOT(apiDoSetShutterAngle(double)))) {
 		qDebug() << "Connect failed"; }
@@ -204,9 +199,6 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 		qDebug() << "Connect failed"; }
 	if (!QObject::connect(cinst, SIGNAL(apiSetNetworkHostname(QString)), camera, SLOT(apiDoSetNetworkHostname(QString)))) {
 		qDebug() << "Connect failed"; }
-	if (!QObject::connect(cinst, SIGNAL(apiSet(UInt32)), camera, SLOT(apiDoSet(UInt32)))) {
-		qDebug() << "Connect failed"; }
-
 
 	if (!QObject::connect(cinst, SIGNAL(apiSetWbMatrix(QVariant)), camera, SLOT(apiDoSetWbMatrix(QVariant)))) {
 		qDebug() << "Connect failed"; }
@@ -214,32 +206,6 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 		qDebug() << "Connect failed"; }
 	if (!QObject::connect(cinst, SIGNAL(apiSetResolution(QVariant)), camera, SLOT(apiDoSetResolution(QVariant)))) {
 		qDebug() << "Connect failed"; }
-	/*
-	if (!QObject::connect(cinst, SIGNAL(apiSet(UInt32)), camera, SLOT(apiDoSet(UInt32)))) {
-		qDebug() << "Connect failed"; }
-	if (!QObject::connect(cinst, SIGNAL(apiSet(UInt32)), camera, SLOT(apiDoSet(UInt32)))) {
-		qDebug() << "Connect failed"; }
-	if (!QObject::connect(cinst, SIGNAL(apiSet(UInt32)), camera, SLOT(apiDoSet(UInt32)))) {
-		qDebug() << "Connect failed"; }
-	if (!QObject::connect(cinst, SIGNAL(apiSet(UInt32)), camera, SLOT(apiDoSet(UInt32)))) {
-		qDebug() << "Connect failed"; }
-	if (!QObject::connect(cinst, SIGNAL(apiSet(UInt32)), camera, SLOT(apiDoSet(UInt32)))) {
-		qDebug() << "Connect failed"; }
-	if (!QObject::connect(cinst, SIGNAL(apiSet(UInt32)), camera, SLOT(apiDoSet(UInt32)))) {
-		qDebug() << "Connect failed"; }
-	if (!QObject::connect(cinst, SIGNAL(apiSet(UInt32)), camera, SLOT(apiDoSet(UInt32)))) {
-		qDebug() << "Connect failed"; }
-	if (!QObject::connect(cinst, SIGNAL(apiSet(UInt32)), camera, SLOT(apiDoSet(UInt32)))) {
-		qDebug() << "Connect failed"; }
-	if (!QObject::connect(cinst, SIGNAL(apiSet(UInt32)), camera, SLOT(apiDoSet(UInt32)))) {
-		qDebug() << "Connect failed"; }
-	if (!QObject::connect(cinst, SIGNAL(apiSet(UInt32)), camera, SLOT(apiDoSet(UInt32)))) {
-		qDebug() << "Connect failed"; }
-	if (!QObject::connect(cinst, SIGNAL(apiSet(UInt32)), camera, SLOT(apiDoSet(UInt32)))) {
-		qDebug() << "Connect failed"; }
-	if (!QObject::connect(cinst, SIGNAL(apiSet(UInt32)), camera, SLOT(apiDoSet(UInt32)))) {
-		qDebug() << "Connect failed"; }
-*/
 
 
 	//get wb and color matrix from API
@@ -248,11 +214,6 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 		cinst->getArray("wbMatrix", 3, (double *)&camera->whiteBalMatrix);
 		cinst->getArray("colorMatrix", 9, (double *)&camera->colorCalMatrix);
 	}
-
-
-
-	//if (!QObject::connect(cinst, SIGNAL(apiSetInt(QString, UInt32)), camera, SLOT(apiDoSetInt(QString,uint)))) {
-	//	qDebug() << "Connect failed"; }
 
 }
 

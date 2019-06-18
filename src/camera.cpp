@@ -136,9 +136,9 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, Control * cinst
 
 
 
-		qDebug(cs.state);
+
 		bool recording = !strcmp(cs.state, "idle");
-		qDebug("recording");
+
 
 
 		//taken from below:
@@ -3174,16 +3174,11 @@ void* recDataThread(void *arg)
 }
 
 
-void Camera::apiDoSetFramePeriod2(UInt32 period)
-{
-//	sensor->setCurrentPeriod(period);
-	qDebug() << "apiDoSetFramePeriod2";
-}
 
-void Camera::apiDoSetFramePeriod3(UInt32 period)
+void Camera::apiDoSetFramePeriod(UInt32 period)
 {
 	sensor->setCurrentPeriod(period);
-	qDebug() << "apiDoSetFramePeriod3";
+	qDebug() << "apiDoSetFramePeriod";
 }
 
 void Camera::apiDoSetExposurePeriod(UInt32 period)
@@ -3254,7 +3249,7 @@ void Camera::apiDoSetIoDelayTime(double delay)
 
 void Camera::apiDoSetFrameRate(double rate)
 {
-	qDebug() << "apiDoSet";
+	qDebug() << "apiDoSetFrameRate";
 }
 
 void Camera::apiDoSetShutterAngle(double angle)
