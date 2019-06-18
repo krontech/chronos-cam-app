@@ -19,7 +19,6 @@ void parseJsonIoSettings(QString jsonString)
 {
 	//build JSON document d
 	QJsonDocument d = QJsonDocument::fromJson(jsonString.toUtf8());
-	//qDebug() << QString::fromUtf8(d.toJson(QJsonDocument::Compact));
 
 	QJsonObject qjo= d.object();
 

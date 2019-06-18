@@ -370,32 +370,12 @@ UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 
 	if (pych)
 	{
-		//add cinst calls
-
 		QString str;
 		sensor->setResolution(&settings.geometry);
 		sensor->setGain(settings.gain);
 		sensor->setFramePeriod(settings.period, &settings.geometry);
 		//delayms(10);
 		sensor->setIntegrationTime(settings.exposure, &settings.geometry);
-
-		//cinst->setResolution(&settings.geometry);
-/*
-		cinst->setResolution(settings.geometry.hRes,
-			settings.geometry.vRes,
-			settings.geometry.hOffset,
-			settings.geometry.vOffset,
-			settings.geometry.vDarkRows,
-			settings.geometry.bitDepth);
-*/
-		//not implemented yet:
-		//cinst->setGain(settings.gain);
-
-
-		//cinst->setIntegrationTime(settings.exposure);
-		//cinst->setFramePeriod(settings.period);
-
-
 	}
 	else
 	{
@@ -404,7 +384,6 @@ UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 			settings.segments > settings.recRegionSizeFrames) {
 			return CAMERA_INVALID_IMAGER_SETTINGS;
 		}
-
 
 		sensor->seqOnOff(false);
 		delayms(10);

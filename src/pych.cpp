@@ -13,24 +13,14 @@
 
 UInt32 shadowExposure;
 UInt32 shadowFramePeriod;
-//UInt32 shadow;
-//UInt32 shadow;
-
 
 void setRecShadow(void)
 {
 	qDebug() << "setRecShadow";
-
-
-	//qDebug() << "current" << currentFramePeriod;
-
 }
 
 
 void getRecShadow(void)
 {
 	qDebug() << "getRecShadow";
-
-
-
 }

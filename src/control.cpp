@@ -38,16 +38,6 @@ void Control::checkpid(void)
     }
 }
 
-
-//
-// NEW API
-//
-
-
-//
-// parsers
-//
-
 UInt32 sensorHIncrement = 0;
 UInt32 sensorVIncrement = 0;
 UInt32 sensorHMax = 0;
@@ -58,20 +48,12 @@ UInt32 sensorVDark = 0;
 UInt32 sensorBitDepth = 0;
 double sensorMinFrameTime = 0.001;
 
-
-
-
-
-
-
 static CameraStatus *parseCameraStatus(const QVariantMap &args, CameraStatus *cs)
 {
 	strcpy(cs->state, args["state"].toString().toAscii());
 
 	return cs;
 }
-
-
 
 CameraErrortype Control::setInt(QString parameter, UInt32 value)
 {
@@ -95,7 +77,6 @@ CameraErrortype Control::setInt(QString parameter, UInt32 value)
 
 	return SUCCESS;
 }
-
 
 CameraErrortype Control::setBool(QString parameter, bool value)
 {
@@ -290,12 +271,8 @@ CameraErrortype Control::getInt(QString parameter, UInt32 *value)
 		fprintf(stderr, "Failed to get int: %s - %s\n", err.name().data(), err.message().toAscii().data());
 	}
 	map = reply.value();
-	//qDebug() << "map:" << map;
-
 
 	*value = map[parameter].toUInt();
-
-	//qDebug() << "getInt():" << *value;
 
 	return SUCCESS;
 }
@@ -318,8 +295,6 @@ CameraErrortype Control::getFloat(QString parameter, double *value)
 	map = reply.value();
 	*value = map[parameter].toDouble();
 
-	qDebug() << "getFloat():" << *value;
-
 	return SUCCESS;
 }
 
@@ -339,10 +314,7 @@ CameraErrortype Control::getString(QString parameter, QString *str)
 		fprintf(stderr, "Failed to get string: %s - %s\n", err.name().data(), err.message().toAscii().data());
 	}
 	map = reply.value();
-	//qDebug() << map;
 	*str = map[parameter].toString();
-	//qDebug() << "getString():" << *str;
-	//qDebug() << "map[p]:" << map[parameter];
 
 	return SUCCESS;
 }
@@ -366,38 +338,8 @@ CameraErrortype Control::getBool(QString parameter, bool *value)
 	map = reply.value();
 	*value = map[parameter].toBool();
 
-	qDebug() << "boolMap" << map;
-
-	qDebug() << "getBool():" << *value;
-
 	return SUCCESS;
 }
-
-/*
-const QDBusArgument &operator>>(const QDBusArgument &argument, QList &mystruct)
-{
-	argument.beginStructure();
-	argument >> mystruct.count >> mystruct.name;
-	argument.endStructure();
-	return argument;
-}*/
-
-// extract a MyArray array of MyElement elements
-void parseArray(QDBusArgument &argument)
-{
-	argument.beginArray();
-	//myarray.clear();
-
-	while ( !argument.atEnd() ) {
-		//MyElement element;
-		qDebug() << "argument";
-		//myarray.append( element );
-	}
-
-	argument.endArray();
-	//return argument;
-}
-
 
 CameraErrortype Control::getTiming(FrameGeometry *geometry, FrameTiming *timing)
 {
@@ -467,7 +409,6 @@ CameraErrortype Control::getIoSettings(void)
 	qDebug() << jsonString;
 
 	parseJsonIoSettings(jsonString);
-
 }
 
 CameraErrortype Control::setResolution(FrameGeometry *geometry)
@@ -518,9 +459,6 @@ CameraErrortype Control::setWbMatrix(void)
 	QString jsonString;
 	buildJsonIo(&jsonString);
 }
-
-
-
 
 CameraErrortype Control::startRecording(void)
 {

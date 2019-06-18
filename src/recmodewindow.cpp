@@ -2,8 +2,8 @@
 #include "ui_recmodewindow.h"
 #include "camera.h"
 
-//#define SYSTEMCLOCK (camera->sensor->getIntegrationClock())
-#define SYSTEMCLOCK (100000000.0)
+#define SYSTEMCLOCK (camera->sensor->getIntegrationClock())
+//#define SYSTEMCLOCK (100000000.0)
 
 recModeWindow::recModeWindow(QWidget *parent, Camera * cameraInst, ImagerSettings_t * settings) :
     QWidget(parent),
