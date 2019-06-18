@@ -32,9 +32,12 @@ whiteBalanceDialog::whiteBalanceDialog(QWidget *parent, Camera * cameraInst) :
 	QSettings appSettings;
 	QString ccmName = appSettings.value("colorMatrix/current", "").toString();
 
+
 	windowInitComplete = false;
 	ui->setupUi(this);
 	camera = cameraInst;
+	saveColor();
+
 	setWindowFlags(Qt::Dialog /*| Qt::WindowStaysOnTopHint*/ | Qt::FramelessWindowHint);
 	move(camera->ButtonsOnLeft ? 0:600, 0);
 	sw = new StatusWindow;
@@ -241,6 +244,19 @@ void whiteBalanceDialog::on_cmdClose_clicked()
 	this->close();
 }
 
+void whiteBalanceDialog::on_cmdCancel_clicked()
+{
+	if (cw) {
+		delete cw;
+		cw = NULL;
+	}
+	delete sw;
+	delete crosshair;
+	restoreColor();
+	camera->setCCMatrix(camera->colorCalMatrix);
+	this->close();
+}
+
 void whiteBalanceDialog::on_cmdResetCustomWB_clicked()
 {
     RED   = sceneWhiteBalPresets[COMBO_MAX_INDEX][0] = customWhiteBalOld[0];
@@ -278,3 +294,30 @@ void whiteBalanceDialog::on_cmdMatrix_clicked()
 		connect(cw, SIGNAL(applyWhiteBalance()), this, SLOT(applyWhiteBalance()));
 	}
 }
+
+void whiteBalanceDialog::saveColor(void)
+{
+	int i;
+	for (i = 0; i<9; i++)
+	{
+		saveMatrix[i] = camera->colorCalMatrix[i];
+	}
+	for (i = 0; i<3; i++)
+	{
+		saveWb[i] = camera->whiteBalMatrix[i];
+	}
+}
+
+void whiteBalanceDialog::restoreColor(void)
+{
+	int i;
+	for (i = 0; i<9; i++)
+	{
+		camera->colorCalMatrix[i] = saveMatrix[i];
+	}
+	for (i = 0; i<3; i++)
+	{
+		camera->whiteBalMatrix[i] = saveWb[i];
+	}
+}
+

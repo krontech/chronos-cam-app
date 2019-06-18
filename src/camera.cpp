@@ -3287,10 +3287,21 @@ void Camera::apiDoSetWbMatrix(QVariant wb)
 {
 	QDBusArgument dbusArgs = wb.value<QDBusArgument>();
 	dbusArgs.beginArray();
-	double r,g,b;
-	r = dbusArgs.asVariant().toDouble();
-	g = dbusArgs.asVariant().toDouble();
-	b = dbusArgs.asVariant().toDouble();
+	for (int i=0; i<3; i++)
+	{
+		whiteBalMatrix[i] = dbusArgs.asVariant().toDouble();
+	}
+	dbusArgs.endArray();
+}
+
+void Camera::apiDoSetColorMatrix(QVariant wb)
+{
+	QDBusArgument dbusArgs = wb.value<QDBusArgument>();
+	dbusArgs.beginArray();
+	for (int i=0; i<9; i++)
+	{
+		colorCalMatrix[i] = dbusArgs.asVariant().toDouble();
+	}
 	dbusArgs.endArray();
 }
 

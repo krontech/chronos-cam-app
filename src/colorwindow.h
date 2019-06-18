@@ -50,6 +50,7 @@ private:
 	Camera * camera;
 
 	void setMatrix(const double *matrix);
+
 };
 
 #endif // COLORWINDOW_H

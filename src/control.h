@@ -221,6 +221,7 @@ signals:
 	void apiSetNetworkHostname(QString name);
 
 	void apiSetWbMatrix(QVariant wb);
+	void apiSetColorMatrix(QVariant wb);
 	void apiSetResolution(QVariant wb);
 
 

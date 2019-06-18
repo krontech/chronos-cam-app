@@ -210,6 +210,8 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 
 	if (!QObject::connect(cinst, SIGNAL(apiSetWbMatrix(QVariant)), camera, SLOT(apiDoSetWbMatrix(QVariant)))) {
 		qDebug() << "Connect failed"; }
+	if (!QObject::connect(cinst, SIGNAL(apiSetColorMatrix(QVariant)), camera, SLOT(apiDoSetColorMatrix(QVariant)))) {
+		qDebug() << "Connect failed"; }
 	if (!QObject::connect(cinst, SIGNAL(apiSetResolution(QVariant)), camera, SLOT(apiDoSetResolution(QVariant)))) {
 		qDebug() << "Connect failed"; }
 	/*
@@ -240,11 +242,17 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 */
 
 
+	//get wb and color matrix from API
+	if (pych)
+	{
+		cinst->getArray("wbMatrix", 3, (double *)&camera->whiteBalMatrix);
+		cinst->getArray("colorMatrix", 9, (double *)&camera->colorCalMatrix);
+	}
 
 
 
-	if (!QObject::connect(cinst, SIGNAL(apiSetInt(QString, UInt32)), camera, SLOT(apiDoSetInt(QString,uint)))) {
-		qDebug() << "Connect failed"; }
+	//if (!QObject::connect(cinst, SIGNAL(apiSetInt(QString, UInt32)), camera, SLOT(apiDoSetInt(QString,uint)))) {
+	//	qDebug() << "Connect failed"; }
 
 }
 

@@ -1746,8 +1746,10 @@ ControlStatus Control::parseNotification(const QVariantMap &args)
 
 //array
 		else if (e == "wbMatrix") {
-			//QVariant qv = args.value(e);
 			emit apiSetWbMatrix(args.value(e));
+			}
+		else if (e == "wbMatrix") {
+			emit apiSetColorMatrix(args.value(e));
 			}
 
 //dict

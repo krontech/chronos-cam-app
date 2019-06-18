@@ -388,6 +388,7 @@ protected slots:
 	void apiDoSetNetworkHostname(QString name);
 
 	void apiDoSetWbMatrix(QVariant wb);
+	void apiDoSetColorMatrix(QVariant color);
 	void apiDoSetResolution(QVariant res);
 
 	//void apiDoSetInt(QString param, UInt32 value);

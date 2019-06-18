@@ -88,32 +88,4 @@ double ImageSensor::getCurrentExposureAngle()
 {
 	return getCurrentExposureDouble() * 360.0 / getCurrentFramePeriodDouble();
 }
-/*
-void ImageSensor::apiDoSetInt(QString param, UInt32 value) {}
-void ImageSensor::apiDoSetFramePeriod2(UInt32 period) {}
-void ImageSensor::apiDoSetFramePeriod3(UInt32 period) {}
-void ImageSensor::apiDoSetCurrentIso(UInt32 iso) {}
-void ImageSensor::apiDoSetCurrentGain(UInt32 gain) {}
-void ImageSensor::apiDoSetPlaybackPosition(UInt32 frame) {}
-void ImageSensor::apiDoSetPlaybackStart(UInt32 frame) {}
-void ImageSensor::apiDoSetPlaybackLength(UInt32 frames) {}
-void ImageSensor::apiDoSetWbTemperature(UInt32 temp) {}
-void ImageSensor::apiDoSetRecMaxFrames(UInt32 frames) {}
-void ImageSensor::apiDoSetRecSegments(UInt32 seg) {}
-void ImageSensor::apiDoSetRecPreBurst(UInt32 frames) {}
-void ImageSensor::apiDoSetExposurePeriod(UInt32 period) {}
 
-void ImageSensor::apiDoSetExposurePercent(double percent) {}
-void ImageSensor::apiDoSetExposureNormalized(double norm) {}
-void ImageSensor::apiDoSetIoDelayTime(double delay) {}
-void ImageSensor::apiDoSetFrameRate(double rate) {}
-void ImageSensor::apiDoSetShutterAngle(double angle) {}
-
-void ImageSensor::apiDoSetExposureMode(QString mode) {}
-void ImageSensor::apiDoSetCameraTallyMode(QString mode) {}
-void ImageSensor::apiDoSetCameraDescription(QString desc) {}
-void ImageSensor::apiDoSetNetworkHostname(QString name) {}
-
-void ImageSensor::apiDoSetWbMatrix(QVariant wb) {}
-void ImageSensor::apiDoSetResolution(QVariant wb) {}
-*/

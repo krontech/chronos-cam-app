@@ -18,6 +18,11 @@ class whiteBalanceDialog : public QDialog
 public:
 	explicit whiteBalanceDialog(QWidget *parent = 0, Camera * cameraInst = NULL);
 	~whiteBalanceDialog();
+	void saveColor(void);
+	void restoreColor(void);
+	double saveMatrix[9];
+	double saveWb[3];
+
 
 private slots:
 	void on_comboWB_currentIndexChanged(int index);
@@ -26,7 +31,8 @@ private slots:
 	void on_cmdSetCustomWB_clicked();
 
 	void on_cmdClose_clicked();
-	
+	void on_cmdCancel_clicked();
+
 	void on_cmdResetCustomWB_clicked();
 
 	void on_cmdMatrix_clicked();
