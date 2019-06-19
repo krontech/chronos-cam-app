@@ -149,11 +149,6 @@ void MainWindow::on_cmdSetOffset_clicked()
 }
 
 
-
-
-
-
-
 void MainWindow::on_cmdTrigger_clicked()
 {
 	UInt32 reg = camera->gpmc->read32(SEQ_CTL_ADDR);

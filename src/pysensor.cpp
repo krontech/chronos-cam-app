@@ -33,11 +33,6 @@
 
 #include <QSettings>
 
-/* Some Timing Constants */
-//#define PYSENSOR_SOF_DELAY	0x0f	/* Delay from TXN rising edge to start of frame. */
-//#define PYSENSOR_LV_DELAY	0x07	/* Linevalid delay to match ADC latency. */
-//#define PYSENSOR_MIN_HBLANK	0x02	/* Minimum horiontal blanking period. */
-
 #define round(x) (floor(x + 0.5))
 
 UInt32 recShadowExposure;
@@ -45,21 +40,15 @@ UInt32 recShadowExposure;
 
 PySensor::PySensor(Control *control)
 {
-	//spi = new SPI();
-	//startDelaySensorClocks = PYSENSOR_MAGIC_ABN_DELAY;
-	qDebug() << "PySensor";
 	cinst = control;
-
 }
 
 PySensor::~PySensor()
 {
-	//delete spi;
 }
 
 CameraErrortype PySensor::init(GPMC * gpmc_inst)
 {
-
 	return SUCCESS;
 }
 
@@ -98,7 +87,6 @@ CameraErrortype PySensor::autoPhaseCal(void)
 
 Int32 PySensor::seqOnOff(bool on)
 {
-	//pych do we need anything here?
 	return SUCCESS;
 }
 
@@ -156,30 +144,12 @@ UInt32 PySensor::getMinFramePeriod(FrameGeometry *frameSize)
 	FrameTiming timing;
 
 	cinst->getTiming(frameSize, &timing);
-	//return timing.minFramePeriod / 10;		//in tens of nanoseconds, as wanted by camApp!
-	return timing.minFramePeriod;		//now in nanoseconds, as wanted by camApp!
+	return timing.minFramePeriod;		//now in nanoseconds, as wanted by camApp
 }
 
 UInt32 PySensor::getFramePeriod(void)
 {
 	return currentPeriod;
-	//return pyCurrentPeriod;
-
-}
-
-/*
-UInt32 PySensor::getExposure(void)
-{
-	return currentExposure;
-}
-*/
-
-
-/*
-double PySensor::getCurrentFramePeriodDouble(void)
-{
-	return currentPeriod;
-
 }
 
 double PySensor::getCurrentExposureDouble(void)
@@ -191,7 +161,7 @@ double PySensor::getCurrentExposureAngle(void)
 {
 	return 360.0 * currentExposure / currentPeriod;
 }
-*/
+
 
 UInt32 PySensor::getActualFramePeriod(double target, FrameGeometry *size)
 {
@@ -229,7 +199,6 @@ UInt32 PySensor::setFramePeriod(UInt32 period, FrameGeometry *size)
  */
 UInt32 PySensor::getMaxIntegrationTime(UInt32 period, FrameGeometry *size)
 {
-	//pych?
 	return period - 500;
 }
 
@@ -367,13 +336,4 @@ void PySensor::setCurrentExposure(UInt32 period)
 }
 
 
-
-
-
-/*
-void PySensor::apiDoSetInt(QString param, UInt32 value)
-{
-	currentPeriod = value;
-}
-*/
 

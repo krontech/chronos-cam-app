@@ -268,8 +268,6 @@ void translateToComb(void)
 	printIoElements();
 }
 
-
-
 void ioShadowWrite(UInt32 reg, UInt32 value)
 {
 	ioShadow[reg] = value;
@@ -279,8 +277,6 @@ UInt32 ioShadowRead(UInt32 reg)
 {
 	return ioShadow[reg];
 }
-
-
 
 
 IO::IO(GPMC* gpmcInst)

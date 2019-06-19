@@ -129,11 +129,8 @@ RecSettingsWindow::RecSettingsWindow(QWidget *parent, Camera * cameraInst) :
 		fSize.bitDepth = BITS_PER_PIXEL;
 		fSize.hOffset = fSize.vOffset = fSize.vDarkRows = 0;
 
-		//int fr =  1000000000.0 / (double)camera->sensor->getMinFramePeriod(&fSize);
 		int fr =  camera->sensor->getIntegrationClock() / (double)camera->sensor->getMinFramePeriod(&fSize);
-		//int fr = 1000;
-		//qDebug() << "hRes" << fSize.hRes << "vRes" << fSize.vRes << "mperiod" << camera->sensor->getMinFramePeriod(&fSize) << "fr" << fr;
-		qDebug() << "hRes" << fSize.hRes << "vRes" << fSize.vRes << "fr" << fr;
+		//qDebug() << "hRes" << fSize.hRes << "vRes" << fSize.vRes << "fr" << fr;
 
 		lineText.sprintf("%dx%d %d fps", fSize.hRes, fSize.vRes, fr);
 		
@@ -220,12 +217,8 @@ void RecSettingsWindow::on_cmdOK_clicked()
 
 	if (pych)
 	{
-		//add
 		FrameGeometry *geo = &is->geometry;
 		camera->cinst->setResolution(geo);
-		//camera->cinst->setIntegrationTime(intTime); -- we don't need this here, it's done by setImagerSettings
-		//pyCurrentExposure = intTime;
-		//pyCurrentPeriod = period;
 		setRecShadow();
 	}
 	else

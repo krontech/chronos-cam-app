@@ -51,14 +51,7 @@ void parseJsonIoSettings(QString jsonString)
 	bool delayDebounce = item_map["debounce"].toInt();
 	bool delayInvert = item_map["invert"].toInt();
 	qDebug() << "delay:" << delaySource << delayTime << delayDebounce << delayInvert;
-
-
-
-
-
-	//extern UInt32 	ioShadowRegister[16];
 }
-
 
 void parseJsonResolution(QString jsonString, FrameGeometry *geometry)
 {
@@ -68,12 +61,7 @@ void parseJsonResolution(QString jsonString, FrameGeometry *geometry)
 
 	qDebug() << d.isObject();
 	QJsonObject qjo= d.object();
-	//QJsonObject qjo2 = qjo["resolution"];
 
-	qDebug() << qjo.count();
-
-
-	//QJsonObject root_obj = json_doc.object();
 	QVariantMap root_map = qjo.toVariantMap();
 	QVariantMap res_map = root_map["resolution"].toMap();
 
@@ -84,23 +72,13 @@ void parseJsonResolution(QString jsonString, FrameGeometry *geometry)
 	geometry->vDarkRows = res_map["vDarkRows"].toInt();
 	geometry->bitDepth = res_map["bitDepth"].toInt();
 	geometry->minFrameTime = res_map["minFrameTime"].toDouble();
-
 }
 
 void parseJsonTiming(QString jsonString, FrameGeometry *geometry, FrameTiming *timing)
 {
 	//build JSON document d
 	QJsonDocument d = QJsonDocument::fromJson(jsonString.toUtf8());
-	//qDebug() << QString::fromUtf8(d.toJson(QJsonDocument::Compact));
-
-	//qDebug() << d.isObject();
 	QJsonObject qjo= d.object();
-	//QJsonObject qjo2 = qjo["resolution"];
-
-	//qDebug() << qjo.count();
-
-
-	//QJsonObject root_obj = json_doc.object();
 	QVariantMap root_map = qjo.toVariantMap();
 
 	timing->exposureMax = root_map["exposureMax"].toInt();
@@ -140,8 +118,6 @@ void buildJsonTiming(QString *jsonString, FrameGeometry *geometry)
 	//jsonString->append(",\n   \"bitDepth\": " + QString::number(geometry->bitDepth));
 	//jsonString->append(",\n   \"minFrameTime\": " + QString::number(geometry->minFrameTime));
 	jsonString->append("\n}");
-
-	//qDebug() << *jsonString;
 }
 
 void buildJsonArray(QString parameter, QString *jsonString, UInt32 size, double *values)
@@ -158,8 +134,6 @@ void buildJsonArray(QString parameter, QString *jsonString, UInt32 size, double 
 		}
 	}
 	jsonString->append("\n   ]\n}");
-
-	qDebug() << *jsonString;
 }
 
 void buildJsonIo(QString *jsonString)
@@ -178,7 +152,7 @@ void buildJsonIo(QString *jsonString)
 	jsonString->append("\n      },");
 	jsonString->append("\n   }\n}");
 
-	qDebug() << *jsonString;
+	//qDebug() << *jsonString;
 }
 
 
@@ -187,9 +161,8 @@ void parseJsonArray(QString parameter, QString jsonString, uint32_t size, double
 {
 	//build JSON document d
 	QJsonDocument d = QJsonDocument::fromJson(jsonString.toUtf8());
-	qDebug() << QString::fromUtf8(d.toJson(QJsonDocument::Compact));
+	//qDebug() << QString::fromUtf8(d.toJson(QJsonDocument::Compact));
 
-	qDebug() << d.isObject();
 	QJsonObject qjo= d.object();
 	QJsonArray qja = qjo[parameter].toArray();
 
@@ -273,8 +246,6 @@ void setCamJson( QString jsonString)
 		}
 		close(fd_c2p[0]);
 	}
-	//return 0;
-
 }
 
 void getCamJson(QString parameter, QString *jsonString)
@@ -317,8 +288,6 @@ void getCamJson(QString parameter, QString *jsonString)
 			cerr << "Child: failed to set up standard output\n";
 			exit(1);
 		}
-
-
 		execl(program_name.c_str(), program_name.c_str(), "get", "-", (char *) 0);
 
 		cerr << "Failed to execute " << program_name << endl;
@@ -351,10 +320,7 @@ void getCamJson(QString parameter, QString *jsonString)
 		close(fd_c2p[0]);
 		*jsonString = QString::fromStdString(receive_output);
 	}
-	//return 0;
-
 }
-
 
 void startCalibrationCamJson( QString *jsonOutString, QString *jsonInString)
 {
@@ -658,102 +624,3 @@ void testResolutionCamJson(QString *jsonString, FrameGeometry *geometry)
 		*jsonString = QString::fromStdString(receive_output);
 	}
 }
-
-
-//does not work!!
-void methodCamJson(QString method, QString *jsonString)
-{
-	int fd_p2c[2], fd_c2p[2], bytes_read;
-	pid_t childpid;
-	char readbuffer[80];
-	string program_name = "/usr/bin/cam-json";
-
-	string gulp_command = "";
-	string receive_output = "";
-
-	qDebug() << "methodCamJson:" << method;
-
-	if (pipe(fd_p2c) != 0 || pipe(fd_c2p) != 0)
-	{
-		cerr << "Failed to pipe\n";
-		exit(1);
-	}
-	childpid = fork();
-
-	if (childpid < 0)
-	{
-		cout << "Fork failed" << endl;
-		exit(-1);
-	}
-	else if (childpid == 0)
-	{
-		if (dup2(fd_p2c[0], 0) != 0 ||
-			close(fd_p2c[0]) != 0 ||
-			close(fd_p2c[1]) != 0)
-		{
-			cerr << "Child: failed to set up standard input\n";
-			exit(1);
-		}
-		if (dup2(fd_c2p[1], 1) != 1 ||
-			close(fd_c2p[1]) != 0 ||
-			close(fd_c2p[0]) != 0)
-		{
-			cerr << "Child: failed to set up standard output\n";
-			exit(1);
-		}
-
-		string meth = method.toStdString();
-		qDebug() << "child method:" << &meth;
-
-		unsigned char meth2[50];
-		//strcpy(meth2, &meth);
-		QString test = "123456789";
-		unsigned char x = test.toStdString()[3];
-		qDebug() << x;
-		//test
-		string meth3 = "stopRecording";
-		QString meth4 = "stopRecording";
-		unsigned char meth5[] = "stopRecording0x00";
-
-		execl(program_name.c_str(), program_name.c_str(), "stopRecording", "-", (char *) 0);
-
-
-		//execl(program_name.c_str(), program_name.c_str(), "stopRecording", "-", (char *) 0);
-		//execl(program_name.c_str(), program_name.c_str(), meth5, "-", (char *) 0);
-		//execl(program_name.c_str(), program_name.c_str(), method.toStdString(), "-", (char *) 0);
-		//qDebug() << program_name.c_str() << program_name.c_str() << &meth << "-";
-
-		cerr << "Failed to execute " << program_name << endl;
-		exit(1);
-	}
-	else
-	{
-		close(fd_p2c[0]);
-		close(fd_c2p[1]);
-
-		//cout << "\n\n===============\nWriting to child: <<" << gulp_command << ">>" << endl;
-		int nbytes = gulp_command.length();
-		if (write(fd_p2c[1], gulp_command.c_str(), nbytes) != nbytes)
-		{
-			cerr << "Parent: short write to child\n";
-			exit(1);
-		}
-		close(fd_p2c[1]);
-
-		while (1)
-		{
-			bytes_read = read(fd_c2p[0], readbuffer, sizeof(readbuffer)-1);
-
-			if (bytes_read <= 0)
-				break;
-
-			readbuffer[bytes_read] = '\0';
-			receive_output += readbuffer;
-		}
-		close(fd_c2p[0]);
-		*jsonString = QString::fromStdString(receive_output);
-	}
-	//return 0;
-
-}
-

@@ -55,11 +55,6 @@ bool pych = true;
 bool pych = false;
 #endif
 
-//UInt32 pyCurrentPeriod;
-//UInt32 pyCurrentExposure;
-
-
-
 Camera::Camera()
 {
 	QSettings appSettings;
@@ -119,27 +114,13 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, Control * cinst
 	int err;
 
 
-	//QString str;
-	//cinst->getString("cameraDescription", &str);
-
 	//PYCHRONOS
 	if (pych)
 	{
 
 		gpmc = nullptr;		//trap any remaining gpmc calls!
-		//sensor = nullptr;
-
-		//testing:
-
-		//cd = cinst->getCameraData();
 		retVal = cinst->status(&cs);
-
-
-
-
 		bool recording = !strcmp(cs.state, "idle");
-
-
 
 		//taken from below:
 		printf("Starting rec data thread\n");
@@ -152,11 +133,8 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, Control * cinst
 		if(retVal != SUCCESS)
 			return retVal;
 
-
-
 		/* Load default recording from sensor limits. */
 
-		//pych to do:
 		imagerSettings.geometry = sensor->getMaxGeometry();
 		imagerSettings.geometry.vDarkRows = 0;
 		imagerSettings.recRegionSizeFrames = getMaxRecordRegionSizeFrames(&imagerSettings.geometry);
@@ -260,7 +238,6 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, Control * cinst
 	settings.geometry.minFrameTime	= 0.001;
 	settings.gain                   = appSettings.value("camera/gain", 0).toInt();
 	settings.period                 = appSettings.value("camera/period", sensor->getMinFramePeriod(&settings.geometry)).toInt();
-	//settings.exposure               = appSettings.value("camera/exposure", sensor->getMaxIntegrationTime(settings.period, &settings.geometry)).toInt();
 	settings.exposure               = sensor->getMaxIntegrationTime(settings.period, &settings.geometry); //PYCH - this is needed but suboptimal
 	settings.recRegionSizeFrames    = appSettings.value("camera/recRegionSizeFrames", getMaxRecordRegionSizeFrames(&settings.geometry)).toInt();
 	settings.disableRingBuffer      = appSettings.value("camera/disableRingBuffer", 0).toInt();
@@ -274,9 +251,7 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, Control * cinst
 
 	if (pych)
 	{
-
 		//
-
 	}
 	else
 	{
@@ -308,7 +283,6 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, Control * cinst
 
 	if (pych)
 	{
-		//column calibration turns off LEDs!
 		ui->setRecLEDFront(false);
 		ui->setRecLEDBack(false);
 
@@ -345,7 +319,6 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, Control * cinst
 	if (pych)
 	{
 		cinst->doReset();
-		//sensor = nullptr;
 	}
 	else
 	{
@@ -374,7 +347,6 @@ UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 		sensor->setResolution(&settings.geometry);
 		sensor->setGain(settings.gain);
 		sensor->setFramePeriod(settings.period, &settings.geometry);
-		//delayms(10);
 		sensor->setIntegrationTime(settings.exposure, &settings.geometry);
 	}
 	else
@@ -488,7 +460,7 @@ void Camera::updateTriggerValues(ImagerSettings_t settings){
 	}
 	if (pych)
 	{
-		//add call to cinst->something
+		//
 	}
 	else
 	{
@@ -571,19 +543,9 @@ void Camera::getSensorInfo(Control *c)
 
 Int32 Camera::startRecording(void)
 {
-	double wbTest[3];
-	double cmTest[9];
-
-	//double testArray[9] = {1,2,3,4,5,6,7,8,9};
-	double testArray[9] = {1,0,0,0,1,0,0,0,1};
-	CameraStatus cs;
-	QString str;
-	UInt32 i;
-	double d;
-	bool b;
 	qDebug("===== Camera::startRecording()");
 
-	//testExec();
+	QString str;
 
 	FrameGeometry geometry;
 	geometry.hRes          = 1280;
@@ -605,12 +567,21 @@ Int32 Camera::startRecording(void)
 	testResolutionCamJson(&str, &geometry);
 	qDebug() << str;
 
+
+	// For testing individual API calls using the record button:
+
+	//double wbTest[3];
+	//double cmTest[9];
+	//double testArray[9] = {1,0,0,0,1,0,0,0,1};
+	//CameraStatus cs;
+	//UInt32 i;
+	//double d;
+	//bool b;
+
 	//UInt32 sizeGB;
 	//cinst->getInt("cameraMemoryGB", &sizeGB);
-	//methodCamJson("startRecording", &str);
 	//cinst->getString("cameraDescription", &str);
 	//cinst->getString("state", &str);
-
 	//cinst->setResolution(&geometry);
 
 	//cinst->setArray("wbMatrix", 3, (double *)&testArray);
@@ -621,15 +592,12 @@ Int32 Camera::startRecording(void)
 	//cinst->setIoSettings();
 
 	//cinst->getResolution(&geometry);
-
 	//cinst->getString("cameraDescription", &str);
-
 	//cinst->getArray("wbMatrix", 3, (double *)&wbTest);
 	//cinst->getArray("colorMatrix", 9, (double *)&cmTest);
 	//cinst->getDict("resolution");
 	//cinst->getString("exposureMode", &str);
 	//cinst->getInt("exposureMode", &i);
-
 
 	//cinst->startRecording();
 	//cinst->getString("cameraApiVersion");
@@ -649,9 +617,6 @@ Int32 Camera::startRecording(void)
 	//cinst->startBlackCalibration();
 	//cinst->revertAutoWhiteBalance();
 
-
-
-	//Now do dbus call
 	//TESTING Control dbus on pressing record
 	//cinst->getCameraData();
 	//cinst->getSensorData();
@@ -661,7 +626,6 @@ Int32 Camera::startRecording(void)
 	//cinst->getSensorWhiteBalance();
 
 	//cs = cinst->getStatus("one", "two");
-
 	//cinst->setDescription("hello", 6);
 	//cinst->reinitSystem();
 	//cinst->setSensorTiming(500);
@@ -712,12 +676,8 @@ Int32 Camera::startRecording(void)
 
 	if (pych)
 	{
-		//cinst->startRecording();
-		//try cam-json method
 		QString jsonReturn;
 		startRecordingCamJson(&jsonReturn);
-		//methodCamJson("startRecording", &jsonReturn);
-
 
 	}
 	else
@@ -907,11 +867,8 @@ Int32 Camera::stopRecording(void)
 
 	if (pych)
 	{
-
-		//cinst->stopRecording();
 		QString jsonReturn;
 		stopRecordingCamJson(&jsonReturn);
-
 	}
 	else
 	{
@@ -3233,7 +3190,6 @@ void Camera::apiDoSetFrameRate(double rate)
 
 void Camera::apiDoSetShutterAngle(double angle)
 {
-	//currentPeriod = period;
 	qDebug() << "apiDoSetShutterAngle";
 }
 
@@ -3301,51 +3257,4 @@ void Camera::apiDoSetResolution(QVariant res)
 	}
 }
 
-/*
-void Camera::apiDoSetResolution(QVariant res)
-{
-	FrameGeometry geometry;
-	QDBusArgument dbusArgs = res.value<QDBusArgument>();
-
-	qDebug() << dbusArgs.currentType();
-
-	dbusArgs.beginMap();
-
-	while ( !dbusArgs.atEnd() ) {
-		QString key;
-		UInt32 value;
-		dbusArgs.beginMapEntry();
-		dbusArgs >> key >> value;
-		dbusArgs.endMapEntry();
-		qDebug() << key << value;
-	 }
-
-
-	//QMap qm = dbusArgs.
-
-	//qDebug() << dbusArgs["hRes"];
-	dbusArgs.beginMap();
-	while (!dbusArgs.atEnd())
-	{
-		//qDebug() << dbusArgs.
-		// append path to a vector here if you want to keep it
-	}
-	dbusArgs.endArray();
-
-
-	QVariantMap root_map = dbusArgs.asVariant().toMap();
-	qDebug() << root_map.size();
-
-	QVariantMap res_map = root_map["resolution"].toMap();
-
-	geometry.hRes = res_map["hRes"].toInt();
-	geometry.vRes = res_map["vRes"].toInt();
-	geometry.hOffset = res_map["hOffset"].toInt();
-	geometry.vOffset = res_map["vOffset"].toInt();
-	geometry.vDarkRows = res_map["vDarkRows"].toInt();
-	geometry.bitDepth = res_map["bitDepth"].toInt();
-	geometry.minFrameTime = res_map["minFrameTime"].toDouble();
-
-}
-*/
 

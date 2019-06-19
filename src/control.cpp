@@ -109,7 +109,6 @@ CameraErrortype Control::setFloat(QString parameter, double value)
 	qDebug("setFloat");
 
 	args.insert(parameter, QVariant(value));
-	//args.insert("error", QVariant(error));
 
 	pthread_mutex_lock(&mutex);
 	reply = iface.set(args);
@@ -130,7 +129,6 @@ CameraErrortype Control::setString(QString parameter, QString str)
 	qDebug("setString");
 
 	args.insert(parameter, QVariant(str));
-	//args.insert("error", QVariant(error));
 
 	pthread_mutex_lock(&mutex);
 	reply = iface.set(args);
@@ -728,7 +726,6 @@ Control::Control() : iface("ca.krontech.chronos.control", "/ca/krontech/chronos/
     running = false;
 
     pthread_mutex_init(&mutex, NULL);
-    //pthread_mutex_lock(&mutex);
 
 	// Connect DBus signals
 	conn.connect("ca.krontech.chronos.control", "/ca/krontech/chronos/control", "ca.krontech.chronos.control",
@@ -764,8 +761,6 @@ ControlStatus Control::parseNotification(const QVariantMap &args)
 
 		if (e == "framePeriod") {
 			int period = args.value(e).toInt();
-			qDebug() << "framePeriod" << period;
-			QString str = "framePeriod";
 			emit apiSetFramePeriod(period);
 		}
 		else if (e == "exposurePeriod") {
@@ -835,11 +830,7 @@ ControlStatus Control::parseNotification(const QVariantMap &args)
 		else if (e == "resolution") {
 			emit apiSetResolution(args.value(e)); }
 
-
 		else qDebug() << "IGNORED:" << e << "," << args.value(e);
-
-
 	}
-
 }
 

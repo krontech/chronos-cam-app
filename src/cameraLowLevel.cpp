@@ -60,15 +60,10 @@ bool Camera::getRecording(void)
 {
 	if (pych)
 	{
-		//CameraStatus cs;
 		QString state;
-		//cinst->status(&cs);
 		cinst->getString("state", &state);
-		//qDebug() << state;
 		bool ret = (state == "recording");
-
 		return ret;
-		//return !strcmp(state, "recording");
 	}
 	else
 	{
