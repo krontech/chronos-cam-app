@@ -771,7 +771,8 @@ void LUX2100::adcOffsetTraining(FrameGeometry *frameSize, UInt32 address, UInt32
 #else
 void LUX2100::offsetCorrectionIteration(FrameGeometry *geometry, int *offsets, UInt32 address, UInt32 framesToAverage, int iter)
 {
-	UInt32 numRows = geometry->vDarkRows + geometry->vRes;
+	//UInt32 numRows = geometry->vDarkRows + geometry->vRes;
+	UInt32 numRows = 1;
 	UInt32 rowSize = (geometry->hRes * LUX2100_BITS_PER_PIXEL) / 8;
 	UInt32 samples = (numRows * framesToAverage * geometry->hRes / LUX2100_HRES_INCREMENT);
 	UInt32 adcAverage[LUX2100_HRES_INCREMENT];
@@ -854,12 +855,7 @@ void LUX2100::adcOffsetTraining(FrameGeometry *size, UInt32 address, UInt32 numF
 	struct timespec tRefresh;
 	std::string filename = getFilename("cal/lux2100Offsets", ".bin");
 	FILE *fp;
-
-	//unsigned int iterations = 8;
-	// HACK: We really need like 8-16 iterations, to get good results, but reduce it
-	// down further to speed up the user experience and make up for it with a larger
-	// footroom.
-	unsigned int iterations = 4;
+	unsigned int iterations = 32;
 
 	tRefresh.tv_sec = 0;
 	tRefresh.tv_nsec = ((numFrames+10) * currentPeriod * 1000000000ULL) / LUX2100_TIMING_CLOCK_FREQ;

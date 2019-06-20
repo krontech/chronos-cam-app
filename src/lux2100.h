@@ -120,7 +120,7 @@ public:
     ~LUX2100();
 	CameraErrortype init(GPMC * gpmc_inst);
 
-	UInt32 getSensorQuirks() { return SENSOR_QUIRK_SLOW_OFFSET_CAL; }
+	//UInt32 getSensorQuirks() { return SENSOR_QUIRK_SLOW_OFFSET_CAL; }
 
 	/* Frame Geometry Functions. */
 	void setResolution(FrameGeometry *frameSize);

@@ -38,6 +38,8 @@
 #include "defines.h"
 #include <QWSDisplay>
 
+#define USE_3POINT_CAL 0
+
 void* recDataThread(void *arg);
 void recordEosCallback(void * arg);
 void recordErrorCallback(void * arg, const char * message);
@@ -677,45 +679,54 @@ void Camera::loadFPNCorrection(FrameGeometry *geometry, const UInt16 *fpnBuffer,
 		}
 	}
 
-	/*
-	 * For each column, the sum gives the DC component of the FPN, which
-	 * gets applied to the column calibration as the constant term, and
-	 * should take ADC gain and curvature into consideration.
-	 */
-	for (int col = 0; col < geometry->hRes; col++) {
-		UInt32 scale = (geometry->vRes * framesToAverage);
-		Int64 square = (Int64)fpnColumns[col] * (Int64)fpnColumns[col];
-		UInt16 gain = gpmc->read16(COL_GAIN_MEM_START_ADDR + (2 * col));
-		Int16 curve = gpmc->read16(COL_CURVE_MEM_START_ADDR + (2 * col));
-
-		/* Column calibration is denoted by:
-		 *  f(x) = a*x^2 + b*x + c
-		 *
-		 * For FPN to output black, f(fpn) = 0 and therefore:
-		 *  c = -a*fpn^2 - b*fpn
+	/* Load 3-point FPN */
+	if (gpmc->read16(DISPLAY_GAIN_CONTROL_ADDR) & DISPLAY_GAIN_CONTROL_3POINT) {
+		/*
+		 * For each column, the sum gives the DC component of the FPN, which
+		 * gets applied to the column calibration as the constant term, and
+		 * should take ADC gain and curvature into consideration.
 		 */
-		Int64 fpnLinear = -((Int64)fpnColumns[col] * gain);
-		Int64 fpnCurved = -(square * curve) / (scale << (COL_CURVE_FRAC_BITS - COL_GAIN_FRAC_BITS));
-		Int16 offset = (fpnLinear + fpnCurved) / (scale << COL_GAIN_FRAC_BITS);
-		gpmc->write16(COL_OFFSET_MEM_START_ADDR + (2 * col), offset);
+		for (int col = 0; col < geometry->hRes; col++) {
+			UInt32 scale = (geometry->vRes * framesToAverage);
+			Int64 square = (Int64)fpnColumns[col] * (Int64)fpnColumns[col];
+			UInt16 gain = gpmc->read16(COL_GAIN_MEM_START_ADDR + (2 * col));
+			Int16 curve = gpmc->read16(COL_CURVE_MEM_START_ADDR + (2 * col));
+
+			/* Column calibration is denoted by:
+			 *  f(x) = a*x^2 + b*x + c
+			 *
+			 * For FPN to output black, f(fpn) = 0 and therefore:
+			 *  c = -a*fpn^2 - b*fpn
+			 */
+			Int64 fpnLinear = -((Int64)fpnColumns[col] * gain);
+			Int64 fpnCurved = -(square * curve) / (scale << (COL_CURVE_FRAC_BITS - COL_GAIN_FRAC_BITS));
+			Int16 offset = (fpnLinear + fpnCurved) / (scale << COL_GAIN_FRAC_BITS);
+			gpmc->write16(COL_OFFSET_MEM_START_ADDR + (2 * col), offset);
 
 #if 0
-		fprintf(stderr, "FPN Column %d: gain=%f curve=%f sum=%d, offset=%d\n", col,
-				(double)gain / (1 << COL_GAIN_FRAC_BITS),
-				(double)curve / (1 << COL_CURVE_FRAC_BITS),
-				fpnColumns[col], offset);
+			fprintf(stderr, "FPN Column %d: gain=%f curve=%f sum=%d, offset=%d\n", col,
+					(double)gain / (1 << COL_GAIN_FRAC_BITS),
+					(double)curve / (1 << COL_CURVE_FRAC_BITS),
+					fpnColumns[col], offset);
 #endif
 
-		/* Keep track of the maximum column FPN while we're at it. */
-		if ((fpnColumns[col] / scale) > maxColumn) maxColumn = (fpnColumns[col] / scale);
-	}
+			/* Keep track of the maximum column FPN while we're at it. */
+			if ((fpnColumns[col] / scale) > maxColumn) maxColumn = (fpnColumns[col] / scale);
+		}
 
-	/* The AC component of each column remains as the per-pixel FPN. */
-	for(int row = 0; row < geometry->vRes; row++) {
-		for(int col = 0; col < geometry->hRes; col++) {
-			int i = row * geometry->hRes + col;
-			Int32 fpn = fpnBuffer[i] - (fpnColumns[col] / geometry->vRes);
-			writePixelBuf12(pixBuffer, i, (unsigned)(fpn / (int)framesToAverage) & 0xfff);
+		/* The AC component of each column remains as the per-pixel FPN. */
+		for(int row = 0; row < geometry->vRes; row++) {
+			for(int col = 0; col < geometry->hRes; col++) {
+				int i = row * geometry->hRes + col;
+				Int32 fpn = fpnBuffer[i] - (fpnColumns[col] / geometry->vRes);
+				writePixelBuf12(pixBuffer, i, (unsigned)(fpn / (int)framesToAverage) & 0xfff);
+			}
+		}
+	}
+	/* Load 2-point FPN */
+	else {
+		for(int i = 0; i < geometry->pixels(); i++) {
+			writePixelBuf12(pixBuffer, i, fpnBuffer[i] / framesToAverage);
 		}
 	}
 	gpmc->writeAcqMem((UInt32 *)pixBuffer, FPN_ADDRESS, geometry->size());
@@ -1500,7 +1511,7 @@ void Camera::computeGainColumns(FrameGeometry *geometry, UInt32 wordAddress, con
 		/* Compute the 2-point calibration coefficients. */
 		UInt32 diff = highColumns[col] - lowColumns[col];
 		UInt32 gain2pt = ((unsigned long long)maxColumn << COL_GAIN_FRAC_BITS) / diff;
-#if 1
+#if USE_3POINT_CAL
 		/* Predict the ADC to be linear with dummy voltage and find the error. */
 		UInt32 predict = lowColumns[col] + (diff * (vmid - vlow)) / (vhigh - vlow);
 		Int32 err2pt = (int)(midColumns[col] - predict);
@@ -1569,6 +1580,7 @@ void Camera::computeGainColumns(FrameGeometry *geometry, UInt32 wordAddress, con
 			fp.close();
 		}
 
+#if USE_3POINT_CAL
 		/* Save column curvature data. */
 		filename.sprintf("cal/colCurve_%s.bin", gName);
 		fp.setFileName(filename);
@@ -1578,13 +1590,16 @@ void Camera::computeGainColumns(FrameGeometry *geometry, UInt32 wordAddress, con
 			fp.flush();
 			fp.close();
 		}
+#endif
 	}
 
 cleanup:
 	sensor->disableAnalogTestMode();
 
 	/* Enable 3-point calibration and load the column gains */
+#if USE_3POINT_CAL
 	gpmc->write16(DISPLAY_GAIN_CONTROL_ADDR, DISPLAY_GAIN_CONTROL_3POINT);
+#endif
 	for (int col = 0; col < geometry->hRes; col++) {
 		gpmc->write16(COL_GAIN_MEM_START_ADDR + (2 * col), colGain[col % numChannels]);
 		gpmc->write16(COL_CURVE_MEM_START_ADDR + (2 * col), colCurve[col % numChannels]);
@@ -1600,11 +1615,13 @@ Int32 Camera::autoOffsetCalibration(unsigned int iterations)
 
 	/* Swap the black rows into the top of the frame. */
 	memcpy(&isDark, &isPrev, sizeof(isDark));
+#if 0
 	if (!isDark.geometry.vDarkRows) {
 		isDark.geometry.vDarkRows = isMaxSize.vDarkRows / 2;
 		isDark.geometry.vRes -= isDark.geometry.vDarkRows;
 		isDark.geometry.vOffset += isDark.geometry.vDarkRows;
 	}
+#endif
 	isDark.recRegionSizeFrames = CAL_REGION_FRAMES;
 	isDark.disableRingBuffer = 0;
 	isDark.mode = RECORD_MODE_NORMAL;
@@ -1708,6 +1725,7 @@ void Camera::loadColGainFromFile(void)
 		gpmc->write16(COL_GAIN_MEM_START_ADDR + (2 * col), (int)(gainCorrection[col % numChannels] * (1 << COL_GAIN_FRAC_BITS)));
 	}
 
+#if USE_3POINT_CAL
 	/* Load curvature correction. */
 	filename.sprintf("cal:colCurve_G%d.bin", imagerSettings.gain);
 	QFileInfo colCurveFile(filename);
@@ -1731,6 +1749,10 @@ void Camera::loadColGainFromFile(void)
 
 	/* Enable 3-point calibration. */
 	gpmc->write16(DISPLAY_GAIN_CONTROL_ADDR, DISPLAY_GAIN_CONTROL_3POINT);
+#else
+	/* Disable 3-point calibration. */
+	gpmc->write16(DISPLAY_GAIN_CONTROL_ADDR, 0);
+#endif
 }
 
 /* Compute the gain columns by controlling exposure. */
