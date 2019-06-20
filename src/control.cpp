@@ -755,7 +755,7 @@ ControlStatus Control::parseNotification(const QVariantMap &args)
 
 	for(auto e : args.keys())
 	{
-		qDebug() << e << "," << args.value(e);
+		//qDebug() << e << "," << args.value(e);
 
 //int
 

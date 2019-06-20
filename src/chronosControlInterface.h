@@ -104,7 +104,6 @@ public Q_SLOTS: // METHODS
 	inline QDBusPendingReply<QVariantMap> set(const QVariantMap &args)
 	{
 		QList<QVariant> argumentList;
-		qDebug() << "set";
 		argumentList << qVariantFromValue(args);
 		return asyncCallWithArgumentList(QLatin1String("set"), argumentList);
 	}

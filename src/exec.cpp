@@ -161,14 +161,10 @@ void parseJsonArray(QString parameter, QString jsonString, uint32_t size, double
 {
 	//build JSON document d
 	QJsonDocument d = QJsonDocument::fromJson(jsonString.toUtf8());
-	//qDebug() << QString::fromUtf8(d.toJson(QJsonDocument::Compact));
 
 	QJsonObject qjo= d.object();
 	QJsonArray qja = qjo[parameter].toArray();
 
-	qDebug() << qja.count();
-	qDebug() << qja.at(0).toDouble();
-	//qDebug() << QString::fromUtf8(qjo2.toJson(QJsonDocument::Compact));
 	for (int i=0; i<size; i++)
 	{
 		values[i] = qja.at(i).toDouble();

@@ -1,4 +1,4 @@
-#define USE_PYCHRONOS
+//#define USE_PYCHRONOS
 
 /****************************************************************************
  *  Copyright (C) 2013-2017 Kron Technologies Inc <http://www.krontech.ca>. *
@@ -436,6 +436,9 @@ UInt32 Camera::getRecordLengthFrames(ImagerSettings_t settings)
 
 UInt32 Camera::getFrameSizeWords(FrameGeometry *geometry)
 {
+	qDebug() << geometry->size();
+	qDebug() << BYTES_PER_WORD;
+	qDebug() << FRAME_ALIGN_WORDS;
 	return ROUND_UP_MULT((geometry->size() + BYTES_PER_WORD - 1) / BYTES_PER_WORD, FRAME_ALIGN_WORDS);
 }
 
@@ -506,7 +509,7 @@ UInt32 Camera::setIntegrationTime(double intTime, FrameGeometry *fSize, Int32 fl
 		if (pych)
 		{
 			cinst->setInt("exposurePeriod", intTime * 1e9);
-			validTime = intTime;
+			validTime = intTime; // * 1e9;
 		}
 		else
 		{
@@ -3114,13 +3117,13 @@ void* recDataThread(void *arg)
 void Camera::apiDoSetFramePeriod(UInt32 period)
 {
 	sensor->setCurrentPeriod(period);
-	qDebug() << "apiDoSetFramePeriod";
+	//qDebug() << "apiDoSetFramePeriod";
 }
 
 void Camera::apiDoSetExposurePeriod(UInt32 period)
 {
 	sensor->setCurrentExposure(period);
-	qDebug() << "apiDoSetExposurePeriod";
+	//qDebug() << "apiDoSetExposurePeriod";
 }
 
 void Camera::apiDoSetCurrentIso(UInt32 iso )
