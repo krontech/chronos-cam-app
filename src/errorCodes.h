@@ -109,7 +109,9 @@ typedef enum CameraErrortype
 	
 	
 	SETTINGS_LOAD_ERROR                       = 901,
-	SETTINGS_SAVE_ERROR                       = 902	
+	SETTINGS_SAVE_ERROR                       = 902,
+
+	DBUS_CONTROL_FAIL						  = 1001,
 } CameraErrortype;
 
 #endif // ERRORCODES_H

@@ -73,11 +73,19 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 
 	userInterface = new UserInterface();
 
-	camera->getSensorInfo(cinst);
-
 	if (pych)
 	{
 		sensor = new PySensor(cinst);
+		//loop until control dBus is ready
+		UInt32 mem;
+		while (cinst->getInt("cameraMemoryGB", &mem))
+		{
+			qDebug() << "Control API not present";
+			struct timespec t = {1, 0};
+			nanosleep(&t, NULL);
+		}
+		camera->getSensorInfo(cinst);
+
 	}
 	else
 	{
@@ -596,7 +604,15 @@ void CamMainWindow::updateCurrentSettingsLabel()
 
 	if(flags & 1)	//If battery present
 	{
-		sprintf(battStr, "Batt %d%% %.2fV", (UInt32)battPercent,  (double)battVoltageCam / 1000.0);
+		if (pych)
+		{
+			sprintf(battStr, "Batt %d%% %.2fV", (UInt32)battPercent,  (double)battVoltageCam / 1000.0);
+		}
+		else
+		{
+			//show it's not running with the API
+			sprintf(battStr, "NON-API!   Batt %d%%", (UInt32)battPercent);
+		}
 	}
 	else
 	{

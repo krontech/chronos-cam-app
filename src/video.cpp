@@ -407,6 +407,7 @@ void Video::setDisplayPosition(bool videoOnRight)
 		QDBusError err = reply.error();
 		fprintf(stderr, "Failed to configure horizontal offset: %s - %s\n", err.name().data(), err.message().toAscii().data());
 	}
+	kill (pid, SIGHUP);
 }
 
 void Video::sof(const QVariantMap &args)

@@ -1,4 +1,4 @@
-//#define USE_PYCHRONOS
+#define USE_PYCHRONOS
 
 /****************************************************************************
  *  Copyright (C) 2013-2017 Kron Technologies Inc <http://www.krontech.ca>. *
@@ -436,9 +436,6 @@ UInt32 Camera::getRecordLengthFrames(ImagerSettings_t settings)
 
 UInt32 Camera::getFrameSizeWords(FrameGeometry *geometry)
 {
-	qDebug() << geometry->size();
-	qDebug() << BYTES_PER_WORD;
-	qDebug() << FRAME_ALIGN_WORDS;
 	return ROUND_UP_MULT((geometry->size() + BYTES_PER_WORD - 1) / BYTES_PER_WORD, FRAME_ALIGN_WORDS);
 }
 

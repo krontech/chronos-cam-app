@@ -267,6 +267,7 @@ CameraErrortype Control::getInt(QString parameter, UInt32 *value)
 	if (reply.isError()) {
 		QDBusError err = reply.error();
 		fprintf(stderr, "Failed to get int: %s - %s\n", err.name().data(), err.message().toAscii().data());
+		return DBUS_CONTROL_FAIL;
 	}
 	map = reply.value();
 
