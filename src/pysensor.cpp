@@ -35,9 +35,6 @@
 
 #define round(x) (floor(x + 0.5))
 
-UInt32 recShadowExposure;
-
-
 PySensor::PySensor(Control *control)
 {
 	cinst = control;
@@ -60,8 +57,7 @@ CameraErrortype PySensor::setControl(Control *control_inst)
 
 CameraErrortype PySensor::initSensor()
 {
-	//pych softReset()
-
+	//TODO: softReset() here?
 	return SUCCESS;
 }
 
@@ -81,7 +77,7 @@ UInt16 PySensor::SCIRead(UInt8 address)
 
 CameraErrortype PySensor::autoPhaseCal(void)
 {
-	//pych phase cal
+	//TODO: phase cal?
 	return SUCCESS;
 }
 
@@ -129,14 +125,12 @@ FrameGeometry PySensor::getMaxGeometry(void)
 
 void PySensor::setResolution(FrameGeometry *size)
 {
-	//pych setResolution
 	cinst->setResolution(size);
 }
 
 UInt32 PySensor::getMinWavetablePeriod(FrameGeometry *frameSize, UInt32 wtSize)
 {
-	//pych stuff
-	return 1000/0;
+	return 0;
 }
 
 UInt32 PySensor::getMinFramePeriod(FrameGeometry *frameSize)
@@ -176,7 +170,6 @@ extern UInt32 pyCurrentPeriod;
 
 UInt32 PySensor::setFramePeriod(UInt32 period, FrameGeometry *size)
 {
-	//pych
 	qDebug() << "Requested period" << period;
 	UInt32 minPeriod = getMinFramePeriod(size);
 	UInt32 maxPeriod = PYSENSOR_MAX_SLAVE_PERIOD;
@@ -237,8 +230,6 @@ UInt32 PySensor::getIntegrationTime(void)
 
 void PySensor::setSlaveExposure(UInt32 exposure)
 {
-	//pych
-	recShadowExposure = exposure;
 	cinst->setIntegrationTime(exposure);
 }
 
@@ -311,13 +302,8 @@ std::string PySensor::getFilename(const char * filename, const char * extension)
 
 Int32 PySensor::setGain(UInt32 gainSetting)
 {
-	//do pych things when this is implemented
+	//do pychronos things when this is implemented
 }
-
-
-// GR
-// BG
-//
 
 UInt8 PySensor::getFilterColor(UInt32 h, UInt32 v)
 {

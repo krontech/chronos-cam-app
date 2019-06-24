@@ -53,10 +53,6 @@ extern double sensorMinFrameTime;
 #define PYSENSOR_MINFRAMETIME		sensorMinFrameTime
 
 #define PYSENSOR_TIMING_CLOCK		1000000000.0	//this clock is set to 1 ns for math purposes
-//#define PYSENSOR_SENSOR_CLOCK		90000000.0	//pych - do properly
-
-//#define PYSENSOR_ROT			(9+4)		//Granularity clock cycles (63MHz periods by default)
-//#define PYSENSOR_FOT			315		//Granularity clock cycles (63MHz periods by default)
 
 #define ROT_TIMER				9
 #define FOT_TIMER				315
@@ -96,8 +92,6 @@ extern double sensorMinFrameTime;
 
 /* Array of wavetables, sorted longest first, and terminated with a NULL */
 //extern const lux1310wavetab_t *lux1310wt[];
-
-extern UInt32 recShadowExposure;
 
 class PySensor : public ImageSensor
 {

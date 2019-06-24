@@ -22,7 +22,6 @@
 #include <QResource>
 #include <QDir>
 #include "camLineEdit.h"
-#include "pych.h"
 #include "exec.h"
 
 #include <QDebug>
@@ -37,9 +36,6 @@ extern "C" {
 
 #define DEF_SI_OPTS	SI_DELIM_SPACE | SI_SPACE_BEFORE_PREFIX
 
-extern bool pych;
-//extern UInt32 pyCurrentPeriod;
-//extern UInt32 pyCurrentExposure;
 
 //Round an integer (x) to the nearest multiple of mult
 template<typename T>
@@ -51,10 +47,7 @@ RecSettingsWindow::RecSettingsWindow(QWidget *parent, Camera * cameraInst) :
 {
 	char str[100];
 
-	getRecShadow();
-
-
-	// as non-static data member initializers can't happen in the .h, making sure it's set correct here.
+		// as non-static data member initializers can't happen in the .h, making sure it's set correct here.
 	windowInitComplete = false;
 
 	ui->setupUi(this);
@@ -215,33 +208,18 @@ void RecSettingsWindow::on_cmdOK_clicked()
 	is->exposure = intTime;
 	is->temporary = 0;
 
-	if (pych)
-	{
-		FrameGeometry *geo = &is->geometry;
-		camera->cinst->setResolution(geo);
-		setRecShadow();
-	}
-	else
-	{
-		camera->updateTriggerValues(*is);
-	}
+	FrameGeometry *geo = &is->geometry;
+	camera->cinst->setResolution(geo);
 
 	camera->setImagerSettings(*is);
 	camera->vinst->liveDisplay(is->geometry.hRes, is->geometry.vRes);
 	camera->liveColumnCalibration();
 
 	if(CAMERA_FILE_NOT_FOUND == camera->loadFPNFromFile()) {
-		if (pych)
-		{
-			QString jsonInString;
-			QString jsonOutString;
-			buildJsonCalibration(&jsonInString, "zeroTimeBlackCal");
-			startCalibrationCamJson(&jsonOutString, &jsonInString);
-		}
-		else
-		{
-			camera->fastFPNCorrection();
-		}
+		QString jsonInString;
+		QString jsonOutString;
+		buildJsonCalibration(&jsonInString, "zeroTimeBlackCal");
+		startCalibrationCamJson(&jsonOutString, &jsonInString);
 	}
 
 	close();

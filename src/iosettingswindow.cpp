@@ -18,8 +18,6 @@
 #include "iosettingswindow.h"
 #include "ui_iosettingswindow.h"
 
-extern bool pych;
-
 IOSettingsWindow::IOSettingsWindow(QWidget *parent, Camera * cameraInst) :
 	QWidget(parent),
 	ui(new Ui::IOSettingsWindow)
@@ -32,42 +30,7 @@ IOSettingsWindow::IOSettingsWindow(QWidget *parent, Camera * cameraInst) :
 
 	camera = cameraInst;
 
-	if (pych) {
-		getIoSettings();
-	}
-	else {
-		ui->spinIO1Thresh->setValue(camera->io->getThreshold(1));
-		ui->spinIO2Thresh->setValue(camera->io->getThreshold(2));
-
-		ui->radioIO1None->setChecked(true);
-		ui->radioIO2None->setChecked(true);
-
-		ui->chkIO1InvertIn->setChecked(camera->io->getTriggerInvert() & (1 << 0));
-		ui->chkIO2InvertIn->setChecked(camera->io->getTriggerInvert() & (1 << 1));
-		ui->chkIO3InvertIn->setChecked(camera->io->getTriggerInvert() & (1 << 2));
-
-		ui->radioIO1TrigIn->setChecked(camera->io->getTriggerEnable() & (1 << 0));
-		ui->radioIO2TrigIn->setChecked(camera->io->getTriggerEnable() & (1 << 1));
-		ui->chkIO3TriggerInEn->setChecked(camera->io->getTriggerEnable() & (1 << 2));
-		ui->radioIO1TriggeredShutter->setChecked(camera->io->getTriggeredExpEnable()  && (camera->io->getExtShutterSrcEn() & (1 << 0)));
-		ui->radioIO1ShutterGating->   setChecked(camera->io->getShutterGatingEnable() && (camera->io->getExtShutterSrcEn() & (1 << 0)));
-		ui->radioIO2TriggeredShutter->setChecked(camera->io->getTriggeredExpEnable()  && (camera->io->getExtShutterSrcEn() & (1 << 1)));
-		ui->radioIO2ShutterGating->   setChecked(camera->io->getShutterGatingEnable() && (camera->io->getExtShutterSrcEn() & (1 << 1)));
-
-		ui->chkIO1Debounce->setChecked(camera->io->getTriggerDebounceEn() & (1 << 0));
-		ui->chkIO2Debounce->setChecked(camera->io->getTriggerDebounceEn() & (1 << 1));
-		ui->chkIO3Debounce->setChecked(camera->io->getTriggerDebounceEn() & (1 << 2));
-
-		ui->radioIO1FSOut->setChecked(camera->io->getOutSource() & (1 << 1));
-		ui->radioIO2FSOut->setChecked(camera->io->getOutSource() & (1 << 2));
-
-		ui->chkIO1Pull->setChecked(camera->io->getOutLevel() & (1 << 1));
-		ui->chkIO1WeakPull->setChecked(camera->io->getOutLevel() & (1 << 0));
-		ui->chkIO2Pull->setChecked(camera->io->getOutLevel() & (1 << 2));
-
-		ui->chkIO1InvertOut->setChecked(camera->io->getOutInvert() & (1 << 1));
-		ui->chkIO2InvertOut->setChecked(camera->io->getOutInvert() & (1 << 2));
-	}
+	getIoSettings();
 
 	lastIn = camera->io->getIn();
 
@@ -362,33 +325,7 @@ void IOSettingsWindow::getIoSettings()
 void IOSettingsWindow::on_cmdApply_clicked()
 {
 	/* Do it the new way using the D-Bus API */
-	if (pych) {
-		setIoSettings();
-		return;
-	}
-
-	camera->io->setTriggerInvert(ui->chkIO3InvertIn->isChecked() << 2 | ui->chkIO2InvertIn->isChecked() << 1 | ui->chkIO1InvertIn->isChecked());
-	camera->io->setTriggerEnable(ui->chkIO3TriggerInEn->isChecked() << 2 | ui->radioIO2TrigIn->isChecked() << 1 |  ui->radioIO1TrigIn->isChecked());
-	camera->io->setTriggerDebounceEn(ui->chkIO3Debounce->isChecked() << 2 | ui->chkIO2Debounce->isChecked() << 1 | ui->chkIO1Debounce->isChecked());
-
-	camera->io->setOutSource(ui->radioIO2FSOut->isChecked() << 2 | ui->radioIO1FSOut->isChecked() << 1);
-	camera->io->setOutLevel(ui->chkIO2Pull->isChecked() << 2 | ui->chkIO1Pull->isChecked() << 1 | ui->chkIO1WeakPull->isChecked());
-	camera->io->setOutInvert(ui->chkIO2InvertOut->isChecked() << 2 | ui->chkIO1InvertOut->isChecked() << 1 | ui->chkIO1InvertOut->isChecked());
-
-
-	camera->io->setThreshold(1, ui->spinIO1Thresh->value());
-	camera->io->setThreshold(2, ui->spinIO2Thresh->value());
-
-	camera->io->setTriggeredExpEnable(ui->radioIO2TriggeredShutter->isChecked() || ui->radioIO1TriggeredShutter->isChecked());
-	
-	camera->io->setExtShutterSrcEn(	((ui->radioIO2TriggeredShutter->isChecked() || ui->radioIO2ShutterGating->isChecked()) << 1) |
-								 (ui->radioIO1TriggeredShutter->isChecked() || ui->radioIO1ShutterGating->isChecked()));
-	
-	camera->io->setShutterGatingEnable(ui->radioIO2ShutterGating->isChecked() || ui->radioIO1ShutterGating->isChecked());
-
-	qDebug() << "Trig Ena" << camera->io->getTriggerEnable() << "Trig Inv" << camera->io->getTriggerInvert() << "Trig Deb" << camera->io->getTriggerDebounceEn();
-	qDebug() << "Source En" << camera->io->getOutSource() << "Source Level" << camera->io->getOutLevel() << "Source Inv" << camera->io->getOutInvert();
-	qDebug() << "IO1 Thresh" << camera->io->getThreshold(1) << "IO2 Thresh" << camera->io->getThreshold(2);
+	setIoSettings();
 }
 
 void IOSettingsWindow::on_radioIO1TriggeredShutter_toggled(bool checked)

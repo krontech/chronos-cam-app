@@ -1,5 +1,3 @@
-#define USE_PYCHRONOS
-
 /****************************************************************************
  *  Copyright (C) 2013-2017 Kron Technologies Inc <http://www.krontech.ca>. *
  *                                                                          *
@@ -49,11 +47,6 @@ void recordEosCallback(void * arg);
 void recordErrorCallback(void * arg, const char * message);
 
 
-#ifdef USE_PYCHRONOS
-bool pych = true;
-#else
-bool pych = false;
-#endif
 
 Camera::Camera()
 {
@@ -114,118 +107,34 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, Control * cinst
 	int err;
 
 
-	//PYCHRONOS
-	if (pych)
-	{
 
-		gpmc = nullptr;		//trap any remaining gpmc calls!
-		retVal = cinst->status(&cs);
-		bool recording = !strcmp(cs.state, "idle");
+	gpmc = nullptr;		//trap any remaining gpmc calls!
+	retVal = cinst->status(&cs);
+	bool recording = !strcmp(cs.state, "idle");
 
-		//taken from below:
-		printf("Starting rec data thread\n");
-		terminateRecDataThread = false;
+	//taken from below:
+	printf("Starting rec data thread\n");
+	terminateRecDataThread = false;
 
-		err = pthread_create(&recDataThreadID, NULL, &recDataThread, this);
+	err = pthread_create(&recDataThreadID, NULL, &recDataThread, this);
 
-		io = new IO(gpmc);
-		retVal = io->init();
-		if(retVal != SUCCESS)
-			return retVal;
+	io = new IO(gpmc);
+	retVal = io->init();
+	if(retVal != SUCCESS)
+		return retVal;
 
-		/* Load default recording from sensor limits. */
+	/* Load default recording from sensor limits. */
 
-		imagerSettings.geometry = sensor->getMaxGeometry();
-		imagerSettings.geometry.vDarkRows = 0;
-		imagerSettings.recRegionSizeFrames = getMaxRecordRegionSizeFrames(&imagerSettings.geometry);
-		imagerSettings.period = sensor->getMinFramePeriod(&imagerSettings.geometry);
-		imagerSettings.exposure = sensor->getMaxIntegrationTime(imagerSettings.period, &imagerSettings.geometry);
-		imagerSettings.disableRingBuffer = 0;
-		imagerSettings.mode = RECORD_MODE_NORMAL;
-		imagerSettings.prerecordFrames = 1;
-		imagerSettings.segmentLengthFrames = imagerSettings.recRegionSizeFrames;
-		imagerSettings.segments = 1;
-
-	}
-	else
-	{
-		//dummy read
-		if(getRecording())
-			qDebug("rec true at init");
-		int v = 0;
-
-		if(1)
-		{
-
-			//Reset FPGA
-			gpmc->write16(SYSTEM_RESET_ADDR, 1);
-			v++;
-			//Give the FPGA some time to reset
-			delayms(200);
-		}
-
-		if(ACCEPTABLE_FPGA_VERSION != getFPGAVersion())
-		{
-			return CAMERA_WRONG_FPGA_VERSION;
-		}
-
-		gpmc->write16(IMAGE_SENSOR_FIFO_START_ADDR, 0x0100);
-		gpmc->write16(IMAGE_SENSOR_FIFO_STOP_ADDR, 0x0100);
-
-		gpmc->write32(SEQ_LIVE_ADDR_0_ADDR, LIVE_REGION_START + MAX_FRAME_WORDS*0);
-		gpmc->write32(SEQ_LIVE_ADDR_1_ADDR, LIVE_REGION_START + MAX_FRAME_WORDS*1);
-		gpmc->write32(SEQ_LIVE_ADDR_2_ADDR, LIVE_REGION_START + MAX_FRAME_WORDS*2);
-
-		if (ramSizeGBSlot1 != 0) {
-		if      (ramSizeGBSlot0 == 0)                         { gpmc->write16(MMU_CONFIG_ADDR, MMU_INVERT_CS);      qDebug("--- memory --- invert CS remap"); }
-		else if (ramSizeGBSlot0 == 8 && ramSizeGBSlot1 == 16) { gpmc->write16(MMU_CONFIG_ADDR, MMU_INVERT_CS);		qDebug("--- memory --- invert CS remap"); }
-			else if (ramSizeGBSlot0 == 8 && ramSizeGBSlot1 == 8)  { gpmc->write16(MMU_CONFIG_ADDR, MMU_SWITCH_STUFFED); qDebug("--- memory --- switch stuffed remap"); }
-			else {
-				qDebug("--- memory --- no remap");
-			}
-		}
-		else {
-			qDebug("--- memory --- no remap");
-		}
-		qDebug("--- memory --- remap register: 0x%04X", gpmc->read32(MMU_CONFIG_ADDR));
-
-
-		//enable video readout
-		gpmc->write32(DISPLAY_CTL_ADDR, (gpmc->read32(DISPLAY_CTL_ADDR) & ~DISPLAY_CTL_READOUT_INH_MASK) | (isColor ? DISPLAY_CTL_COLOR_MODE_MASK : 0));
-
-		printf("Starting rec data thread\n");
-		terminateRecDataThread = false;
-
-		err = pthread_create(&recDataThreadID, NULL, &recDataThread, this);
-		if(err)
-			return CAMERA_THREAD_ERROR;
-
-
-		retVal = sensor->init(gpmc);
-	//mem problem before this
-		if(retVal != SUCCESS)
-		{
-			return retVal;
-		}
-
-		io = new IO(gpmc);
-		retVal = io->init();
-		if(retVal != SUCCESS)
-			return retVal;
-
-		/* Load default recording from sensor limits. */
-		imagerSettings.geometry = sensor->getMaxGeometry();
-		imagerSettings.geometry.vDarkRows = 0;
-		imagerSettings.recRegionSizeFrames = getMaxRecordRegionSizeFrames(&imagerSettings.geometry);
-		imagerSettings.period = sensor->getMinFramePeriod(&imagerSettings.geometry);
-		imagerSettings.exposure = sensor->getMaxIntegrationTime(imagerSettings.period, &imagerSettings.geometry);
-		imagerSettings.disableRingBuffer = 0;
-		imagerSettings.mode = RECORD_MODE_NORMAL;
-		imagerSettings.prerecordFrames = 1;
-		imagerSettings.segmentLengthFrames = imagerSettings.recRegionSizeFrames;
-		imagerSettings.segments = 1;
-
-	} // !pych
+	imagerSettings.geometry = sensor->getMaxGeometry();
+	imagerSettings.geometry.vDarkRows = 0;
+	imagerSettings.recRegionSizeFrames = getMaxRecordRegionSizeFrames(&imagerSettings.geometry);
+	imagerSettings.period = sensor->getMinFramePeriod(&imagerSettings.geometry);
+	imagerSettings.exposure = sensor->getMaxIntegrationTime(imagerSettings.period, &imagerSettings.geometry);
+	imagerSettings.disableRingBuffer = 0;
+	imagerSettings.mode = RECORD_MODE_NORMAL;
+	imagerSettings.prerecordFrames = 1;
+	imagerSettings.segmentLengthFrames = imagerSettings.recRegionSizeFrames;
+	imagerSettings.segments = 1;
 
 	//Set to full resolution
 	ImagerSettings_t settings;
@@ -238,7 +147,7 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, Control * cinst
 	settings.geometry.minFrameTime	= 0.001;
 	settings.gain                   = appSettings.value("camera/gain", 0).toInt();
 	settings.period                 = appSettings.value("camera/period", sensor->getMinFramePeriod(&settings.geometry)).toInt();
-	settings.exposure               = sensor->getMaxIntegrationTime(settings.period, &settings.geometry); //PYCH - this is needed but suboptimal
+	settings.exposure               = sensor->getMaxIntegrationTime(settings.period, &settings.geometry); //PYCHRONOS - this is needed but suboptimal
 	settings.recRegionSizeFrames    = appSettings.value("camera/recRegionSizeFrames", getMaxRecordRegionSizeFrames(&settings.geometry)).toInt();
 	settings.disableRingBuffer      = appSettings.value("camera/disableRingBuffer", 0).toInt();
 	settings.mode                   = (CameraRecordModeType)appSettings.value("camera/mode", RECORD_MODE_NORMAL).toInt();
@@ -249,18 +158,6 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, Control * cinst
 
 	setImagerSettings(settings);
 
-	if (pych)
-	{
-		//
-	}
-	else
-	{
-
-		io->setTriggerDelayFrames(0, FLAG_USESAVED);
-		setTriggerDelayValues((double) io->getTriggerDelayFrames() / settings.recRegionSizeFrames,
-					 io->getTriggerDelayFrames() * ((double)settings.period / 100000000),
-					 io->getTriggerDelayFrames());
-	}
 	vinst->bitsPerPixel        = appSettings.value("recorder/bitsPerPixel", 0.7).toDouble();
 	vinst->maxBitrate          = appSettings.value("recorder/maxBitrate", 40.0).toDouble();
 	vinst->framerate           = appSettings.value("recorder/framerate", 60).toUInt();
@@ -281,51 +178,12 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, Control * cinst
 	}
 
 
-	if (pych)
-	{
-		ui->setRecLEDFront(false);
-		ui->setRecLEDBack(false);
-
-	}
-	else
-	{
-		liveColumnCalibration();
-
-		maxPostFramesRatio = 1;
-
-		if(CAMERA_FILE_NOT_FOUND == loadFPNFromFile()) {
-			fastFPNCorrection();
-		}
-
-		/* Load color matrix from settings */
-		if (isColor) {
-			/* White Balance. */
-			whiteBalMatrix[0] = appSettings.value("whiteBalance/currentR", 1.35).toDouble();
-			whiteBalMatrix[1] = appSettings.value("whiteBalance/currentG", 1.00).toDouble();
-			whiteBalMatrix[2] = appSettings.value("whiteBalance/currentB", 1.584).toDouble();
-
-			/* Color Matrix */
-			loadCCMFromSettings();
-		}
-		setCCMatrix(colorCalMatrix);
-		setWhiteBalance(whiteBalMatrix);
-
-		setZebraEnable(appSettings.value("camera/zebra", true).toBool());
-		setFocusPeakEnable(appSettings.value("camera/focusPeak", false).toBool());
-	} // !pych
+	ui->setRecLEDFront(false);
+	ui->setRecLEDBack(false);
 
 	vinst->setDisplayOptions(getZebraEnable(), getFocusPeakEnable());
 	vinst->setDisplayPosition(ButtonsOnLeft ^ UpsideDownDisplay);
-	if (pych)
-	{
-		cinst->doReset();
-	}
-	else
-	{
-		vinst->liveDisplay(settings.geometry.hRes, settings.geometry.vRes);
-		setFocusPeakColorLL(getFocusPeakColor());
-		setFocusPeakThresholdLL(appSettings.value("camera/focusPeakThreshold", 25).toUInt());
-	}
+	cinst->doReset();
 
 	printf("Video init done\n");
 	return SUCCESS;
@@ -341,33 +199,12 @@ UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 		return CAMERA_INVALID_IMAGER_SETTINGS;
 	}
 
-	if (pych)
-	{
-		QString str;
-		sensor->setResolution(&settings.geometry);
-		sensor->setGain(settings.gain);
-		sensor->setFramePeriod(settings.period, &settings.geometry);
-		sensor->setIntegrationTime(settings.exposure, &settings.geometry);
-	}
-	else
-	{
-		if(!sensor->isValidResolution(&settings.geometry) ||
-			settings.recRegionSizeFrames < RECORD_LENGTH_MIN ||
-			settings.segments > settings.recRegionSizeFrames) {
-			return CAMERA_INVALID_IMAGER_SETTINGS;
-		}
+	QString str;
+	sensor->setResolution(&settings.geometry);
+	sensor->setGain(settings.gain);
+	sensor->setFramePeriod(settings.period, &settings.geometry);
+	sensor->setIntegrationTime(settings.exposure, &settings.geometry);
 
-		sensor->seqOnOff(false);
-		delayms(10);
-		qDebug() << "Settings.period is" << settings.period;
-		qDebug() << "Settings.exposure is" << settings.exposure;
-
-		sensor->setResolution(&settings.geometry);
-		sensor->setGain(settings.gain);
-		sensor->setFramePeriod(settings.period, &settings.geometry);
-		delayms(10);
-		sensor->setIntegrationTime(settings.exposure, &settings.geometry);
-	}
 	memcpy(&imagerSettings, &settings, sizeof(settings));
 
 	//Zero trigger delay for Gated Burst
@@ -381,14 +218,6 @@ UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 	}
 	else {
 		imagerSettings.recRegionSizeFrames = settings.recRegionSizeFrames;
-	}
-	if (pych)
-	{
-		//add cinst call
-	}
-	else
-	{
-		setRecRegion(REC_REGION_START, imagerSettings.recRegionSizeFrames, &imagerSettings.geometry);
 	}
 
 	qDebug()	<< "\nSet imager settings:\nhRes" << imagerSettings.geometry.hRes
@@ -458,14 +287,6 @@ void Camera::updateTriggerValues(ImagerSettings_t settings){
 		triggerTimeRatio   = (double)triggerPostFrames / recLengthFrames;
 		triggerPostSeconds = triggerPostFrames * ((double)settings.period / 100000000);
 	}
-	if (pych)
-	{
-		//
-	}
-	else
-	{
-		io->setTriggerDelayFrames(triggerPostFrames);
-	}
 }
 
 unsigned short Camera::getTriggerDelayConstant(){
@@ -493,25 +314,11 @@ UInt32 Camera::setIntegrationTime(double intTime, FrameGeometry *fSize, Int32 fl
 	if (flags & SETTING_FLAG_USESAVED) {
 		validTime = appSettings.value("camera/exposure", defaultTime).toInt();
 		qDebug("--- Using old settings --- Exposure time: %d (default: %d)", validTime, defaultTime);
-		if (pych)
-		{
-			cinst->setInt("exposurePeriod", validTime * 1e9);
-		}
-		else
-		{
-			validTime = sensor->setIntegrationTime(validTime, fSize);
-		}
+		cinst->setInt("exposurePeriod", validTime * 1e9);
 	}
 	else {
-		if (pych)
-		{
-			cinst->setInt("exposurePeriod", intTime * 1e9);
-			validTime = intTime; // * 1e9;
-		}
-		else
-		{
-			validTime = sensor->setIntegrationTime(intTime * sensor->getIntegrationClock(), fSize);
-		}
+		cinst->setInt("exposurePeriod", intTime * 1e9);
+		validTime = intTime; // * 1e9;
 	}
 
 	if (!(flags & SETTING_FLAG_TEMPORARY)) {
@@ -648,45 +455,13 @@ Int32 Camera::startRecording(void)
 	if(playbackMode)
 		return CAMERA_IN_PLAYBACK_MODE;
 
-	if (pych)
-	{
-
-	}
-	else
-	{
-		switch(imagerSettings.mode)
-		{
-		case RECORD_MODE_NORMAL:
-		case RECORD_MODE_SEGMENTED:
-			setRecSequencerModeNormal();
-		break;
-
-		case RECORD_MODE_GATED_BURST:
-			setRecSequencerModeGatedBurst(imagerSettings.prerecordFrames);
-		break;
-
-		case RECORD_MODE_FPN:
-			//setRecSequencerModeSingleBlock(17);   //Don't set this here, leave blank so the existing sequencer mode setting for FPN still works
-		break;
-		}
-	}
 	recordingData.valid = false;
 	recordingData.hasBeenSaved = false;
 	vinst->flushRegions();
 
-	if (pych)
-	{
-		QString jsonReturn;
-		startRecordingCamJson(&jsonReturn);
+	QString jsonReturn;
+	startRecordingCamJson(&jsonReturn);
 
-	}
-	else
-	{
-		vinst->liveDisplay(imagerSettings.geometry.hRes, imagerSettings.geometry.vRes);
-		startSequencer();
-		ui->setRecLEDFront(true);
-		ui->setRecLEDBack(true);
-	}
 	recording = true;
 	videoHasBeenReviewed = false;
 
@@ -703,33 +478,7 @@ Int32 Camera::setRecSequencerModeNormal()
 		return CAMERA_IN_PLAYBACK_MODE;
 
 
-	if (pych)
-	{
-		//TODO add sequencing
-	}
-	else
-	{
-
-		setRecRegion(REC_REGION_START, imagerSettings.recRegionSizeFrames, &imagerSettings.geometry);
-
-		pgmWord.settings.termRecTrig = 0;
-		pgmWord.settings.termRecMem = imagerSettings.disableRingBuffer ? 1 : 0;     //This currently doesn't work, bug in record sequencer hardware
-		pgmWord.settings.termRecBlkEnd = (RECORD_MODE_SEGMENTED == imagerSettings.mode && imagerSettings.segments > 1) ? 0 : 1;
-		pgmWord.settings.termBlkFull = 0;
-		pgmWord.settings.termBlkLow = 0;
-		pgmWord.settings.termBlkHigh = 0;
-		pgmWord.settings.termBlkFalling = 0;
-		pgmWord.settings.termBlkRising = 1;
-		pgmWord.settings.next = 0;
-		pgmWord.settings.blkSize = (imagerSettings.mode == RECORD_MODE_NORMAL ?
-						imagerSettings.recRegionSizeFrames :
-						imagerSettings.recRegionSizeFrames / imagerSettings.segments) - 1; //Set to number of frames desired minus one
-		pgmWord.settings.pad = 0;
-
-		qDebug() << "Setting record sequencer mode to" << (imagerSettings.mode == RECORD_MODE_NORMAL ? "normal" : "segmented") << ", disableRingBuffer =" << imagerSettings.disableRingBuffer << "segments ="
-			 << imagerSettings.segments << "blkSize =" << pgmWord.settings.blkSize;
-		writeSeqPgmMem(pgmWord, 0);
-	}
+	//TODO add sequencing
 	return SUCCESS;
 }
 
@@ -825,14 +574,8 @@ Int32 Camera::setRecSequencerModeCalLoop(void)
 		return CAMERA_IN_PLAYBACK_MODE;
 
 	//Set to one plus the last valid address in the record region
-	if (pych)
-	{
-		//add cinst rec region
-	}
-	else
-	{
-		setRecRegion(CAL_REGION_START, CAL_REGION_FRAMES, &imagerSettings.geometry);
-	}
+
+	//add cinst rec region
 
 	pgmWord.settings.termRecTrig = 0;
 	pgmWord.settings.termRecMem = 0;
@@ -846,14 +589,7 @@ Int32 Camera::setRecSequencerModeCalLoop(void)
 	pgmWord.settings.blkSize = CAL_REGION_FRAMES - 1;
 	pgmWord.settings.pad = 0;
 
-	if (pych)
-	{
-		//pychronos set sequence has not been implemented yet!
-	}
-	else
-	{
-		writeSeqPgmMem(pgmWord, 0);
-	}
+	//pychronos set sequence has not been implemented yet!
 	return SUCCESS;
 }
 
@@ -865,15 +601,8 @@ Int32 Camera::stopRecording(void)
 		return CAMERA_NOT_RECORDING;
 
 
-	if (pych)
-	{
-		QString jsonReturn;
-		stopRecordingCamJson(&jsonReturn);
-	}
-	else
-	{
-		terminateRecord();
-	}
+	QString jsonReturn;
+	stopRecordingCamJson(&jsonReturn);
 	//recording = false;
 
 	return SUCCESS;
@@ -2004,74 +1733,7 @@ cleanup:
 
 Int32 Camera::liveColumnCalibration(unsigned int iterations)
 {
-	if (pych)
-	{
-		//add this
-
-		return 0;
-	}
-	UInt32 numChannels = sensor->getHResIncrement();
-	ImagerSettings_t isPrev = imagerSettings;
-	ImagerSettings_t isDark;
-	FrameGeometry isMaxSize = sensor->getMaxGeometry();
-	struct timespec tRefresh;
-	int offsets[numChannels];
-	Int32 retVal;
-
-	/* Swap the black rows into the top of the frame. */
-	memcpy(&isDark, &isPrev, sizeof(isDark));
-	if (!isDark.geometry.vDarkRows) {
-		isDark.geometry.vDarkRows = isMaxSize.vDarkRows / 2;
-		isDark.geometry.vRes -= isDark.geometry.vDarkRows;
-		isDark.geometry.vOffset += isDark.geometry.vDarkRows;
-	}
-	isDark.recRegionSizeFrames = CAL_REGION_FRAMES;
-	isDark.disableRingBuffer = 0;
-	isDark.mode = RECORD_MODE_NORMAL;
-	isDark.prerecordFrames = 1;
-	isDark.segmentLengthFrames = CAL_REGION_FRAMES;
-	isDark.segments = 1;
-	isDark.temporary = 1;
-	retVal = setImagerSettings(isDark);
-	if(SUCCESS != retVal) {
-		return retVal;
-	}
-
-	retVal = setRecSequencerModeCalLoop();
-	if (SUCCESS != retVal) {
-		setImagerSettings(isPrev);
-		return retVal;
-	}
-
-	/* Activate the recording sequencer. */
-	startSequencer();
-	ui->setRecLEDFront(true);
-	ui->setRecLEDBack(true);
-
-	/* Compute the live display worst-case frame refresh time. */
-	tRefresh.tv_sec = 0;
-	tRefresh.tv_nsec = (CAL_REGION_FRAMES+1) * isDark.period * 10;
-
-	/* Clear out the ADC Offsets. */
-	for (int i = 0; i < numChannels; i++) {
-		offsets[i] = 0;
-		sensor->setADCOffset(i, 0);
-	}
-
-	/* Tune the ADC offset calibration. */
-	for (int i = 0; i < iterations; i++) {
-		nanosleep(&tRefresh, NULL);
-		offsetCorrectionIteration(&isDark.geometry, offsets, CAL_REGION_START, CAL_REGION_FRAMES);
-	}
-
-	computeGainColumns(&isDark.geometry, CAL_REGION_START, &tRefresh);
-
-	terminateRecord();
-	ui->setRecLEDFront(false);
-	ui->setRecLEDBack(false);
-
-	/* Restore the sensor settings. */
-	return setImagerSettings(isPrev);
+	return 0;
 }
 
 Int32 Camera::autoColGainCorrection(void)
@@ -2533,134 +2195,27 @@ void Camera::setCCMatrix(const double *matrix)
 	fprintf(stderr, "\t%06f %06f %06f\n",   ccm[3] / 4096.0, ccm[4] / 4096.0, ccm[5] / 4096.0);
 	fprintf(stderr, "\t%06f %06f %06f\n\n", ccm[6] / 4096.0, ccm[7] / 4096.0, ccm[8] / 4096.0);
 
-	if (pych)
-	{
-		for (i = 0; i < 9; i++) ccmd[i] = ccm[i] / 4096.0;
-		cinst->setArray("colorMatrix", 9, (double *)&ccmd);
-	}
-	else
-	{
-		gpmc->write16(CCM_11_ADDR, ccm[0]);
-		gpmc->write16(CCM_12_ADDR, ccm[1]);
-		gpmc->write16(CCM_13_ADDR, ccm[2]);
-
-		gpmc->write16(CCM_21_ADDR, ccm[3]);
-		gpmc->write16(CCM_22_ADDR, ccm[4]);
-		gpmc->write16(CCM_23_ADDR, ccm[5]);
-
-		gpmc->write16(CCM_31_ADDR, ccm[6]);
-		gpmc->write16(CCM_32_ADDR, ccm[7]);
-		gpmc->write16(CCM_33_ADDR, ccm[8]);
-	}
+	for (i = 0; i < 9; i++) ccmd[i] = ccm[i] / 4096.0;
+	cinst->setArray("colorMatrix", 9, (double *)&ccmd);
 }
 
 void Camera::setWhiteBalance(const double *rgb)
 {
 
 
-	if (pych)
-	{
-		double wrgb[3];
-		wrgb[0] = within(rgb[0] * imgGain, 0.0, 8.0);
-		wrgb[1] = within(rgb[1] * imgGain, 0.0, 8.0);
-		wrgb[2] = within(rgb[2] * imgGain, 0.0, 8.0);
+	double wrgb[3];
+	wrgb[0] = within(rgb[0] * imgGain, 0.0, 8.0);
+	wrgb[1] = within(rgb[1] * imgGain, 0.0, 8.0);
+	wrgb[2] = within(rgb[2] * imgGain, 0.0, 8.0);
 
-		fprintf(stderr, "Setting WB Matrix: %06f %06f %06f\n", wrgb[0], wrgb[1], wrgb[2]);
+	fprintf(stderr, "Setting WB Matrix: %06f %06f %06f\n", wrgb[0], wrgb[1], wrgb[2]);
 
-		cinst->setArray("wbMatrix", 3, (double *)&wrgb);
-	}
-	else
-	{
-		double r = within(rgb[0] * imgGain, 0.0, 8.0);
-		double g = within(rgb[1] * imgGain, 0.0, 8.0);
-		double b = within(rgb[2] * imgGain, 0.0, 8.0);
-
-		fprintf(stderr, "Setting WB Matrix: %06f %06f %06f\n", r, g, b);
-
-		gpmc->write16(WBAL_RED_ADDR,   (int)(4096.0 * r));
-		gpmc->write16(WBAL_GREEN_ADDR, (int)(4096.0 * g));
-		gpmc->write16(WBAL_BLUE_ADDR,  (int)(4096.0 * b));
-	}
+	cinst->setArray("wbMatrix", 3, (double *)&wrgb);
 }
 
 Int32 Camera::autoWhiteBalance(UInt32 x, UInt32 y)
 {
-	if (pych)
-	{
-		cinst->startAutoWhiteBalance();
-
-		//now wait for return
-	}
-	else
-	{
-		UInt32 numChannels = sensor->getHResIncrement();
-		const UInt32 min_sum = 100 * (LUX1310_HRES_INCREMENT * LUX1310_HRES_INCREMENT) / 2;
-
-		UInt32 offset = (y & 0xFFFFFFF0) * imagerSettings.geometry.hRes + (x & 0xFFFFFFF0);
-		double gain[numChannels];
-		UInt32 r_sum = 0;
-		UInt32 g_sum = 0;
-		UInt32 b_sum = 0;
-		double scale;
-		int i, j;
-
-		/* Attempt to get the current column gain data, or default to 1.0 (no gain). */
-		if (readDCG(gain) != SUCCESS) {
-			for (i = 0; i < numChannels; i++) gain[i] = 1.0;
-		}
-
-		for (i = 0; i < numChannels; i += 2) {
-			/* Even Rows - Green/Red Pixels */
-			for (j = 0; j < numChannels; j++) {
-				UInt16 fpn = readPixel12(offset + j, FPN_ADDRESS * BYTES_PER_WORD);
-				UInt16 pix = readPixel12(offset + j, LIVE_REGION_START * BYTES_PER_WORD);
-				if (pix >= (4096 - 128)) {
-					return CAMERA_CLIPPED_ERROR;
-				}
-				if (j & 1) {
-					r_sum += gain[j] * (pix - fpn) * 2;
-				} else {
-					g_sum += gain[j] * (pix - fpn);
-				}
-			}
-			offset += imagerSettings.geometry.hRes;
-
-			/* Odd Rows - Blue/Green Pixels */
-			for (j = 0; j < numChannels; j++) {
-				UInt16 fpn = readPixel12(offset + j, FPN_ADDRESS * BYTES_PER_WORD);
-				UInt16 pix = readPixel12(offset + j, LIVE_REGION_START * BYTES_PER_WORD);
-				if (pix >= (4096 - 128)) {
-					return CAMERA_CLIPPED_ERROR;
-				}
-				if (j & 1) {
-					g_sum += (pix - fpn) * gain[j];
-				} else {
-					b_sum += (pix - fpn) * gain[j] * 2;
-				}
-			}
-			offset += imagerSettings.geometry.hRes;
-		}
-
-		if ((r_sum < min_sum) || (g_sum < min_sum) || (b_sum < min_sum))
-			return CAMERA_LOW_SIGNAL_ERROR;
-
-		fprintf(stderr, "WhiteBalance RGB average: %d %d %d\n",
-				(2*r_sum) / (LUX1310_HRES_INCREMENT * LUX1310_HRES_INCREMENT),
-				(2*g_sum) / (LUX1310_HRES_INCREMENT * LUX1310_HRES_INCREMENT),
-				(2*b_sum) / (LUX1310_HRES_INCREMENT * LUX1310_HRES_INCREMENT));
-
-		/* Find the highest channel (probably green) */
-		scale = g_sum;
-		if (scale < r_sum) scale = r_sum;
-		if (scale < b_sum) scale = b_sum;
-
-		whiteBalMatrix[0] = scale / r_sum;
-		whiteBalMatrix[1] = scale / g_sum;
-		whiteBalMatrix[2] = scale / b_sum;
-
-		setWhiteBalance(whiteBalMatrix);
-		return SUCCESS;
-	}
+	cinst->startAutoWhiteBalance();
 }
 
 UInt8 Camera::getWBIndex(){

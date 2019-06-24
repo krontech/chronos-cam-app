@@ -19,7 +19,6 @@
 #include "sensor.h"
 #include <QObject>
 
-extern bool pych;
 extern UInt32 pyCurrentPeriod;
 extern UInt32 pyCurrentExposure;
 

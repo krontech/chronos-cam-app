@@ -45,8 +45,6 @@ extern "C" {
 #include "siText.h"
 }
 
-extern bool pych;
-
 #define DEF_SI_OPTS	SI_DELIM_SPACE | SI_SPACE_BEFORE_PREFIX
 
 GPMC * gpmc;
@@ -56,7 +54,6 @@ Video * vinst;
 Control * cinst;
 UserInterface * userInterface;
 bool focusAidEnabled = false;
-
 
 CamMainWindow::CamMainWindow(QWidget *parent) :
 	QDialog(parent),
@@ -73,27 +70,16 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 
 	userInterface = new UserInterface();
 
-	if (pych)
-	{
-		sensor = new PySensor(cinst);
+	sensor = new PySensor(cinst);
 		//loop until control dBus is ready
-		UInt32 mem;
-		while (cinst->getInt("cameraMemoryGB", &mem))
-		{
-			qDebug() << "Control API not present";
-			struct timespec t = {1, 0};
-			nanosleep(&t, NULL);
-		}
-		camera->getSensorInfo(cinst);
-
-	}
-	else
+	UInt32 mem;
+	while (cinst->getInt("cameraMemoryGB", &mem))
 	{
-		if (false)
-			sensor = new LUX2100();
-		else
-			sensor = new LUX1310();
+		qDebug() << "Control API not present";
+		struct timespec t = {1, 0};
+		nanosleep(&t, NULL);
 	}
+	camera->getSensorInfo(cinst);
 
 	battCapacityPercent = 0;
 
@@ -112,22 +98,13 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 
 	const char * myfifo = "/var/run/bmsFifo";
 
-
 	/* open, read, and display the message from the FIFO */
 	bmsFifoFD = ::open(myfifo, O_RDONLY|O_NONBLOCK);
 
 	sw = new StatusWindow;
 \
-	if (0 & pych)
-	{
-		//TODO sliders
-	}
-	else
-	{
-		updateExpSliderLimits();
-		updateCurrentSettingsLabel();
-	}
-
+	updateExpSliderLimits();
+	updateCurrentSettingsLabel();
 
 	lastShutterButton = camera->ui->getShutterButton();
 	lastRecording = camera->getIsRecording();
@@ -215,14 +192,8 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	if (!QObject::connect(cinst, SIGNAL(apiSetResolution(QVariant)), camera, SLOT(apiDoSetResolution(QVariant)))) {
 		qDebug() << "Connect failed"; }
 
-
-	//get wb and color matrix from API
-	if (pych)
-	{
-		cinst->getArray("wbMatrix", 3, (double *)&camera->whiteBalMatrix);
-		cinst->getArray("colorMatrix", 9, (double *)&camera->colorCalMatrix);
-	}
-
+	cinst->getArray("wbMatrix", 3, (double *)&camera->whiteBalMatrix);
+	cinst->getArray("colorMatrix", 9, (double *)&camera->colorCalMatrix);
 }
 
 CamMainWindow::~CamMainWindow()
@@ -362,18 +333,11 @@ void CamMainWindow::on_cmdFPNCal_clicked()//Black cal
 	sw->show();
 	QCoreApplication::processEvents();
 
-	if (pych)
-	{
-		QString jsonInString;
-		QString jsonOutString;
-		buildJsonCalibration(&jsonInString, "blackCal");
-		startCalibrationCamJson(&jsonOutString, &jsonInString);
-	}
-	else
-	{
-		camera->liveColumnCalibration();
-		camera->autoFPNCorrection(16, true);
-	}
+	QString jsonInString;
+	QString jsonOutString;
+	buildJsonCalibration(&jsonInString, "blackCal");
+	startCalibrationCamJson(&jsonOutString, &jsonInString);
+
 	sw->hide();
 }
 
@@ -602,17 +566,9 @@ void CamMainWindow::updateCurrentSettingsLabel()
 						within(((double)battVoltageCam/1000.0 - 9.75) / (11.8 - 9.75) * 100, 0.0, 100.0);		//Dicharging
 	//charge 10.75 - 12.4 is 0-80%
 
-	if(flags & 1)	//If battery present
+	if(flags)	//If battery present
 	{
-		if (pych)
-		{
-			sprintf(battStr, "Batt %d%% %.2fV", (UInt32)battPercent,  (double)battVoltageCam / 1000.0);
-		}
-		else
-		{
-			//show it's not running with the API
-			sprintf(battStr, "NON-API!   Batt %d%%", (UInt32)battPercent);
-		}
+		sprintf(battStr, "Batt %d%% %.2fV", (UInt32)battPercent,  (double)battVoltageCam / 1000.0);
 	}
 	else
 	{

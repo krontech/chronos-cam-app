@@ -109,7 +109,6 @@ SOURCES += main.cpp\
     ecp5Config.cpp \
     myinputpanel.cpp \
     pysensor.cpp \
-    pych.cpp \
     qjson4/QJsonArray.cpp \
     qjson4/QJsonDocument.cpp \
     qjson4/QJsonObject.cpp \
@@ -186,8 +185,7 @@ HEADERS  += mainwindow.h \
     qjson4/QJsonRoot.h \
     qjson4/QJsonValue.h \
     qjson4/QJsonValueRef.h \
-    pysensor.h \
-    pych.h
+    pysensor.h
 
 FORMS    += mainwindow.ui \
     cammainwindow.ui \
