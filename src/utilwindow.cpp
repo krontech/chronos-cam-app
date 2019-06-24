@@ -131,7 +131,7 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	ui->cmdWhiteRef->setVisible(false);
 	ui->cmdSetSN->setVisible(false);
 	ui->lineSerialNumber->setVisible(false);
-	ui->chkShowDebugControls->setVisible(false);
+	//ui->chkShowDebugControls->setVisible(false);
 
 	ui->chkAutoSave->setChecked(camera->get_autoSave());
 	ui->chkAutoRecord->setChecked(camera->get_autoRecord());
@@ -150,7 +150,7 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	else //If the argument was not added, set the control to invisible because it would be useless anyway
 		ui->chkUpsideDownDisplay->setVisible(false);
 
-	ui->chkShowDebugControls->setChecked(!(appSettings.value("debug/hideDebug", true).toBool()));
+	//ui->chkShowDebugControls->setChecked(!(appSettings.value("debug/hideDebug", true).toBool()));
 }
 
 UtilWindow::~UtilWindow()
@@ -703,7 +703,7 @@ void UtilWindow::on_linePassword_textEdited(const QString &arg1)
 		ui->cmdWhiteRef->setVisible(true);
 		ui->cmdSetSN->setVisible(true);
 		ui->lineSerialNumber->setVisible(true);
-		ui->chkShowDebugControls->setVisible(true);
+		//ui->chkShowDebugControls->setVisible(true);
 	}
 }
 

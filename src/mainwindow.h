@@ -36,7 +36,7 @@ public:
 
 private slots:
 
-	void on_cmdWrite_clicked();
+	void _on_cmdWrite_clicked();
 
 	void on_cmdSeqOn_clicked();
 

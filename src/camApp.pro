@@ -86,8 +86,6 @@ SOURCES += main.cpp\
     camspinbox.cpp \
     camtextedit.cpp \
     camdoublespinbox.cpp \
-    lux1310.cpp \
-    lux1310wt.cpp \
     utilwindow.cpp \
     statuswindow.cpp \
     eeprom.c \
@@ -102,7 +100,6 @@ SOURCES += main.cpp\
     chronosVideoInterface.cpp \
     colorwindow.cpp \
     colordoublespinbox.cpp \
-    lux2100.cpp \
     sensor.cpp \
     control.cpp \
     exec.cpp \
@@ -154,7 +151,6 @@ HEADERS  += mainwindow.h \
     camtextedit.h \
     camdoublespinbox.h \
     errorCodes.h \
-    lux1310.h \
     utilwindow.h \
     statuswindow.h \
     i2c/i2c-dev.h \
@@ -171,7 +167,6 @@ HEADERS  += mainwindow.h \
     colorwindow.h \
     colordoublespinbox.h \
     frameGeometry.h \
-    lux2100.h \
     sensor.h \
     control.h \
     exec.h \
