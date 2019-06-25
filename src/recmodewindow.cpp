@@ -14,7 +14,6 @@ recModeWindow::recModeWindow(QWidget *parent, Camera * cameraInst, ImagerSetting
     is = settings;
 
     ui->chkDisableRing->setChecked(is->disableRingBuffer);
-	ui->chkDisableRing->setVisible(false);
 
     switch(is->mode)
     {
@@ -22,6 +21,7 @@ recModeWindow::recModeWindow(QWidget *parent, Camera * cameraInst, ImagerSetting
             ui->radioNormal->setChecked(true);
             ui->stackedWidget->setCurrentIndex(0);
             ui->grpSegmented->setVisible(false);
+		  ui->chkDisableRing->setVisible(false);
             ui->lblNormal->setText("Records frames in a single buffer");
         break;
 
@@ -29,6 +29,7 @@ recModeWindow::recModeWindow(QWidget *parent, Camera * cameraInst, ImagerSetting
             ui->radioSegmented->setChecked(true);
             ui->stackedWidget->setCurrentIndex(0);
             ui->grpSegmented->setVisible(true);
+		  ui->chkDisableRing->setVisible(true);
             ui->lblNormal->setText("Records frames in a segmented buffer, one buffer per trigger");
         break;
 
@@ -36,6 +37,7 @@ recModeWindow::recModeWindow(QWidget *parent, Camera * cameraInst, ImagerSetting
             ui->radioGated->setChecked(true);
             ui->stackedWidget->setCurrentIndex(1);
 		  ui->grpSegmented->setVisible(false);
+		  ui->chkDisableRing->setVisible(false);
         break;
 
         case RECORD_MODE_FPN:
@@ -73,7 +75,8 @@ recModeWindow::~recModeWindow()
 
 void recModeWindow::on_cmdOK_clicked()
 {
-    //is->disableRingBuffer = ui->chkDisableRing->isChecked();
+    is->disableRingBuffer = (ui->radioSegmented->isChecked() && ui->chkDisableRing->isChecked());
+    qDebug()<<"disableRingBuffer value:" << is->disableRingBuffer;
 
     if(ui->radioNormal->isChecked())
     {
@@ -109,6 +112,7 @@ void recModeWindow::on_radioNormal_clicked()
     ui->stackedWidget->setCurrentIndex(0);
     ui->grpSegmented->setVisible(false);
     ui->lblNormal->setText("Records frames in a single buffer");
+    ui->chkDisableRing->setVisible(false);
 }
 
 void recModeWindow::on_radioSegmented_clicked()
@@ -116,11 +120,13 @@ void recModeWindow::on_radioSegmented_clicked()
     ui->stackedWidget->setCurrentIndex(0);
     ui->grpSegmented->setVisible(true);
     ui->lblNormal->setText("Records frames in a segmented buffer, one buffer per trigger");
+    ui->chkDisableRing->setVisible(true);
 }
 
 void recModeWindow::on_radioGated_clicked()
 {
     ui->stackedWidget->setCurrentIndex(1);
+    ui->chkDisableRing->setVisible(false);
 }
 
 void recModeWindow::on_cmdMax_clicked()

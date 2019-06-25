@@ -197,7 +197,7 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 	imagerSettings.recRegionSizeFrames = getMaxRecordRegionSizeFrames(&imagerSettings.geometry);
 	imagerSettings.period = sensor->getMinFramePeriod(&imagerSettings.geometry);
 	imagerSettings.exposure = sensor->getMaxExposure(imagerSettings.period);
-    imagerSettings.disableRingBuffer = 0;
+    imagerSettings.disableRingBuffer = appSettings.value("camera/disableRingBuffer", 0).toInt();
     imagerSettings.mode = RECORD_MODE_NORMAL;
     imagerSettings.prerecordFrames = 1;
     imagerSettings.segmentLengthFrames = imagerSettings.recRegionSizeFrames;
