@@ -77,7 +77,6 @@ SOURCES += main.cpp\
     util.cpp \
     savesettingswindow.cpp \
     userInterface.cpp \
-    ramwindow.cpp \
     siText.c \
     dm8148PWM.cpp \
     io.cpp \
@@ -141,7 +140,6 @@ HEADERS  += mainwindow.h \
     font.h \
     savesettingswindow.h \
     userInterface.h \
-    ramwindow.h \
     siText.h \
     dm8148PWM.h \
     io.h \

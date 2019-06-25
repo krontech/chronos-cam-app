@@ -215,7 +215,7 @@ void RecSettingsWindow::on_cmdOK_clicked()
 	camera->vinst->liveDisplay(is->geometry.hRes, is->geometry.vRes);
 	camera->liveColumnCalibration();
 
-	if(CAMERA_FILE_NOT_FOUND == camera->loadFPNFromFile()) {
+	if(true) {
 		QString jsonInString;
 		QString jsonOutString;
 		buildJsonCalibration(&jsonInString, "zeroTimeBlackCal");
