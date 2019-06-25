@@ -35,8 +35,6 @@
 #include "util.h"
 #include "whitebalancedialog.h"
 
-#include "lux1310.h"
-#include "lux2100.h"
 #include "pysensor.h"
 #include "exec.h"
 
@@ -628,11 +626,12 @@ void CamMainWindow::on_cmdBkGndButton_clicked()
 void CamMainWindow::on_cmdDPCButton_clicked()
 {
 	char text[100];
-	Int32 retVal;
+	Int32 retVal = SUCCESS;
 	int resultCount, resultMax;
 	camera->io->setOutLevel((1 << 1));	//Turn on output drive
 
-	retVal = camera->checkForDeadPixels(&resultCount, &resultMax);
+	//retVal = camera->checkForDeadPixels(&resultCount, &resultMax);
+	//TODO: add this function to Pychronos
 	if (retVal != SUCCESS) {
 		QMessageBox msg;
 		if (retVal == CAMERA_DEAD_PIXEL_RECORD_ERROR)

@@ -247,8 +247,6 @@ public:
 	bool getFocusAid();
 	int blackCalAllStdRes(bool factory = false);
 
-	Int32 checkForDeadPixels(int* resultCount = NULL, int* resultMax = NULL);
-
 	bool getFocusPeakEnable(void);
 	void setFocusPeakEnable(bool en);
 	bool getZebraEnable(void);
