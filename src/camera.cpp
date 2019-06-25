@@ -1456,7 +1456,7 @@ checkForDeadPixelsCleanup:
 
 void Camera::offsetCorrectionIteration(FrameGeometry *geometry, UInt32 wordAddress, UInt32 framesToAverage)
 {
-	UInt32 numRows = geometry->vDarkRows ? geometry->vDarkRows : 1;
+	UInt32 numRows = 1;
 	UInt32 rowSize = (geometry->hRes * BITS_PER_PIXEL) / 8;
 	UInt32 samples = (numRows * framesToAverage * geometry->hRes / LUX1310_HRES_INCREMENT);
 	UInt32 adcAverage[LUX1310_HRES_INCREMENT];
@@ -1479,7 +1479,8 @@ void Camera::offsetCorrectionIteration(FrameGeometry *geometry, UInt32 wordAddre
 	/* Find the per-ADC averages and standard deviation */
 	for (int row = 0; row < (numRows * framesToAverage); row++) {
 		for (int col = 0; col < geometry->hRes; col++) {
-			adcAverage[col % LUX1310_HRES_INCREMENT] += readPixelBuf12((UInt8 *)pxbuffer, row * geometry->hRes + col);
+			UInt16 pix = readPixelBuf12((UInt8 *)pxbuffer, row * geometry->hRes + col);
+			adcAverage[col % LUX1310_HRES_INCREMENT] += pix;
 		}
 	}
 	for (int row = 0; row < (numRows * framesToAverage); row++) {
@@ -1494,6 +1495,17 @@ void Camera::offsetCorrectionIteration(FrameGeometry *geometry, UInt32 wordAddre
 		adcAverage[col] /= samples;
 	}
 	free(pxbuffer);
+
+#if 0
+	char debugstr[8*LUX1310_HRES_INCREMENT];
+	int debuglen;
+
+	debuglen = 0;
+	for (int col=0; col < LUX1310_HRES_INCREMENT; col++) {
+		debuglen += sprintf(debugstr + debuglen, " %4d", adcAverage[col]);
+	}
+	qDebug("ADC Values: %s", debugstr);
+#endif
 
 	/* Train the ADC for a target of: Average = Footroom + StandardDeviation */
 	for(int col = 0; col < LUX1310_HRES_INCREMENT; col++) {
@@ -1741,25 +1753,20 @@ void Camera::computeGainColumns(FrameGeometry *geometry, UInt32 wordAddress, con
 Int32 Camera::autoOffsetCalibration(unsigned int iterations)
 {
 	ImagerSettings_t isPrev = imagerSettings;
-	ImagerSettings_t isDark;
+	ImagerSettings_t isCal;
 	struct timespec tRefresh;
 	Int32 retVal;
 
 	/* Swap the black rows into the top of the frame. */
-	memcpy(&isDark, &isPrev, sizeof(isDark));
-	if (!isDark.geometry.vDarkRows) {
-		isDark.geometry.vDarkRows = LUX1310_MAX_V_DARK / 2;
-		isDark.geometry.vRes -= isDark.geometry.vDarkRows;
-		isDark.geometry.vOffset += isDark.geometry.vDarkRows;
-	}
-	isDark.recRegionSizeFrames = CAL_REGION_FRAMES;
-	isDark.disableRingBuffer = 0;
-	isDark.mode = RECORD_MODE_NORMAL;
-	isDark.prerecordFrames = 1;
-	isDark.segmentLengthFrames = CAL_REGION_FRAMES;
-	isDark.segments = 1;
-	isDark.temporary = 1;
-	retVal = setImagerSettings(isDark);
+	memcpy(&isCal, &isPrev, sizeof(isCal));
+	isCal.recRegionSizeFrames = CAL_REGION_FRAMES;
+	isCal.disableRingBuffer = 0;
+	isCal.mode = RECORD_MODE_NORMAL;
+	isCal.prerecordFrames = 1;
+	isCal.segmentLengthFrames = CAL_REGION_FRAMES;
+	isCal.segments = 1;
+	isCal.temporary = 1;
+	retVal = setImagerSettings(isCal);
 	if(SUCCESS != retVal) {
 		return retVal;
 	}
@@ -1777,7 +1784,7 @@ Int32 Camera::autoOffsetCalibration(unsigned int iterations)
 
 	/* Compute the live display worst-case frame refresh time. */
 	tRefresh.tv_sec = 0;
-	tRefresh.tv_nsec = (CAL_REGION_FRAMES+10) * isDark.period * 10;
+	tRefresh.tv_nsec = (CAL_REGION_FRAMES+10) * isCal.period * 10;
 
 	/* Clear out the ADC Offsets. */
 	for (int i = 0; i < LUX1310_HRES_INCREMENT; i++) {
@@ -1787,7 +1794,7 @@ Int32 Camera::autoOffsetCalibration(unsigned int iterations)
 	/* Tune the ADC offset calibration. */
 	for (int i = 0; i < iterations; i++) {
 		nanosleep(&tRefresh, NULL);
-		offsetCorrectionIteration(&isDark.geometry, CAL_REGION_START, CAL_REGION_FRAMES);
+		offsetCorrectionIteration(&isCal.geometry, CAL_REGION_START, CAL_REGION_FRAMES);
 	}
 	sensor->saveADCOffsetsToFile();
 
