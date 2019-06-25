@@ -23,7 +23,6 @@
 #include "errorCodes.h"
 #include "defines.h"
 
-#include "gpmc.h"
 #include "video.h"
 #include "control.h"
 #include "sensor.h"
@@ -173,7 +172,7 @@ class Camera : public QObject {
 public:
 	Camera();
 	~Camera();
-    CameraErrortype init(GPMC * gpmcInst, Video * vinstInst, Control * cinstInst, ImageSensor * sensorInst, UserInterface * userInterface, UInt32 ramSizeVal, bool color);
+	CameraErrortype init(Video * vinstInst, Control * cinstInst, ImageSensor * sensorInst, UserInterface * userInterface, UInt32 ramSizeVal, bool color);
 	Int32 startRecording(void);
 	Int32 setRecSequencerModeNormal();
 	Int32 setRecSequencerModeGatedBurst(UInt32 prerecord = 0);
@@ -181,7 +180,6 @@ public:
 	Int32 setRecSequencerModeCalLoop();
 	Int32 stopRecording(void);
 	bool getIsRecording(void);
-	GPMC * gpmc;
 	Video * vinst;
     Control * cinst;
 	ImageSensor * sensor;

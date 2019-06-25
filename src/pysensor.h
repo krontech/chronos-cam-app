@@ -24,7 +24,6 @@
 #include "errorCodes.h"
 #include "types.h"
 #include "spi.h"
-#include "gpmc.h"
 #include <string>
 #include <QtDBus/QtDBus>
 
@@ -98,7 +97,7 @@ class PySensor : public ImageSensor
 public:
 	PySensor(Control *control);
 	~PySensor();
-	CameraErrortype init(GPMC * gpmc_inst);
+	CameraErrortype init(void);
 	CameraErrortype setControl(Control *control_inst);
 
 	Control *cinst;
@@ -178,7 +177,6 @@ private:
 	UInt32 sensorVersion;
 
 	SPI * spi;
-	GPMC * gpmc;
 
 };
 

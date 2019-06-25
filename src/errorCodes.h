@@ -66,10 +66,7 @@ typedef enum CameraErrortype
 	ECP5_DONE_NOT_ASSERTED                    = 109,
 	
 	
-	GPMCERR_FOPEN                             = 201,
-	GPMCERR_MAP                               = 202,
-	
-	
+
 	IO_ERROR_OPEN                             = 301,
 	IO_FILE_ERROR                             = 302,
 	

@@ -156,8 +156,6 @@
 
 //---------------------------------- FPGA Miscellaneous Block ------------------------------------
 
-#define GPMC_PAGE_OFFSET_ADDR			0x200
-
 #define WL_DYNDLY_0_ADDR				0x500
 #define WL_DYNDLY_1_ADDR				0x504
 #define WL_DYNDLY_2_ADDR				0x408

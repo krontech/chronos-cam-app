@@ -45,7 +45,6 @@ extern "C" {
 
 #define DEF_SI_OPTS	SI_DELIM_SPACE | SI_SPACE_BEFORE_PREFIX
 
-GPMC * gpmc;
 ImageSensor * sensor;
 Camera * camera;
 Video * vinst;
@@ -61,7 +60,6 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	CameraErrortype retVal;
 	ui->setupUi(this);
 
-	gpmc = new GPMC();
 	camera = new Camera();
 	vinst = new Video();
     cinst = new Control();
@@ -81,9 +79,8 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 
 	battCapacityPercent = 0;
 
-	gpmc->init();
 	userInterface->init();
-    retVal = camera->init(gpmc, vinst, cinst, sensor, userInterface, 16*1024/32*1024*1024, true);
+	retVal = camera->init(vinst, cinst, sensor, userInterface, 16*1024/32*1024*1024, true);
 
 	if(retVal != SUCCESS)
 	{

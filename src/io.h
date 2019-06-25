@@ -19,13 +19,12 @@
 #include "dm8148PWM.h"
 #include "errorCodes.h"
 #include "types.h"
-#include "gpmc.h"
 #endif // IO_H
 
 
 class IO {
 public:
-	IO(GPMC * gpmcInst);
+	IO(void);
 	CameraErrortype init();
 	void resetToDefaults(Int32 flags=0);
 	bool readIO(UInt32 io);
@@ -58,7 +57,6 @@ public:
 
 private:
 	dm8148PWM io1DAC, io2DAC;
-	GPMC * gpmc;
 	UInt32 IO2InFD;
 	double io1Thresh, io2Thresh;
 };

@@ -18,7 +18,6 @@
 #define IMAGE_SENSOR_H
 #include "frameGeometry.h"
 #include "errorCodes.h"
-#include "gpmc.h"
 #include <string>
 #include <QObject>
 #include <QtDBus/QtDBus>
@@ -28,7 +27,7 @@ class ImageSensor : QObject
 	Q_OBJECT
 
 public:
-	virtual CameraErrortype init(GPMC * gpmc_inst) = 0;
+	virtual CameraErrortype init(void) = 0;
 
 	/* Frame Geometry Functions. */
 	virtual void setResolution(FrameGeometry *frameSize) = 0;

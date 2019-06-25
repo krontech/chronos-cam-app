@@ -15,7 +15,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.   *
  ****************************************************************************/
 #include "mainwindow.h"
-#include "ramwindow.h"
+//#include "ramwindow.h"
 #include "ui_mainwindow.h"
 #include <QMessageBox>
 #include <qthread.h>
@@ -27,11 +27,9 @@
 #include <sys/ioctl.h>
 #include <linux/types.h>
 #include <linux/spi/spidev.h>
-#include "gpmcRegs.h"
 #include <sys/mman.h>
 
 #include "spi.h"
-#include "gpmc.h"
 #include "defines.h"
 #include "cameraRegisters.h"
 #include "camera.h"

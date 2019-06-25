@@ -114,18 +114,6 @@ void ColorWindow::on_wbBlue_valueChanged(double arg)
 	camera->setWhiteBalance(wb);
 }
 
-/* Live updates to the color matrix.
-void ColorWindow::on_ccm11_valueChanged(double arg) { camera->gpmc->write16(CCM_11_ADDR, (int)(4096.0 * arg)); }
-void ColorWindow::on_ccm12_valueChanged(double arg) { camera->gpmc->write16(CCM_12_ADDR, (int)(4096.0 * arg)); }
-void ColorWindow::on_ccm13_valueChanged(double arg) { camera->gpmc->write16(CCM_13_ADDR, (int)(4096.0 * arg)); }
-void ColorWindow::on_ccm21_valueChanged(double arg) { camera->gpmc->write16(CCM_21_ADDR, (int)(4096.0 * arg)); }
-void ColorWindow::on_ccm22_valueChanged(double arg) { camera->gpmc->write16(CCM_22_ADDR, (int)(4096.0 * arg)); }
-void ColorWindow::on_ccm23_valueChanged(double arg) { camera->gpmc->write16(CCM_23_ADDR, (int)(4096.0 * arg)); }
-void ColorWindow::on_ccm31_valueChanged(double arg) { camera->gpmc->write16(CCM_31_ADDR, (int)(4096.0 * arg)); }
-void ColorWindow::on_ccm32_valueChanged(double arg) { camera->gpmc->write16(CCM_32_ADDR, (int)(4096.0 * arg)); }
-void ColorWindow::on_ccm33_valueChanged(double arg) { camera->gpmc->write16(CCM_33_ADDR, (int)(4096.0 * arg)); }
-*/
-
 void ColorWindow::on_ccm11_valueChanged(double arg)
 {
 	camera->colorCalMatrix[0] = arg;

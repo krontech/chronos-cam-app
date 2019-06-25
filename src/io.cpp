@@ -21,7 +21,6 @@
 #include "io.h"
 #include "dm8148PWM.h"
 #include "cameraRegisters.h"
-#include "gpmc.h"
 #include "defines.h"
 
 #include "types.h"
@@ -277,9 +276,8 @@ UInt32 ioShadowRead(UInt32 reg)
 }
 
 
-IO::IO(GPMC* gpmcInst)
+IO::IO(void)
 {
-	gpmc = gpmcInst;
 }
 
 CameraErrortype IO::init()

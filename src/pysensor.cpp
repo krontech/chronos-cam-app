@@ -44,7 +44,7 @@ PySensor::~PySensor()
 {
 }
 
-CameraErrortype PySensor::init(GPMC * gpmc_inst)
+CameraErrortype PySensor::init(void)
 {
 	return SUCCESS;
 }

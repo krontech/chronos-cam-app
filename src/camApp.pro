@@ -66,7 +66,6 @@ SOURCES += main.cpp\
 	mainwindow.cpp \
     camera.cpp \
     spi.cpp \
-    gpmc.cpp \
     video.cpp \
     cammainwindow.cpp \
     myinputpanelcontext.cpp \
@@ -123,8 +122,6 @@ PRE_TARGETDEPS += $$versionTarget.target
 GENERATED_SOURCES += $$versionTarget.target
 
 HEADERS  += mainwindow.h \
-    gpmc.h \
-    gpmcRegs.h \
     camera.h \
     spi.h \
     defines.h \

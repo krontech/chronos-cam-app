@@ -30,11 +30,6 @@
 #define FPGA_SN_PATH			"/sys/class/gpio/gpio58/value"
 #define FPGA_HOLDN_PATH			"/sys/class/gpio/gpio53/value"
 
-//Base address of registers
-#define GPMC_REGISTER_OFFSET		0x0
-#define	GPMC_REGISTER_LEN			0x1000000
-#define GPMC_RAM_OFFSET				0x1000000
-#define GPMC_RAM_LEN				0x1000000
 
 //IO
 #define IO1DAC_TIMER_BASE			0x48048000		//Timer6

@@ -27,8 +27,6 @@
 
 #include "font.h"
 #include "camera.h"
-#include "gpmc.h"
-#include "gpmcRegs.h"
 #include "cameraRegisters.h"
 #include "util.h"
 #include "types.h"
@@ -72,7 +70,7 @@ Camera::~Camera()
 	pthread_join(recDataThreadID, NULL);
 }
 
-CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, Control * cinstInst, ImageSensor * sensorInst, UserInterface * userInterface, UInt32 ramSizeVal, bool color)
+CameraErrortype Camera::init(Video * vinstInst, Control * cinstInst, ImageSensor * sensorInst, UserInterface * userInterface, UInt32 ramSizeVal, bool color)
 {
 	CameraErrortype retVal;
 	UInt32 ramSizeGBSlot0, ramSizeGBSlot1;
@@ -82,7 +80,6 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, Control * cinst
 	CameraData cd;
 	VideoStatus st;
 
-	gpmc = gpmcInst;
 	vinst = vinstInst;
 	cinst = cinstInst;
 	sensor = sensorInst;
@@ -107,7 +104,6 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, Control * cinst
 
 
 
-	gpmc = nullptr;		//trap any remaining gpmc calls!
 	retVal = cinst->status(&cs);
 	bool recording = !strcmp(cs.state, "idle");
 
@@ -117,7 +113,7 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, Control * cinst
 
 	err = pthread_create(&recDataThreadID, NULL, &recDataThread, this);
 
-	io = new IO(gpmc);
+	io = new IO();
 	retVal = io->init();
 	if(retVal != SUCCESS)
 		return retVal;

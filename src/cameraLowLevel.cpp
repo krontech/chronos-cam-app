@@ -21,8 +21,6 @@
 #include <signal.h>
 
 #include "camera.h"
-#include "gpmc.h"
-#include "gpmcRegs.h"
 #include "util.h"
 #include "cameraRegisters.h"
 extern "C" {
