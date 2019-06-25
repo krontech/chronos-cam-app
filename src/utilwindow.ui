@@ -29,7 +29,7 @@
     <enum>QTabWidget::East</enum>
    </property>
    <property name="currentIndex">
-    <number>4</number>
+    <number>0</number>
    </property>
    <widget class="QWidget" name="tabMain">
     <attribute name="title">
@@ -1308,16 +1308,16 @@ Calibration Data
  <tabstops>
   <tabstop>cmdClose_4</tabstop>
   <tabstop>chkShowDebugControls</tabstop>
+  <tabstop>chkShippingMode</tabstop>
   <tabstop>lineSerialNumber</tabstop>
   <tabstop>cmdSetSN</tabstop>
   <tabstop>cmdCloseApp</tabstop>
   <tabstop>cmdWhiteRef</tabstop>
-  <tabstop>cmdBlackCalAll</tabstop>
-  <tabstop>cmdColumnGain</tabstop>
   <tabstop>cmdAutoCal</tabstop>
+  <tabstop>cmdColumnGain</tabstop>
+  <tabstop>cmdBlackCalAll</tabstop>
   <tabstop>cmdRevertCalData</tabstop>
   <tabstop>linePassword</tabstop>
-  <tabstop>textKickstarter</tabstop>
   <tabstop>cmdClose_3</tabstop>
   <tabstop>cmdClose_2</tabstop>
   <tabstop>cmdSWUpdate</tabstop>
@@ -1337,6 +1337,7 @@ Calibration Data
   <tabstop>chkZebraEnable</tabstop>
   <tabstop>chkAutoSave</tabstop>
   <tabstop>chkAutoRecord</tabstop>
+  <tabstop>autoPowerSetting</tabstop>
   <tabstop>comboDisableUnsavedWarning</tabstop>
   <tabstop>radioFPSensHigh</tabstop>
   <tabstop>radioFPSensMed</tabstop>
@@ -1345,6 +1346,7 @@ Calibration Data
   <tabstop>chkFPEnable</tabstop>
   <tabstop>cmdSetClock</tabstop>
   <tabstop>dateTimeEdit</tabstop>
+  <tabstop>textKickstarter</tabstop>
  </tabstops>
  <resources/>
  <connections/>
