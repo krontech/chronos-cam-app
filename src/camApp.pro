@@ -65,7 +65,6 @@ exists( $${QT_SYSROOT}/etc/debian_version ) {
 SOURCES += main.cpp\
 	mainwindow.cpp \
     camera.cpp \
-    spi.cpp \
     video.cpp \
     cammainwindow.cpp \
     myinputpanelcontext.cpp \
@@ -77,7 +76,6 @@ SOURCES += main.cpp\
     savesettingswindow.cpp \
     userInterface.cpp \
     siText.c \
-    dm8148PWM.cpp \
     io.cpp \
     iosettingswindow.cpp \
     camLineEdit.cpp \
@@ -86,7 +84,6 @@ SOURCES += main.cpp\
     camdoublespinbox.cpp \
     utilwindow.cpp \
     statuswindow.cpp \
-    eeprom.c \
     recmodewindow.cpp \
     triggerdelaywindow.cpp \
     triggerslider.cpp \
@@ -101,7 +98,6 @@ SOURCES += main.cpp\
     sensor.cpp \
     control.cpp \
     exec.cpp \
-    ecp5Config.cpp \
     myinputpanel.cpp \
     pysensor.cpp \
     qjson4/QJsonArray.cpp \
@@ -123,7 +119,6 @@ GENERATED_SOURCES += $$versionTarget.target
 
 HEADERS  += mainwindow.h \
     camera.h \
-    spi.h \
     defines.h \
     types.h \
     cameraRegisters.h \
@@ -138,7 +133,6 @@ HEADERS  += mainwindow.h \
     savesettingswindow.h \
     userInterface.h \
     siText.h \
-    dm8148PWM.h \
     io.h \
     iosettingswindow.h \
     camLineEdit.h \
@@ -149,7 +143,6 @@ HEADERS  += mainwindow.h \
     utilwindow.h \
     statuswindow.h \
     i2c/i2c-dev.h \
-    eeprom.h \
     recmodewindow.h \
     triggerdelaywindow.h \
     triggerslider.h \
@@ -166,7 +159,6 @@ HEADERS  += mainwindow.h \
     control.h \
     exec.h \
     myinputpanel.h \
-    ecp5Config.h \
     ui_myinputpanelform.h \
     qjson4/QJsonArray.h \
     qjson4/QJsonDocument.h \

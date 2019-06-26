@@ -49,7 +49,6 @@ extern "C" {
 #include <signal.h>
 #include <unistd.h>
 #include "util.h"
-#include "dm8148PWM.h"
 #include <QDir>
 
 #include "defines.h"

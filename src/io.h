@@ -16,7 +16,6 @@
  ****************************************************************************/
 #ifndef IO_H
 #define IO_H
-#include "dm8148PWM.h"
 #include "errorCodes.h"
 #include "types.h"
 #endif // IO_H
@@ -56,7 +55,6 @@ public:
 	void setShutterGatingEnable(bool en, Int32 flags=0);
 
 private:
-	dm8148PWM io1DAC, io2DAC;
 	UInt32 IO2InFD;
 	double io1Thresh, io2Thresh;
 };

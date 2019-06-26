@@ -24,7 +24,6 @@
 #include "util.h"
 #include "cameraRegisters.h"
 extern "C" {
-#include "eeprom.h"
 }
 #include "defines.h"
 

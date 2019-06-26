@@ -23,7 +23,6 @@
 #include "sensor.h"
 #include "errorCodes.h"
 #include "types.h"
-#include "spi.h"
 #include <string>
 #include <QtDBus/QtDBus>
 
@@ -176,7 +175,6 @@ private:
 	UInt32 startDelaySensorClocks;
 	UInt32 sensorVersion;
 
-	SPI * spi;
 
 };
 

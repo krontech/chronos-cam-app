@@ -29,7 +29,6 @@
 #include <linux/spi/spidev.h>
 #include <sys/mman.h>
 
-#include "spi.h"
 #include "defines.h"
 #include "cameraRegisters.h"
 #include "camera.h"
@@ -37,7 +36,6 @@
 #include "video.h"
 #include "types.h"
 extern "C" {
-#include "eeprom.h"
 }
 
 MainWindow::MainWindow(QWidget *parent) :

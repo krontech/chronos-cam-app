@@ -19,7 +19,6 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include "io.h"
-#include "dm8148PWM.h"
 #include "cameraRegisters.h"
 #include "defines.h"
 

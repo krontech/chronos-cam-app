@@ -22,7 +22,6 @@
 #include <QDir>
 #include <QIODevice>
 
-#include "spi.h"
 #include "util.h"
 
 #include "defines.h"
