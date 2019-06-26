@@ -628,10 +628,6 @@ UInt32 Camera::setPlayMode(bool playMode)
 	return SUCCESS;
 }
 
-Int32 Camera::liveColumnCalibration(unsigned int iterations)
-{
-	return 0;
-}
 
 Int32 Camera::autoColGainCorrection(void)
 {

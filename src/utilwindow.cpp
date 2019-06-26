@@ -294,7 +294,7 @@ void UtilWindow::on_cmdColumnGain_clicked()
 	//Turn on calibration light
 	camera->io->setOutLevel((1 << 1));	//Turn on output drive
 
-	retVal = camera->autoColGainCorrection();
+	//retVal = camera->autoColGainCorrection();
 
 	if(SUCCESS != retVal)
 	{
@@ -439,7 +439,7 @@ void UtilWindow::on_cmdAutoCal_clicked()
 	camera->io->setOutLevel((1 << 1));	//Turn on output drive
 
 	qDebug("cmdAutoCal: autoColGainCorrection");
-	retVal = camera->autoColGainCorrection();
+	//retVal = camera->autoColGainCorrection();
 
 	if(SUCCESS != retVal) {
 		sw.hide();

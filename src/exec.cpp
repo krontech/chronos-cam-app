@@ -1,7 +1,7 @@
 
 #include <QDebug>
 #include <stdio.h>
-
+#include <signal.h>
 #include <unistd.h>
 #include <string>
 #include <iostream>
@@ -219,6 +219,8 @@ void setCamJson( QString jsonString)
 	}
 	else
 	{
+		signal(SIGCHLD, SIG_IGN);
+
 		close(fd_p2c[0]);
 		close(fd_c2p[1]);
 
@@ -291,6 +293,8 @@ void getCamJson(QString parameter, QString *jsonString)
 	}
 	else
 	{
+		signal(SIGCHLD, SIG_IGN);
+
 		close(fd_p2c[0]);
 		close(fd_c2p[1]);
 
@@ -358,7 +362,7 @@ void startCalibrationCamJson( QString *jsonOutString, QString *jsonInString)
 			cerr << "Child: failed to set up standard output\n";
 			exit(1);
 		}
-		//execl(program_name.c_str(), program_name.c_str(), "get", "-", (char *) 0);
+
 		execl(program_name.c_str(), program_name.c_str(), "startCalibration", "-", (char *) 0);
 		qDebug() << program_name.c_str() << program_name.c_str() << "startCalibration" << "-";
 
@@ -367,6 +371,8 @@ void startCalibrationCamJson( QString *jsonOutString, QString *jsonInString)
 	}
 	else
 	{
+		signal(SIGCHLD, SIG_IGN);
+
 		close(fd_p2c[0]);
 		close(fd_c2p[1]);
 
@@ -441,6 +447,8 @@ void startRecordingCamJson( QString *jsonString)
 	}
 	else
 	{
+		signal(SIGCHLD, SIG_IGN);
+
 		close(fd_p2c[0]);
 		close(fd_c2p[1]);
 
@@ -516,6 +524,8 @@ void stopRecordingCamJson( QString *jsonString)
 	}
 	else
 	{
+		signal(SIGCHLD, SIG_IGN);
+
 		close(fd_p2c[0]);
 		close(fd_c2p[1]);
 
@@ -595,6 +605,8 @@ void testResolutionCamJson(QString *jsonString, FrameGeometry *geometry)
 	}
 	else
 	{
+		signal(SIGCHLD, SIG_IGN);
+
 		close(fd_p2c[0]);
 		close(fd_c2p[1]);
 

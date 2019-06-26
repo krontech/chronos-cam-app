@@ -213,7 +213,6 @@ void RecSettingsWindow::on_cmdOK_clicked()
 
 	camera->setImagerSettings(*is);
 	camera->vinst->liveDisplay(is->geometry.hRes, is->geometry.vRes);
-	camera->liveColumnCalibration();
 
 	if(true) {
 		QString jsonInString;
