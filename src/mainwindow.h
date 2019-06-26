@@ -27,7 +27,7 @@ class MainWindow;
 
 class MainWindow : public QMainWindow
 {
-    Q_OBJECT
+	Q_OBJECT
     
 public:
     explicit MainWindow(QWidget *parent = 0);
@@ -36,29 +36,7 @@ public:
 
 private slots:
 
-	void _on_cmdWrite_clicked();
 
-	void on_cmdSeqOn_clicked();
-
-	void on_cmdSeqOff_clicked();
-
-	void on_cmdSetOffset_clicked();
-
-	void on_cmdTrigger_clicked();
-
-	void on_cmdRam_clicked();
-
-	void on_cmdReset_clicked();
-
-	void on_cmdFPN_clicked();
-
-	void on_cmdFrameNumbers_clicked();
-
-	void on_cmdGC_clicked();
-
-	void on_cmdSaveFrame_clicked();
-
-	void on_cmdClearFPN_clicked();
 
 private:
 	Ui::MainWindow *ui;
