@@ -461,8 +461,8 @@ Display</string>
     <widget class="QCheckBox" name="chkLiveLoop">
      <property name="geometry">
       <rect>
-       <x>480</x>
-       <y>310</y>
+       <x>290</x>
+       <y>372</y>
        <width>181</width>
        <height>61</height>
       </rect>
