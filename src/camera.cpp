@@ -358,7 +358,6 @@ Int32 Camera::startRecording(void)
 	geometry.bitDepth	   = 12;
 	geometry.minFrameTime  = 0.0002; //arbitrary here!
 
-
 	//cinst->stopRecording();
 	stopRecordingCamJson(&str);
 	qDebug() << str;
@@ -1294,3 +1293,59 @@ void Camera::apiDoSetResolution(QVariant res)
 }
 
 
+void Camera::on_chkLiveLoop_stateChanged(int arg1)
+{
+	if (arg1)
+	{
+		//enable loop timer
+		loopTimer = new QTimer(this);
+		connect(loopTimer, SIGNAL(timeout()), this, SLOT(onLoopTimer()));
+		loopTimer->start(2000);
+
+	}
+	else
+	{
+		//disable loop timer
+		loopTimer->stop();
+		delete loopTimer;
+		vinst->liveDisplay(imagerSettings.geometry.hRes, imagerSettings.geometry.vRes);
+
+	}
+
+}
+
+
+void Camera::onLoopTimer()
+{
+	//record snippet
+	qDebug() << "loop timer";
+
+	//cinst->startRecording();
+	QString jsonReturn;
+	startRecordingCamJson(&jsonReturn);
+
+	struct timespec t = {0, 50000000};
+	nanosleep(&t, NULL);
+
+	//cinst->stopRecording();
+	stopRecordingCamJson(&jsonReturn);
+
+	//play back snippet
+	vinst->loopPlayback(1, 400, 60);
+}
+
+void Camera::on_spinLiveLoopTime_valueChanged(int arg1)
+{
+	if (arg1 < 250) //minimum time
+	{
+		return;
+	}
+	//disable loop timer
+	loopTimer->stop();
+	delete loopTimer;
+
+	//re-enable loop timer
+	loopTimer = new QTimer(this);
+	connect(loopTimer, SIGNAL(timeout()), this, SLOT(onLoopTimer()));
+	loopTimer->start(arg1);
+}

@@ -205,6 +205,9 @@ public:
 	UInt32 triggerPostFrames;
 	double maxPostFramesRatio;
 
+	bool liveLoopActive;
+	UInt32 liveLoopTime = 2000;	//in milliseconds
+
 	void getSensorInfo(Control *c);
 	UInt32 setImagerSettings(ImagerSettings_t settings);
 	UInt32 setIntegrationTime(double intTime, FrameGeometry *geometry, Int32 flags);
@@ -335,11 +338,17 @@ public:
 	void updateVideoPosition();
 	int getFocusPeakColor();
 	void setFocusPeakColor(int value);
+
+	void on_chkLiveLoop_stateChanged(int arg1);
+	void on_spinLiveLoopTime_valueChanged(int arg1);
+
 private:
 	bool lastRecording;
 	bool terminateRecDataThread;
 	UInt32 ramSize;
 	pthread_t recDataThreadID;
+	QTimer * loopTimer;
+
 
 protected slots:
 	void apiDoSetFramePeriod(UInt32 period);
@@ -370,6 +379,8 @@ protected slots:
 	void apiDoSetResolution(QVariant res);
 
 	//void apiDoSetInt(QString param, UInt32 value);
+
+	void onLoopTimer();
 
 };
 

@@ -36,6 +36,7 @@
 #include <sys/sendfile.h>
 #include <mntent.h>
 
+#include "control.h"
 #include "util.h"
 #include "chronosControlInterface.h"
 
@@ -70,6 +71,7 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	QWidget(parent),
 	ui(new Ui::UtilWindow)
 {
+	openingWindow = true;
 	QSettings appSettings;
 	QString aboutText;
 
@@ -149,6 +151,10 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 		ui->chkUpsideDownDisplay->setChecked(camera->getUpsideDownDisplay());
 	else //If the argument was not added, set the control to invisible because it would be useless anyway
 		ui->chkUpsideDownDisplay->setVisible(false);
+
+	ui->chkLiveLoop->setChecked(camera->liveLoopActive);
+	ui->spinLiveLoopTime->setValue(camera->liveLoopTime);
+	openingWindow = false;
 
 	//ui->chkShowDebugControls->setChecked(!(appSettings.value("debug/hideDebug", true).toBool()));
 }
@@ -477,6 +483,13 @@ void UtilWindow::on_cmdClose_clicked()
 	}
 
 	if(UpsideDownDisplayChanged ^ ButtonsOnLeftChanged) camera->updateVideoPosition();
+
+	camera->liveLoopActive = ui->chkLiveLoop->isChecked();
+	if (camera->liveLoopTime != ui->spinLiveLoopTime->value())
+	{
+		camera->on_spinLiveLoopTime_valueChanged(ui->spinLiveLoopTime->value());
+	}
+	camera->liveLoopTime = ui->spinLiveLoopTime->value();
 
 	close();
 /*
@@ -1085,3 +1098,20 @@ void UtilWindow::on_tabWidget_currentChanged(int index)
 	}
 #endif
 }
+
+void UtilWindow::on_chkLiveLoop_stateChanged(int arg1)
+{
+	if (!openingWindow)
+	{
+		camera->on_chkLiveLoop_stateChanged(arg1);
+	}
+}
+
+void UtilWindow::on_spinLiveLoopTime_valueChanged(int arg1)
+{
+	if (!openingWindow)
+	{
+		//camera->on_spinLiveLoopTime_valueChanged(arg1);
+	}
+}
+

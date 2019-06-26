@@ -38,6 +38,7 @@ signals:
 	
 private slots:
 	void on_cmdSWUpdate_clicked();
+
 	void onUtilWindowTimer();
 
 	void on_cmdSetClock_clicked();
@@ -107,11 +108,16 @@ private slots:
 	void on_tabWidget_currentChanged(int index);
 	
 	int updateSoftware(char *updateLocation);
+
+	void on_chkLiveLoop_stateChanged(int arg1);
+	void on_spinLiveLoopTime_valueChanged(int arg1);
+
 private:
 	Ui::UtilWindow *ui;
 	Camera * camera;
 	QTimer * timer;
 	bool settingClock;
+	bool openingWindow;
 
 	void formatStorageDevice(const char *blkdev);
 	void statErrorMessage();
