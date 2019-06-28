@@ -411,12 +411,15 @@ void CamMainWindow::updateRecordingState(bool recording)
 	}
 }
 
+int cnt = 0; //temporary timer until pcUtil broadcasts power
+
 void CamMainWindow::on_MainWindowTimer()
 {
 	bool shutterButton = camera->ui->getShutterButton();
 	char buf[300];
 	Int32 len;
 	QSettings appSettings;
+
 
 	if(shutterButton && !lastShutterButton)
 	{
@@ -462,7 +465,15 @@ void CamMainWindow::on_MainWindowTimer()
 	lastShutterButton = shutterButton;
 
 	//If new data comes in from the BMS, get the battery SOC and updates the info label
-	len = read(bmsFifoFD, buf, 300);
+	//len = read(bmsFifoFD, buf, 300);
+
+	len = 0;
+
+	if (!(cnt++ & 63))	//roughly once a second
+	{
+		camera->cinst->getInt("batteryVoltage", &battVoltageCam);
+		camera->cinst->getInt("batteryChargePercent", &battCapacityPercent);
+	}
 
 	if(len > 0)
 	{
@@ -479,8 +490,9 @@ void CamMainWindow::on_MainWindowTimer()
 			   &mbTemperature,
 			   &flags,
 			   &fanPWM);
-		updateCurrentSettingsLabel();
+
 	}
+	updateCurrentSettingsLabel();
 
 	if (appSettings.value("debug/hideDebug", true).toBool()) {
 		ui->cmdDebugWnd->setVisible(false);
@@ -560,6 +572,9 @@ void CamMainWindow::updateCurrentSettingsLabel()
 							20 - 20*within(((double)battCurrentCam/1000.0 - 0.1) / (1.28 - 0.1), 0.0, 1.0) :	//Charging
 						within(((double)battVoltageCam/1000.0 - 9.75) / (11.8 - 9.75) * 100, 0.0, 100.0);		//Dicharging
 	//charge 10.75 - 12.4 is 0-80%
+
+	//pychronos:
+	battPercent = battCapacityPercent;
 
 	if(flags)	//If battery present
 	{
