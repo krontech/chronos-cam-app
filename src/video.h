@@ -92,7 +92,7 @@ enum
 struct VideoStatus {
 	VideoState	state;
 	UInt32 totalFrames;
-	UInt32 position;
+	Int32  position;
 	UInt32 totalSegments;
 	UInt32 segment;
 	double framerate;
@@ -115,8 +115,9 @@ public:
 	void setPlayback(int rate);
 	void loopPlayback(unsigned int start, unsigned int length, int rate);
 	void setDisplayOptions(bool zebra, FocusPeakColors fpColor);
-	void setDisplayWindowStartX(bool videoOnRight);
+	void setDisplayPosition(bool videoOnRight);
 	void liveDisplay(void);
+	void pauseDisplay(void);
 	VideoState getStatus(VideoStatus *st);
 
 	CameraErrortype startRecording(UInt32 sizeX, UInt32 sizeY, UInt32 start, UInt32 length, save_mode_type save_mode);
@@ -125,7 +126,6 @@ public:
 	void flushRegions(void);
 	bool isRunning(void) {return running;}
 	bool setRunning(bool run);
-	void reload(void);
 	CameraErrortype setScaling(UInt32 startX, UInt32 startY, UInt32 cropX, UInt32 cropY);
 
 	/* Settings moved over from the VideoRecord class */
@@ -151,7 +151,7 @@ private:
 
 	int mkfilename(char *path, save_mode_type save_mode);
 
-	ComKrontechChronosVideoInterface iface;
+	CaKrontechChronosVideoInterface iface;
 
 	UInt32 displayWindowXSize;
 	UInt32 displayWindowYSize;

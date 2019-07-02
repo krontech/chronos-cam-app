@@ -209,7 +209,7 @@ void RecSettingsWindow::on_cmdOK_clicked()
 	camera->updateTriggerValues(*is);
 
 	camera->setImagerSettings(*is);
-	camera->setDisplaySettings(false, MAX_LIVE_FRAMERATE);
+	camera->vinst->liveDisplay();
 
 	if(CAMERA_FILE_NOT_FOUND == camera->loadFPNFromFile()) {
 		camera->fastFPNCorrection();
@@ -250,9 +250,9 @@ void RecSettingsWindow::on_spinVRes_valueChanged(int arg1)
     if(windowInitComplete)
     {
 		FrameGeometry fSize = getResolution();
-        updateOffsetLimits();
+		updateOffsetLimits();
 		updateFrameImage();
-        updateInfoText();
+		updateInfoText();
 		is->recRegionSizeFrames = camera->getMaxRecordRegionSizeFrames(&fSize);
 		qDebug() << "---- Rec Settings Window ---- hres =" << fSize.hRes << "vres =" << fSize.vRes << "recRegionSizeFrames =" << is->recRegionSizeFrames;
     }

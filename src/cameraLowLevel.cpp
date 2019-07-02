@@ -29,60 +29,6 @@ extern "C" {
 }
 #include "defines.h"
 
-void Camera::setLiveOutputTiming(FrameGeometry *geometry, UInt32 maxFps)
-{
-	const UInt32 hSync = 1;
-	const UInt32 hBackPorch = 64;
-	const UInt32 hFrontPorch = 4;
-	const UInt32 vSync = 1;
-	const UInt32 vBackPorch = 4;
-	const UInt32 vFrontPorch = 1;
-	UInt32 pxClock = 100000000;
-	UInt32 minHPeriod;
-	UInt32 hPeriod;
-	UInt32 vPeriod;
-	UInt32 fps;
-
-	/* FPGA revision 3.14 and higher use a 133MHz video clock. */
-	if ((getFPGAVersion() > 3) || (getFPGASubVersion() >= 14)) {
-		pxClock = 133333333;
-	}
-
-	hPeriod = hSync + hBackPorch + geometry->hRes + hFrontPorch;
-
-	// calculate minimum hPeriod to fit within the 1024 max vertical resolution
-	// and make sure hPeriod is equal or larger
-	minHPeriod = (pxClock / ((1024+vBackPorch+vSync+vFrontPorch) * maxFps)) + 1; // the +1 is just to round up
-
-	if (hPeriod < minHPeriod) hPeriod = minHPeriod;
-
-	// calculate vPeriod and make sure it's large enough for the frame
-	vPeriod = pxClock / (hPeriod * maxFps);
-	if (vPeriod < (geometry->vRes + vBackPorch + vSync + vFrontPorch)) {
-		vPeriod = (geometry->vRes + vBackPorch + vSync + vFrontPorch);
-	}
-
-	// calculate FPS for debug output
-	fps = pxClock / (vPeriod * hPeriod);
-	qDebug("setLiveOutputTiming: %d*%d@%d (%d*%d max: %d)",
-		   (hPeriod - hBackPorch - hSync - hFrontPorch),
-		   (vPeriod - vBackPorch - vSync - vFrontPorch),
-		   fps, geometry->hRes, geometry->vRes + geometry->vDarkRows, maxFps);
-	
-	gpmc->write16(DISPLAY_H_RES_ADDR, geometry->hRes);
-	gpmc->write16(DISPLAY_H_OUT_RES_ADDR, geometry->hRes);
-	gpmc->write16(DISPLAY_V_RES_ADDR, geometry->vRes + geometry->vDarkRows);
-	gpmc->write16(DISPLAY_V_OUT_RES_ADDR, geometry->vRes + geometry->vDarkRows);
-
-	gpmc->write16(DISPLAY_H_PERIOD_ADDR, hPeriod - 1);
-	gpmc->write16(DISPLAY_H_SYNC_LEN_ADDR, hSync);
-	gpmc->write16(DISPLAY_H_BACK_PORCH_ADDR, hBackPorch);
-
-	gpmc->write16(DISPLAY_V_PERIOD_ADDR, vPeriod - 1);
-	gpmc->write16(DISPLAY_V_SYNC_LEN_ADDR, vSync);
-	gpmc->write16(DISPLAY_V_BACK_PORCH_ADDR, vBackPorch);
-}
-
 bool Camera::getRecDataFifoIsEmpty(void)
 {
 	return gpmc->read32(SEQ_STATUS_ADDR) & SEQ_STATUS_MD_FIFO_EMPTY_MASK;

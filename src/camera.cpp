@@ -203,8 +203,6 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
     imagerSettings.segmentLengthFrames = imagerSettings.recRegionSizeFrames;
     imagerSettings.segments = 1;
 
-	setLiveOutputTiming(&imagerSettings.geometry, MAX_LIVE_FRAMERATE);
-
 	vinst->init();
 
 	//Set to full resolution
@@ -228,7 +226,6 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
     settings.temporary              = 0;
 
 	setImagerSettings(settings);
-    setDisplaySettings(false, MAX_LIVE_FRAMERATE);
 
     io->setTriggerDelayFrames(0, FLAG_USESAVED);
     setTriggerDelayValues((double) io->getTriggerDelayFrames() / settings.recRegionSizeFrames,
@@ -281,6 +278,7 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 	setWhiteBalance(whiteBalMatrix);
 
 	vinst->setDisplayOptions(getZebraEnable(), getFocusPeakEnable() ? (FocusPeakColors)getFocusPeakColor() : FOCUS_PEAK_DISABLE);
+	vinst->setDisplayPosition(ButtonsOnLeft ^ UpsideDownDisplay);
 	vinst->liveDisplay();
 	setFocusPeakThresholdLL(appSettings.value("camera/focusPeakThreshold", 25).toUInt());
 
@@ -438,21 +436,9 @@ UInt32 Camera::setIntegrationTime(double intTime, FrameGeometry *fSize, Int32 fl
 	return SUCCESS;
 }
 
-UInt32 Camera::setDisplaySettings(bool encoderSafe, UInt32 maxFps)
+void Camera::updateVideoPosition()
 {
-	if(!sensor->isValidResolution(&imagerSettings.geometry))
-		return CAMERA_INVALID_IMAGER_SETTINGS;
-
-	setLiveOutputTiming(&imagerSettings.geometry, maxFps);
-
-	vinst->reload();
-
-	return SUCCESS;
-}
-
-void Camera::updateVideoPosition(){
-	vinst->setDisplayWindowStartX(ButtonsOnLeft ^ UpsideDownDisplay); //if both of these are true, the video position should actually be 0
-	//qDebug()<< "updateVideoPosition() called. ButtonsOnLeft value:  " << ButtonsOnLeft;
+	vinst->setDisplayPosition(ButtonsOnLeft ^ UpsideDownDisplay);
 }
 
 
@@ -2818,12 +2804,6 @@ exit_calibration:
 	retVal = setImagerSettings(settings);
 	if(SUCCESS != retVal) {
 		qDebug("blackCalAllStdRes: Error during setImagerSettings %d", retVal);
-		return retVal;
-	}
-
-	retVal = setDisplaySettings(false, MAX_LIVE_FRAMERATE);
-	if(SUCCESS != retVal) {
-		qDebug("blackCalAllStdRes: Error during setDisplaySettings %d", retVal);
 		return retVal;
 	}
 

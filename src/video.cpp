@@ -60,14 +60,6 @@ bool Video::setRunning(bool run)
 	return true;
 }
 
-
-void Video::reload(void)
-{
-	if(running) {
-		kill(pid, SIGHUP);
-	}
-}
-
 CameraErrortype Video::setScaling(UInt32 startX, UInt32 startY, UInt32 cropX, UInt32 cropY)
 {
 	/* TODO: Replace with a SIGUSR to change focus aid scaling. */
@@ -91,7 +83,7 @@ static VideoStatus *parseVideoStatus(const QVariantMap &args, VideoStatus *st)
 {
 	st->state = parseVideoState(args);
 	st->totalFrames = args["totalFrames"].toUInt();
-	st->position = args["position"].toUInt();
+	st->position = args["position"].toInt();
 	st->totalSegments = args["totalSegments"].toUInt();
 	st->segment = args["segment"].toUInt();
 	st->framerate = args["framerate"].toDouble();
@@ -219,10 +211,21 @@ void Video::setDisplayOptions(bool zebra, FocusPeakColors fpColor)
 
 void Video::liveDisplay(void)
 {
+	QVariantMap args;
 	QDBusPendingReply<QVariantMap> reply;
 
 	pthread_mutex_lock(&mutex);
-	reply = iface.livedisplay();
+	reply = iface.livedisplay(args);
+	reply.waitForFinished();
+	pthread_mutex_unlock(&mutex);
+}
+
+void Video::pauseDisplay(void)
+{
+	QDBusPendingReply<QVariantMap> reply;
+
+	pthread_mutex_lock(&mutex);
+	reply = iface.pause();
 	reply.waitForFinished();
 	pthread_mutex_unlock(&mutex);
 }
@@ -418,12 +421,15 @@ CameraErrortype Video::stopRecording()
 	return SUCCESS;
 }
 
-void Video::setDisplayWindowStartX(bool videoOnRight){
+void Video::setDisplayPosition(bool videoOnRight)
+{
 	displayWindowXOff = videoOnRight ? 200 : 0;
 	displayWindowYOff = 0;
 
 	QVariantMap args;
 	QDBusPendingReply<QVariantMap> reply;
+	args.insert("hres", QVariant(displayWindowXSize));
+	args.insert("vres", QVariant(displayWindowYSize));
 	args.insert("xoff", QVariant(displayWindowXOff));
 	args.insert("yoff", QVariant(displayWindowYOff));
 
@@ -457,7 +463,7 @@ void Video::segment(const QVariantMap &args)
 	emit newSegment(parseVideoStatus(args, &st));
 }
 
-Video::Video() : iface("com.krontech.chronos.video", "/com/krontech/chronos/video", QDBusConnection::systemBus())
+Video::Video() : iface("ca.krontech.chronos.video", "/ca/krontech/chronos/video", QDBusConnection::systemBus())
 {
 	QDBusConnection conn = iface.connection();
 	int i;
@@ -488,15 +494,14 @@ Video::Video() : iface("com.krontech.chronos.video", "/com/krontech/chronos/vide
 	}
 	strcpy(fileDirectory, "/media/mmcblk1p1");
 
-
 	pthread_mutex_init(&mutex, NULL);
 
 	/* Connect DBus signals */
-	conn.connect("com.krontech.chronos.video", "/com/krontech/chronos/video", "com.krontech.chronos.video",
+	conn.connect("ca.krontech.chronos.video", "/ca/krontech/chronos/video", "ca.krontech.chronos.video",
 				 "sof", this, SLOT(sof(const QVariantMap&)));
-	conn.connect("com.krontech.chronos.video", "/com/krontech/chronos/video", "com.krontech.chronos.video",
+	conn.connect("ca.krontech.chronos.video", "/ca/krontech/chronos/video", "ca.krontech.chronos.video",
 				 "eof", this, SLOT(eof(const QVariantMap&)));
-	conn.connect("com.krontech.chronos.video", "/com/krontech/chronos/video", "com.krontech.chronos.video",
+	conn.connect("ca.krontech.chronos.video", "/ca/krontech/chronos/video", "ca.krontech.chronos.video",
 				 "segment", this, SLOT(segment(const QVariantMap&)));
 }
 

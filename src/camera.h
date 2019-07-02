@@ -212,7 +212,6 @@ public:
 
 	UInt32 setImagerSettings(ImagerSettings_t settings);
 	UInt32 setIntegrationTime(double intTime, FrameGeometry *geometry, Int32 flags);
-	UInt32 setDisplaySettings(bool encoderSafe, UInt32 maxFps);
 	UInt32 setPlayMode(bool playMode);
 	UInt16 readPixel12(UInt32 pixel, UInt32 offset);
 	UInt16 readPixelCal(UInt32 x, UInt32 y, UInt32 wordAddress, FrameGeometry *geometry);
@@ -266,7 +265,6 @@ public:
 	UInt32 getMaxRecordRegionSizeFrames(FrameGeometry *geometry);
 
 private:
-	void setLiveOutputTiming(FrameGeometry *geometry, UInt32 maxFps);
 	bool getRecDataFifoIsEmpty(void);
 	UInt32 readRecDataFifo(void);
 	bool getRecording(void);
