@@ -330,8 +330,8 @@ Time</string>
     <widget class="QLabel" name="lblUnsavedVideoLabel">
      <property name="geometry">
       <rect>
-       <x>10</x>
-       <y>240</y>
+       <x>21</x>
+       <y>230</y>
        <width>211</width>
        <height>61</height>
       </rect>
@@ -408,7 +408,7 @@ Display</string>
      <property name="geometry">
       <rect>
        <x>200</x>
-       <y>250</y>
+       <y>240</y>
        <width>201</width>
        <height>41</height>
       </rect>
@@ -462,9 +462,9 @@ Display</string>
      <property name="geometry">
       <rect>
        <x>290</x>
-       <y>372</y>
+       <y>410</y>
        <width>181</width>
-       <height>61</height>
+       <height>41</height>
       </rect>
      </property>
      <property name="font">
@@ -489,7 +489,7 @@ Display</string>
      <property name="geometry">
       <rect>
        <x>480</x>
-       <y>380</y>
+       <y>412</y>
        <width>151</width>
        <height>41</height>
       </rect>
@@ -521,8 +521,11 @@ QSpinBox::up-button { subcontrol-position: right; right: 40px; width: 40px; heig
 
 QSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}</string>
      </property>
+     <property name="suffix">
+      <string/>
+     </property>
      <property name="minimum">
-      <number>200</number>
+      <number>250</number>
      </property>
      <property name="maximum">
       <number>10000</number>
@@ -532,6 +535,175 @@ QSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}<
      </property>
      <property name="value">
       <number>2000</number>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="comboAutoPowerMode">
+     <property name="geometry">
+      <rect>
+       <x>200</x>
+       <y>290</y>
+       <width>201</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>16</pointsize>
+      </font>
+     </property>
+     <property name="currentText">
+      <string>Disabled</string>
+     </property>
+     <item>
+      <property name="text">
+       <string>Disabled</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Turn on if AC inserted</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Turn off if AC removed</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Both</string>
+      </property>
+     </item>
+    </widget>
+    <widget class="QLabel" name="lblAutoPowerModeLabel">
+     <property name="geometry">
+      <rect>
+       <x>57</x>
+       <y>279</y>
+       <width>131</width>
+       <height>61</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>15</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>Auto Power Mode</string>
+     </property>
+     <property name="checked" stdset="0">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QCheckBox" name="chkFanDisable">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>480</x>
+       <y>320</y>
+       <width>251</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>16</pointsize>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QCheckBox::indicator {
+     width: 40px;
+     height: 40px;
+}</string>
+     </property>
+     <property name="text">
+      <string>Disable Fan When Cool</string>
+     </property>
+    </widget>
+    <widget class="CamSpinBox" name="spinAutoSavePercent">
+     <property name="geometry">
+      <rect>
+       <x>260</x>
+       <y>340</y>
+       <width>141</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="baseSize">
+      <size>
+       <width>0</width>
+       <height>0</height>
+      </size>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>16</pointsize>
+       <weight>75</weight>
+       <italic>true</italic>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QSpinBox { border: 3px outset grey;padding-right: 40px;}  
+
+QSpinBox::up-button { subcontrol-position: right; right: 40px; width: 40px; height: 35px;}
+
+QSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}</string>
+     </property>
+     <property name="suffix">
+      <string>%</string>
+     </property>
+     <property name="minimum">
+      <number>1</number>
+     </property>
+     <property name="maximum">
+      <number>99</number>
+     </property>
+     <property name="singleStep">
+      <number>1</number>
+     </property>
+     <property name="value">
+      <number>50</number>
+     </property>
+    </widget>
+    <widget class="QCheckBox" name="chkAutoSavePercent">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>330</y>
+       <width>231</width>
+       <height>61</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>16</pointsize>
+      </font>
+     </property>
+     <property name="layoutDirection">
+      <enum>Qt::RightToLeft</enum>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QCheckBox::indicator {
+     width: 40px;
+     height: 40px;
+}</string>
+     </property>
+     <property name="text">
+      <string>Auto save and power
+  down battery level</string>
+     </property>
+     <property name="tristate">
+      <bool>false</bool>
      </property>
     </widget>
    </widget>
@@ -1402,6 +1574,27 @@ calibration data
      </property>
      <property name="text">
       <string>Close</string>
+     </property>
+    </widget>
+    <widget class="QCheckBox" name="chkShippingMode">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>570</x>
+       <y>32</y>
+       <width>160</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>16</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>Shipping Mode</string>
      </property>
     </widget>
    </widget>

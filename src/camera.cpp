@@ -1,3 +1,5 @@
+
+#define DEBUG_DBUS
 /****************************************************************************
  *  Copyright (C) 2013-2017 Kron Technologies Inc <http://www.krontech.ca>. *
  *                                                                          *
@@ -42,6 +44,12 @@
 void* recDataThread(void *arg);
 void recordEosCallback(void * arg);
 void recordErrorCallback(void * arg, const char * message);
+
+#ifdef DEBUG_DBUS
+bool debugDbus = true;
+#else
+bool debugDbus = false;
+#endif
 
 
 
@@ -1059,6 +1067,7 @@ bool Camera::getZebraEnable(void)
 	QSettings appSettings;
 	return appSettings.value("camera/zebra", true).toBool();
 }
+
 void Camera::setZebraEnable(bool en)
 {
 	QSettings appSettings;
@@ -1067,6 +1076,19 @@ void Camera::setZebraEnable(bool en)
 	vinst->setDisplayOptions(zebraEnabled, focusPeakEnabled);
 }
 
+bool Camera::getFanDisable(void)
+{
+	QSettings appSettings;
+	return appSettings.value("camera/fanDisabled", true).toBool();
+}
+
+void Camera::setFanDisable(bool en)
+{
+	QSettings appSettings;
+	fanDisabled = en;
+	appSettings.setValue("camera/fanDisabled", en);
+	//TODO: cinst->setInt("fanSpeed", arg1);
+}
 
 int Camera::getUnsavedWarnEnable(void){
 	QSettings appSettings;
@@ -1079,6 +1101,61 @@ void Camera::setUnsavedWarnEnable(int newSetting){
 	unsavedWarnEnabled = newSetting;
 	appSettings.setValue("camera/unsavedWarn", newSetting);
 }
+
+int Camera::getAutoPowerMode(void){
+	QSettings appSettings;
+	return appSettings.value("camera/autoPowerMode", 1).toInt();
+	//0 = disabled, 1 = turn on if AC inserted, 2 = turn off if AC removed, 3 = both
+}
+
+void Camera::setAutoPowerMode(int newSetting){
+	QSettings appSettings;
+	autoPowerMode = newSetting;
+	appSettings.setValue("camera/autoPowerMode", newSetting);
+	bool mainsConnectOn = newSetting & 1;
+	bool mainsDisconnectOff = newSetting & 2;
+	cinst->setBool("powerOnWhenMainsConnected", mainsConnectOn);
+	//TODO: cinst->setBool("powerOffWhenMainsDisconnected", mainsDisconnectOff);
+
+}
+
+int Camera::getAutoSavePercent(void){
+	QSettings appSettings;
+	return appSettings.value("camera/autoAutoSavePercent", 1).toInt();
+}
+
+void Camera::setAutoSavePercent(int newSetting){
+	QSettings appSettings;
+	autoSavePercent = newSetting;
+	appSettings.setValue("camera/autoAutoSavePercent", newSetting);
+	cinst->setFloat("saveAndPowerDownLowBatteryLevelPercent", (double)newSetting);
+}
+
+bool Camera::getAutoSavePercentEnabled(void){
+	QSettings appSettings;
+	return appSettings.value("camera/autoAutoSavePercentEnabled", 1).toBool();
+}
+
+void Camera::setAutoSavePercentEnabled(bool newSetting){
+	QSettings appSettings;
+	autoSavePercentEnabled = newSetting;
+	appSettings.setValue("camera/autoAutoSavePercent", newSetting);
+	cinst->setBool("saveAndPowerDownWhenLowBattery", newSetting);
+}
+
+bool Camera::getShippingMode(void){
+	QSettings appSettings;
+	return appSettings.value("camera/shippingMode", 1).toBool();
+	//0 = disabled, 1 = turn on if AC inserted, 2 = turn off if AC removed, 3 = both
+}
+
+void Camera::setShippingMode(int newSetting){
+	QSettings appSettings;
+	shippingMode = newSetting;
+	appSettings.setValue("camera/shippingMode", newSetting);
+	//TODO: cinst->setBool("shippingMode", arg1);
+}
+
 
 
 void Camera::set_autoSave(bool state) {
@@ -1116,8 +1193,6 @@ bool Camera::get_demoMode() {
 	return appSettings.value("camera/demoMode", false).toBool();
 }
 
-
-
 void* recDataThread(void *arg)
 {
 	Camera * cInst = (Camera *)arg;
@@ -1125,7 +1200,9 @@ void* recDataThread(void *arg)
 	struct timespec ts = { ms / 1000, (ms % 1000) * 1000 * 1000 };
 	bool recording;
 
-	while(!cInst->terminateRecDataThread) {
+	//DEBUG!
+
+	while(!debugDbus && !cInst->terminateRecDataThread) {
 		//On the falling edge of recording, call the user callback
 		recording = cInst->getRecording();
 		if(!recording && (cInst->lastRecording || cInst->recording))	//Take care of situtation where recording goes low->high-low between two interrutps by checking the cInst->recording flag
@@ -1301,6 +1378,7 @@ void Camera::on_chkLiveLoop_stateChanged(int arg1)
 		loopTimer = new QTimer(this);
 		connect(loopTimer, SIGNAL(timeout()), this, SLOT(onLoopTimer()));
 		loopTimer->start(2000);
+		loopTimerEnabled = true;
 
 	}
 	else
@@ -1309,6 +1387,7 @@ void Camera::on_chkLiveLoop_stateChanged(int arg1)
 		loopTimer->stop();
 		delete loopTimer;
 		vinst->liveDisplay(imagerSettings.geometry.hRes, imagerSettings.geometry.vRes);
+		loopTimerEnabled = false;
 
 	}
 
@@ -1340,12 +1419,16 @@ void Camera::on_spinLiveLoopTime_valueChanged(int arg1)
 	{
 		return;
 	}
-	//disable loop timer
-	loopTimer->stop();
-	delete loopTimer;
 
-	//re-enable loop timer
-	loopTimer = new QTimer(this);
-	connect(loopTimer, SIGNAL(timeout()), this, SLOT(onLoopTimer()));
-	loopTimer->start(arg1);
+	if (loopTimerEnabled)
+	{
+		//disable loop timer
+		loopTimer->stop();
+		delete loopTimer;
+
+		//re-enable loop timer
+		loopTimer = new QTimer(this);
+		connect(loopTimer, SIGNAL(timeout()), this, SLOT(onLoopTimer()));
+		loopTimer->start(arg1);
+	}
 }

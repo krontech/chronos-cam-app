@@ -412,6 +412,7 @@ void CamMainWindow::updateRecordingState(bool recording)
 }
 
 int cnt = 0; //temporary timer until pcUtil broadcasts power
+extern bool debugDbus;
 
 void CamMainWindow::on_MainWindowTimer()
 {
@@ -468,6 +469,8 @@ void CamMainWindow::on_MainWindowTimer()
 	//len = read(bmsFifoFD, buf, 300);
 
 	len = 0;
+
+	if (debugDbus) cnt = 35;	//fewer Dbus calls
 
 	if (!(cnt++ & 63))	//roughly once a second
 	{
@@ -554,8 +557,19 @@ void CamMainWindow::updateExpSliderLimits()
 void CamMainWindow::updateCurrentSettingsLabel()
 {
 	ImagerSettings_t is = camera->getImagerSettings();
-	double framePeriod = camera->sensor->getCurrentFramePeriodDouble();
-	double expPeriod = camera->sensor->getCurrentExposureDouble();
+	double framePeriod;
+	double expPeriod;
+	if (debugDbus)
+	{
+		framePeriod = 0.00123456;
+		expPeriod = 0.00103456;
+	}
+	else
+	{
+		framePeriod = camera->sensor->getCurrentFramePeriodDouble();
+		expPeriod = camera->sensor->getCurrentExposureDouble();
+
+	}
 	int shutterAngle = (expPeriod * 360.0) / framePeriod;
 
 	char str[300];

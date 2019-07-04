@@ -140,6 +140,8 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	ui->chkDemoMode->setChecked(camera->get_demoMode());
 	ui->chkUiOnLeft->setChecked(camera->getButtonsOnLeft());
 	ui->comboDisableUnsavedWarning->setCurrentIndex(camera->getUnsavedWarnEnable());
+	ui->comboAutoPowerMode->setCurrentIndex(camera->getAutoPowerMode());
+	ui->spinAutoSavePercent->setValue(camera->getAutoSavePercent());
 
 	ui->lineNetAddress->setEnabled(false);
 	ui->lineNetUser->setEnabled(false);
@@ -1090,6 +1092,11 @@ void UtilWindow::on_comboDisableUnsavedWarning_currentIndexChanged(int index)
 	camera->setUnsavedWarnEnable(index);
 }
 
+void UtilWindow::on_comboAutoPowerMode_currentIndexChanged(int index)
+{
+	camera->setAutoPowerMode(index);
+}
+
 void UtilWindow::on_tabWidget_currentChanged(int index)
 {
 #ifdef QT_KEYPAD_NAVIGATION
@@ -1111,7 +1118,27 @@ void UtilWindow::on_spinLiveLoopTime_valueChanged(int arg1)
 {
 	if (!openingWindow)
 	{
-		//camera->on_spinLiveLoopTime_valueChanged(arg1);
+		camera->on_spinLiveLoopTime_valueChanged(arg1);
 	}
 }
 
+void UtilWindow::on_spinAutoSavePercent_valueChanged(int arg1)
+{
+	camera->setAutoSavePercent(arg1);
+}
+
+void UtilWindow::on_chkAutoSavePercent_stateChanged(int arg1)
+{
+	camera->setAutoSavePercentEnabled(arg1);
+
+}
+
+void UtilWindow::on_chkFanDisable_stateChanged(int arg1)
+{
+	camera->setFanDisable(arg1);
+}
+
+void UtilWindow::on_chkShippingMode_stateChanged(int arg1)
+{
+	camera->setShippingMode(arg1);
+}

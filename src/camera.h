@@ -237,6 +237,11 @@ public:
 	void setZebraEnable(bool en);
 	int getUnsavedWarnEnable(void);
 	void setUnsavedWarnEnable(int newSetting);
+	int getAutoPowerMode(void);
+	void setAutoPowerMode(int newSetting);
+	bool getFanDisable(void);
+	void setFanDisable(bool dis);
+
 	char * getSerialNumber(void) {return serialNumber;}
 	void setSerialNumber(const char * sn) {strcpy(serialNumber, sn);}
 	bool getIsColor() {return isColor;}
@@ -286,6 +291,7 @@ private:
 	bool focusPeakEnabled;
 	int focusPeakColorIndex;
 	bool zebraEnabled;
+	bool fanDisabled;
 	char serialNumber[SERIAL_NUMBER_MAX_LEN+1];
 
 public:
@@ -316,8 +322,13 @@ public:
 	UInt8 getWBIndex();
 	void  setWBIndex(UInt8 index);
 	int unsavedWarnEnabled;
+	int autoPowerMode;
 	bool videoHasBeenReviewed;
 	bool autoSave;
+	int autoSavePercent;
+	bool autoSavePercentEnabled;
+	bool shippingMode;
+
 	void set_autoSave(bool state);
 	bool get_autoSave();
 
@@ -341,6 +352,13 @@ public:
 
 	void on_chkLiveLoop_stateChanged(int arg1);
 	void on_spinLiveLoopTime_valueChanged(int arg1);
+	int getAutoSavePercent(void);
+	void setAutoSavePercent(int newSetting);
+	bool getAutoSavePercentEnabled(void);
+	void setAutoSavePercentEnabled(bool newSetting);
+	bool getShippingMode(void);
+	void setShippingMode(int newSetting);
+
 
 private:
 	bool lastRecording;
@@ -348,6 +366,7 @@ private:
 	UInt32 ramSize;
 	pthread_t recDataThreadID;
 	QTimer * loopTimer;
+	bool loopTimerEnabled = false;
 
 
 protected slots:
