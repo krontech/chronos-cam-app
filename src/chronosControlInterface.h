@@ -59,7 +59,7 @@ public Q_SLOTS: // METHODS
 		QList<QVariant> argumentList;
 		qDebug() << "testResolution";
 		argumentList << qVariantFromValue(args);
-		return asyncCallWithArgumentList(QLatin1String("testResolution"), argumentList);
+		return asyncCallWithArgumentList(QLatin1String("getResolutionTimingLimits"), argumentList);
 	}
 
 	inline QDBusPendingReply<QVariantMap> doReset(const QVariantMap &args)

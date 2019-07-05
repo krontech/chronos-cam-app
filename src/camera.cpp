@@ -1,5 +1,5 @@
-
-#define DEBUG_DBUS
+#define IMAGERSETTINGS_DBUS //eliminates QSettings for recording parameters
+//#define DEBUG_DBUS //eliminates recurring Dbus calls
 /****************************************************************************
  *  Copyright (C) 2013-2017 Kron Technologies Inc <http://www.krontech.ca>. *
  *                                                                          *
@@ -51,6 +51,11 @@ bool debugDbus = true;
 bool debugDbus = false;
 #endif
 
+#ifdef IMAGERSETTINGS_DBUS
+bool isDbus = true;
+#else
+bool isDbus = false;
+#endif
 
 
 Camera::Camera()
@@ -139,25 +144,53 @@ CameraErrortype Camera::init(Video * vinstInst, Control * cinstInst, ImageSensor
 	imagerSettings.segmentLengthFrames = imagerSettings.recRegionSizeFrames;
 	imagerSettings.segments = 1;
 
-	//Set to full resolution
 	ImagerSettings_t settings;
-	settings.geometry.hRes          = appSettings.value("camera/hRes", imagerSettings.geometry.hRes).toInt();
-	settings.geometry.vRes          = appSettings.value("camera/vRes", imagerSettings.geometry.vRes).toInt();
-	settings.geometry.hOffset       = appSettings.value("camera/hOffset", 0).toInt();
-	settings.geometry.vOffset       = appSettings.value("camera/vOffset", 0).toInt();
-	settings.geometry.vDarkRows     = 0;
-	settings.geometry.bitDepth		= imagerSettings.geometry.bitDepth;
-	settings.geometry.minFrameTime	= 0.001;
-	settings.gain                   = appSettings.value("camera/gain", 0).toInt();
-	settings.period                 = appSettings.value("camera/period", sensor->getMinFramePeriod(&settings.geometry)).toInt();
-	settings.exposure               = sensor->getMaxIntegrationTime(settings.period, &settings.geometry); //PYCHRONOS - this is needed but suboptimal
-	settings.recRegionSizeFrames    = appSettings.value("camera/recRegionSizeFrames", getMaxRecordRegionSizeFrames(&settings.geometry)).toInt();
-	settings.disableRingBuffer      = appSettings.value("camera/disableRingBuffer", 0).toInt();
-	settings.mode                   = (CameraRecordModeType)appSettings.value("camera/mode", RECORD_MODE_NORMAL).toInt();
-	settings.prerecordFrames        = appSettings.value("camera/prerecordFrames", 1).toInt();
-	settings.segmentLengthFrames    = appSettings.value("camera/segmentLengthFrames", settings.recRegionSizeFrames).toInt();
-	settings.segments               = appSettings.value("camera/segments", 1).toInt();
-	settings.temporary              = 0;
+	if (isDbus)
+	{
+		cinst->getResolution(&settings.geometry);
+		settings.geometry.minFrameTime	= 0.001;
+		cinst->getInt("currentGain", &settings.gain);
+		cinst->getInt("framePeriod", &settings.period);
+		cinst->getInt("exposurePeriod", &settings.exposure);   // WAS:   = sensor->getMaxIntegrationTime(settings.period, &settings.geometry); //PYCHRONOS - this is needed but suboptimal
+		cinst->getInt("recMaxFrames", &settings.recRegionSizeFrames);
+		settings.disableRingBuffer      = appSettings.value("camera/disableRingBuffer", 0).toInt();
+		QString mode;
+		cinst->getString("recMode", &mode);
+		if (mode == "normal")
+			{ settings.mode = RECORD_MODE_NORMAL; }
+		else if (mode == "segmented")
+			{ settings.mode = RECORD_MODE_SEGMENTED; }
+		else if (mode == "burst")
+			{ settings.mode = RECORD_MODE_GATED_BURST; }
+		else
+			{ settings.mode = RECORD_MODE_NORMAL; }	// default
+		cinst->getInt("recPreBurst", &settings.prerecordFrames);
+		cinst->getInt("recSegments", &settings.segments);
+		UInt32 maxFrames;
+		cinst->getInt("cameraMaxFrames", &maxFrames);
+		settings.segmentLengthFrames    = maxFrames / settings.segments;
+		settings.temporary              = 0;
+	}
+	else
+	{
+		settings.geometry.hRes          = appSettings.value("camera/hRes", imagerSettings.geometry.hRes).toInt();
+		settings.geometry.vRes          = appSettings.value("camera/vRes", imagerSettings.geometry.vRes).toInt();
+		settings.geometry.hOffset       = appSettings.value("camera/hOffset", 0).toInt();
+		settings.geometry.vOffset       = appSettings.value("camera/vOffset", 0).toInt();
+		settings.geometry.vDarkRows     = 0;
+		settings.geometry.bitDepth		= imagerSettings.geometry.bitDepth;
+		settings.geometry.minFrameTime	= 0.001;
+		settings.gain                   = appSettings.value("camera/gain", 0).toInt();
+		settings.period                 = appSettings.value("camera/period", sensor->getMinFramePeriod(&settings.geometry)).toInt();
+		settings.exposure               = sensor->getMaxIntegrationTime(settings.period, &settings.geometry); //PYCHRONOS - this is needed but suboptimal
+		settings.recRegionSizeFrames    = appSettings.value("camera/recRegionSizeFrames", getMaxRecordRegionSizeFrames(&settings.geometry)).toInt();
+		settings.disableRingBuffer      = appSettings.value("camera/disableRingBuffer", 0).toInt();
+		settings.mode                   = (CameraRecordModeType)appSettings.value("camera/mode", RECORD_MODE_NORMAL).toInt();
+		settings.prerecordFrames        = appSettings.value("camera/prerecordFrames", 1).toInt();
+		settings.segmentLengthFrames    = appSettings.value("camera/segmentLengthFrames", settings.recRegionSizeFrames).toInt();
+		settings.segments               = appSettings.value("camera/segments", 1).toInt();
+		settings.temporary              = 0;
+	}
 
 	setImagerSettings(settings);
 
@@ -238,19 +271,37 @@ UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 	}
 	else {
 		qDebug() << "--- settings --- saving";
-		appSettings.setValue("camera/hRes",                 imagerSettings.geometry.hRes);
-		appSettings.setValue("camera/vRes",                 imagerSettings.geometry.vRes);
-		appSettings.setValue("camera/hOffset",              imagerSettings.geometry.hOffset);
-		appSettings.setValue("camera/vOffset",              imagerSettings.geometry.vOffset);
-		appSettings.setValue("camera/gain",                 imagerSettings.gain);
-		appSettings.setValue("camera/period",               imagerSettings.period);
-		appSettings.setValue("camera/exposure",             imagerSettings.exposure);
-		appSettings.setValue("camera/recRegionSizeFrames",  imagerSettings.recRegionSizeFrames);
-		appSettings.setValue("camera/disableRingBuffer",    imagerSettings.disableRingBuffer);
-		appSettings.setValue("camera/mode",                 imagerSettings.mode);
-		appSettings.setValue("camera/prerecordFrames",      imagerSettings.prerecordFrames);
-		appSettings.setValue("camera/segmentLengthFrames",  imagerSettings.segmentLengthFrames);
-		appSettings.setValue("camera/segments",             imagerSettings.segments);
+		if (isDbus)
+		{
+			cinst->setResolution(&imagerSettings.geometry);
+			cinst->setInt("currentGain", imagerSettings.gain);
+			cinst->setInt("framePeriod", imagerSettings.period);
+			cinst->setInt("exposurePeriod", imagerSettings.exposure);
+			//TODO cinst->setInt("appSettings.setValue("camera/recRegionSizeFrames",  imagerSettings.recRegionSizeFrames);
+			//TODO cinst->setInt("appSettings.setValue("camera/disableRingBuffer",    imagerSettings.disableRingBuffer);
+			QString modes[] = {"normal", "segmented", "burst"};
+			if (imagerSettings.mode > 3 ) qFatal("imagerSetting mode is FPN");
+			cinst->setString("recMode", modes[imagerSettings.mode]);
+			//TODO - test segment recording
+			//appSettings.setValue("camera/segmentLengthFrames",  imagerSettings.segmentLengthFrames);
+			cinst->setInt("recSegments", imagerSettings.segments);
+		}
+		else
+		{
+			appSettings.setValue("camera/hRes",                 imagerSettings.geometry.hRes);
+			appSettings.setValue("camera/vRes",                 imagerSettings.geometry.vRes);
+			appSettings.setValue("camera/hOffset",              imagerSettings.geometry.hOffset);
+			appSettings.setValue("camera/vOffset",              imagerSettings.geometry.vOffset);
+			appSettings.setValue("camera/gain",                 imagerSettings.gain);
+			appSettings.setValue("camera/period",               imagerSettings.period);
+			appSettings.setValue("camera/exposure",             imagerSettings.exposure);
+			appSettings.setValue("camera/recRegionSizeFrames",  imagerSettings.recRegionSizeFrames);
+			appSettings.setValue("camera/disableRingBuffer",    imagerSettings.disableRingBuffer);
+			appSettings.setValue("camera/mode",                 imagerSettings.mode);
+			appSettings.setValue("camera/prerecordFrames",      imagerSettings.prerecordFrames);
+			appSettings.setValue("camera/segmentLengthFrames",  imagerSettings.segmentLengthFrames);
+			appSettings.setValue("camera/segments",             imagerSettings.segments);
+		}
 	}
 
 	return SUCCESS;

@@ -34,6 +34,8 @@
 #define USE_AUTONAME_FOR_SAVE ""
 #define MIN_FREE_SPACE 20000000
 
+extern bool isDbus;
+
 playbackWindow::playbackWindow(QWidget *parent, Camera * cameraInst, bool autosave) :
 	QWidget(parent),
 	ui(new Ui::playbackWindow)
@@ -228,8 +230,20 @@ void playbackWindow::on_cmdSave_clicked()
 	if(camera->vinst->getStatus(NULL) != VIDEO_STATE_FILESAVE)
 	{
 		save_mode_type format = getSaveFormat();
-		UInt32 hRes = appSettings.value("camera/hRes", MAX_FRAME_SIZE_H).toInt();
-		UInt32 vRes = appSettings.value("camera/vRes", MAX_FRAME_SIZE_V).toInt();
+		UInt32 hRes;
+		UInt32 vRes;
+		if (isDbus)
+		{
+			FrameGeometry frame;
+			camera->cinst->getResolution(&frame);
+			hRes = frame.hRes;
+			vRes = frame.vRes;
+		}
+		else
+		{
+			hRes = appSettings.value("camera/hRes", MAX_FRAME_SIZE_H).toInt();
+			vRes = appSettings.value("camera/vRes", MAX_FRAME_SIZE_V).toInt();
+	}
 
 		//If no directory set, complain to the user
 		if(strlen(camera->vinst->fileDirectory) == 0)

@@ -598,7 +598,7 @@ void testResolutionCamJson(QString *jsonString, FrameGeometry *geometry)
 			exit(1);
 		}
 
-		execl(program_name.c_str(), program_name.c_str(), "testResolution", "-", (char *) 0);
+		execl(program_name.c_str(), program_name.c_str(), "getResolutionTimingLimits", "-", (char *) 0);
 
 		cerr << "Failed to execute " << program_name << endl;
 		exit(1);
