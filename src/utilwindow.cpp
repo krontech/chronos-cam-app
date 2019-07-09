@@ -168,10 +168,14 @@ void UtilWindow::on_cmdSWUpdate_clicked()
 	for(itr = 1; itr <= 4; itr++)
 	{
 		//Look for the update on sda
+		sprintf(location, "/media/sda/camUpdate/update.sh", itr);
+		if((retval = updateSoftware(location)) != CAMERA_FILE_NOT_FOUND) return;
 		sprintf(location, "/media/sda%d/camUpdate/update.sh", itr);
 		if((retval = updateSoftware(location)) != CAMERA_FILE_NOT_FOUND) return;
-		
+
 		//Also look for the update on sdb, as the usb is sometimes mounted there instead of sda
+		sprintf(location, "/media/sdb/camUpdate/update.sh", itr);
+		if((retval = updateSoftware(location)) != CAMERA_FILE_NOT_FOUND) return;
 		sprintf(location, "/media/sdb%d/camUpdate/update.sh", itr);
 		if((retval = updateSoftware(location)) != CAMERA_FILE_NOT_FOUND) return;
 		
