@@ -1160,13 +1160,18 @@ int Camera::getAutoPowerMode(void){
 }
 
 void Camera::setAutoPowerMode(int newSetting){
+	qDebug() << "AutoPowerMode:" << newSetting;
 	QSettings appSettings;
 	autoPowerMode = newSetting;
 	appSettings.setValue("camera/autoPowerMode", newSetting);
-	bool mainsConnectOn = newSetting & 1;
-	bool mainsDisconnectOff = newSetting & 2;
-	cinst->setBool("powerOnWhenMainsConnected", mainsConnectOn);
-	//TODO: cinst->setBool("powerOffWhenMainsDisconnected", mainsDisconnectOff);
+	bool mainsConnectTurnOn = newSetting & 1;
+	bool mainsDisconnectTurnOff = newSetting & 2;
+	cinst->setBool("powerOnWhenMainsConnected", mainsConnectTurnOn);
+	if (mainsDisconnectTurnOff)
+	{
+		cinst->setFloat("saveAndPowerDownLowBatteryLevelPercent", 100.0);
+		cinst->setBool("saveAndPowerDownWhenLowBattery", true);
+	}
 
 }
 

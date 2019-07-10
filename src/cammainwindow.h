@@ -104,6 +104,7 @@ private:
 	Int32 mbTemperature;
 	UInt8 flags;
 	UInt8 fanPWM;
+	bool battPresent;
 
 	bool autoSaveActive;
 };

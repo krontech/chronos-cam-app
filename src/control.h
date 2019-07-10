@@ -220,7 +220,6 @@ signals:
 	void apiSetColorMatrix(QVariant wb);
 	void apiSetResolution(QVariant wb);
 
-
 	void notified(ControlStatus state);
 
 

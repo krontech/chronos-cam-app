@@ -199,7 +199,9 @@ FrameGeometry RecSettingsWindow::getResolution(void)
 void RecSettingsWindow::on_cmdOK_clicked()
 {
 	is->gain = ui->comboGain->currentIndex();
+	double keepMin = is->geometry.minFrameTime;
 	is->geometry = getResolution();
+	is->geometry.minFrameTime = keepMin;
 
 	UInt32 period = camera->sensor->getActualFramePeriod(ui->linePeriod->siText(), &is->geometry);
 	UInt32 intTime = camera->sensor->getActualIntegrationTime(ui->lineExp->siText(), period, &is->geometry);

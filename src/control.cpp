@@ -758,9 +758,14 @@ ControlStatus Control::parseNotification(const QVariantMap &args)
 	{
 		//qDebug() << e << "," << args.value(e);
 
-//int
+//bool
+		if (e == "exposurePercent") {
+			emit apiSetExposurePercent(args.value(e).toDouble()); }
 
-		if (e == "framePeriod") {
+
+
+//int
+		else if (e == "framePeriod") {
 			int period = args.value(e).toInt();
 			emit apiSetFramePeriod(period);
 		}
