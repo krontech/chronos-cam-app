@@ -137,6 +137,7 @@ public:
 	double getCurrentExposureDouble(void);
 	void setSlavePeriod(UInt32 period);
 	void setSlaveExposure(UInt32 exposure);
+	void setHdrExposure(UInt32 exposure, UInt32 period);
 	void setReset(bool reset);
 	void setClkPhase(UInt8 phase);
 	UInt8 getClkPhase(void);

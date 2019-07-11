@@ -38,6 +38,12 @@
 #define LUX1310_LV_DELAY	0x07	/* Linevalid delay to match ADC latency. */
 #define LUX1310_MIN_HBLANK	0x02	/* Minimum horiontal blanking period. */
 
+/* Hack in the HDR recording modes using the new timing block. */
+#define LUX1310_HACK_HDR			1
+#define LUX1310_HDR_T2TIME			17
+#define LUX1310_HDR_PRSTN_DURATION  15
+#define LUX1310_HDR_TXN_DURATION	45
+
 #define round(x) (floor(x + 0.5))
 
 LUX1310::LUX1310()
@@ -94,8 +100,8 @@ CameraErrortype LUX1310::initSensor()
 	writeDACVoltage(VRSTL_VOLTAGE, 0.7);
 	writeDACVoltage(VRSTH_VOLTAGE, 3.6);
 	writeDACVoltage(VDR1_VOLTAGE, 2.5);
-	writeDACVoltage(VDR2_VOLTAGE, 2);
-	writeDACVoltage(VDR3_VOLTAGE, 1.5);
+	writeDACVoltage(VDR2_VOLTAGE, 2.2);
+	writeDACVoltage(VDR3_VOLTAGE, 2.2);
 
 	delayms(10);		//Settling time
 
@@ -376,11 +382,38 @@ CameraErrortype LUX1310::autoPhaseCal(void)
 
 Int32 LUX1310::seqOnOff(bool on)
 {
+#if LUX1310_HACK_HDR
+	if (on) {
+		UInt32 expClocks = ((unsigned long long)currentExposure * LUX1310_SENSOR_CLOCK) / TIMING_CLOCK_FREQ;
+		UInt32 frameClocks = ((unsigned long long)currentPeriod * LUX1310_SENSOR_CLOCK) / TIMING_CLOCK_FREQ;
+		setHdrExposure(expClocks, frameClocks);
+	}
+	else {
+		int timeout;
+
+		/* Wait for the page-swap state to become idle. */
+		for (timeout = 100; timeout > 0; timeout++) {
+			unsigned int state = gpmc->read16(TIMING_STATUS) & TIMING_STATUS_PAGE_SWAP_STATE;
+			if (state == 0x1000) break;
+			delayms(1);
+		}
+
+		/* Load the do-nothing timing program. */
+		gpmc->write32(TIMING_PROGRAM + 0x00, TIMING_OPCODE_NONE  | (int)(LUX1310_SENSOR_CLOCK / 1000));
+		gpmc->write32(TIMING_PROGRAM + 0x04, TIMING_OPCODE_ABN   | TIMING_OPCODE_RESTART);
+
+		/* Request a page-swap from the timing engine. */
+		gpmc->write16(TIMING_CONTROL, TIMING_CONTROL_REQUEST_FLIP);
+
+	}
+	//self.runProgram(prog=[self.NONE + readoutTime, self.NONE | self.TIMING_RESTART], timeout=timeout)
+#else
 	if (on) {
 		gpmc->write32(IMAGER_INT_TIME_ADDR, currentExposure);
 	} else {
 		gpmc->write32(IMAGER_INT_TIME_ADDR, 0);	//Disable integration
 	}
+#endif
 	return SUCCESS;
 }
 
@@ -543,7 +576,7 @@ double LUX1310::setFramePeriod(double period, FrameGeometry *size)
 	period = within(period, minPeriod, maxPeriod);
 	currentPeriod = period * 100000000.0;
 
-	setSlavePeriod(currentPeriod);
+	setHdrExposure(period * LUX1310_SENSOR_CLOCK / 2, period * LUX1310_SENSOR_CLOCK);
 	return period;
 }
 
@@ -635,8 +668,73 @@ void LUX1310::setSlavePeriod(UInt32 period)
 	gpmc->write32(IMAGER_FRAME_PERIOD_ADDR, period);
 }
 
+void LUX1310::setHdrExposure(UInt32 expClocks, UInt32 frameClocks)
+{
+	int timeout;
+
+	/* Compute the three exposure periods. */
+	UInt32 expFirst = expClocks * 0.8;
+	UInt32 expSecond = expClocks * 0.16;
+	UInt32 expThird = expClocks * 0.04;
+	UInt32 abnPeriod = frameClocks - LUX1310_HDR_T2TIME;
+
+	/* Setup the LUX1310 registers for high dynamic range operation. */
+	SCIWrite(0x31, 3);						/* regFtTrigNbPulse = 3 */
+	SCIWrite(0x69, 15 + 45 + 60);			/* regSelVdr1Width = 15 + 45 + 60...  not sure what this means? */
+	SCIWrite(0x6A, expSecond + expThird);	/* regSelVdr2Width = sum of second and third exposure periods. */
+	SCIWrite(0x6B, 0);
+	SCIWrite(0x67, 1);						/* regHidyEn = True */
+
+	/* Wait for the page-swap state to become idle. */
+	for (timeout = 100; timeout > 0; timeout++) {
+		unsigned int state = gpmc->read16(TIMING_STATUS) & TIMING_STATUS_PAGE_SWAP_STATE;
+		if (state == 0x1000) break;
+		delayms(1);
+	}
+
+	/* Compute the ABN-inactive period. */
+	abnPeriod -= expFirst + 15 + LUX1310_HDR_TXN_DURATION;
+	abnPeriod -= expSecond + 60;
+	abnPeriod -= expThird + 15;
+
+	/* Load the 3-slope HDR timing program. */
+	gpmc->write32(TIMING_PROGRAM + 0x00, TIMING_OPCODE_NONE  | LUX1310_HDR_T2TIME);
+	gpmc->write32(TIMING_PROGRAM + 0x04, TIMING_OPCODE_ABN   | abnPeriod);
+	/* First integration */
+	gpmc->write32(TIMING_PROGRAM + 0x08, TIMING_OPCODE_NONE  | (expFirst - 15 - LUX1310_HDR_TXN_DURATION));
+	gpmc->write32(TIMING_PROGRAM + 0x0C, TIMING_OPCODE_PRSTN | 15); /* PRSTN falling to TXN falling */
+	gpmc->write32(TIMING_PROGRAM + 0x10, TIMING_OPCODE_PRSTN | TIMING_OPCODE_TXN | LUX1310_HDR_TXN_DURATION);
+	/* Second integration */
+	gpmc->write32(TIMING_PROGRAM + 0x14, TIMING_OPCODE_PRSTN | 60); /* Hold TXN low for 60 clocks. */
+	gpmc->write32(TIMING_PROGRAM + 0x18, TIMING_OPCODE_PRSTN | TIMING_OPCODE_TXN | (expSecond - 60));
+	/* Third integration */
+	gpmc->write32(TIMING_PROGRAM + 0x1C, TIMING_OPCODE_PRSTN | 15);
+	gpmc->write32(TIMING_PROGRAM + 0x20, TIMING_OPCODE_TXN   | (expThird - 15));
+	gpmc->write32(TIMING_PROGRAM + 0x24, TIMING_OPCODE_NONE  | TIMING_OPCODE_RESTART);
+
+	/* Request a page flip to start the new program. */
+	gpmc->write16(TIMING_CONTROL, TIMING_CONTROL_REQUEST_FLIP);
+	/* Wait for the page-swap state to become idle. */
+	for (timeout = 100; timeout > 0; timeout++) {
+		unsigned int state = gpmc->read16(TIMING_STATUS) & TIMING_STATUS_PAGE_SWAP_STATE;
+		if (state == 0x1000) break;
+	}
+	/* A page flip timeout occured...  try to force a flip instead. */
+	if (!timeout) {
+		gpmc->write16(TIMING_CONTROL, TIMING_CONTROL_REQUEST_FLIP);
+		gpmc->write16(TIMING_CONTROL, TIMING_CONTROL_RESET);
+		gpmc->write16(TIMING_CONTROL, TIMING_CONTROL_REQUEST_FLIP);
+	}
+
+}
+
 void LUX1310::setSlaveExposure(UInt32 exposure)
 {
+#if 1
+	UInt32 expClocks = ((unsigned long long)exposure * LUX1310_SENSOR_CLOCK) / TIMING_CLOCK_FREQ;
+	UInt32 frameClocks = ((unsigned long long)currentPeriod * LUX1310_SENSOR_CLOCK) / TIMING_CLOCK_FREQ;
+	setHdrExposure(expClocks, frameClocks);
+#else
 	//hack to fix line issue. Not perfect, need to properly register this on the sensor clock.
 	double linePeriod = max((currentRes.hRes / LUX1310_HRES_INCREMENT)+2, (wavetableSize + 3)) * 1.0/LUX1310_SENSOR_CLOCK;	//Line period in seconds
 	UInt32 startDelay = (double)startDelaySensorClocks * TIMING_CLOCK_FREQ / LUX1310_SENSOR_CLOCK;
@@ -648,6 +746,7 @@ void LUX1310::setSlaveExposure(UInt32 exposure)
 	//		 << "targetExp" << targetExp << "expLines" << expLines << "exposure" << exposure;
 	gpmc->write32(IMAGER_INT_TIME_ADDR, exposure);
 	currentExposure = exposure;
+#endif
 }
 
 void LUX1310::dumpRegisters(void)
