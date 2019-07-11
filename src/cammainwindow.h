@@ -93,14 +93,14 @@ private:
 	int bmsFifoFD;
 	int windowsAlwaysOpen;
 
-	UInt32 battCapacityPercent;  //Battery data from ENEL4A.c
+	double battCapacityPercent;  //Battery data from ENEL4A.c
 	UInt8 battSOHPercent;
 	UInt32 battVoltage;
 	UInt32 battCurrent;
 	UInt32 battHiResCap;
 	UInt32 battHiResSOC;
-	UInt32 battVoltageCam;
-	Int32 battCurrentCam;
+	double battVoltageCam;
+	double battCurrentCam;
 	Int32 mbTemperature;
 	UInt8 flags;
 	UInt8 fanPWM;

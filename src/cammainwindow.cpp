@@ -474,8 +474,8 @@ void CamMainWindow::on_MainWindowTimer()
 
 	if (!(cnt++ & 63))	//roughly once a second
 	{
-		camera->cinst->getInt("batteryVoltage", &battVoltageCam);
-		camera->cinst->getInt("batteryChargePercent", &battCapacityPercent);
+		camera->cinst->getFloat("batteryVoltage", &battVoltageCam);
+		camera->cinst->getFloat("batteryChargePercent", &battCapacityPercent);
 	}
 
 	if(len > 0)
@@ -592,7 +592,7 @@ void CamMainWindow::updateCurrentSettingsLabel()
 
 	if(flags)	//If battery present
 	{
-		sprintf(battStr, "Batt %d%% %.2fV", (UInt32)battPercent,  (double)battVoltageCam / 1000.0);
+		sprintf(battStr, "Batt %d%% %.2fV", (UInt32)battPercent,  (double)battVoltageCam);
 	}
 	else
 	{
