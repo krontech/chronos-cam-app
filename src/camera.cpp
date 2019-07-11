@@ -820,6 +820,7 @@ void Camera::computeFPNCorrection(FrameGeometry *geometry, UInt32 wordAddress, U
 {
 	UInt32 pixelsPerFrame = geometry->pixels();
 	const char *formatStr;
+	char str_removeUserFPNFile[500];
 	QString filename;
 	std::string fn;
 	QFile fp;
@@ -842,6 +843,7 @@ void Camera::computeFPNCorrection(FrameGeometry *geometry, UInt32 wordAddress, U
 		qDebug("Writing FPN to file %s", filename.toUtf8().data());
 
 		fp.setFileName(filename);
+
 		fp.open(QIODevice::WriteOnly);
 		if(!fp.isOpen())
 		{
@@ -885,6 +887,12 @@ void Camera::computeFPNCorrection(FrameGeometry *geometry, UInt32 wordAddress, U
 		retVal = fp.write((const char*)fpnBuffer, sizeof(fpnBuffer[0])*pixelsPerFrame);
 		if (retVal != (sizeof(fpnBuffer[0])*pixelsPerFrame)) {
 			qDebug("Error writing FPN data to file: %s", fp.errorString().toUtf8().data());
+		}
+		else if (factory) {
+			/*If factory black cal successfully written, delete the user-made black cal
+			 * so that that doesn't get chosen over the new factory black cal*/
+			sprintf(str_removeUserFPNFile, "rm userFPN/fpn_%dx%doff%dx%d%s", geometry->hRes, geometry->vRes, geometry->hOffset, geometry->vOffset, fn.c_str());
+			system(str_removeUserFPNFile);
 		}
 		fp.flush();
 		fp.close();
