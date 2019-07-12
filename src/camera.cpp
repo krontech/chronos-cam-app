@@ -1167,12 +1167,7 @@ void Camera::setAutoPowerMode(int newSetting){
 	bool mainsConnectTurnOn = newSetting & 1;
 	bool mainsDisconnectTurnOff = newSetting & 2;
 	cinst->setBool("powerOnWhenMainsConnected", mainsConnectTurnOn);
-	if (mainsDisconnectTurnOff)
-	{
-		cinst->setFloat("saveAndPowerDownLowBatteryLevelPercent", 100.0);
-		cinst->setBool("saveAndPowerDownWhenLowBattery", true);
-	}
-
+	cinst->setBool("powerOffWhenMainsDisconnected", mainsDisconnectTurnOff);
 }
 
 int Camera::getAutoSavePercent(void){
@@ -1209,7 +1204,7 @@ void Camera::setShippingMode(int newSetting){
 	QSettings appSettings;
 	shippingMode = newSetting;
 	appSettings.setValue("camera/shippingMode", newSetting);
-	//TODO: cinst->setBool("shippingMode", arg1);
+	cinst->setBool("shippingMode", newSetting);
 }
 
 

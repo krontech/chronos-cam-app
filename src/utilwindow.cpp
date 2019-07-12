@@ -1095,17 +1095,6 @@ void UtilWindow::on_comboDisableUnsavedWarning_currentIndexChanged(int index)
 void UtilWindow::on_comboAutoPowerMode_currentIndexChanged(int index)
 {
 	camera->setAutoPowerMode(index);
-	bool mainsDisconnectTurnOff = index & 2;
-	if (mainsDisconnectTurnOff)
-	{
-		ui->chkAutoSavePercent->setChecked(true);
-		ui->spinAutoSavePercent->setValue(100);
-
-		camera->cinst->setFloat("saveAndPowerDownLowBatteryLevelPercent", 100.0);
-		camera->cinst->setBool("saveAndPowerDownWhenLowBattery", true);
-
-	}
-
 }
 
 void UtilWindow::on_tabWidget_currentChanged(int index)

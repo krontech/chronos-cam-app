@@ -468,9 +468,7 @@ void CamMainWindow::on_MainWindowTimer()
 	//If new data comes in from the BMS, get the battery SOC and updates the info label
 	//len = read(bmsFifoFD, buf, 300);
 
-	len = 0;
-
-	if (debugDbus) cnt = 35;	//fewer Dbus calls
+	//if (debugDbus) cnt = 35;	//fewer Dbus calls
 
 	if (!(cnt++ & 63))	//roughly once a second
 	{
@@ -478,23 +476,6 @@ void CamMainWindow::on_MainWindowTimer()
 		camera->cinst->getFloat("batteryChargePercent", &battCapacityPercent);
 	}
 
-	if(len > 0)
-	{
-		sscanf(buf, "battCapacityPercent %hhu\nbattSOHPercent %hhu\nbattVoltage %u\nbattCurrent %u\nbattHiResCap %u\nbattHiResSOC %u\n"
-			   "battVoltageCam %u\nbattCurrentCam %d\nmbTemperature %d\nflags %hhu\nfanPWM %hhu",
-			   &battCapacityPercent,
-			   &battSOHPercent,
-			   &battVoltage,
-			   &battCurrent,
-			   &battHiResCap,
-			   &battHiResSOC,
-			   &battVoltageCam,
-			   &battCurrentCam,
-			   &mbTemperature,
-			   &flags,
-			   &fanPWM);
-
-	}
 	updateCurrentSettingsLabel();
 
 	if (appSettings.value("debug/hideDebug", true).toBool()) {
