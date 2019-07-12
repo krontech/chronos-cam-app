@@ -30,6 +30,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <time.h>
+#include <signal.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/mount.h>
@@ -1155,7 +1156,12 @@ void UtilWindow::on_cmdRestoreSettings_clicked()
 	if(QMessageBox::Yes != reply)
 		return;
 
-	system("killall camApp && /etc/init.d/camera restart");
+	if (fork() == 0) {
+		setsid();
+		kill(getppid(), SIGTERM);
+		system("/etc/init.d/camera start");
+		exit(0);
+	}
 }
 
 
