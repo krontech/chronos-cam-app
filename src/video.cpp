@@ -48,8 +48,15 @@ bool Video::setRunning(bool run)
 			execlp(path, path, display, "--offset", offset, NULL);
 			exit(EXIT_FAILURE);
 		}
+		/* Wait up to a second for the service to become valid. */
+		for (int i = 0; i < 10; i++) {
+			if (iface.isValid()) {
+				break;
+			}
+			delayms(100);
+		}
 		pid = child;
-		running = true;
+		running = iface.isValid();
 	}
 	else if(running && !run) {
 		int status;

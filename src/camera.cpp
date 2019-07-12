@@ -2640,8 +2640,6 @@ Int32 Camera::blackCalAllStdRes(bool factory, QProgressDialog *dialog)
 	QString filename;
 	QString line;
 
-	vinst->setRunning(false);
-
 	filename.append("camApp:resolutions");
 	QFileInfo resolutionsFile(filename);
 	if (resolutionsFile.exists() && resolutionsFile.isFile()) {
@@ -2702,6 +2700,9 @@ Int32 Camera::blackCalAllStdRes(bool factory, QProgressDialog *dialog)
 		dialog->setAutoClose(false);
 		dialog->setAutoReset(false);
 	}
+
+	/* Disable the video port during calibration. */
+	vinst->pauseDisplay();
 
 	//For each gain
 	int progress = 0;
@@ -2810,6 +2811,7 @@ exit_calibration:
 	settings.exposure = sensor->getMaxExposure(settings.period);
 
 	retVal = setImagerSettings(settings);
+	vinst->liveDisplay();
 	if(SUCCESS != retVal) {
 		qDebug("blackCalAllStdRes: Error during setImagerSettings %d", retVal);
 		return retVal;
@@ -2820,8 +2822,6 @@ exit_calibration:
 		qDebug("blackCalAllStdRes: Error during loadFPNFromFile %d", retVal);
 		return retVal;
 	}
-
-	vinst->setRunning(true);
 
 	return SUCCESS;
 }
