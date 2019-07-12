@@ -10,7 +10,7 @@ Package: $${DEBPACKAGE}
 Architecture: armel
 Depends: ${shlibs:Depends}, ${misc:Depends},
          libqt4-chronos (>= $${QT_VERSION}),
-         chronos-upower,
+         chronos-pwrutil,
          chronos-video,
 	 dosfstools
 Description: User Interface for the Chronos Camera
