@@ -492,8 +492,9 @@ UInt32 LUX1310::getMinFramePeriod(FrameGeometry *frameSize, UInt32 wtSize)
 	unsigned int tFrame = tRow * (frameSize->vRes + frameSize->vDarkRows) + tTx + tFovf + tFovfb - LUX1310_MIN_HBLANK;
 
 	/* Convert from 90MHz sensor clocks to 100MHz FPGA clocks. */
-	qDebug() << "getMinFramePeriod:" << tFrame;
-	return ceil(tFrame * 100 / 90);
+	unsigned int value = ceil(tFrame * 100 / 90);
+	qDebug("getMinFramePeriod(%u) = %u", wtSize, value);
+	return value;
 }
 
 double LUX1310::getMinMasterFramePeriod(FrameGeometry *frameSize)
@@ -541,7 +542,7 @@ double LUX1310::setFramePeriod(double period, FrameGeometry *size)
 	double maxPeriod = LUX1310_MAX_SLAVE_PERIOD / 100000000.0;
 
 	period = within(period, minPeriod, maxPeriod);
-	currentPeriod = period * 100000000.0;
+	currentPeriod = floor((period * 100000000.0) + 0.5);
 
 	setSlavePeriod(currentPeriod);
 	return period;
