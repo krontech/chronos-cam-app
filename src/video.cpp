@@ -48,15 +48,12 @@ bool Video::setRunning(bool run)
 			execlp(path, path, display, "--offset", offset, NULL);
 			exit(EXIT_FAILURE);
 		}
-		/* Wait up to a second for the service to become valid. */
-		for (int i = 0; i < 10; i++) {
-			if (iface.isValid()) {
-				break;
-			}
+		/* Delay for up to a second for the video system to start. */
+		for (int i = 0; i < 10 && !running; i++) {
+			QCoreApplication::processEvents();
 			delayms(100);
 		}
 		pid = child;
-		running = iface.isValid();
 	}
 	else if(running && !run) {
 		int status;
@@ -470,6 +467,24 @@ void Video::segment(const QVariantMap &args)
 	emit newSegment(parseVideoStatus(args, &st));
 }
 
+void Video::serviceOwnerChanged(const QString &name, const QString &oldOwner, const QString &newOwner)
+{
+	Q_UNUSED(oldOwner);
+	if (name == "ca.krontech.chronos.video")
+	{
+		if (!newOwner.isEmpty())
+		{
+			qDebug() << "Video service started by" << newOwner;
+			running = true;
+		}
+		else
+		{
+			qDebug() << "Video service terminated";
+			running = false;
+		}
+	}
+}
+
 Video::Video() : iface("ca.krontech.chronos.video", "/ca/krontech/chronos/video", QDBusConnection::systemBus())
 {
 	QDBusConnection conn = iface.connection();
@@ -510,6 +525,11 @@ Video::Video() : iface("ca.krontech.chronos.video", "/ca/krontech/chronos/video"
 				 "eof", this, SLOT(eof(const QVariantMap&)));
 	conn.connect("ca.krontech.chronos.video", "/ca/krontech/chronos/video", "ca.krontech.chronos.video",
 				 "segment", this, SLOT(segment(const QVariantMap&)));
+
+	/* Monitor the state of the video service */
+	connect(QDBusConnection::systemBus().interface(),
+			SIGNAL(serviceOwnerChanged(QString,QString,QString)),
+			this,SLOT(serviceOwnerChanged(QString,QString,QString)));
 }
 
 Video::~Video()

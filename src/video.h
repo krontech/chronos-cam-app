@@ -161,6 +161,7 @@ private slots:
 	void sof(const QVariantMap &args);
 	void eof(const QVariantMap &args);
 	void segment(const QVariantMap &args);
+	void serviceOwnerChanged(const QString &name, const QString &oldOwner, const QString &newOwner);
 };
 
 #endif // VIDEO_H
