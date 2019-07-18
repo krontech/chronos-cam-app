@@ -101,7 +101,7 @@ void IOSettingsWindow::setIoSettings()
 	QVariantMap andConfig;
 	QVariantMap xorConfig;
 
-	QVariantMap stopConfig;
+	QVariantMap triggerConfig;
 	QVariantMap shutterConfig;
 
 	QVariantMap io1config;
@@ -136,7 +136,7 @@ void IOSettingsWindow::setIoSettings()
 	andConfig.insert("source", QVariant("alwaysHigh"));
 	xorConfig.insert("source", QVariant("none"));
 
-	stopConfig.insert("source", QVariant("none"));
+	triggerConfig.insert("source", QVariant("none"));
 	shutterConfig.insert("shutter", QVariant("none"));
 
 	/* Prepare the combinatorial block for recording end trigger. */
@@ -144,12 +144,12 @@ void IOSettingsWindow::setIoSettings()
 		if (ui->radioIO1TrigIn->isChecked()) setIoConfig1(orConfig[0]);
 		if (ui->radioIO2TrigIn->isChecked()) setIoConfig2(orConfig[1]);
 		if (ui->chkIO3TriggerInEn->isChecked()) setIoConfig3(orConfig[2]);
-		stopConfig.insert("source", QVariant("comb"));
+		triggerConfig.insert("source", QVariant("comb"));
 	}
 	/* Otherwise directly connect the recording end trigger. */
-	else if (ui->radioIO1TrigIn->isChecked()) setIoConfig1(stopConfig);
-	else if (ui->radioIO2TrigIn->isChecked()) setIoConfig2(stopConfig);
-	else if (ui->chkIO3TriggerInEn->isChecked()) setIoConfig3(stopConfig);
+	else if (ui->radioIO1TrigIn->isChecked()) setIoConfig1(triggerConfig);
+	else if (ui->radioIO2TrigIn->isChecked()) setIoConfig2(triggerConfig);
+	else if (ui->chkIO3TriggerInEn->isChecked()) setIoConfig3(triggerConfig);
 
 	/* Prepare the combinatorial block for exposure trigger and/or shutter gating. */
 	if ((nExpTrig + nShGate) > 1) {
@@ -190,7 +190,7 @@ void IOSettingsWindow::setIoSettings()
 	values.insert("ioMappingCombOr3", QVariant(orConfig[2]));
 	values.insert("ioMappingCombAnd", QVariant(andConfig));
 	values.insert("ioMappingCombXor", QVariant(xorConfig));
-	values.insert("ioMappingStopRec", QVariant(stopConfig));
+	values.insert("ioMappingTrigger", QVariant(triggerConfig));
 	values.insert("ioMappingShutter", QVariant(shutterConfig));
 	values.insert("ioMappingIo1", QVariant(io1config));
 	values.insert("ioMappingIo2", QVariant(io2config));
@@ -252,7 +252,7 @@ void IOSettingsWindow::getIoSettings()
 		"ioMappingCombOr1",
 		"ioMappingCombOr2",
 		"ioMappingCombOr3",
-		"ioMappingStopRec",
+		"ioMappingTrigger",
 		"ioMappingShutter",
 		"ioMappingIo1",
 		"ioMappingIo2",
@@ -262,7 +262,7 @@ void IOSettingsWindow::getIoSettings()
 	};
 
 	QVariantMap orConfig[3];
-	QVariantMap stopConfig;
+	QVariantMap triggerConfig;
 	QVariantMap shutterConfig;
 
 	QVariantMap io1config;
@@ -277,7 +277,7 @@ void IOSettingsWindow::getIoSettings()
 	ioMapping["ioMappingCombOr1"].value<QDBusArgument>() >> orConfig[0];
 	ioMapping["ioMappingCombOr2"].value<QDBusArgument>() >> orConfig[1];
 	ioMapping["ioMappingCombOr3"].value<QDBusArgument>() >> orConfig[2];
-	ioMapping["ioMappingStopRec"].value<QDBusArgument>() >> stopConfig;
+	ioMapping["ioMappingTrigger"].value<QDBusArgument>() >> triggerConfig;
 	ioMapping["ioMappingShutter"].value<QDBusArgument>() >> shutterConfig;
 
 	ioMapping["ioMappingIo1"].value<QDBusArgument>() >> io1config;
@@ -301,12 +301,12 @@ void IOSettingsWindow::getIoSettings()
 	ui->radioIO1None->setChecked(true);
 	ui->radioIO2None->setChecked(true);
 	ui->chkIO3TriggerInEn->setChecked(false);
-	if (stopConfig["source"].toString() == "comb") {
+	if (triggerConfig["source"].toString() == "comb") {
 		getIoTriggerConfig(orConfig[0]);
 		getIoTriggerConfig(orConfig[1]);
 		getIoTriggerConfig(orConfig[2]);
 	} else {
-		getIoTriggerConfig(stopConfig);
+		getIoTriggerConfig(triggerConfig);
 	}
 
 	/* Load the exposure trigger or shutter gating configuration. */

@@ -9,9 +9,6 @@ void parseJsonArray(QString parameter, QString jsonString, uint32_t size, double
 void parseJsonResolution(QString jsonString, FrameGeometry *geometry);
 void buildJsonResolution(QString *jsonString, FrameGeometry *geometry);
 void buildJsonCalibration(QString *jsonString, QString calType);
-void parseJsonIoSettings(QString jsonString);
-void buildJsonIoSettings(QString jsonString);
-void buildJsonIo(QString *jsonString);
 void buildJsonArray(QString parameter, QString *jsonString, UInt32 size, double *values);
 void startRecordingCamJson( QString *jsonString);
 void stopRecordingCamJson( QString *jsonString);
