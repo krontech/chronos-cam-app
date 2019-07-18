@@ -46,7 +46,7 @@ void triggerDelayWindow::on_cmdOK_clicked()
     camera->setTriggerDelayValues((double)ui->spinPostFrames->value() / recLenFrames,
                                   ui->spinPostSeconds->value(),
 						    ui->spinPostFrames->value());
-    camera->io->setTriggerDelayFrames(ui->spinPostFrames->value());
+	camera->setTriggerDelayFrames(ui->spinPostFrames->value());
     camera->maxPostFramesRatio = ui->horizontalSlider->maximum() / (double)max(recLenFrames, ui->horizontalSlider->value());
     close();
 }

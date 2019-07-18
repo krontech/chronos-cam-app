@@ -27,7 +27,6 @@
 #include "control.h"
 #include "sensor.h"
 #include "userInterface.h"
-#include "io.h"
 #include "string.h"
 #include "types.h"
 
@@ -184,7 +183,6 @@ public:
     Control * cinst;
 	ImageSensor * sensor;
 	UserInterface * ui;
-	IO * io;
 
 	RecordSettings_t recordingData;
 	ImagerSettings_t getImagerSettings() { return imagerSettings; }
@@ -230,6 +228,9 @@ public:
 	void setFocusAid(bool enable);
 	bool getFocusAid();
 	int blackCalAllStdRes(bool factory = false);
+
+	void setBncDriveLevel(UInt32 level);
+	void setTriggerDelayFrames(UInt32 delayFrames);
 
 	bool getFocusPeakEnable(void);
 	void setFocusPeakEnable(bool en);

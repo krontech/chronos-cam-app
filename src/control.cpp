@@ -401,15 +401,6 @@ CameraErrortype Control::getResolution(FrameGeometry *geometry)
 	}
 }
 
-CameraErrortype Control::getIoSettings(void)
-{
-	QString jsonString;
-	getCamJson("ioMapping", &jsonString);
-	qDebug() << jsonString;
-
-	parseJsonIoSettings(jsonString);
-}
-
 CameraErrortype Control::setResolution(FrameGeometry *geometry)
 {
 	QString jsonString;
@@ -432,31 +423,10 @@ CameraErrortype Control::setArray(QString parameter, UInt32 size, double *values
 	setCamJson(jsonString);
 }
 
-CameraErrortype Control::setIoSettings(void)
-{
-	QVariantMap ioGroup;
-	QVariantMap ioStart;
-	QVariantMap io1In;
-	QVariantMap io2In;
-
-	ioStart.insert("source", "none");
-	ioStart.insert("debounce", QVariant(false));
-	ioStart.insert("invert", QVariant(false));
-
-	io1In.insert("threshold", QVariant(pychIo1Threshold));
-	io2In.insert("threshold", QVariant(pychIo2Threshold));
-
-	ioGroup.insert("start", QVariant(ioStart));
-	ioGroup.insert("io1In", QVariant(io1In));
-	ioGroup.insert("io2In", QVariant(io2In));
-
-	return setProperty("ioMapping", ioGroup);
-}
-
 CameraErrortype Control::setWbMatrix(void)
 {
 	QString jsonString;
-	buildJsonIo(&jsonString);
+	qDebug("FIXME: Setting wbMatrix is not implemented!");
 }
 
 CameraErrortype Control::startRecording(void)

@@ -76,7 +76,6 @@ SOURCES += main.cpp\
     savesettingswindow.cpp \
     userInterface.cpp \
     siText.c \
-    io.cpp \
     iosettingswindow.cpp \
     camLineEdit.cpp \
     camspinbox.cpp \
@@ -133,7 +132,6 @@ HEADERS  += mainwindow.h \
     savesettingswindow.h \
     userInterface.h \
     siText.h \
-    io.h \
     iosettingswindow.h \
     camLineEdit.h \
     camspinbox.h \

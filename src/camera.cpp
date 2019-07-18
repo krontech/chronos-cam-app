@@ -126,11 +126,6 @@ CameraErrortype Camera::init(Video * vinstInst, Control * cinstInst, ImageSensor
 
 	err = pthread_create(&recDataThreadID, NULL, &recDataThread, this);
 
-	io = new IO();
-	retVal = io->init();
-	if(retVal != SUCCESS)
-		return retVal;
-
 	/* Load default recording from sensor limits. */
 
 	imagerSettings.geometry = sensor->getMaxGeometry();
@@ -242,11 +237,6 @@ UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 	sensor->setIntegrationTime(settings.exposure, &settings.geometry);
 
 	memcpy(&imagerSettings, &settings, sizeof(settings));
-
-	//Zero trigger delay for Gated Burst
-	if(settings.mode == RECORD_MODE_GATED_BURST) {
-		io->setTriggerDelayFrames(0, FLAG_TEMPORARY);
-	}
 
 	UInt32 maxRecRegionSize = getMaxRecordRegionSizeFrames(&imagerSettings.geometry);
 	if(settings.recRegionSizeFrames > maxRecRegionSize) {
@@ -450,9 +440,6 @@ Int32 Camera::startRecording(void)
 	//cinst->setArray("wbMatrix", 3, (double *)&testArray);
 	//cinst->setArray("colorMatrix", 9, (double *)&testArray);
 
-
-	//cinst->getIoSettings();
-	//cinst->setIoSettings();
 
 	//cinst->getResolution(&geometry);
 	//cinst->getString("cameraDescription", &str);
@@ -689,6 +676,23 @@ UInt32 Camera::setPlayMode(bool playMode)
 	return SUCCESS;
 }
 
+
+void Camera::setTriggerDelayFrames(UInt32 delayFrames)
+{
+	qDebug("FIXME! setTriggerDelayFrames is not implemented!");
+}
+
+void Camera::setBncDriveLevel(UInt32 level)
+{
+	QVariantMap config;
+
+	config.insert("driveStrength", QVariant(level ? 3 : 0));
+	config.insert("debounce", QVariant(true));
+	config.insert("invert", QVariant(false));
+	config.insert("source", QVariant("alwaysHigh"));
+
+	cinst->setProperty("ioMappingIo1", config);
+}
 
 Int32 Camera::autoColGainCorrection(void)
 {

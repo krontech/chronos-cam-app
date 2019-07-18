@@ -651,7 +651,7 @@ void CamMainWindow::on_cmdDPCButton_clicked()
 	char text[100];
 	Int32 retVal = SUCCESS;
 	int resultCount, resultMax;
-	camera->io->setOutLevel((1 << 1));	//Turn on output drive
+	camera->setBncDriveLevel((1 << 1));	//Turn on output drive
 
 	//retVal = camera->checkForDeadPixels(&resultCount, &resultMax);
 	//TODO: add this function to Pychronos

@@ -120,8 +120,6 @@ public:
 	CameraErrortype getBool(QString parameter, bool *value);
 	CameraErrortype getArray(QString parameter, UInt32 size, double *values);
 	CameraErrortype getResolution(FrameGeometry *geometry);
-	CameraErrortype getIoSettings(void);
-	CameraErrortype setIoSettings(void);
 
 	CameraErrortype setInt(QString parameter, UInt32 value);
 	CameraErrortype setString(QString parameter, QString str);

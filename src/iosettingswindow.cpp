@@ -32,7 +32,7 @@ IOSettingsWindow::IOSettingsWindow(QWidget *parent, Camera * cameraInst) :
 
 	getIoSettings();
 
-	lastIn = camera->io->getIn();
+	lastIn = getIoLevels();
 
 	timer = new QTimer(this);
 	connect(timer, SIGNAL(timeout()), this, SLOT(on_updateTimer()));
@@ -48,22 +48,20 @@ IOSettingsWindow::~IOSettingsWindow()
 
 void IOSettingsWindow::on_updateTimer()
 {
-	if(camera->io->getIn() != lastIn)
+	UInt32 nextIn = getIoLevels();
+	if(nextIn != lastIn)
 	{
+		lastIn = nextIn;
 		updateIO();
-		lastIn = camera->io->getIn();
 	}
 }
 
 void IOSettingsWindow::updateIO()
 {
 	char str[100];
-	UInt32 input = camera->io->getIn();
-
-	sprintf(str, "IO1: %s\r\nIO2: %s\r\nIn3: %s", input & (1 << 0) ? "Hi" : "Lo",
-												input & (1 << 1) ? "Hi" : "Lo",
-												input & (1 << 2) ? "Hi" : "Lo");
-
+	sprintf(str, "IO1: %s\r\nIO2: %s\r\nIn3: %s", lastIn & (1 << 0) ? "Hi" : "Lo",
+												lastIn & (1 << 1) ? "Hi" : "Lo",
+												lastIn & (1 << 2) ? "Hi" : "Lo");
 	ui->lblStatus->setText(str);
 }
 
@@ -179,11 +177,11 @@ void IOSettingsWindow::setIoSettings()
 	/* Configure the IO output drivers. */
 	io1config.insert("invert", QVariant(ui->chkIO1InvertOut->isChecked()));
 	io1config.insert("driveStrength", QVariant(io1pull));
-	io1config.insert("source", QVariant(ui->radioIO1FSOut->isChecked() ? "timingIo" : "none"));
+	io1config.insert("source", QVariant(ui->radioIO1FSOut->isChecked() ? "timingIo" : "alwaysHigh"));
 	io1thresh.insert("threshold", QVariant(ui->spinIO1Thresh->value()));
 	io2config.insert("invert", QVariant(ui->chkIO2InvertOut->isChecked()));
 	io2config.insert("driveStrength", QVariant(io2pull));
-	io2config.insert("source", QVariant(ui->radioIO2FSOut->isChecked() ? "timingIo" : "none"));
+	io2config.insert("source", QVariant(ui->radioIO2FSOut->isChecked() ? "timingIo" : "alwaysHigh"));
 	io2thresh.insert("threshold", QVariant(ui->spinIO2Thresh->value()));
 
 	/* Load up the IO mapping configuration */
@@ -320,6 +318,22 @@ void IOSettingsWindow::getIoSettings()
 	} else {
 		getIoShutterConfig(shutterConfig, ioMapping["exposureMode"].toString());
 	}
+}
+
+UInt32 IOSettingsWindow::getIoLevels(void)
+{
+	QStringList names = {
+		"ioStatusSourceIo1",
+		"ioStatusSourceIo2",
+		"ioStatusSourceIo3"
+	};
+	QVariantMap ioLevelMap = camera->cinst->getPropertyGroup(names);
+	UInt32 ioLevelBitmap = 0;
+
+	if (ioLevelMap["ioStatusSourceIo1"].toBool()) ioLevelBitmap |= (1 << 0);
+	if (ioLevelMap["ioStatusSourceIo2"].toBool()) ioLevelBitmap |= (1 << 1);
+	if (ioLevelMap["ioStatusSourceIo3"].toBool()) ioLevelBitmap |= (1 << 2);
+	return ioLevelBitmap;
 }
 
 void IOSettingsWindow::on_cmdApply_clicked()

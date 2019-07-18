@@ -9,49 +9,8 @@
 #include "qjson4/QJsonObject.h"
 #include "qjson4/QJsonArray.h"
 #include "frameGeometry.h"
-#include "io.h"
 
 using namespace std;
-
-
-
-void parseJsonIoSettings(QString jsonString)
-{
-	//build JSON document d
-	QJsonDocument d = QJsonDocument::fromJson(jsonString.toUtf8());
-
-	QJsonObject qjo= d.object();
-
-	QVariantMap root_map = qjo.toVariantMap();
-	QVariantMap io_map = root_map["ioMapping"].toMap();
-
-	QVariantMap item_map;
-
-	// start
-	item_map = io_map["start"].toMap();
-	QString startSource = item_map["source"].toString();
-	bool startDebounce = item_map["debounce"].toInt();
-	bool startInvert = item_map["invert"].toInt();
-	qDebug() << "start:" << startSource << startDebounce << startInvert;
-
-	// io1
-	item_map = io_map["io1In"].toMap();
-	pychIo1Threshold = item_map["threshold"].toDouble();
-	qDebug() << "io 1:" << pychIo1Threshold;
-
-	// io2
-	item_map = io_map["io2In"].toMap();
-	pychIo2Threshold = item_map["threshold"].toDouble();
-	qDebug() << "io 1:" << pychIo2Threshold;
-
-	// delay
-	item_map = io_map["delay"].toMap();
-	UInt32 delayTime = item_map["delayTime"].toInt();
-	QString delaySource = item_map["source"].toString();
-	bool delayDebounce = item_map["debounce"].toInt();
-	bool delayInvert = item_map["invert"].toInt();
-	qDebug() << "delay:" << delaySource << delayTime << delayDebounce << delayInvert;
-}
 
 void parseJsonResolution(QString jsonString, FrameGeometry *geometry)
 {
@@ -133,25 +92,6 @@ void buildJsonArray(QString parameter, QString *jsonString, UInt32 size, double 
 	}
 	jsonString->append("\n   ]\n}");
 }
-
-void buildJsonIo(QString *jsonString)
-{
-	jsonString->append("{\n   \"ioMapping\": {");
-	jsonString->append("\n      \"start\": {");
-	jsonString->append("\n         \"source\": none");
-	jsonString->append(",\n         \"debounce\": " + QString::number(0));
-	jsonString->append(",\n         \"invert\": " + QString::number(0));
-	jsonString->append("\n      },");
-	jsonString->append(",\n      \"io1In\": {");
-	jsonString->append("\n         \"threshold\": " + QString::number(pychIo1Threshold));
-	jsonString->append("\n      },");
-	jsonString->append(",\n      \"io2In\": {");
-	jsonString->append("\n         \"threshold\": " + QString::number(pychIo2Threshold));
-	jsonString->append("\n      },");
-	jsonString->append("\n   }\n}");
-}
-
-
 
 void parseJsonArray(QString parameter, QString jsonString, uint32_t size, double *values)
 {
