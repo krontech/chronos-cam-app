@@ -92,7 +92,6 @@ public Q_SLOTS: // METHODS
 
 	inline QDBusPendingReply<QVariantMap> status()
 	{
-		//qDebug("####### PendingReply status()");
 		QList<QVariant> argumentList;
 		return asyncCallWithArgumentList(QLatin1String("status"), argumentList);
 	}

@@ -403,10 +403,16 @@ CameraErrortype Control::getResolution(FrameGeometry *geometry)
 
 CameraErrortype Control::setResolution(FrameGeometry *geometry)
 {
-	QString jsonString;
+	QVariantMap resolution;
+	resolution.insert("hRes", QVariant(geometry->hRes));
+	resolution.insert("vRes", QVariant(geometry->vRes));
+	resolution.insert("hOffset", QVariant(geometry->hOffset));
+	resolution.insert("vOffset", QVariant(geometry->vOffset));
+	resolution.insert("vDarkRows", QVariant(geometry->vDarkRows));
+	resolution.insert("bitDepth", QVariant(geometry->bitDepth));
+	resolution.insert("minFrameTime", QVariant(geometry->minFrameTime));
 
-	buildJsonResolution(&jsonString, geometry);
-	setCamJson(jsonString);
+	return setProperty("resolution", QVariant(resolution));
 }
 
 CameraErrortype Control::getArray(QString parameter, UInt32 size, double *values)
@@ -449,13 +455,12 @@ CameraErrortype Control::startRecording(void)
 
 CameraErrortype Control::stopRecording(void)
 {
-	QVariantMap args;
 	QDBusPendingReply<QVariantMap> reply;
 
 	qDebug("stopRecording");
 
 	pthread_mutex_lock(&mutex);
-	reply = iface.stopRecording(args);
+	reply = iface.stopRecording();
 	reply.waitForFinished();
 	pthread_mutex_unlock(&mutex);
 

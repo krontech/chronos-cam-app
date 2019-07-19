@@ -129,7 +129,6 @@ public:
 	void disableAnalogTestMode(void);
 	void setAnalogTestVoltage(unsigned int);
 	void setADCOffset(UInt8 channel, Int16 offset);
-	std::string getFilename(const char * filename, const char * extension);
 
 	Int32 setGain(UInt32 gainSetting);
 	UInt32 currentPeriod;		//moved to public for PyChronos
@@ -142,40 +141,8 @@ public:
 	double getCurrentExposureDouble();
 	double getCurrentExposureAngle();
 
-
-
-
 private:
-	CameraErrortype initSensor();
-	CameraErrortype autoPhaseCal(void);
-	UInt32 getDataCorrect(void);
-	void setSyncToken(UInt16 token);
-
-	UInt32 getMinWavetablePeriod(FrameGeometry *frameSize, UInt32 wtSize);
-
-	void setSlaveExposure(UInt32 exposure);
-	void setReset(bool reset);
-	void setClkPhase(UInt8 phase);
-	UInt8 getClkPhase(void);
-	void initDAC();
-	void writeDAC(UInt16 data, UInt8 channel);
-	void writeDACVoltage(UInt8 channel, float voltage);
-	int writeDACSPI(UInt16 data);
-	void setDACCS(bool on);
-	bool SCIWrite(UInt8 address, UInt16 data, bool readback = false);
-	void SCIWriteBuf(UInt8 address, const UInt8 * data, UInt32 dataLen);
-	UInt16 SCIRead(UInt8 address);
-	void updateWavetableSetting(bool gainCalMode);
-
-
 	FrameGeometry currentRes;
-	Int32 dacCSFD;
-	UInt32 wavetableSize;
-	UInt32 gain;
-	UInt32 startDelaySensorClocks;
-	UInt32 sensorVersion;
-
-
 };
 
 #endif // PYSENSOR_H

@@ -41,23 +41,19 @@ public Q_SLOTS: // METHODS
 	inline QDBusPendingReply<QVariantMap> startRecording(const QVariantMap &args)
 	{
 		QList<QVariant> argumentList;
-		qDebug() << "startRecording";
 		argumentList << qVariantFromValue(args);
 		return asyncCallWithArgumentList(QLatin1String("startRecording"), argumentList);
 	}
 
-	inline QDBusPendingReply<QVariantMap> stopRecording(const QVariantMap &args)
+	inline QDBusPendingReply<QVariantMap> stopRecording()
 	{
 		QList<QVariant> argumentList;
-		qDebug() << "stopRecording ";
-		argumentList << qVariantFromValue(args);
 		return asyncCallWithArgumentList(QLatin1String("stopRecording"), argumentList);
 	}
 
 	inline QDBusPendingReply<QVariantMap> testResolution(const QVariantMap &args)
 	{
 		QList<QVariant> argumentList;
-		qDebug() << "testResolution";
 		argumentList << qVariantFromValue(args);
 		return asyncCallWithArgumentList(QLatin1String("getResolutionTimingLimits"), argumentList);
 	}
@@ -65,7 +61,6 @@ public Q_SLOTS: // METHODS
 	inline QDBusPendingReply<QVariantMap> doReset(const QVariantMap &args)
 	{
 		QList<QVariant> argumentList;
-		qDebug() << "doReset";
 		argumentList << qVariantFromValue(args);
 		return asyncCallWithArgumentList(QLatin1String("softReset"), argumentList);
 	}
@@ -73,7 +68,6 @@ public Q_SLOTS: // METHODS
 	inline QDBusPendingReply<QVariantMap> startAnalogCalibration(const QVariantMap &args)
 	{
 		QList<QVariant> argumentList;
-		qDebug() << "startAnalogCalibration";
 		argumentList << qVariantFromValue(args);
 		return asyncCallWithArgumentList(QLatin1String("startAnalogCalibration"), argumentList);
 	}
@@ -81,7 +75,6 @@ public Q_SLOTS: // METHODS
 	inline QDBusPendingReply<QVariantMap> startZeroTimeBlackCal(const QVariantMap &args)
 	{
 		QList<QVariant> argumentList;
-		qDebug() << "startZeroTimeBlackCal";
 		argumentList << qVariantFromValue(args);
 		return asyncCallWithArgumentList(QLatin1String("startZeroTimeBlackCal"), argumentList);
 	}
@@ -89,7 +82,6 @@ public Q_SLOTS: // METHODS
 	inline QDBusPendingReply<QVariantMap> startAutoWhiteBalance(const QVariantMap &args)
 	{
 		QList<QVariant> argumentList;
-		qDebug() << "startAutoWhiteBalance";
 		argumentList << qVariantFromValue(args);
 		return asyncCallWithArgumentList(QLatin1String("startAutoWhiteBalance"), argumentList);
 	}
@@ -111,7 +103,6 @@ public Q_SLOTS: // METHODS
 	inline QDBusPendingReply<QVariantMap> startBlackCalibration(const QVariantMap &args)
 	{
 		QList<QVariant> argumentList;
-		qDebug() << "startBlackCalibration";
 		argumentList << qVariantFromValue(args);
 		return asyncCallWithArgumentList(QLatin1String("startCalibration"), argumentList);
 	}
@@ -119,7 +110,6 @@ public Q_SLOTS: // METHODS
 	inline QDBusPendingReply<QVariantMap> revertAutoWhiteBalance(const QVariantMap &args)
 	{
 		QList<QVariant> argumentList;
-		qDebug() << "revertAutoWhiteBalance";
 		argumentList << qVariantFromValue(args);
 		return asyncCallWithArgumentList(QLatin1String("revertAutoWhiteBalance"), argumentList);
 	}
@@ -137,14 +127,12 @@ public Q_SLOTS: // METHODS
 	inline QDBusPendingReply<QVariantMap> availableKeys(const QVariantMap &args)
 	{
 		QList<QVariant> argumentList;
-		qDebug() << "availableKeys";
 		return asyncCallWithArgumentList(QLatin1String("availableKeys"), argumentList);
 	}
 
 	inline QDBusPendingReply<QVariantMap> availableCalls(const QVariantMap &args)
 	{
 		QList<QVariant> argumentList;
-		qDebug() << "availableCalls";
 		return asyncCallWithArgumentList(QLatin1String("availableCalls"), argumentList);
 	}
 

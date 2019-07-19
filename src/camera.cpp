@@ -410,16 +410,7 @@ Int32 Camera::startRecording(void)
 	geometry.bitDepth	   = 12;
 	geometry.minFrameTime  = 0.0002; //arbitrary here!
 
-	//cinst->stopRecording();
-	stopRecordingCamJson(&str);
-	qDebug() << str;
-
-	str = "ok then";
-	qDebug() << str;
-
-	testResolutionCamJson(&str, &geometry);
-	qDebug() << str;
-
+	cinst->stopRecording();
 
 	// For testing individual API calls using the record button:
 
@@ -638,14 +629,10 @@ Int32 Camera::setRecSequencerModeCalLoop(void)
 
 Int32 Camera::stopRecording(void)
 {
-	CameraStatus cs;
-
 	if(!recording)
 		return CAMERA_NOT_RECORDING;
 
-
-	QString jsonReturn;
-	stopRecordingCamJson(&jsonReturn);
+	cinst->stopRecording();
 	//recording = false;
 
 	return SUCCESS;
@@ -1595,8 +1582,7 @@ void Camera::onLoopTimer()
 	struct timespec t = {0, 250000000};
 	nanosleep(&t, NULL);
 
-	//cinst->stopRecording();
-	stopRecordingCamJson(&jsonReturn);
+	cinst->stopRecording();
 
 	//play back snippet
 	vinst->loopPlayback(1, 400, 60);

@@ -53,59 +53,9 @@ CameraErrortype PySensor::setControl(Control *control_inst)
 	cinst = control_inst;
 }
 
-
-CameraErrortype PySensor::initSensor()
-{
-	//TODO: softReset() here?
-	return SUCCESS;
-}
-
-bool PySensor::SCIWrite(UInt8 address, UInt16 data, bool readback)
-{
-	return true;
-}
-
-void PySensor::SCIWriteBuf(UInt8 address, const UInt8 * data, UInt32 dataLen)
-{
-}
-
-UInt16 PySensor::SCIRead(UInt8 address)
-{
-	return 0;
-}
-
-CameraErrortype PySensor::autoPhaseCal(void)
-{
-	//TODO: phase cal?
-	return SUCCESS;
-}
-
 Int32 PySensor::seqOnOff(bool on)
 {
 	return SUCCESS;
-}
-
-void PySensor::setReset(bool reset)
-{
-}
-
-void PySensor::setClkPhase(UInt8 phase)
-{
-}
-
-UInt8 PySensor::getClkPhase(void)
-{
-		return 0;
-}
-
-UInt32 PySensor::getDataCorrect(void)
-{
-	return 0;
-}
-
-void PySensor::setSyncToken(UInt16 token)
-{
-
 }
 
 FrameGeometry PySensor::getMaxGeometry(void)
@@ -125,11 +75,6 @@ FrameGeometry PySensor::getMaxGeometry(void)
 void PySensor::setResolution(FrameGeometry *size)
 {
 	cinst->setResolution(size);
-}
-
-UInt32 PySensor::getMinWavetablePeriod(FrameGeometry *frameSize, UInt32 wtSize)
-{
-	return 0;
 }
 
 UInt32 PySensor::getMinFramePeriod(FrameGeometry *frameSize)
@@ -209,7 +154,7 @@ UInt32 PySensor::setIntegrationTime(UInt32 intTime, FrameGeometry *size)
 	UInt32 minIntTime = getMinIntegrationTime(currentPeriod, size);
 	currentExposure = within(intTime, minIntTime, maxIntTime);
 
-	setSlaveExposure(currentExposure);
+	cinst->setIntegrationTime(currentExposure);
 
 	return currentExposure;
 }
@@ -225,39 +170,6 @@ UInt32 PySensor::getIntegrationTime(void)
 	UInt32 exp;
 	cinst->getInt("exposurePeriod", &exp);
 	return exp;
-}
-
-void PySensor::setSlaveExposure(UInt32 exposure)
-{
-	cinst->setIntegrationTime(exposure);
-}
-
-//Set up DAC
-void PySensor::initDAC()
-{
-}
-
-//Write the data into the selected channel
-void PySensor::writeDAC(UInt16 data, UInt8 channel)
-{
-}
-
-void PySensor::writeDACVoltage(UInt8 channel, float voltage)
-{
-}
-
-//Performs an SPI write to the DAC
-int PySensor::writeDACSPI(UInt16 data)
-{
-	return 0;
-}
-
-void PySensor::setDACCS(bool on)
-{
-}
-
-void PySensor::updateWavetableSetting(bool gainCalMode)
-{
 }
 
 unsigned int PySensor::enableAnalogTestMode(void)
@@ -277,27 +189,6 @@ void PySensor::setAnalogTestVoltage(unsigned int voltage)
 void PySensor::setADCOffset(UInt8 channel, Int16 offset)
 {
 }
-
-//Generate a filename string used for calibration values that is specific to the current gain and wavetable settings
-std::string PySensor::getFilename(const char * filename, const char * extension)
-{
-	const char *gName = "";
-	char wtName[16];
-
-	switch(gain)
-	{
-		case PYSENSOR_GAIN_1:		gName = PYSENSOR_GAIN_1_FN;		break;
-		case PYSENSOR_GAIN_2:		gName = PYSENSOR_GAIN_2_FN;		break;
-		case PYSENSOR_GAIN_4:		gName = PYSENSOR_GAIN_4_FN;		break;
-		case PYSENSOR_GAIN_8:		gName = PYSENSOR_GAIN_8_FN;		break;
-		case PYSENSOR_GAIN_16:		gName = PYSENSOR_GAIN_16_FN;		break;
-		default:					gName = "";						break;
-	}
-
-	snprintf(wtName, sizeof(wtName), "WT%d", wavetableSize);
-	return std::string(filename) + "_" + gName + "_" + wtName + extension;
-}
-
 
 Int32 PySensor::setGain(UInt32 gainSetting)
 {
