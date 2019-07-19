@@ -127,7 +127,6 @@ CameraErrortype Camera::init(Video * vinstInst, Control * cinstInst, ImageSensor
 	err = pthread_create(&recDataThreadID, NULL, &recDataThread, this);
 
 	/* Load default recording from sensor limits. */
-
 	imagerSettings.geometry = sensor->getMaxGeometry();
 	imagerSettings.geometry.vDarkRows = 0;
 	imagerSettings.recRegionSizeFrames = getMaxRecordRegionSizeFrames(&imagerSettings.geometry);
@@ -411,9 +410,7 @@ Int32 Camera::startRecording(void)
 	//cinst->getString("cameraDescription", &str);
 	//cinst->getBool("overlayEnable", &b);
 	//cinst->status();
-	//cinst->startZeroTimeBlackCal();
 	//cinst->startAutoWhiteBalance();
-	//cinst->startBlackCalibration();
 	//cinst->revertAutoWhiteBalance();
 
 	//cs = cinst->getStatus("one", "two");
@@ -431,8 +428,7 @@ Int32 Camera::startRecording(void)
 	recordingData.hasBeenSaved = false;
 	vinst->flushRegions();
 
-	QString jsonReturn;
-	startRecordingCamJson(&jsonReturn);
+	cinst->startRecording();
 
 	recording = true;
 	videoHasBeenReviewed = false;
@@ -1182,9 +1178,7 @@ void Camera::onLoopTimer()
 	//record snippet
 	qDebug() << "loop timer";
 
-	//cinst->startRecording();
-	QString jsonReturn;
-	startRecordingCamJson(&jsonReturn);
+	cinst->startRecording();
 
 	struct timespec t = {0, 250000000};
 	nanosleep(&t, NULL);

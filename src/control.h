@@ -92,35 +92,39 @@ public:
     Control();
     ~Control();
 
+	/* Get and set functions */
 	QVariant getProperty(QString parameter);
 	QVariantMap getPropertyGroup(QStringList paramters);
 	CameraErrortype setProperty(QString parameter, QVariant value);
 	CameraErrortype setPropertyGroup(QVariantMap values);
 
-	CameraErrortype startRecording(void);
-	CameraErrortype stopRecording(void);
-	CameraErrortype doReset(void);
-	CameraErrortype testResolution(void);
-	CameraErrortype startAnalogCalibration(void);
-	CameraErrortype startAutoWhiteBalance(void);
-	CameraErrortype revertAutoWhiteBalance(void);
-	QString startCalibration(QString calType);
+	/* Wrapper functions to get a property as a type. */
+	template<typename T> CameraErrortype getPropertyValue(QString parameter, T *value);
+	CameraErrortype getInt(QString parameter, UInt32 *value)	{ return getPropertyValue<UInt32>(parameter, value); }
+	CameraErrortype getString(QString parameter, QString *str)	{ return getPropertyValue<QString>(parameter, str);  }
+	CameraErrortype getFloat(QString parameter, double *value)	{ return getPropertyValue<double>(parameter, value); }
+	CameraErrortype getBool(QString parameter, bool *value)		{ return getPropertyValue<bool>(parameter, value);	 }
 
-
-	CameraErrortype status(CameraStatus *cs);
-	CameraErrortype availableKeys(void);
-	CameraErrortype availableCalls(void);
-	CameraErrortype getInt(QString parameter, UInt32 *value);
-	CameraErrortype getString(QString parameter, QString *str);
-	CameraErrortype getFloat(QString parameter, double *value);
-	CameraErrortype getBool(QString parameter, bool *value);
-	CameraErrortype getArray(QString parameter, UInt32 size, double *values);
-	CameraErrortype getResolution(FrameGeometry *geometry);
-
+	/* Wrapper functions to set a property from a type. */
 	CameraErrortype setInt(QString parameter, UInt32 value)   { return setProperty(parameter, QVariant(value)); }
 	CameraErrortype setString(QString parameter, QString str) { return setProperty(parameter, QVariant(str));   }
 	CameraErrortype setFloat(QString parameter, double value) { return setProperty(parameter, QVariant(value)); }
 	CameraErrortype setBool(QString parameter, bool value)	  { return setProperty(parameter, QVariant(value)); }
+
+	/* API Methods */
+	CameraErrortype startRecording(void);
+	CameraErrortype stopRecording(void);
+	CameraErrortype doReset(void);
+	CameraErrortype testResolution(void);
+	CameraErrortype startAutoWhiteBalance(void);
+	CameraErrortype revertAutoWhiteBalance(void);
+	QString startCalibration(QString calType);
+
+	CameraErrortype status(CameraStatus *cs);
+	CameraErrortype availableKeys(void);
+	CameraErrortype availableCalls(void);
+	CameraErrortype getResolution(FrameGeometry *geometry);
+	CameraErrortype getArray(QString parameter, UInt32 size, double *values);
 	CameraErrortype setArray(QString parameter, UInt32 size, double *values);
 
 	CameraStatus getStatus(const char * lastState, const char * error);
@@ -134,20 +138,14 @@ public:
     CameraErrortype getCalCapabilities(void);
 	ControlStatus parseNotification(const QVariantMap &args);
 
-
-
-
-
     CameraData cd;
-
-
 
 private:
     int pid;
     bool running;
     pthread_mutex_t mutex;
 
-    void checkpid(void);
+	void checkpid(void);
 
 	CaKrontechChronosControlInterface iface;
 
@@ -189,6 +187,22 @@ private slots:
 	void notify(const QVariantMap &args);
 
 };
+
+/* Template wrapper to get a property and convert it to a type. */
+template <typename T>
+CameraErrortype Control::getPropertyValue(QString parameter, T *value)
+{
+	QVariant qv = getProperty(parameter);
+	if (!qv.isValid()) {
+		return CAMERA_API_CALL_FAIL;
+	}
+	if (!qv.canConvert<T>()) {
+		qDebug() << "Failed to convert parameter " + parameter + " from type " + qv.typeName();
+		return CAMERA_API_CALL_FAIL;
+	}
+	*value = qv.value<T>();
+	return SUCCESS;
+}
 
 #endif // CONTROL_H
 

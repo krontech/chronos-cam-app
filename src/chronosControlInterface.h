@@ -38,10 +38,9 @@ public Q_SLOTS: // METHODS
 
 	// manually entered for NEWAPI
 	// in/out methdods:
-	inline QDBusPendingReply<QVariantMap> startRecording(const QVariantMap &args)
+	inline QDBusPendingReply<QVariantMap> startRecording()
 	{
 		QList<QVariant> argumentList;
-		argumentList << qVariantFromValue(args);
 		return asyncCallWithArgumentList(QLatin1String("startRecording"), argumentList);
 	}
 
@@ -63,13 +62,6 @@ public Q_SLOTS: // METHODS
 		QList<QVariant> argumentList;
 		argumentList << qVariantFromValue(args);
 		return asyncCallWithArgumentList(QLatin1String("softReset"), argumentList);
-	}
-
-	inline QDBusPendingReply<QVariantMap> startAnalogCalibration(const QVariantMap &args)
-	{
-		QList<QVariant> argumentList;
-		argumentList << qVariantFromValue(args);
-		return asyncCallWithArgumentList(QLatin1String("startAnalogCalibration"), argumentList);
 	}
 
 	inline QDBusPendingReply<QVariantMap> startAutoWhiteBalance(const QVariantMap &args)

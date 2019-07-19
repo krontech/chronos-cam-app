@@ -167,93 +167,6 @@ CameraErrortype Control::setPropertyGroup(QVariantMap values)
 	return SUCCESS;
 }
 
-CameraErrortype Control::getInt(QString parameter, UInt32 *value)
-{
-	QStringList args(parameter);
-	QDBusPendingReply<QVariantMap> reply;
-	QVariantMap map;
-
-	pthread_mutex_lock(&mutex);
-	reply = iface.get(args);
-	reply.waitForFinished();
-	pthread_mutex_unlock(&mutex);
-
-	if (reply.isError()) {
-		QDBusError err = reply.error();
-		fprintf(stderr, "Failed to get int: %s - %s\n", err.name().data(), err.message().toAscii().data());
-		return DBUS_CONTROL_FAIL;
-	}
-	map = reply.value();
-
-	*value = map[parameter].toUInt();
-
-	return SUCCESS;
-}
-
-CameraErrortype Control::getFloat(QString parameter, double *value)
-{
-	QStringList args(parameter);
-	QDBusPendingReply<QVariantMap> reply;
-	QVariantMap map;
-
-	pthread_mutex_lock(&mutex);
-	reply = iface.get(args);
-	reply.waitForFinished();
-	pthread_mutex_unlock(&mutex);
-
-	if (reply.isError()) {
-		QDBusError err = reply.error();
-		fprintf(stderr, "Failed to get float: %s - %s\n", err.name().data(), err.message().toAscii().data());
-	}
-	map = reply.value();
-	*value = map[parameter].toDouble();
-
-	return SUCCESS;
-}
-
-CameraErrortype Control::getString(QString parameter, QString *str)
-{
-	QStringList args(parameter);
-	QDBusPendingReply<QVariantMap> reply;
-	QVariantMap map;
-
-	pthread_mutex_lock(&mutex);
-	reply = iface.get(args);
-	reply.waitForFinished();
-	pthread_mutex_unlock(&mutex);
-
-	if (reply.isError()) {
-		QDBusError err = reply.error();
-		fprintf(stderr, "Failed to get string: %s - %s\n", err.name().data(), err.message().toAscii().data());
-	}
-	map = reply.value();
-	*str = map[parameter].toString();
-
-	return SUCCESS;
-}
-
-
-CameraErrortype Control::getBool(QString parameter, bool *value)
-{
-	QStringList args(parameter);
-	QDBusPendingReply<QVariantMap> reply;
-	QVariantMap map;
-
-	pthread_mutex_lock(&mutex);
-	reply = iface.get(args);
-	reply.waitForFinished();
-	pthread_mutex_unlock(&mutex);
-
-	if (reply.isError()) {
-		QDBusError err = reply.error();
-		fprintf(stderr, "Failed to get bool %s: %s - %s\n", parameter, err.name().data(), err.message().toAscii().data());
-	}
-	map = reply.value();
-	*value = map[parameter].toBool();
-
-	return SUCCESS;
-}
-
 CameraErrortype Control::getTiming(FrameGeometry *geometry, FrameTiming *timing)
 {
 	QVariantMap args;
@@ -370,13 +283,10 @@ CameraErrortype Control::setArray(QString parameter, UInt32 size, double *values
 
 CameraErrortype Control::startRecording(void)
 {
-	QVariantMap args;
 	QDBusPendingReply<QVariantMap> reply;
 
-	qDebug("startRecording");
-
 	pthread_mutex_lock(&mutex);
-	reply = iface.startRecording(args);
+	reply = iface.startRecording();
 	reply.waitForFinished();
 	pthread_mutex_unlock(&mutex);
 
@@ -435,24 +345,6 @@ CameraErrortype Control::doReset(void)
 	if (reply.isError()) {
 		QDBusError err = reply.error();
 		fprintf(stderr, "Failed - doReset: %s - %s\n", err.name().data(), err.message().toAscii().data());
-	}
-}
-
-
-
-CameraErrortype Control::startAnalogCalibration(void)
-{
-	QVariantMap args;
-	QDBusPendingReply<QVariantMap> reply;
-
-	pthread_mutex_lock(&mutex);
-	reply = iface.startAnalogCalibration(args);
-	reply.waitForFinished();
-	pthread_mutex_unlock(&mutex);
-
-	if (reply.isError()) {
-		QDBusError err = reply.error();
-		fprintf(stderr, "Failed - startAnalogCalibration: %s - %s\n", err.name().data(), err.message().toAscii().data());
 	}
 }
 
