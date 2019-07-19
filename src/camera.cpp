@@ -534,9 +534,9 @@ Int32 Camera::setRecSequencerModeGatedBurst(UInt32 prerecord)
     pgmWord.settings.termRecBlkEnd = 0;
     pgmWord.settings.termBlkFull = 0;
     pgmWord.settings.termBlkLow = 0;
-    pgmWord.settings.termBlkHigh = 1;       //Terminate when trigger becomes active
+    pgmWord.settings.termBlkHigh = 0;
     pgmWord.settings.termBlkFalling = 0;
-    pgmWord.settings.termBlkRising = 0;
+    pgmWord.settings.termBlkRising = 1;     //Terminate when trigger becomes active	
     pgmWord.settings.next = 1;              //Go to next block when this one terminates
     pgmWord.settings.blkSize = prerecord - 1;           //Set to number of frames desired minus one
     pgmWord.settings.pad = 0;
@@ -547,9 +547,9 @@ Int32 Camera::setRecSequencerModeGatedBurst(UInt32 prerecord)
     pgmWord.settings.termRecMem = imagerSettings.disableRingBuffer ? 1 : 0;;
     pgmWord.settings.termRecBlkEnd = 0;
     pgmWord.settings.termBlkFull = 0;
-    pgmWord.settings.termBlkLow = 1;       //Terminate when trigger becomes inactive
+    pgmWord.settings.termBlkLow = 0;
     pgmWord.settings.termBlkHigh = 0;
-    pgmWord.settings.termBlkFalling = 0;
+    pgmWord.settings.termBlkFalling = 1;    //Terminate when trigger becomes inactive
     pgmWord.settings.termBlkRising = 0;
     pgmWord.settings.next = 0;              //Go back to block 0
     pgmWord.settings.blkSize = imagerSettings.recRegionSizeFrames-3; //Set to number of frames desired minus one

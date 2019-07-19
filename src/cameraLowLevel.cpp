@@ -60,8 +60,8 @@ void Camera::terminateRecord(void)
 
 void Camera::writeSeqPgmMem(SeqPgmMemWord pgmWord, UInt32 address)
 {
-	gpmc->write32((SEQ_PGM_MEM_START_ADDR + address * 16)+4, pgmWord.data.high);
-	gpmc->write32((SEQ_PGM_MEM_START_ADDR + address * 16)+0, pgmWord.data.low/*0x00282084*/);
+	gpmc->write32((SEQ_PGM_MEM_START_ADDR + address * 8)+4, pgmWord.data.high);
+	gpmc->write32((SEQ_PGM_MEM_START_ADDR + address * 8)+0, pgmWord.data.low);
 }
 
 void Camera::setRecRegion(UInt32 start, UInt32 count, FrameGeometry *geometry)
