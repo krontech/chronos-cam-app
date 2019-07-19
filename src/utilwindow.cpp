@@ -449,8 +449,6 @@ void UtilWindow::on_cmdAutoCal_clicked()
 	qDebug("cmdAutoCal: turn on cal light");
 	camera->setBncDriveLevel((1 << 1));	//Turn on output drive
 
-	qDebug("cmdAutoCal: autoColGainCorrection");
-	//retVal = camera->autoColGainCorrection();
 
 	if(SUCCESS != retVal) {
 		sw.hide();

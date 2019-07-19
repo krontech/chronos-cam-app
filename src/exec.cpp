@@ -12,37 +12,12 @@
 
 using namespace std;
 
-void parseJsonTiming(QString jsonString, FrameGeometry *geometry, FrameTiming *timing)
-{
-	//build JSON document d
-	QJsonDocument d = QJsonDocument::fromJson(jsonString.toUtf8());
-	QJsonObject qjo= d.object();
-	QVariantMap root_map = qjo.toVariantMap();
-
-	timing->exposureMax = root_map["exposureMax"].toInt();
-	timing->minFramePeriod = root_map["minFramePeriod"].toInt();
-	timing->exposureMin = root_map["exposureMin"].toInt();
-	timing->cameraMaxFrames = root_map["cameraMaxFrames"].toInt();
-}
-
 void buildJsonCalibration(QString *jsonString, QString calType)
 {
 	jsonString->clear();
 	jsonString->append("{ \"" + calType);
 	jsonString->append("\":1}");
 
-}
-
-void buildJsonTiming(QString *jsonString, FrameGeometry *geometry)
-{
-	jsonString->append("{\n   \"hRes\": " + QString::number(geometry->hRes));
-	jsonString->append(",\n   \"vRes\": " + QString::number(geometry->vRes));
-	jsonString->append(",\n   \"hOffset\": " + QString::number(geometry->hOffset));
-	jsonString->append(",\n   \"vOffset\": " + QString::number(geometry->vOffset));
-	jsonString->append(",\n   \"vDarkRows\": " + QString::number(geometry->vDarkRows));
-	//jsonString->append(",\n   \"bitDepth\": " + QString::number(geometry->bitDepth));
-	//jsonString->append(",\n   \"minFrameTime\": " + QString::number(geometry->minFrameTime));
-	jsonString->append("\n}");
 }
 
 void buildJsonArray(QString parameter, QString *jsonString, UInt32 size, double *values)

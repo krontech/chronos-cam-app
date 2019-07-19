@@ -174,9 +174,6 @@ public:
 	CameraErrortype init(Video * vinstInst, Control * cinstInst, ImageSensor * sensorInst, UserInterface * userInterface, UInt32 ramSizeVal, bool color);
 	Int32 startRecording(void);
 	Int32 setRecSequencerModeNormal();
-	Int32 setRecSequencerModeGatedBurst(UInt32 prerecord = 0);
-	Int32 setRecSequencerModeSingleBlock(UInt32 blockLength, UInt32 frameOffset = 0);
-	Int32 setRecSequencerModeCalLoop();
 	Int32 stopRecording(void);
 	bool getIsRecording(void);
 	Video * vinst;
@@ -211,17 +208,8 @@ public:
 	UInt32 setIntegrationTime(double intTime, FrameGeometry *geometry, Int32 flags);
 	UInt32 setPlayMode(bool playMode);
 	Int32 autoColGainCorrection(void);
-	Int32 adjustExposureToValue(UInt32 level, UInt32 tolerance = 100, bool includeFPNCorrection = true);
-	Int32 recordFrames(UInt32 numframes);
-	UInt32 getMiddlePixelValue(bool includeFPNCorrection = true);
-	Int32 getRawCorrectedFrame(UInt32 frame, UInt16 * frameBuffer);
-	Int32 readDCG(double * gainCorrection);
-	Int32 readFPN(UInt16 * fpnUnpacked);
-	Int32 readCorrectedFrame(UInt32 frame, UInt16 * frameBuffer, UInt16 * fpnInput, double * gainCorrection);
-	Int32 getRawCorrectedFramesAveraged(UInt32 frame, UInt32 framesToAverage, UInt16 * frameBuffer);
 	Int32 takeWhiteReferences(void);
 
-	void loadCCMFromSettings(void);
 	void setCCMatrix(const double *matrix);
 	void setWhiteBalance(const double *rgb);
 	int autoWhiteBalance(unsigned int x, unsigned int y);
@@ -250,26 +238,9 @@ public:
 	UInt32 getFrameSizeWords(FrameGeometry *geometry);
 	UInt32 getMaxRecordRegionSizeFrames(FrameGeometry *geometry);
 
-private:
-	bool getRecDataFifoIsEmpty(void);
-	UInt32 readRecDataFifo(void);
-	//bool getRecording(void);
-	void startSequencer(void);
-	void terminateRecord(void);
-	void writeSeqPgmMem(SeqPgmMemWord pgmWord, UInt32 address);
-	void setRecRegion(UInt32 start, UInt32 count, FrameGeometry *geometry);
-	void readAcqMem(UInt32 * buf, UInt32 offsetWords, UInt32 length);
-	void writeAcqMem(UInt32 * buf, UInt32 offsetWords, UInt32 length);
-	void writeDGCMem(double gain, UInt32 column);
-	bool readIsColor(void);
-public:
-	bool getRecording(void); //making public for calibration delay
-	bool getFocusPeakEnableLL(void);
-	void setFocusPeakEnableLL(bool en);
+	bool getRecording(void);
 	UInt8 getFocusPeakColorLL(void);
 	void setFocusPeakColorLL(UInt8 color);
-	bool getZebraEnableLL(void);
-	void setZebraEnableLL(bool en);
 	void setFocusPeakThresholdLL(UInt32 thresh);
 	UInt32 getFocusPeakThresholdLL(void);
 	Int32 getRamSizeGB(UInt32 * stick0SizeGB, UInt32 * stick1SizeGB);

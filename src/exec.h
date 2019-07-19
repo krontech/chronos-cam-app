@@ -7,7 +7,6 @@ void parseJsonArray(QString parameter, QString jsonString, uint32_t size, double
 void buildJsonCalibration(QString *jsonString, QString calType);
 void buildJsonArray(QString parameter, QString *jsonString, UInt32 size, double *values);
 void startRecordingCamJson( QString *jsonString);
-void parseJsonTiming(QString jsonString, FrameGeometry *geometry, FrameTiming *timing);
 void startCalibrationCamJson( QString *jsonOutString, QString *jsonInString);
 
 #endif // EXEC_H
