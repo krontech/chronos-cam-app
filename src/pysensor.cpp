@@ -154,7 +154,7 @@ UInt32 PySensor::setIntegrationTime(UInt32 intTime, FrameGeometry *size)
 	UInt32 minIntTime = getMinIntegrationTime(currentPeriod, size);
 	currentExposure = within(intTime, minIntTime, maxIntTime);
 
-	cinst->setIntegrationTime(currentExposure);
+	cinst->setInt("exposurePeriod", currentExposure);
 
 	return currentExposure;
 }
@@ -163,7 +163,7 @@ UInt32 PySensor::setIntegrationTime(UInt32 intTime, FrameGeometry *size)
  *
  * Gets the integration time of the image sensor
  *
- * returns: Integration tim
+ * returns: Integration time
  */
 UInt32 PySensor::getIntegrationTime(void)
 {

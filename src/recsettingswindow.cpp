@@ -209,9 +209,6 @@ void RecSettingsWindow::on_cmdOK_clicked()
 	is->exposure = intTime;
 	is->temporary = 0;
 
-	FrameGeometry *geo = &is->geometry;
-	camera->cinst->setResolution(geo);
-
 	camera->setImagerSettings(*is);
 	camera->vinst->liveDisplay(is->geometry.hRes, is->geometry.vRes);
 

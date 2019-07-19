@@ -72,13 +72,6 @@ public Q_SLOTS: // METHODS
 		return asyncCallWithArgumentList(QLatin1String("startAnalogCalibration"), argumentList);
 	}
 
-	inline QDBusPendingReply<QVariantMap> startZeroTimeBlackCal(const QVariantMap &args)
-	{
-		QList<QVariant> argumentList;
-		argumentList << qVariantFromValue(args);
-		return asyncCallWithArgumentList(QLatin1String("startZeroTimeBlackCal"), argumentList);
-	}
-
 	inline QDBusPendingReply<QVariantMap> startAutoWhiteBalance(const QVariantMap &args)
 	{
 		QList<QVariant> argumentList;
@@ -98,13 +91,6 @@ public Q_SLOTS: // METHODS
 		QList<QVariant> argumentList;
 		argumentList << qVariantFromValue(args);
 		return asyncCallWithArgumentList(QLatin1String("set"), argumentList);
-	}
-
-	inline QDBusPendingReply<QVariantMap> startBlackCalibration(const QVariantMap &args)
-	{
-		QList<QVariant> argumentList;
-		argumentList << qVariantFromValue(args);
-		return asyncCallWithArgumentList(QLatin1String("startCalibration"), argumentList);
 	}
 
 	inline QDBusPendingReply<QVariantMap> revertAutoWhiteBalance(const QVariantMap &args)

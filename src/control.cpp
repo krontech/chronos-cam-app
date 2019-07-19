@@ -55,92 +55,6 @@ static CameraStatus *parseCameraStatus(const QVariantMap &args, CameraStatus *cs
 	return cs;
 }
 
-CameraErrortype Control::setInt(QString parameter, UInt32 value)
-{
-	QVariantMap args;
-	QDBusPendingReply<QVariantMap> reply;
-	QVariantMap map;
-
-	//qDebug() << "setInt " << parameter << value;
-
-	args.insert(parameter, QVariant(value));
-
-	pthread_mutex_lock(&mutex);
-	reply = iface.set(args);
-	reply.waitForFinished();
-	pthread_mutex_unlock(&mutex);
-
-	if (reply.isError()) {
-		QDBusError err = reply.error();
-		fprintf(stderr, "Failed to set int: %s - %s\n", err.name().data(), err.message().toAscii().data());
-	}
-
-	return SUCCESS;
-}
-
-CameraErrortype Control::setBool(QString parameter, bool value)
-{
-	QVariantMap args;
-	QDBusPendingReply<QVariantMap> reply;
-	QVariantMap map;
-
-	qDebug() << "setBool " << parameter << value;
-
-	args.insert(parameter, QVariant(value));
-
-	pthread_mutex_lock(&mutex);
-	reply = iface.set(args);
-	reply.waitForFinished();
-	pthread_mutex_unlock(&mutex);
-
-	if (reply.isError()) {
-		QDBusError err = reply.error();
-		fprintf(stderr, "Failed to set int: %s - %s\n", err.name().data(), err.message().toAscii().data());
-	}
-
-	return SUCCESS;
-}
-
-CameraErrortype Control::setFloat(QString parameter, double value)
-{
-	QVariantMap args;
-	QDBusPendingReply<QVariantMap> reply;
-
-	qDebug("setFloat");
-
-	args.insert(parameter, QVariant(value));
-
-	pthread_mutex_lock(&mutex);
-	reply = iface.set(args);
-	reply.waitForFinished();
-	pthread_mutex_unlock(&mutex);
-
-	if (reply.isError()) {
-		QDBusError err = reply.error();
-		fprintf(stderr, "Failed - setFloat: %s - %s\n", err.name().data(), err.message().toAscii().data());
-	}
-}
-
-CameraErrortype Control::setString(QString parameter, QString str)
-{
-	QVariantMap args;
-	QDBusPendingReply<QVariantMap> reply;
-
-	qDebug("setString");
-
-	args.insert(parameter, QVariant(str));
-
-	pthread_mutex_lock(&mutex);
-	reply = iface.set(args);
-	reply.waitForFinished();
-	pthread_mutex_unlock(&mutex);
-
-	if (reply.isError()) {
-		QDBusError err = reply.error();
-		fprintf(stderr, "Failed - setString: %s - %s\n", err.name().data(), err.message().toAscii().data());
-	}
-}
-
 QVariant Control::getProperty(QString parameter)
 {
 	QStringList args(parameter);
@@ -205,7 +119,7 @@ CameraErrortype Control::setProperty(QString parameter, QVariant value)
 
 	if (reply.isError()) {
 		QDBusError err = reply.error();
-		qDebug() << "Failed to get parameter: " + err.name() + " - " + err.message();
+		qDebug() << "Failed to set parameter: " + err.name() + " - " + err.message();
 		return CAMERA_API_CALL_FAIL;
 	}
 
@@ -214,7 +128,7 @@ CameraErrortype Control::setProperty(QString parameter, QVariant value)
 		QVariantMap errdict;
 		map["error"].value<QDBusArgument>() >> errdict;
 
-		qDebug() << "Failed to get parameter: " + errdict[parameter].toString();
+		qDebug() << "Failed to set parameter: " + errdict[parameter].toString();
 		return CAMERA_API_CALL_FAIL;
 	}
 
@@ -245,7 +159,7 @@ CameraErrortype Control::setPropertyGroup(QVariantMap values)
 		map["error"].value<QDBusArgument>() >> errdict;
 
 		for (i = errdict.begin(); i != errdict.end(); i++) {
-			qDebug() << "Failed to get parameter " + i.key() + ": " + i.value().toString();
+			qDebug() << "Failed to set parameter " + i.key() + ": " + i.value().toString();
 		}
 		return CAMERA_API_CALL_FAIL;
 	}
@@ -417,22 +331,41 @@ CameraErrortype Control::setResolution(FrameGeometry *geometry)
 
 CameraErrortype Control::getArray(QString parameter, UInt32 size, double *values)
 {
-	QString jsonString;
-	getCamJson(parameter, &jsonString);
-	parseJsonArray(parameter, jsonString, size, values);
+	QVariant qv = getProperty(parameter);
+	if (qv.isValid()) {
+		QDBusArgument array = qv.value<QDBusArgument>();
+		int index = 0;
+
+		array.beginArray();
+		while (!array.atEnd() && (index < size)) {
+			array >> values[index++];
+		}
+		while (index < size) {
+			values[index++] = 0.0;
+		}
+		array.endArray();
+
+		return SUCCESS;
+	}
+	else {
+		return CAMERA_API_CALL_FAIL;
+	}
 }
 
 CameraErrortype Control::setArray(QString parameter, UInt32 size, double *values)
 {
-	QString jsonString;
-	buildJsonArray(parameter, &jsonString, size, values);
-	setCamJson(jsonString);
-}
+	int id = qMetaTypeId<double>();
+	QVariant qv;
+	QDBusArgument list;
 
-CameraErrortype Control::setWbMatrix(void)
-{
-	QString jsonString;
-	qDebug("FIXME: Setting wbMatrix is not implemented!");
+	list.beginArray(id);
+	for (int i = 0; i < size; i++) {
+		list << values[i];
+	}
+	list.endArray();
+
+	qv.setValue<QDBusArgument>(list);
+	return setProperty(parameter, qv);
 }
 
 CameraErrortype Control::startRecording(void)
@@ -523,26 +456,6 @@ CameraErrortype Control::startAnalogCalibration(void)
 	}
 }
 
-CameraErrortype Control::set(void)
-{
-	QVariantMap args;
-	QDBusPendingReply<QVariantMap> reply;
-
-	qDebug("set");
-
-	pthread_mutex_lock(&mutex);
-	reply = iface.set(args);
-	reply.waitForFinished();
-	pthread_mutex_unlock(&mutex);
-
-	if (reply.isError()) {
-		QDBusError err = reply.error();
-		fprintf(stderr, "Failed - set: %s - %s\n", err.name().data(), err.message().toAscii().data());
-	}
-}
-
-
-
 CameraErrortype Control::startAutoWhiteBalance(void)
 {
 	QVariantMap args;
@@ -561,8 +474,6 @@ CameraErrortype Control::startAutoWhiteBalance(void)
 	}
 }
 
-
-
 CameraErrortype Control::revertAutoWhiteBalance(void)
 {
 	QVariantMap args;
@@ -579,10 +490,6 @@ CameraErrortype Control::revertAutoWhiteBalance(void)
 	}
 }
 
-
-
-
-
 QString Control::startCalibration(QString calType)
 {
 	QString jsonInString;
@@ -591,12 +498,10 @@ QString Control::startCalibration(QString calType)
 	startCalibrationCamJson(&jsonOutString, &jsonInString);
 
 	return jsonOutString;
-
 }
 
-
-
-CameraErrortype Control::status(CameraStatus *cs){
+CameraErrortype Control::status(CameraStatus *cs)
+{
 	QVariantMap args;
 	QDBusPendingReply<QVariantMap> reply;
 	QVariantMap map;
@@ -615,8 +520,6 @@ CameraErrortype Control::status(CameraStatus *cs){
 	parseCameraStatus(map, &st);
 
 	return SUCCESS;
-
-
 }
 
 
@@ -636,7 +539,8 @@ CameraErrortype Control::availableKeys(void)
 	}
 }
 
-CameraErrortype Control::availableCalls(void){
+CameraErrortype Control::availableCalls(void)
+{
 	QVariantMap args;
 	QDBusPendingReply<QVariantMap> reply;
 
@@ -650,22 +554,6 @@ CameraErrortype Control::availableCalls(void){
 		fprintf(stderr, "Failed - availableCalls: %s - %s\n", err.name().data(), err.message().toAscii().data());
 	}
 }
-
-
-
-
-CameraErrortype Control::setFramePeriod(UInt32 period)
-{
-	setInt("framePeriod", period);
-
-}
-
-CameraErrortype Control::setIntegrationTime(UInt32 exposure)
-{
-
-	setInt("exposurePeriod", exposure);
-}
-
 
 Control::Control() : iface("ca.krontech.chronos.control", "/ca/krontech/chronos/control", QDBusConnection::systemBus())
 {

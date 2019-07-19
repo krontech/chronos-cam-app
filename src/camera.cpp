@@ -222,7 +222,10 @@ CameraErrortype Camera::init(Video * vinstInst, Control * cinstInst, ImageSensor
 
 UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 {
+	QString modes[] = {"normal", "segmented", "burst"};
 	QSettings appSettings;
+	QVariantMap values;
+	QVariantMap resolution;
 
 	if(!sensor->isValidResolution(&settings.geometry) ||
 		settings.recRegionSizeFrames < RECORD_LENGTH_MIN ||
@@ -231,73 +234,28 @@ UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 	}
 
 	QString str;
-	sensor->setResolution(&settings.geometry);
-	sensor->setGain(settings.gain);
-	sensor->setFramePeriod(settings.period, &settings.geometry);
-	sensor->setIntegrationTime(settings.exposure, &settings.geometry);
 
+	resolution.insert("hRes", QVariant(settings.geometry.hRes));
+	resolution.insert("vRes", QVariant(settings.geometry.vRes));
+	resolution.insert("hOffset", QVariant(settings.geometry.hOffset));
+	resolution.insert("vOffset", QVariant(settings.geometry.vOffset));
+	resolution.insert("vDarkRows", QVariant(settings.geometry.vDarkRows));
+	resolution.insert("bitDepth", QVariant(settings.geometry.bitDepth));
+	resolution.insert("minFrameTime", QVariant(settings.geometry.minFrameTime));
+
+	values.insert("resolution", QVariant(resolution));
+	values.insert("framePeriod", QVariant(settings.period));
+	values.insert("currentGain", QVariant(settings.gain));
+	values.insert("currentExposure", QVariant(settings.exposure));
+	if (settings.mode > 3 ) qFatal("imagerSetting mode is FPN");
+	else values.insert("recMode", modes[imagerSettings.mode]);
+	values.insert("recSegments", QVariant(settings.segments));
+	values.insert("recMaxFrames", QVariant(settings.recRegionSizeFrames));
+
+	CameraErrortype retVal = cinst->setPropertyGroup(values);
 	memcpy(&imagerSettings, &settings, sizeof(settings));
 
-	UInt32 maxRecRegionSize = getMaxRecordRegionSizeFrames(&imagerSettings.geometry);
-	if(settings.recRegionSizeFrames > maxRecRegionSize) {
-		imagerSettings.recRegionSizeFrames = maxRecRegionSize;
-	}
-	else {
-		imagerSettings.recRegionSizeFrames = settings.recRegionSizeFrames;
-	}
-
-	qDebug()	<< "\nSet imager settings:\nhRes" << imagerSettings.geometry.hRes
-				<< "vRes" << imagerSettings.geometry.vRes
-				<< "vDark" << imagerSettings.geometry.vDarkRows
-				<< "hOffset" << imagerSettings.geometry.hOffset
-				<< "vOffset" << imagerSettings.geometry.vOffset
-				<< "exposure" << imagerSettings.exposure
-				<< "period" << imagerSettings.period
-				<< "frameSizeWords" << getFrameSizeWords(&imagerSettings.geometry)
-				<< "recRegionSizeFrames" << imagerSettings.recRegionSizeFrames;
-
-	if (settings.temporary) {
-		qDebug() << "--- settings --- temporary, not saving";
-	}
-	else {
-		qDebug() << "--- settings --- saving";
-		if (isDbus)
-		{
-			cinst->setResolution(&imagerSettings.geometry);
-			cinst->setInt("currentGain", imagerSettings.gain);
-			cinst->setInt("framePeriod", imagerSettings.period);
-			cinst->setInt("exposurePeriod", imagerSettings.exposure);
-			//TODO cinst->setInt("appSettings.setValue("camera/recRegionSizeFrames",  imagerSettings.recRegionSizeFrames);
-			//TODO cinst->setInt("appSettings.setValue("camera/disableRingBuffer",    imagerSettings.disableRingBuffer);
-			QString modes[] = {"normal", "segmented", "burst"};
-			if (imagerSettings.mode > 3 ) qFatal("imagerSetting mode is FPN");
-			cinst->setString("recMode", modes[imagerSettings.mode]);
-			cinst->setInt("recSegments", imagerSettings.segments);
-			cinst->setInt("preRecBurst", imagerSettings.prerecordFrames);
-
-			//TODO - test segment recording
-			//appSettings.setValue("camera/segmentLengthFrames",  imagerSettings.segmentLengthFrames);
-			cinst->setInt("recSegments", imagerSettings.segments);
-		}
-		else
-		{
-			appSettings.setValue("camera/hRes",                 imagerSettings.geometry.hRes);
-			appSettings.setValue("camera/vRes",                 imagerSettings.geometry.vRes);
-			appSettings.setValue("camera/hOffset",              imagerSettings.geometry.hOffset);
-			appSettings.setValue("camera/vOffset",              imagerSettings.geometry.vOffset);
-			appSettings.setValue("camera/gain",                 imagerSettings.gain);
-			appSettings.setValue("camera/period",               imagerSettings.period);
-			appSettings.setValue("camera/exposure",             imagerSettings.exposure);
-			appSettings.setValue("camera/recRegionSizeFrames",  imagerSettings.recRegionSizeFrames);
-			appSettings.setValue("camera/disableRingBuffer",    imagerSettings.disableRingBuffer);
-			appSettings.setValue("camera/mode",                 imagerSettings.mode);
-			appSettings.setValue("camera/prerecordFrames",      imagerSettings.prerecordFrames);
-			appSettings.setValue("camera/segmentLengthFrames",  imagerSettings.segmentLengthFrames);
-			appSettings.setValue("camera/segments",             imagerSettings.segments);
-		}
-	}
-
-	return SUCCESS;
+	return retVal;
 }
 
 UInt32 Camera::getRecordLengthFrames(ImagerSettings_t settings)
@@ -458,29 +416,9 @@ Int32 Camera::startRecording(void)
 	//cinst->startBlackCalibration();
 	//cinst->revertAutoWhiteBalance();
 
-	//TESTING Control dbus on pressing record
-	//cinst->getCameraData();
-	//cinst->getSensorData();
-	//cinst->getSensorLimits();
-	//cinst->setSensorSettings(1280, 1024);
-	//cinst->setSensorWhiteBalance(0.5, 0.5, 0.5);
-	//cinst->getSensorWhiteBalance();
-
 	//cs = cinst->getStatus("one", "two");
-	//cinst->setDescription("hello", 6);
-	//cinst->reinitSystem();
-	//cinst->setSensorTiming(500);
-	//cinst->getSensorCapabilities();
-	//cinst->dbusGetIoCapabilities();
-	//cinst->getIoMapping();
-	//cinst->setIoMapping();
 	//cinst->getCalCapabilities();
 	//cinst->calibrate();
-	//cinst->getColorMatrix();
-	//cinst->setColorMatrix();
-	//cinst->getSequencerCapabilities();
-	//cinst->getSequencerProgram();
-	//cinst->setSequencerProgram();
 	//cinst->startRecord();
 	//cinst->stopRecord();
 
