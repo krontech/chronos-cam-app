@@ -81,7 +81,7 @@ CameraErrortype LUX1310::initSensor()
 	CameraErrortype err;
 	UInt16 rev;
 
-	wavetableSize = 80;
+	wavetableSize = lux1310wt[0]->clocks;
 	gain = LUX1310_GAIN_1;
 
 	gpmc->write32(IMAGER_FRAME_PERIOD_ADDR, 100*4000);	//Disable integration
@@ -135,9 +135,9 @@ CameraErrortype LUX1310::initSensor()
 		if (!SCIWrite(0x4E, 0x0FC0, true)) break;	//pclk channel output during dark pixel readout
 		if (!SCIWrite(0x56, 0x0000, true)) break;	//Disable test pattern
 
-		//Set for 80 clock wavetable
-		if (!SCIWrite(0x37, 80, true)) break;	//non-overlapping readout delay
-		if (!SCIWrite(0x7A, 80, true)) break;	//wavetable size
+		//Set for the longest wavetable
+		if (!SCIWrite(0x37, lux1310wt[0]->clocks, true)) break;	//non-overlapping readout delay
+		if (!SCIWrite(0x7A, lux1310wt[0]->clocks, true)) break;	//wavetable size
 
 		//Set internal control registers to fine tune the performance of the sensor
 		if (!SCIWrite(0x71, LUX1310_LV_DELAY, true)) break;		//line valid delay to match internal ADC latency
