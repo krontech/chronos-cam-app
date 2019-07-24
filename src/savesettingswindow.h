@@ -68,6 +68,7 @@ private:
 	void refreshDriveList();
 	void updateBitrate();
 	void saveFileDirectory();
+	UInt32 getBitrate();
 
 	Ui::saveSettingsWindow *ui;
 	QTimer * timer;
