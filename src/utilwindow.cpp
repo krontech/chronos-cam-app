@@ -127,7 +127,7 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	ui->lblAbout->setText(aboutText);
 	
 	ui->cmdAutoCal->setVisible(false);
-	ui->cmdBlackCalAll->setVisible(false);
+	//ui->cmdBlackCalAll->setVisible(false);
 	ui->cmdCloseApp->setVisible(false);
 	ui->cmdColumnGain->setVisible(false);
 	ui->cmdWhiteRef->setVisible(false);
@@ -377,9 +377,12 @@ void UtilWindow::on_chkZebraEnable_stateChanged(int arg1)
 
 void UtilWindow::on_comboFPColor_currentIndexChanged(int index)
 {
+	static QString fpColors[] = {"blue", "green", "cyan", "red", "magenta", "yellow", "white"};
+
 	if(ui->comboFPColor->count() < 7)	//Hack so the incorrect value doesn't get set during population of values
 		return;
-	camera->setFocusPeakColor(index + 1);
+	if (index < 0) return;		//avoids errors during population
+	camera->cinst->setString("focusPeakingColor", fpColors[index]);
 }
 
 void UtilWindow::on_radioFPSensLow_toggled(bool checked)
@@ -712,7 +715,7 @@ void UtilWindow::on_linePassword_textEdited(const QString &arg1)
 	if(0 == QString::compare(arg1, "4242"))
 	{
 		ui->cmdAutoCal->setVisible(true);
-		ui->cmdBlackCalAll->setVisible(true);
+		//ui->cmdBlackCalAll->setVisible(true);
 		ui->cmdCloseApp->setVisible(true);
 		ui->cmdColumnGain->setVisible(true);
 		ui->cmdWhiteRef->setVisible(true);

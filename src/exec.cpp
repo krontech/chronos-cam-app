@@ -102,6 +102,7 @@ void buildJsonResolution(QString *jsonString, FrameGeometry *geometry)
 
 void buildJsonCalibration(QString *jsonString, QString calType)
 {
+	jsonString->clear();
 	jsonString->append("{ \"" + calType);
 	jsonString->append("\":1}");
 

@@ -501,8 +501,6 @@ CameraErrortype Control::testResolution(void)
 	QVariantMap args;
 	QDBusPendingReply<QVariantMap> reply;
 
-	qDebug("testResolution");
-
 	pthread_mutex_lock(&mutex);
 	reply = iface.testResolution(args);
 	reply.waitForFinished();
@@ -608,41 +606,17 @@ CameraErrortype Control::revertAutoWhiteBalance(void)
 
 
 
-CameraErrortype Control::startZeroTimeBlackCal(void)
+
+
+QString Control::startCalibration(QString calType)
 {
-	QVariantMap args;
-	QDBusPendingReply<QVariantMap> reply;
+	QString jsonInString;
+	QString jsonOutString;
+	buildJsonCalibration(&jsonInString, calType);
+	startCalibrationCamJson(&jsonOutString, &jsonInString);
 
-	pthread_mutex_lock(&mutex);
-	reply = iface.startZeroTimeBlackCal(args);
-	reply.waitForFinished();
-	pthread_mutex_unlock(&mutex);
+	return jsonOutString;
 
-	if (reply.isError()) {
-		QDBusError err = reply.error();
-		fprintf(stderr, "Failed - startZeroTimeBlackCal: %s - %s\n", err.name().data(), err.message().toAscii().data());
-	}
-}
-
-
-
-CameraErrortype Control::startBlackCalibration(void)
-{
-	QVariantMap args;
-	QDBusPendingReply<QVariantMap> reply;
-
-
-	args.insert("zeroTimeBlackCal", 1);
-
-	pthread_mutex_lock(&mutex);
-	reply = iface.startBlackCalibration(args);
-	reply.waitForFinished();
-	pthread_mutex_unlock(&mutex);
-
-	if (reply.isError()) {
-		QDBusError err = reply.error();
-		fprintf(stderr, "Failed - startBlackCalibration: %s - %s\n", err.name().data(), err.message().toAscii().data());
-	}
 }
 
 

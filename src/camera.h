@@ -252,7 +252,7 @@ public:
 private:
 	bool getRecDataFifoIsEmpty(void);
 	UInt32 readRecDataFifo(void);
-	bool getRecording(void);
+	//bool getRecording(void);
 	void startSequencer(void);
 	void terminateRecord(void);
 	void writeSeqPgmMem(SeqPgmMemWord pgmWord, UInt32 address);
@@ -262,6 +262,7 @@ private:
 	void writeDGCMem(double gain, UInt32 column);
 	bool readIsColor(void);
 public:
+	bool getRecording(void); //making public for calibration delay
 	bool getFocusPeakEnableLL(void);
 	void setFocusPeakEnableLL(bool en);
 	UInt8 getFocusPeakColorLL(void);
@@ -293,6 +294,9 @@ private:
 	bool zebraEnabled;
 	bool fanDisabled;
 	char serialNumber[SERIAL_NUMBER_MAX_LEN+1];
+
+	QString fpColors[7] = {"blue", "green", "cyan", "red", "magenta", "yellow", "white"};
+
 
 public:
 	// Actual white balance applied at runtime.

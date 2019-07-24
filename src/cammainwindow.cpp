@@ -217,6 +217,10 @@ void CamMainWindow::on_cmdDebugWnd_clicked()
 
 void CamMainWindow::on_cmdRec_clicked()
 {
+
+	camera->on_chkLiveLoop_stateChanged(true);
+	return;
+
 	if(camera->getIsRecording())
 	{
 		camera->stopRecording();
@@ -319,7 +323,6 @@ void CamMainWindow::on_cmdFPNCal_clicked()//Black cal
 			//If there is unsaved video in RAM, prompt to start record
 			QMessageBox::StandardButton reply;
 			if(false == camera->recordingData.hasBeenSaved)	reply = QMessageBox::question(this, "Unsaved video in RAM", "Performing black calibration will erase the unsaved video in RAM. Continue?", QMessageBox::Yes|QMessageBox::No);
-			else											reply = QMessageBox::question(this, "Start black calibration?", "Will start black calibration. Continue?", QMessageBox::Yes|QMessageBox::No);
 
 			if(QMessageBox::Yes != reply)
 				return;
@@ -330,8 +333,25 @@ void CamMainWindow::on_cmdFPNCal_clicked()//Black cal
 
 	QString jsonInString;
 	QString jsonOutString;
-	buildJsonCalibration(&jsonInString, "blackCal");
-	startCalibrationCamJson(&jsonOutString, &jsonInString);
+
+	cinst->startCalibration("analogCal");
+
+	//struct timespec t = {1, 0};
+	//nanosleep(&t, NULL);
+	//for (int i=0; i<80; i++)
+	bool calWaiting;
+	do
+	{
+		QString state;
+		cinst->getString("state", &state);
+		calWaiting = state == "analogcal";
+
+		struct timespec t = {0, 50000000};
+		nanosleep(&t, NULL);
+
+	} while (calWaiting);
+
+	cinst->startCalibration("blackCal");
 
 	sw->hide();
 }
@@ -468,7 +488,7 @@ void CamMainWindow::on_MainWindowTimer()
 	//If new data comes in from the BMS, get the battery SOC and updates the info label
 	//len = read(bmsFifoFD, buf, 300);
 
-	//if (debugDbus) cnt = 35;	//fewer Dbus calls
+	if (debugDbus) cnt = 35;	//fewer Dbus calls
 
 	if (!(cnt++ & 63))	//roughly once a second
 	{

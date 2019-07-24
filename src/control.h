@@ -106,8 +106,10 @@ public:
 	CameraErrortype set(void);
 	CameraErrortype startAutoWhiteBalance(void);
 	CameraErrortype revertAutoWhiteBalance(void);
-	CameraErrortype startZeroTimeBlackCal(void);
-	CameraErrortype startBlackCalibration(void);
+	//CameraErrortype startZeroTimeBlackCal(void);
+	//CameraErrortype startBlackCalibration(void);
+	QString startCalibration(QString calType);
+
 
 	CameraErrortype status(CameraStatus *cs);
 	CameraErrortype availableKeys(void);

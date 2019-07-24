@@ -139,15 +139,29 @@ void Camera::setFocusPeakEnableLL(bool en)
 
 UInt8 Camera::getFocusPeakColorLL(void)
 {
-	//TODO - when implemented in API
-	return 4;
-}
+	//static QString fpColors[] = {"blue", "green", "cyan", "red", "magenta", "yellow", "white"};
+
+	QString col;
+
+	cinst->getString("focusPeakingColor", &col);
+	int index = 0;
+	while (col != fpColors[index])
+	{
+		index++;
+		if (index >= 7)
+		{
+			qDebug() << "Invalid color!";
+			return 0;
+		}
+	}
+	return index + 1;
+
+	}
 
 
 void Camera::setFocusPeakColorLL(UInt8 color)
 {
-
-		//TODO - when implemented in API
+		cinst->setString("focusPeakingColor", fpColors[color]);
 }
 
 

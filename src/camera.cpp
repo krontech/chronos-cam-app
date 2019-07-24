@@ -282,6 +282,9 @@ UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 			QString modes[] = {"normal", "segmented", "burst"};
 			if (imagerSettings.mode > 3 ) qFatal("imagerSetting mode is FPN");
 			cinst->setString("recMode", modes[imagerSettings.mode]);
+			cinst->setInt("recSegments", imagerSettings.segments);
+			cinst->setInt("preRecBurst", imagerSettings.prerecordFrames);
+
 			//TODO - test segment recording
 			//appSettings.setValue("camera/segmentLengthFrames",  imagerSettings.segmentLengthFrames);
 			cinst->setInt("recSegments", imagerSettings.segments);
@@ -1040,6 +1043,135 @@ round(UInt32  x, UInt32 mult)
 
 Int32 Camera::blackCalAllStdRes(bool factory)
 {
+
+
+	//If there is unsaved video in RAM, prompt to start record
+	/*
+	QMessageBox::StandardButton reply;
+	if(false == camera->recordingData.hasBeenSaved)	reply = QMessageBox::question(this, "Unsaved video in RAM", "Performing black calibration will erase the unsaved video in RAM. Continue?", QMessageBox::Yes|QMessageBox::No);
+
+	if(QMessageBox::Yes != reply)
+		return;
+*/
+
+	UInt32 maxGain;
+	cinst->getInt("sensorMaxGain", &maxGain);
+	qDebug() << "maxGain:" << maxGain;
+
+
+	//get the common resolutions from the list of resolutions
+	QFile fp;
+	QString filename;
+	QByteArray line;
+	QString lineText;
+
+	filename.append("camApp:resolutions");
+	QFileInfo resolutionsFile(filename);
+	if (resolutionsFile.exists() && resolutionsFile.isFile()) {
+		fp.setFileName(filename);
+		fp.open(QIODevice::ReadOnly);
+		if(!fp.isOpen()) {
+			qDebug("Error: resolutions file couldn't be opened");
+		}
+	}
+	else {
+		qDebug("Error: resolutions file isn't present");
+	}
+
+	UInt32 lastHRes = -1;
+
+	while(true) {
+		line = fp.readLine(30);
+		FrameGeometry fSize;
+
+		if (line.isEmpty() || line.isNull())
+			break;
+
+		//Get the resolution
+		sscanf(line.constData(), "%dx%d", &fSize.hRes, &fSize.vRes);
+		fSize.bitDepth = BITS_PER_PIXEL;
+		fSize.hOffset = fSize.vOffset = fSize.vDarkRows = 0;
+
+		lineText.sprintf("Black cal: %dx%d", fSize.hRes, fSize.vRes);
+		qDebug() << lineText;
+
+		bool doAnalogCal = false;
+
+		if (fSize.hRes != lastHRes)
+		{
+			lastHRes = fSize.hRes;
+			qDebug() << "new hRes - analog cal";
+			doAnalogCal = true;
+		}
+
+		cinst->setResolution(&fSize);
+
+		//now do calibration for each gain
+		UInt32 gain = 1;
+
+		do
+		{
+
+			qDebug() << "  gain:" << gain;
+			cinst->startCalibration("blackCal");
+
+
+
+
+
+
+/*
+
+		//sw->setText("Performing black calibration...");
+		//sw->show();
+		QCoreApplication::processEvents();
+
+		QString jsonInString;
+		QString jsonOutString;
+
+		buildJsonCalibration(&jsonInString, "analogCal");
+		startCalibrationCamJson(&jsonOutString, &jsonInString);
+
+
+		//struct timespec t = {1, 0};
+		//nanosleep(&t, NULL);
+		//for (int i=0; i<80; i++)
+		bool calWaiting;
+		do
+		{
+			QString state;
+			cinst->getString("state", &state);
+			calWaiting = state == "analogcal";
+
+			struct timespec t = {0, 50000000};
+			nanosleep(&t, NULL);
+
+		} while (calWaiting);
+
+
+		//sw->hide();
+
+
+*/
+
+		if (doAnalogCal)
+		{
+			qDebug() << "-----> analog cal";
+			cinst->startCalibration("analogCal");
+
+		}
+
+		gain *= 2;
+
+		} while (gain <= maxGain);
+
+
+
+
+	}
+
+	fp.close();
+
 }
 
 
@@ -1094,6 +1226,8 @@ bool Camera::getFocusPeakEnable(void)
 }
 void Camera::setFocusPeakEnable(bool en)
 {
+	cinst->setBool("focusPeakingLevel", en ? 1.0 : 0.0);
+	return;
 	QSettings appSettings;
 	focusPeakEnabled = en;
 	appSettings.setValue("camera/focusPeak", en);
@@ -1454,7 +1588,7 @@ void Camera::onLoopTimer()
 	QString jsonReturn;
 	startRecordingCamJson(&jsonReturn);
 
-	struct timespec t = {0, 50000000};
+	struct timespec t = {0, 250000000};
 	nanosleep(&t, NULL);
 
 	//cinst->stopRecording();

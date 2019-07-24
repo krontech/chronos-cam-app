@@ -123,7 +123,6 @@ RecSettingsWindow::RecSettingsWindow(QWidget *parent, Camera * cameraInst) :
 		fSize.hOffset = fSize.vOffset = fSize.vDarkRows = 0;
 
 		int fr =  camera->sensor->getIntegrationClock() / (double)camera->sensor->getMinFramePeriod(&fSize);
-		//qDebug() << "hRes" << fSize.hRes << "vRes" << fSize.vRes << "fr" << fr;
 
 		lineText.sprintf("%dx%d %d fps", fSize.hRes, fSize.vRes, fr);
 		
@@ -216,11 +215,8 @@ void RecSettingsWindow::on_cmdOK_clicked()
 	camera->setImagerSettings(*is);
 	camera->vinst->liveDisplay(is->geometry.hRes, is->geometry.vRes);
 
-	if(true) {
-		QString jsonInString;
-		QString jsonOutString;
-		buildJsonCalibration(&jsonInString, "zeroTimeBlackCal");
-		startCalibrationCamJson(&jsonOutString, &jsonInString);
+	if(false) {
+		camera->cinst->startCalibration("zeroTimeBlackCal");
 	}
 
 	close();
