@@ -36,7 +36,6 @@
 #include "whitebalancedialog.h"
 
 #include "pysensor.h"
-#include "exec.h"
 
 
 extern "C" {
@@ -309,45 +308,43 @@ void CamMainWindow::on_cmdFPNCal_clicked()//Black cal
 	if(camera->getIsRecording()) {
 		QMessageBox::StandardButton reply;
 		reply = QMessageBox::question(this, "Stop recording?", "This action will stop recording and erase the video; is this okay?", QMessageBox::Yes|QMessageBox::No);
-		if(QMessageBox::Yes != reply)
+		if(QMessageBox::Yes != reply) {
 			return;
+		}
+
 		autoSaveActive = false;
 		camera->stopRecording();
 		delayms(100);
 	}
-	else {
-			//If there is unsaved video in RAM, prompt to start record
+	else if (false == camera->recordingData.hasBeenSaved) {
+		/* Check for unsaved video before starting the recording. */
+		UInt32 frames = 0;
+		camera->cinst->getInt("totalFrames", &frames);
+		if (frames > 0) {
 			QMessageBox::StandardButton reply;
-			if(false == camera->recordingData.hasBeenSaved)	reply = QMessageBox::question(this, "Unsaved video in RAM", "Performing black calibration will erase the unsaved video in RAM. Continue?", QMessageBox::Yes|QMessageBox::No);
-
-			if(QMessageBox::Yes != reply)
+			reply = QMessageBox::question(this, "Unsaved video in RAM", "Performing black calibration will erase the unsaved video in RAM. Continue?", QMessageBox::Yes|QMessageBox::No);
+			if(QMessageBox::Yes != reply) {
 				return;
+			}
+		}
 	}
+
 	sw->setText("Performing black calibration...");
 	sw->show();
 	QCoreApplication::processEvents();
 
-	QString jsonInString;
-	QString jsonOutString;
+	cinst->startCalibration({"analogCal", "blackCal"}, true);
 
-	cinst->startCalibration("analogCal");
-
-	//struct timespec t = {1, 0};
-	//nanosleep(&t, NULL);
-	//for (int i=0; i<80; i++)
 	bool calWaiting;
-	do
-	{
+	do {
 		QString state;
 		cinst->getString("state", &state);
-		calWaiting = state == "analogcal";
+		calWaiting = state != "idle";
 
 		struct timespec t = {0, 50000000};
 		nanosleep(&t, NULL);
 
 	} while (calWaiting);
-
-	cinst->startCalibration("blackCal");
 
 	sw->hide();
 }

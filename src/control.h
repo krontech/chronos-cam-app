@@ -103,7 +103,7 @@ public:
 	CameraErrortype getInt(QString parameter, UInt32 *value)	{ return getPropertyValue<UInt32>(parameter, value); }
 	CameraErrortype getString(QString parameter, QString *str)	{ return getPropertyValue<QString>(parameter, str);  }
 	CameraErrortype getFloat(QString parameter, double *value)	{ return getPropertyValue<double>(parameter, value); }
-	CameraErrortype getBool(QString parameter, bool *value)		{ return getPropertyValue<bool>(parameter, value);	 }
+	CameraErrortype getBool(QString parameter, bool *value)		{ return getPropertyValue<bool>(parameter, value);   }
 
 	/* Wrapper functions to set a property from a type. */
 	CameraErrortype setInt(QString parameter, UInt32 value)   { return setProperty(parameter, QVariant(value)); }
@@ -118,7 +118,8 @@ public:
 	CameraErrortype testResolution(void);
 	CameraErrortype startAutoWhiteBalance(void);
 	CameraErrortype revertAutoWhiteBalance(void);
-	QString startCalibration(QString calType);
+	CameraErrortype startCalibration(QString calType, bool saveCal=false);
+	CameraErrortype startCalibration(QStringList calTypes, bool saveCal=false);
 
 	CameraErrortype status(CameraStatus *cs);
 	CameraErrortype availableKeys(void);

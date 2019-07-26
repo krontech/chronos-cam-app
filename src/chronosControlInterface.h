@@ -92,6 +92,12 @@ public Q_SLOTS: // METHODS
 		return asyncCallWithArgumentList(QLatin1String("revertAutoWhiteBalance"), argumentList);
 	}
 
+	inline QDBusPendingReply<QVariantMap> startCalibration(const QVariantMap &args)
+	{
+		QList<QVariant> argumentList;
+		argumentList << qVariantFromValue(args);
+		return asyncCallWithArgumentList(QLatin1String("startCalibration"), argumentList);
+	}
 
 	// out only methods
 
@@ -113,19 +119,6 @@ public Q_SLOTS: // METHODS
 		QList<QVariant> argumentList;
 		return asyncCallWithArgumentList(QLatin1String("availableCalls"), argumentList);
 	}
-
-
-
-	//---------------
-
-	inline QDBusPendingReply<QVariantMap> stopRecord(const QVariantMap &args)
-	{
-		QList<QVariant> argumentList;
-		qDebug() << "stopRecord ";
-		argumentList << qVariantFromValue(args);
-		return asyncCallWithArgumentList(QLatin1String("stopRecord"), argumentList);
-	}
-
 
 Q_SIGNALS: // SIGNALS
 };

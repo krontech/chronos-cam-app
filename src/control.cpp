@@ -18,7 +18,6 @@
 #include <fcntl.h>
 #include <poll.h>
 #include "control.h"
-#include "exec.h"
 #include "camera.h"
 #include "util.h"
 
@@ -382,14 +381,35 @@ CameraErrortype Control::revertAutoWhiteBalance(void)
 	}
 }
 
-QString Control::startCalibration(QString calType)
+CameraErrortype Control::startCalibration(QStringList calTypes, bool saveCal)
 {
-	QString jsonInString;
-	QString jsonOutString;
-	buildJsonCalibration(&jsonInString, calType);
-	startCalibrationCamJson(&jsonOutString, &jsonInString);
+	QVariantMap args;
+	QDBusPendingReply<QVariantMap> reply;
+	QStringList::const_iterator i;
 
-	return jsonOutString;
+	for (i = calTypes.constBegin(); i != calTypes.constEnd(); i++) {
+		args[*i] = QVariant(true);
+	}
+	args["saveCal"] = QVariant(saveCal);
+
+	pthread_mutex_lock(&mutex);
+	reply = iface.startCalibration(args);
+	reply.waitForFinished();
+	pthread_mutex_unlock(&mutex);
+
+	if (reply.isError()) {
+		QDBusError err = reply.error();
+		fprintf(stderr, "Failed - revertAutoWhiteBalance: %s - %s\n", err.name().data(), err.message().toAscii().data());
+		return CAMERA_API_CALL_FAIL;
+	}
+	else {
+		return SUCCESS;
+	}
+}
+
+CameraErrortype Control::startCalibration(QString calType, bool saveCal)
+{
+	return startCalibration(QStringList(calType), saveCal);
 }
 
 CameraErrortype Control::status(CameraStatus *cs)
