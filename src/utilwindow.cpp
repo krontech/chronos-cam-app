@@ -105,7 +105,7 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	ui->comboFPColor->addItem("White");
 	ui->comboFPColor->setCurrentIndex(camera->getFocusPeakColor() - 1);
 	ui->chkZebraEnable->setChecked(camera->getZebraEnable());
-    ui->chkShippingMode->setChecked(camera->get_shippingMode());
+	ui->chkShippingMode->setChecked(camera->pinst->getShippingMode());
 
 	if(camera->getFocusPeakThresholdLL() == FOCUS_PEAK_THRESH_HIGH)
 		ui->radioFPSensHigh->setChecked(true);
@@ -145,7 +145,7 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	ui->chkDemoMode->setChecked(camera->get_demoMode());
 	ui->chkUiOnLeft->setChecked(camera->getButtonsOnLeft());
 	ui->comboDisableUnsavedWarning->setCurrentIndex(camera->getUnsavedWarnEnable());
-	ui->autoPowerSetting->setCurrentIndex(camera->get_autoPowerMode());
+	ui->autoPowerSetting->setCurrentIndex(camera->pinst->getAutoPowerMode());
 
 	if(camera->RotationArgumentIsSet())
 		ui->chkUpsideDownDisplay->setChecked(camera->getUpsideDownDisplay());
@@ -1022,7 +1022,7 @@ void UtilWindow::on_chkShippingMode_clicked()
 		QMessageBox::information(this, "Shipping Mode Enabled","On the next restart, the AC adapter must be plugged in to turn the camera on.", QMessageBox::Ok);
 	}
 
-	camera->set_shippingMode(state);
+	camera->pinst->setShippingMode(state);
 }
 
 void UtilWindow::on_cmdDefaults_clicked()
@@ -1183,7 +1183,7 @@ void UtilWindow::on_cmdRestoreSettings_clicked()
 	QSettings appSettings;
 	appSettings.sync();
     
-    ui->autoPowerSetting->setCurrentIndex(camera->get_autoPowerMode());
+	ui->autoPowerSetting->setCurrentIndex(camera->pinst->getAutoPowerMode());
 
 	sw.hide();
 	msg.setText("User settings restore successful!");
@@ -1256,5 +1256,5 @@ void UtilWindow::on_tabWidget_currentChanged(int index)
 
 void UtilWindow::on_autoPowerSetting_currentIndexChanged(int index)
 {
-    camera->set_autoPowerMode(index);
+	camera->pinst->setAutoPowerMode(index);
 }

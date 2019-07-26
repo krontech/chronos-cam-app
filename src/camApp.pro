@@ -103,7 +103,8 @@ SOURCES += main.cpp\
     chronosVideoInterface.cpp \
     colorwindow.cpp \
     colordoublespinbox.cpp \
-    errorStrings.cpp
+    errorStrings.cpp \
+    power.cpp
 
 ## Generate version.cpp on every build
 versionTarget.target = version.cpp
@@ -159,7 +160,8 @@ HEADERS  += mainwindow.h \
     chronosVideoInterface.h \
     colorwindow.h \
     colordoublespinbox.h \
-    frameGeometry.h
+    frameGeometry.h \
+    power.h
 
 FORMS    += mainwindow.ui \
     cammainwindow.ui \

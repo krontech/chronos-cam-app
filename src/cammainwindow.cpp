@@ -64,7 +64,6 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	userInterface = new UserInterface();
 	prompt = NULL;
 
-	battCapacityPercent = 0;
 	vinst->displayWindowXOff = (camera->ButtonsOnLeft ^ camera->UpsideDownDisplay? 200 : 0);
 
 	gpmc->init();
@@ -323,8 +322,6 @@ void CamMainWindow::updateRecordingState(bool recording)
 void CamMainWindow::on_MainWindowTimer()
 {
 	bool shutterButton = camera->ui->getShutterButton();
-	char buf[256] = {'\0'};
-	Int32 len;
 	QSettings appSettings;
 
 	if(shutterButton && !lastShutterButton)
@@ -370,31 +367,11 @@ void CamMainWindow::on_MainWindowTimer()
 
 	//Request battery information from the PMIC every two seconds (16ms * 125 loops)
 	if(powerLoopCount == 125){
-		len = camera->get_batteryData(buf, sizeof(buf));
+		camera->pinst->refreshBatteryData();
 		powerLoopCount = 0;
-	} else {
-		len = 0;
 	}
 	powerLoopCount++;
-
-	if(len > 0)
-	{
-		sscanf(buf, "battCapacityPercent %hhu\nbattSOHPercent %hhu\nbattVoltage %u\nbattCurrent %u\nbattHiResCap %u\nbattHiResSOC %u\n"
-			   "battVoltageCam %u\nbattCurrentCam %d\nmbTemperature %d\nflags %hhu\nfanPWM %hhu",
-			   &battCapacityPercent,
-			   &battSOHPercent,
-			   &battVoltage,
-			   &battCurrent,
-			   &battHiResCap,
-			   &battHiResSOC,
-			   &battVoltageCam,
-			   &battCurrentCam,
-			   &mbTemperature,
-			   &flags,
-			   &fanPWM);
-
-		updateCurrentSettingsLabel();
-	}
+	updateCurrentSettingsLabel();
 
 	if (appSettings.value("debug/hideDebug", true).toBool()) {
 		ui->cmdDebugWnd->setVisible(false);
@@ -469,15 +446,10 @@ void CamMainWindow::updateCurrentSettingsLabel()
 	getSIText(expString, expPeriod, 4, DEF_SI_OPTS, 10);
 	shutterAngle = max(shutterAngle, 1); //to prevent 0 degrees from showing on the label if the current exposure is less than 1/360'th of the frame period.
 
-	double battPercent = (flags & 4) ?	//If battery is charging
-						within(((double)battVoltageCam/1000.0 - 10.75) / (12.4 - 10.75) * 80, 0.0, 80.0) +
-							20 - 20*within(((double)battCurrentCam/1000.0 - 0.1) / (1.28 - 0.1), 0.0, 1.0) :	//Charging
-						within(((double)battVoltageCam/1000.0 - 9.75) / (11.8 - 9.75) * 100, 0.0, 100.0);		//Dicharging
-	//charge 10.75 - 12.4 is 0-80%
-
-	if(flags & 1)	//If battery present
+	if(camera->pinst->flags & POWER_FLAG_BATT_PRESENT)	//If battery present
 	{
-		sprintf(battStr, "Batt %d%% %.2fV", (UInt32)battPercent,  (double)battVoltageCam / 1000.0);
+		double battPercent = camera->pinst->getBatteryPercent();
+		sprintf(battStr, "Batt %d%% %.2fV", (UInt32)battPercent,  (double)camera->pinst->battVoltageCam / 1000.0);
 	}
 	else
 	{
