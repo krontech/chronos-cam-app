@@ -338,7 +338,7 @@ void UtilWindow::on_cmdBlackCalAll_clicked()
 	camera->io->setOutLevel(0);	//Turn off output drive
 
 	//Black cal all standard resolutions
-	retVal = camera->blackCalAllStdRes(true);
+	retVal = blackCalAllStdRes();
 
 	if(SUCCESS != retVal)
 	{
@@ -1145,3 +1145,197 @@ void UtilWindow::on_chkShippingMode_stateChanged(int arg1)
 {
 	camera->setShippingMode(arg1);
 }
+
+
+// helper function to wait for idle state
+void UtilWindow::waitForIdle(void)
+{
+	bool waiting;
+	do
+	{
+		QString state;
+		camera->cinst->getString("state", &state);
+		waiting = (state != "idle");
+
+		if (waiting)
+		{
+			delayms(50);
+		}
+	} while (waiting);
+
+}
+
+
+Int32 UtilWindow::blackCalAllStdRes(void)
+{
+	QProgressDialog *progress;
+	QElapsedTimer timer;
+	timer.start();
+
+	//save settings
+	FrameGeometry saveGeometry;
+	UInt32 keepFramePeriod;
+	UInt32 keepIntegrationTime;
+	UInt32 keepCurrentGain;
+
+	camera->cinst->getInt("exposurePeriod", &keepIntegrationTime);
+	camera->cinst->getInt("framePeriod", &keepFramePeriod);
+	camera->cinst->getInt("currentGain", &keepCurrentGain);
+	camera->cinst->getResolution(&saveGeometry);
+
+	UInt32 maxGain;
+	camera->cinst->getInt("sensorMaxGain", &maxGain);
+
+	UInt32 numGains = 0;
+	for (int i=maxGain; i > 0; i /= 2)
+	{
+		numGains++;
+	}
+
+	UInt32 hMax;
+	UInt32 vMax;
+
+	camera->cinst->getInt("sensorHMax", &hMax);
+	camera->cinst->getInt("sensorVMax", &vMax);
+
+	//get the common resolutions from the list of resolutions
+	QFile fp;
+	QString filename;
+	QByteArray line;
+	QString lineText;
+
+	filename.append("camApp:resolutions");
+	QFileInfo resolutionsFile(filename);
+	if (resolutionsFile.exists() && resolutionsFile.isFile()) {
+		fp.setFileName(filename);
+		fp.open(QIODevice::ReadOnly);
+		if(!fp.isOpen()) {
+			qDebug("Error: resolutions file couldn't be opened");
+		}
+	}
+	else {
+		qDebug("Error: resolutions file isn't present");
+	}
+
+	//now count how many resolutions
+	UInt32 numResolutions = 0;
+	while(true) {
+		line = fp.readLine(30);
+		if (line.isEmpty() || line.isNull())
+			break;
+		numResolutions++;
+	}
+
+	//close and re-open
+	fp.close();
+	fp.open(QIODevice::ReadOnly);
+
+	progress = new QProgressDialog(this);
+	progress->setWindowTitle(QString("Performing black cal on all standard resolutions."));
+	progress->setMaximum(numGains * numResolutions);
+	progress->setMinimumDuration(0);
+	progress->setWindowModality(Qt::WindowModal);
+	progress->resize(progress->size() + QSize(200, 20));
+
+	progress->setLabelText("Preparing for black calibration");
+	progress->setValue(0);
+	progress->show();
+
+	UInt32 progressCount = 0;
+
+	UInt32 lastHRes = -1;
+
+	bool cancelButton = false;
+
+	while(true) {
+		FrameGeometry fSize;
+
+		line = fp.readLine(30);
+		if (line.isEmpty() || line.isNull())
+			break;
+
+		//Get the resolution
+		sscanf(line.constData(), "%dx%d", &fSize.hRes, &fSize.vRes);
+		fSize.bitDepth = BITS_PER_PIXEL;
+		fSize.vDarkRows = 0;
+		fSize.minFrameTime = 0.001;
+
+		//Center
+		fSize.hOffset = round((hMax - fSize.hRes) / 2);
+		fSize.vOffset = round((vMax - fSize.vRes) / 2);
+
+		bool doAnalogCal = false;
+
+		if (fSize.hRes != lastHRes)
+		{
+			lastHRes = fSize.hRes;
+			doAnalogCal = true;
+		}
+
+		waitForIdle();
+		camera->cinst->setResolution(&fSize);
+
+		//now do calibration for each gain
+		UInt32 gain = 1;
+
+
+		do
+		{
+			char str[200];
+			sprintf(str, "%ux%u at gain %u", fSize.hRes, fSize.vRes, gain);
+			progress->setLabelText(str);
+			progress->setValue(progressCount);
+			QCoreApplication::processEvents();
+			progressCount++;
+
+			if (progress->wasCanceled())
+			{
+				cancelButton = true;
+				break;
+			}
+
+			waitForIdle();
+			camera->cinst->setInt("currentGain", gain);
+			qDebug() << "black cal at gain" << gain;
+			waitForIdle();
+			camera->cinst->startCalibration("blackCal");
+
+			if (doAnalogCal)
+			{
+				if (progress->wasCanceled())
+				{
+					cancelButton = true;
+					break;
+				}
+
+				waitForIdle();
+				camera->cinst->startCalibration("analogCal");
+			}
+
+			gain *= 2;
+
+		} while ((gain <= maxGain) && !cancelButton);
+	}
+
+	fp.close();
+	delete progress;
+
+	//restore settings
+	waitForIdle();
+	camera->cinst->setResolution(&saveGeometry);
+	camera->cinst->setInt("exposurePeriod", keepIntegrationTime);
+	camera->cinst->setInt("framePeriod", keepFramePeriod);
+	camera->cinst->setInt("currentGain", keepCurrentGain);
+
+	qDebug() << "Black cal all resolutions took" << timer.elapsed()/1000 << "seconds";
+
+	if (cancelButton)
+	{
+		return CAMERA_ERROR_SENSOR; //some error!
+	}
+	else
+	{
+		return SUCCESS;
+	}
+}
+

@@ -57,9 +57,7 @@ void parseJsonResolution(QString jsonString, FrameGeometry *geometry)
 {
 	//build JSON document d
 	QJsonDocument d = QJsonDocument::fromJson(jsonString.toUtf8());
-	qDebug() << QString::fromUtf8(d.toJson(QJsonDocument::Compact));
 
-	qDebug() << d.isObject();
 	QJsonObject qjo= d.object();
 
 	QVariantMap root_map = qjo.toVariantMap();
@@ -106,7 +104,6 @@ void buildJsonCalibration(QString *jsonString, QString calType)
 	jsonString->append("{ \"" + calType);
 	jsonString->append("\":1}");
 
-	qDebug() << *jsonString;
 }
 
 void buildJsonTiming(QString *jsonString, FrameGeometry *geometry)
@@ -152,8 +149,6 @@ void buildJsonIo(QString *jsonString)
 	jsonString->append("\n         \"threshold\": " + QString::number(pychIo2Threshold));
 	jsonString->append("\n      },");
 	jsonString->append("\n   }\n}");
-
-	//qDebug() << *jsonString;
 }
 
 
@@ -333,8 +328,6 @@ void startCalibrationCamJson( QString *jsonOutString, QString *jsonInString)
 	string gulp_command = jsonInString->toStdString();
 	string receive_output = "";
 
-	qDebug() << "startCalibration";
-
 	if (pipe(fd_p2c) != 0 || pipe(fd_c2p) != 0)
 	{
 		cerr << "Failed to pipe\n";
@@ -365,7 +358,6 @@ void startCalibrationCamJson( QString *jsonOutString, QString *jsonInString)
 		}
 
 		execl(program_name.c_str(), program_name.c_str(), "startCalibration", "-", (char *) 0);
-		qDebug() << program_name.c_str() << program_name.c_str() << "startCalibration" << "-";
 
 		cerr << "Failed to execute " << program_name << endl;
 		exit(1);
@@ -397,7 +389,6 @@ void startCalibrationCamJson( QString *jsonOutString, QString *jsonInString)
 		}
 		close(fd_c2p[0]);
 		*jsonOutString = QString::fromStdString(receive_output);
-		//qDebug() << *jsonOutString;
 	}
 }
 
@@ -441,7 +432,6 @@ void startRecordingCamJson( QString *jsonString)
 		}
 
 		execl(program_name.c_str(), program_name.c_str(), "startRecording", "-", (char *) 0);
-		qDebug() << program_name.c_str() << program_name.c_str() << "startRecording" << "-";
 
 		cerr << "Failed to execute " << program_name << endl;
 		exit(1);

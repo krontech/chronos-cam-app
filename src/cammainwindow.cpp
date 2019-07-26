@@ -217,10 +217,6 @@ void CamMainWindow::on_cmdDebugWnd_clicked()
 
 void CamMainWindow::on_cmdRec_clicked()
 {
-
-	camera->on_chkLiveLoop_stateChanged(true);
-	return;
-
 	if(camera->getIsRecording())
 	{
 		camera->stopRecording();
