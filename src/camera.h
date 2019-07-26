@@ -183,6 +183,8 @@ public:
 
 	RecordSettings_t recordingData;
 	ImagerSettings_t getImagerSettings() { return imagerSettings; }
+	UInt32 loadImagerSettings(ImagerSettings_t * settings);
+
 	UInt32 getRecordLengthFrames(ImagerSettings_t settings);
     CameraData cData;
     SensorData sData;

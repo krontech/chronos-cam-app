@@ -219,6 +219,21 @@ CameraErrortype Camera::init(Video * vinstInst, Control * cinstInst, ImageSensor
 	return SUCCESS;
 }
 
+
+UInt32 Camera::loadImagerSettings(ImagerSettings_t *settings)
+{
+	//retrieve imagersettings through API
+	cinst->getInt("exposurePeriod",&settings->exposure);
+	cinst->getInt("framePeriod",&settings->period);
+	double gainFloat;
+	cinst->getFloat("currentGain", &gainFloat);
+	UInt32 gain = (int)gainFloat;
+	UInt32 gainIndex = 0;
+	for (int i=gain; i > 1; i /= 2) gainIndex++;
+	settings->gain = gainIndex;
+}
+
+
 UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 {
 	QString modes[] = {"normal", "segmented", "burst"};
@@ -244,7 +259,7 @@ UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 
 	values.insert("resolution", QVariant(resolution));
 	values.insert("framePeriod", QVariant(settings.period));
-	values.insert("currentGain", QVariant(settings.gain));
+	values.insert("currentGain", QVariant(1 << settings.gain));
 	values.insert("currentExposure", QVariant(settings.exposure));
 	if (settings.mode > 3 ) qFatal("imagerSetting mode is FPN");
 	else values.insert("recMode", modes[imagerSettings.mode]);

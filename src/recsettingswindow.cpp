@@ -62,6 +62,8 @@ RecSettingsWindow::RecSettingsWindow(QWidget *parent, Camera * cameraInst) :
 	ImagerSettings_t isTemp = camera->getImagerSettings();          //Using new and memcpy because passing the address of a class variable was causing segfaults among others in the trigger delay window.
 	memcpy((void *)is, (void *)(&isTemp), sizeof(ImagerSettings_t));
 
+	camera->loadImagerSettings(is);	//get settings from API
+
 	ui->spinHRes->setSingleStep(camera->sensor->getHResIncrement());
 	ui->spinHRes->setMinimum(camera->sensor->getMinHRes());
 	ui->spinHRes->setMaximum(maxSize.hRes);
@@ -212,9 +214,6 @@ void RecSettingsWindow::on_cmdOK_clicked()
 	camera->setImagerSettings(*is);
 	camera->vinst->liveDisplay(is->geometry.hRes, is->geometry.vRes);
 
-	if(false) {
-		camera->cinst->startCalibration("zeroTimeBlackCal");
-	}
 
 	close();
 }
