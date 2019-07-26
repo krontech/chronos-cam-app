@@ -19,8 +19,6 @@
 
 #include <pthread.h>
 #include <semaphore.h>
-#include <QLocalSocket>
-
 #include <QProgressDialog>
 
 #include "errorCodes.h"
@@ -29,6 +27,7 @@
 #include "gpmc.h"
 #include "video.h"
 #include "sensor.h"
+#include "power.h"
 #include "userInterface.h"
 #include "io.h"
 #include "string.h"
@@ -169,13 +168,6 @@ typedef struct {
 	double matrix[9];
 } ColorMatrix_t;
 
-typedef enum AutoPowerModes{
-	AUTO_POWER_DISABLED = 0,
-	AUTO_POWER_RESTORE_ONLY,
-	AUTO_POWER_REMOVE_ONLY,
-	AUTO_POWER_BOTH
-} AutoPowerModesType;
-
 class Camera
 {
 public:
@@ -191,10 +183,10 @@ public:
 	bool getIsRecording(void);
 	GPMC * gpmc;
 	Video * vinst;
+	Power * pinst;
 	ImageSensor * sensor;
 	UserInterface * ui;
 	IO * io;
-	QLocalSocket powerDataSocket;
 
 	RecordSettings_t recordingData;
 	ImagerSettings_t getImagerSettings() { return imagerSettings; }
@@ -331,16 +323,6 @@ public:
 	bool demoMode;
 	void set_demoMode(bool state);
 	bool get_demoMode();
-
-	bool shippingMode;
-	void set_shippingMode(bool state);
-	bool get_shippingMode();
-
-	int autoPowerMode;
-	void set_autoPowerMode(int mode);
-	int get_autoPowerMode();
-
-	int get_batteryData(char *buf, size_t bufSize);
 
 	bool getButtonsOnLeft();
 	void setButtonsOnLeft(bool en);

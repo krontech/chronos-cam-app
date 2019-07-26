@@ -99,6 +99,7 @@ SOURCES += main.cpp\
     lux1310.cpp \
     lux1310wt.cpp \
     lux2100.cpp \
+    lux2100wt.cpp \
     lux2810.cpp \
     utilwindow.cpp \
     statuswindow.cpp \
@@ -116,7 +117,7 @@ SOURCES += main.cpp\
     colordoublespinbox.cpp \
     aptupdate.cpp \
     errorStrings.cpp \
-    lux2100wt.cpp
+    power.cpp
 
 ## Generate version.cpp on every build
 versionTarget.target = version.cpp
@@ -175,7 +176,8 @@ HEADERS  += mainwindow.h \
     colordoublespinbox.h \
     frameGeometry.h \
     sensor.h \
-    aptupdate.h
+    aptupdate.h \
+    power.h
 
 FORMS    += mainwindow.ui \
     cammainwindow.ui \
