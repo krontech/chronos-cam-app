@@ -330,7 +330,7 @@ void UtilWindow::on_cmdBlackCalAll_clicked()
 	Int32 retVal;
 	char text[100];
 
-	sw.setText("Performing black cal on all standard resolutions. Please wait...");
+	sw.setText("\n\n\n\n\n\n\n\n\Performing black cal on all standard resolutions. Please wait...");
 	sw.show();
 	QCoreApplication::processEvents();
 
@@ -1182,6 +1182,7 @@ Int32 UtilWindow::blackCalAllStdRes(void)
 	camera->cinst->getInt("framePeriod", &keepFramePeriod);
 	camera->cinst->getInt("currentGain", &keepCurrentGain);
 	camera->cinst->getResolution(&saveGeometry);
+	saveGeometry.minFrameTime = 0.001;
 
 	UInt32 maxGain;
 	camera->cinst->getInt("sensorMaxGain", &maxGain);
@@ -1231,7 +1232,7 @@ Int32 UtilWindow::blackCalAllStdRes(void)
 	fp.open(QIODevice::ReadOnly);
 
 	progress = new QProgressDialog(this);
-	progress->setWindowTitle(QString("Performing black cal on all standard resolutions."));
+	progress->setWindowTitle(QString("All Black Cal"));
 	progress->setMaximum(numGains * numResolutions);
 	progress->setMinimumDuration(0);
 	progress->setWindowModality(Qt::WindowModal);
@@ -1246,6 +1247,9 @@ Int32 UtilWindow::blackCalAllStdRes(void)
 	UInt32 lastHRes = -1;
 
 	bool cancelButton = false;
+
+	//do initial analog gain, in case gain is already 1.
+	camera->cinst->startCalibration("analogCal");
 
 	while(true) {
 		FrameGeometry fSize;
@@ -1264,20 +1268,11 @@ Int32 UtilWindow::blackCalAllStdRes(void)
 		fSize.hOffset = round((hMax - fSize.hRes) / 2);
 		fSize.vOffset = round((vMax - fSize.vRes) / 2);
 
-		bool doAnalogCal = false;
-
-		if (fSize.hRes != lastHRes)
-		{
-			lastHRes = fSize.hRes;
-			doAnalogCal = true;
-		}
-
 		waitForIdle();
 		camera->cinst->setResolution(&fSize);
 
 		//now do calibration for each gain
 		UInt32 gain = 1;
-
 
 		do
 		{
@@ -1288,28 +1283,17 @@ Int32 UtilWindow::blackCalAllStdRes(void)
 			QCoreApplication::processEvents();
 			progressCount++;
 
-			if (progress->wasCanceled())
-			{
-				cancelButton = true;
-				break;
-			}
-
 			waitForIdle();
 			camera->cinst->setInt("currentGain", gain);
 			qDebug() << "black cal at gain" << gain;
 			waitForIdle();
-			camera->cinst->startCalibration("blackCal");
-
-			if (doAnalogCal)
+			if (progress->wasCanceled())
 			{
-				if (progress->wasCanceled())
-				{
-					cancelButton = true;
-					break;
-				}
-
-				waitForIdle();
-				camera->cinst->startCalibration("analogCal");
+				cancelButton = true;
+			}
+			else
+			{
+				camera->cinst->startCalibration("blackCal");
 			}
 
 			gain *= 2;
