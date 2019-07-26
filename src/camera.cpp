@@ -126,13 +126,7 @@ CameraErrortype Camera::init(Video * vinstInst, Control * cinstInst, ImageSensor
 
 	err = pthread_create(&recDataThreadID, NULL, &recDataThread, this);
 
-	io = new IO();
-	retVal = io->init();
-	if(retVal != SUCCESS)
-		return retVal;
-
 	/* Load default recording from sensor limits. */
-
 	imagerSettings.geometry = sensor->getMaxGeometry();
 	imagerSettings.geometry.vDarkRows = 0;
 	imagerSettings.recRegionSizeFrames = getMaxRecordRegionSizeFrames(&imagerSettings.geometry);
@@ -227,7 +221,10 @@ CameraErrortype Camera::init(Video * vinstInst, Control * cinstInst, ImageSensor
 
 UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 {
+	QString modes[] = {"normal", "segmented", "burst"};
 	QSettings appSettings;
+	QVariantMap values;
+	QVariantMap resolution;
 
 	if(!sensor->isValidResolution(&settings.geometry) ||
 		settings.recRegionSizeFrames < RECORD_LENGTH_MIN ||
@@ -236,78 +233,28 @@ UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 	}
 
 	QString str;
-	sensor->setResolution(&settings.geometry);
-	sensor->setGain(settings.gain);
-	sensor->setFramePeriod(settings.period, &settings.geometry);
-	sensor->setIntegrationTime(settings.exposure, &settings.geometry);
 
+	resolution.insert("hRes", QVariant(settings.geometry.hRes));
+	resolution.insert("vRes", QVariant(settings.geometry.vRes));
+	resolution.insert("hOffset", QVariant(settings.geometry.hOffset));
+	resolution.insert("vOffset", QVariant(settings.geometry.vOffset));
+	resolution.insert("vDarkRows", QVariant(settings.geometry.vDarkRows));
+	resolution.insert("bitDepth", QVariant(settings.geometry.bitDepth));
+	resolution.insert("minFrameTime", QVariant(settings.geometry.minFrameTime));
+
+	values.insert("resolution", QVariant(resolution));
+	values.insert("framePeriod", QVariant(settings.period));
+	values.insert("currentGain", QVariant(settings.gain));
+	values.insert("currentExposure", QVariant(settings.exposure));
+	if (settings.mode > 3 ) qFatal("imagerSetting mode is FPN");
+	else values.insert("recMode", modes[imagerSettings.mode]);
+	values.insert("recSegments", QVariant(settings.segments));
+	values.insert("recMaxFrames", QVariant(settings.recRegionSizeFrames));
+
+	CameraErrortype retVal = cinst->setPropertyGroup(values);
 	memcpy(&imagerSettings, &settings, sizeof(settings));
 
-	//Zero trigger delay for Gated Burst
-	if(settings.mode == RECORD_MODE_GATED_BURST) {
-		io->setTriggerDelayFrames(0, FLAG_TEMPORARY);
-	}
-
-	UInt32 maxRecRegionSize = getMaxRecordRegionSizeFrames(&imagerSettings.geometry);
-	if(settings.recRegionSizeFrames > maxRecRegionSize) {
-		imagerSettings.recRegionSizeFrames = maxRecRegionSize;
-	}
-	else {
-		imagerSettings.recRegionSizeFrames = settings.recRegionSizeFrames;
-	}
-
-	qDebug()	<< "\nSet imager settings:\nhRes" << imagerSettings.geometry.hRes
-				<< "vRes" << imagerSettings.geometry.vRes
-				<< "vDark" << imagerSettings.geometry.vDarkRows
-				<< "hOffset" << imagerSettings.geometry.hOffset
-				<< "vOffset" << imagerSettings.geometry.vOffset
-				<< "exposure" << imagerSettings.exposure
-				<< "period" << imagerSettings.period
-				<< "frameSizeWords" << getFrameSizeWords(&imagerSettings.geometry)
-				<< "recRegionSizeFrames" << imagerSettings.recRegionSizeFrames;
-
-	if (settings.temporary) {
-		qDebug() << "--- settings --- temporary, not saving";
-	}
-	else {
-		qDebug() << "--- settings --- saving";
-		if (isDbus)
-		{
-			cinst->setResolution(&imagerSettings.geometry);
-			cinst->setInt("currentGain", imagerSettings.gain);
-			cinst->setInt("framePeriod", imagerSettings.period);
-			cinst->setInt("exposurePeriod", imagerSettings.exposure);
-			//TODO cinst->setInt("appSettings.setValue("camera/recRegionSizeFrames",  imagerSettings.recRegionSizeFrames);
-			//TODO cinst->setInt("appSettings.setValue("camera/disableRingBuffer",    imagerSettings.disableRingBuffer);
-			QString modes[] = {"normal", "segmented", "burst"};
-			if (imagerSettings.mode > 3 ) qFatal("imagerSetting mode is FPN");
-			cinst->setString("recMode", modes[imagerSettings.mode]);
-			cinst->setInt("recSegments", imagerSettings.segments);
-			cinst->setInt("preRecBurst", imagerSettings.prerecordFrames);
-
-			//TODO - test segment recording
-			//appSettings.setValue("camera/segmentLengthFrames",  imagerSettings.segmentLengthFrames);
-			cinst->setInt("recSegments", imagerSettings.segments);
-		}
-		else
-		{
-			appSettings.setValue("camera/hRes",                 imagerSettings.geometry.hRes);
-			appSettings.setValue("camera/vRes",                 imagerSettings.geometry.vRes);
-			appSettings.setValue("camera/hOffset",              imagerSettings.geometry.hOffset);
-			appSettings.setValue("camera/vOffset",              imagerSettings.geometry.vOffset);
-			appSettings.setValue("camera/gain",                 imagerSettings.gain);
-			appSettings.setValue("camera/period",               imagerSettings.period);
-			appSettings.setValue("camera/exposure",             imagerSettings.exposure);
-			appSettings.setValue("camera/recRegionSizeFrames",  imagerSettings.recRegionSizeFrames);
-			appSettings.setValue("camera/disableRingBuffer",    imagerSettings.disableRingBuffer);
-			appSettings.setValue("camera/mode",                 imagerSettings.mode);
-			appSettings.setValue("camera/prerecordFrames",      imagerSettings.prerecordFrames);
-			appSettings.setValue("camera/segmentLengthFrames",  imagerSettings.segmentLengthFrames);
-			appSettings.setValue("camera/segments",             imagerSettings.segments);
-		}
-	}
-
-	return SUCCESS;
+	return retVal;
 }
 
 UInt32 Camera::getRecordLengthFrames(ImagerSettings_t settings)
@@ -420,16 +367,7 @@ Int32 Camera::startRecording(void)
 	geometry.bitDepth	   = 12;
 	geometry.minFrameTime  = 0.0002; //arbitrary here!
 
-	//cinst->stopRecording();
-	stopRecordingCamJson(&str);
-	qDebug() << str;
-
-	str = "ok then";
-	qDebug() << str;
-
-	testResolutionCamJson(&str, &geometry);
-	qDebug() << str;
-
+	cinst->stopRecording();
 
 	// For testing individual API calls using the record button:
 
@@ -450,9 +388,6 @@ Int32 Camera::startRecording(void)
 	//cinst->setArray("wbMatrix", 3, (double *)&testArray);
 	//cinst->setArray("colorMatrix", 9, (double *)&testArray);
 
-
-	//cinst->getIoSettings();
-	//cinst->setIoSettings();
 
 	//cinst->getResolution(&geometry);
 	//cinst->getString("cameraDescription", &str);
@@ -475,34 +410,12 @@ Int32 Camera::startRecording(void)
 	//cinst->getString("cameraDescription", &str);
 	//cinst->getBool("overlayEnable", &b);
 	//cinst->status();
-	//cinst->startZeroTimeBlackCal();
 	//cinst->startAutoWhiteBalance();
-	//cinst->startBlackCalibration();
 	//cinst->revertAutoWhiteBalance();
 
-	//TESTING Control dbus on pressing record
-	//cinst->getCameraData();
-	//cinst->getSensorData();
-	//cinst->getSensorLimits();
-	//cinst->setSensorSettings(1280, 1024);
-	//cinst->setSensorWhiteBalance(0.5, 0.5, 0.5);
-	//cinst->getSensorWhiteBalance();
-
 	//cs = cinst->getStatus("one", "two");
-	//cinst->setDescription("hello", 6);
-	//cinst->reinitSystem();
-	//cinst->setSensorTiming(500);
-	//cinst->getSensorCapabilities();
-	//cinst->dbusGetIoCapabilities();
-	//cinst->getIoMapping();
-	//cinst->setIoMapping();
 	//cinst->getCalCapabilities();
 	//cinst->calibrate();
-	//cinst->getColorMatrix();
-	//cinst->setColorMatrix();
-	//cinst->getSequencerCapabilities();
-	//cinst->getSequencerProgram();
-	//cinst->setSequencerProgram();
 	//cinst->startRecord();
 	//cinst->stopRecord();
 
@@ -515,8 +428,7 @@ Int32 Camera::startRecording(void)
 	recordingData.hasBeenSaved = false;
 	vinst->flushRegions();
 
-	QString jsonReturn;
-	startRecordingCamJson(&jsonReturn);
+	cinst->startRecording();
 
 	recording = true;
 	videoHasBeenReviewed = false;
@@ -538,127 +450,12 @@ Int32 Camera::setRecSequencerModeNormal()
 	return SUCCESS;
 }
 
-Int32 Camera::setRecSequencerModeGatedBurst(UInt32 prerecord)
-{
-	SeqPgmMemWord pgmWord;
-
-	if(recording)
-		return CAMERA_ALREADY_RECORDING;
-	if(playbackMode)
-		return CAMERA_IN_PLAYBACK_MODE;
-
-	//Set to one plus the last valid address in the record region
-	setRecRegion(REC_REGION_START, imagerSettings.recRegionSizeFrames, &imagerSettings.geometry);
-
-	//Two instruction program
-	//Instruction 0 records to a single frame while trigger is inactive
-	//Instruction 1 records as normal while trigger is active
-
-	//When trigger is inactive, we sit in this 1-frame block, continuously overwriting that frame
-	pgmWord.settings.termRecTrig = 0;
-	pgmWord.settings.termRecMem = 0;
-	pgmWord.settings.termRecBlkEnd = 0;
-	pgmWord.settings.termBlkFull = 0;
-	pgmWord.settings.termBlkLow = 0;
-	pgmWord.settings.termBlkHigh = 1;       //Terminate when trigger becomes active
-	pgmWord.settings.termBlkFalling = 0;
-	pgmWord.settings.termBlkRising = 0;
-	pgmWord.settings.next = 1;              //Go to next block when this one terminates
-	pgmWord.settings.blkSize = prerecord - 1;           //Set to number of frames desired minus one
-	pgmWord.settings.pad = 0;
-
-	writeSeqPgmMem(pgmWord, 0);
-
-	pgmWord.settings.termRecTrig = 0;
-	pgmWord.settings.termRecMem = imagerSettings.disableRingBuffer ? 1 : 0;;
-	pgmWord.settings.termRecBlkEnd = 0;
-	pgmWord.settings.termBlkFull = 0;
-	pgmWord.settings.termBlkLow = 1;       //Terminate when trigger becomes inactive
-	pgmWord.settings.termBlkHigh = 0;
-	pgmWord.settings.termBlkFalling = 0;
-	pgmWord.settings.termBlkRising = 0;
-	pgmWord.settings.next = 0;              //Go back to block 0
-	pgmWord.settings.blkSize = imagerSettings.recRegionSizeFrames-3; //Set to number of frames desired minus one
-	pgmWord.settings.pad = 0;
-
-	qDebug() << "---- Sequencer ---- Set to Gated burst mode, second block size:" << pgmWord.settings.blkSize+1;
-
-	writeSeqPgmMem(pgmWord, 1);
-
-	return SUCCESS;
-}
-
-Int32 Camera::setRecSequencerModeSingleBlock(UInt32 blockLength, UInt32 frameOffset)
-{
-	SeqPgmMemWord pgmWord;
-
-	if(recording)
-		return CAMERA_ALREADY_RECORDING;
-	if(playbackMode)
-		return CAMERA_IN_PLAYBACK_MODE;
-
-	if((blockLength + frameOffset) > imagerSettings.recRegionSizeFrames)
-		blockLength = imagerSettings.recRegionSizeFrames - frameOffset;
-
-	//Set to one plus the last valid address in the record region
-	setRecRegion(REC_REGION_START, imagerSettings.recRegionSizeFrames + frameOffset, &imagerSettings.geometry);
-
-	pgmWord.settings.termRecTrig = 0;
-	pgmWord.settings.termRecMem = 0;
-	pgmWord.settings.termRecBlkEnd = 1;
-	pgmWord.settings.termBlkFull = 1;
-	pgmWord.settings.termBlkLow = 0;
-	pgmWord.settings.termBlkHigh = 0;
-	pgmWord.settings.termBlkFalling = 0;
-	pgmWord.settings.termBlkRising = 0;
-	pgmWord.settings.next = 0;
-	pgmWord.settings.blkSize = blockLength-1; //Set to number of frames desired minus one
-	pgmWord.settings.pad = 0;
-
-	writeSeqPgmMem(pgmWord, 0);
-
-	return SUCCESS;
-}
-
-Int32 Camera::setRecSequencerModeCalLoop(void)
-{
-	SeqPgmMemWord pgmWord;
-
-	if(recording)
-		return CAMERA_ALREADY_RECORDING;
-	if(playbackMode)
-		return CAMERA_IN_PLAYBACK_MODE;
-
-	//Set to one plus the last valid address in the record region
-
-	//add cinst rec region
-
-	pgmWord.settings.termRecTrig = 0;
-	pgmWord.settings.termRecMem = 0;
-	pgmWord.settings.termRecBlkEnd = 1;
-	pgmWord.settings.termBlkFull = 0;
-	pgmWord.settings.termBlkLow = 0;
-	pgmWord.settings.termBlkHigh = 0;
-	pgmWord.settings.termBlkFalling = 0;
-	pgmWord.settings.termBlkRising = 0;
-	pgmWord.settings.next = 0;
-	pgmWord.settings.blkSize = CAL_REGION_FRAMES - 1;
-	pgmWord.settings.pad = 0;
-
-	//pychronos set sequence has not been implemented yet!
-	return SUCCESS;
-}
-
 Int32 Camera::stopRecording(void)
 {
-	CameraStatus cs;
-
 	if(!recording)
 		return CAMERA_NOT_RECORDING;
 
-
-	QString jsonReturn;
-	stopRecordingCamJson(&jsonReturn);
+	cinst->stopRecording();
 	//recording = false;
 
 	return SUCCESS;
@@ -690,229 +487,26 @@ UInt32 Camera::setPlayMode(bool playMode)
 }
 
 
+void Camera::setTriggerDelayFrames(UInt32 delayFrames)
+{
+	qDebug("FIXME! setTriggerDelayFrames is not implemented!");
+}
+
+void Camera::setBncDriveLevel(UInt32 level)
+{
+	QVariantMap config;
+
+	config.insert("driveStrength", QVariant(level ? 3 : 0));
+	config.insert("debounce", QVariant(true));
+	config.insert("invert", QVariant(false));
+	config.insert("source", QVariant("alwaysHigh"));
+
+	cinst->setProperty("ioMappingIo1", config);
+}
+
 Int32 Camera::autoColGainCorrection(void)
 {
 
-}
-
-//Will only decrease exposure, fails if the current set exposure is not clipped
-Int32 Camera::adjustExposureToValue(UInt32 level, UInt32 tolerance, bool includeFPNCorrection)
-{
-	Int32 retVal;
-	ImagerSettings_t _is = getImagerSettings();
-	UInt32 val;
-	UInt32 iterationCount = 0;
-	const UInt32 iterationCountMax = 32;
-
-	//Repeat recording frames and halving the exposure until the pixel value is below the desired level
-	do {
-		retVal = recordFrames(1);
-		if(SUCCESS != retVal)
-			return retVal;
-
-		val = getMiddlePixelValue(includeFPNCorrection);
-		qDebug() << "Got val of" << val;
-
-		//If the pixel value is above the limit, halve the exposure
-		if(val > level)
-		{
-			qDebug() << "Reducing exposure";
-			_is.exposure /= 2;
-			retVal = setImagerSettings(_is);
-			if(SUCCESS != retVal)
-				return retVal;
-		}
-		iterationCount++;
-	} while (val > level && iterationCount <= iterationCountMax);
-
-	if(iterationCount > iterationCountMax)
-		return CAMERA_ITERATION_LIMIT_EXCEEDED;
-
-	//If we only went through one iteration, the signal wasn't clipped, return failure
-	if(1 == iterationCount)
-		return CAMERA_LOW_SIGNAL_ERROR;
-
-	//At this point the exposure is set so that the pixel is at or below the desired level
-	iterationCount = 0;
-	do
-	{
-		double ratio = (double)level / (double)val;
-		qDebug() << "Ratio is "<< ratio << "level:" << level << "val:" << val << "oldExp:" << _is.exposure;
-		//Scale exposure by the ratio, this should produce the correct exposure value to get the desired level
-		_is.exposure = (UInt32)((double)_is.exposure * ratio);
-		qDebug() << "newExp:" << _is.exposure;
-		retVal = setImagerSettings(_is);
-		if(SUCCESS != retVal)
-			return retVal;
-
-		//Check the value was correct
-		retVal = recordFrames(1);
-		if(SUCCESS != retVal)
-			return retVal;
-
-		val = getMiddlePixelValue(includeFPNCorrection);
-		iterationCount++;
-	} while(abs(val - level) > tolerance && iterationCount <= iterationCountMax);
-	qDebug() << "Final exposure set to" << ((double)_is.exposure / 100.0) << "us, final pixel value" << val << "expected pixel value" << level;
-
-	if(iterationCount > iterationCountMax)
-		return CAMERA_ITERATION_LIMIT_EXCEEDED;
-
-	return SUCCESS;
-}
-
-
-Int32 Camera::recordFrames(UInt32 numframes)
-{
-	Int32 retVal;
-	UInt32 count;
-	const int countMax = 500;
-	int ms = 1;
-	struct timespec ts = { ms / 1000, (ms % 1000) * 1000 * 1000 };
-
-	qDebug() << "Starting record of one frame";
-
-	CameraRecordModeType oldMode = imagerSettings.mode;
-	imagerSettings.mode = RECORD_MODE_FPN;
-
-	retVal = setRecSequencerModeSingleBlock(numframes + 1);
-	if(SUCCESS != retVal)
-		return retVal;
-
-	retVal = startRecording();
-	if(SUCCESS != retVal)
-		return retVal;
-
-	for(count = 0; (count < countMax) && recording; count++) {nanosleep(&ts, NULL);}
-
-	if(count == countMax)	//If after the timeout recording hasn't finished
-	{
-		qDebug() << "Error: Record failed to stop within timeout period.";
-
-		retVal = stopRecording();
-		if(SUCCESS != retVal)
-			qDebug() << "Error: Stop Record failed";
-
-		return CAMERA_RECORD_FRAME_ERROR;
-	}
-
-	qDebug() << "Record done";
-
-	imagerSettings.mode = oldMode;
-
-	return SUCCESS;
-}
-
-UInt32 Camera::getMiddlePixelValue(bool includeFPNCorrection)
-{
-}
-
-//frameBuffer must be a UInt16 array with enough elements to to hold all pixels at the current recording resolution
-Int32 Camera::getRawCorrectedFrame(UInt32 frame, UInt16 * frameBuffer)
-{
-}
-
-//frameBuffer must be a UInt16 array with enough elements to to hold all pixels at the current recording resolution
-Int32 Camera::getRawCorrectedFramesAveraged(UInt32 frame, UInt32 framesToAverage, UInt16 * frameBuffer)
-{
-	Int32 retVal;
-	double gainCorrection[16];
-	UInt32 pixelsPerFrame = recordingData.is.geometry.pixels();
-
-	retVal = readDCG(gainCorrection);
-	if(SUCCESS != retVal)
-		return retVal;
-
-	UInt16 * fpnUnpacked = new UInt16[pixelsPerFrame];
-	if(NULL == fpnUnpacked)
-		return CAMERA_MEM_ERROR;
-
-	retVal = readFPN(fpnUnpacked);
-	if(SUCCESS != retVal)
-	{
-		delete fpnUnpacked;
-		return retVal;
-	}
-
-	//Allocate memory for sum buffer
-	UInt32 * summingBuffer = new UInt32[pixelsPerFrame];
-
-	if(NULL == summingBuffer)
-		return CAMERA_MEM_ERROR;
-
-	//Zero sum buffer
-	for(int i = 0; i < pixelsPerFrame; i++)
-		summingBuffer[i] = 0;
-
-	//For each frame to average
-	for(int i = 0; i < framesToAverage; i++)
-	{
-		//Read in the frame
-		retVal = readCorrectedFrame(frame + i, frameBuffer, fpnUnpacked, gainCorrection);
-		if(SUCCESS != retVal)
-		{
-			delete fpnUnpacked;
-			delete summingBuffer;
-			return retVal;
-		}
-
-		//Add pixels to sum buffer
-		for(int j = 0; j < pixelsPerFrame; j++)
-			summingBuffer[j] += frameBuffer[j];
-
-	}
-
-	//Divide to get average and put in result buffer
-	for(int i = 0; i < pixelsPerFrame; i++)
-		frameBuffer[i] = summingBuffer[i] / framesToAverage;
-
-	delete fpnUnpacked;
-	delete summingBuffer;
-
-	return SUCCESS;
-}
-
-Int32 Camera::readDCG(double * gainCorrection)
-{
-
-}
-
-Int32 Camera::readFPN(UInt16 * fpnUnpacked)
-{
-}
-
-Int32 Camera::readCorrectedFrame(UInt32 frame, UInt16 * frameBuffer, UInt16 * fpnInput, double * gainCorrection)
-{
-}
-
-void Camera::loadCCMFromSettings(void)
-{
-	QSettings appSettings;
-	QString currentName = appSettings.value("colorMatrix/current", "").toString();
-
-	/* Special case for the custom color matrix. */
-	if (currentName == "Custom") {
-		if (appSettings.beginReadArray("colorMatrix") >= 9) {
-			for (int i = 0; i < 9; i++) {
-				appSettings.setArrayIndex(i);
-				colorCalMatrix[i] = appSettings.value("ccmValue").toDouble();
-			}
-			appSettings.endArray();
-			return;
-		}
-		appSettings.endArray();
-	}
-
-	/* For preset matricies, look them up by name. */
-	for (int i = 0; i < sizeof(ccmPresets)/sizeof(ccmPresets[0]); i++) {
-		if (currentName == ccmPresets[i].name) {
-			memcpy(colorCalMatrix, ccmPresets[i].matrix, sizeof(ccmPresets[0].matrix));
-			return;
-		}
-	}
-
-	/* Otherwise, use the default matrix. */
-	memcpy(colorCalMatrix, ccmPresets[0].matrix, sizeof(ccmPresets[0].matrix));
 }
 
 #define COLOR_MATRIX_MAXVAL	((1 << SENSOR_DATA_WIDTH) * (1 << COLOR_MATRIX_INT_BITS))
@@ -1584,15 +1178,12 @@ void Camera::onLoopTimer()
 	//record snippet
 	qDebug() << "loop timer";
 
-	//cinst->startRecording();
-	QString jsonReturn;
-	startRecordingCamJson(&jsonReturn);
+	cinst->startRecording();
 
 	struct timespec t = {0, 250000000};
 	nanosleep(&t, NULL);
 
-	//cinst->stopRecording();
-	stopRecordingCamJson(&jsonReturn);
+	cinst->stopRecording();
 
 	//play back snippet
 	vinst->loopPlayback(1, 400, 60);

@@ -300,7 +300,7 @@ void UtilWindow::on_cmdColumnGain_clicked()
 	QCoreApplication::processEvents();
 
 	//Turn on calibration light
-	camera->io->setOutLevel((1 << 1));	//Turn on output drive
+	camera->setBncDriveLevel((1 << 1));	//Turn on output drive
 
 	//retVal = camera->autoColGainCorrection();
 
@@ -335,7 +335,7 @@ void UtilWindow::on_cmdBlackCalAll_clicked()
 	QCoreApplication::processEvents();
 
 	//Turn off calibration light
-	camera->io->setOutLevel(0);	//Turn off output drive
+	camera->setBncDriveLevel(0);	//Turn off output drive
 
 	//Black cal all standard resolutions
 	retVal = blackCalAllStdRes();
@@ -428,7 +428,7 @@ void UtilWindow::on_cmdAutoCal_clicked()
 
 	//Turn off calibration light
 	qDebug("cmdAutoCal: turn off cal light");
-	camera->io->setOutLevel(0);	//Turn off output drive
+	camera->setBncDriveLevel(0);	//Turn off output drive
 
 	//Black cal all standard resolutions
 	qDebug("cmdAutoCal: blackCalAllStdRes");
@@ -447,10 +447,8 @@ void UtilWindow::on_cmdAutoCal_clicked()
 
 	//Turn on calibration light
 	qDebug("cmdAutoCal: turn on cal light");
-	camera->io->setOutLevel((1 << 1));	//Turn on output drive
+	camera->setBncDriveLevel((1 << 1));	//Turn on output drive
 
-	qDebug("cmdAutoCal: autoColGainCorrection");
-	//retVal = camera->autoColGainCorrection();
 
 	if(SUCCESS != retVal) {
 		sw.hide();
@@ -528,7 +526,7 @@ void UtilWindow::on_cmdWhiteRef_clicked()
 	char text[100];
 	Int32 retVal;
 	//Turn on calibration light
-	camera->io->setOutLevel((1 << 1));	//Turn on output drive
+	camera->setBncDriveLevel((1 << 1));	//Turn on output drive
 
 	retVal = camera->takeWhiteReferences();
 

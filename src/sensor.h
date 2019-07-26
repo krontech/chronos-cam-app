@@ -65,7 +65,6 @@ public:
 	virtual void disableAnalogTestMode(void) {}
 	virtual void setAnalogTestVoltage(unsigned int) {}
 	virtual void setADCOffset(UInt8 channel, Int16 offset) = 0;
-	virtual std::string getFilename(const char * filename, const char * extension) = 0;
 	virtual void setCurrentPeriod(UInt32 period) {}
 	virtual void setCurrentExposure(UInt32 period) {}
 

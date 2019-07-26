@@ -57,6 +57,7 @@ private:
 	void getIoTriggerConfig(QVariantMap &config);
 	void getIoShutterConfig(QVariantMap &config, QString expMode);
 	void getIoSettings(void);
+	UInt32 getIoLevels(void);
 
 	void setIoConfig1(QVariantMap &config);
 	void setIoConfig2(QVariantMap &config);

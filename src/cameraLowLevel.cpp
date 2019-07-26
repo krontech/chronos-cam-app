@@ -27,15 +27,6 @@ extern "C" {
 }
 #include "defines.h"
 
-bool Camera::getRecDataFifoIsEmpty(void)
-{
-	return 0;
-}
-
-UInt32 Camera::readRecDataFifo(void)
-{
-	return 0;
-}
 
 bool Camera::getRecording(void)
 {
@@ -43,99 +34,6 @@ bool Camera::getRecording(void)
 	cinst->getString("state", &state);
 	return (state == "recording");
 }
-
-void Camera::startSequencer(void)
-{
-	return;
-}
-
-void Camera::terminateRecord(void)
-{
-	raise(SIGSEGV);
-}
-
-void Camera::writeSeqPgmMem(SeqPgmMemWord pgmWord, UInt32 address)
-{
-}
-
-void Camera::setRecRegion(UInt32 start, UInt32 count, FrameGeometry *geometry)
-{
-	raise(SIGSEGV);
-}
-
-/* Camera::readAcqMem
- *
- * Reads data from acquisition memory into a buffer
- *
- * buf:			Pointer to image buffer
- * offsetWords:	Number words into acquisition memory to start read
- * length:		number of bytes to read (must be a multiple of 4)
- *
- * returns: nothing
- **/
-void Camera::readAcqMem(UInt32 * buf, UInt32 offsetWords, UInt32 length)
-{
-	raise(SIGSEGV);
-}
-
-/* Camera::writeAcqMem
- *
- * Writes data from a buffer to acquisition memory
- *
- * buf:			Pointer to image buffer
- * offsetWords:	Number words into aqcuisition memory to start write
- * length:		number of bytes to write (must be a multiple of 4)
- *
- * returns: nothing
- **/
-void Camera::writeAcqMem(UInt32 * buf, UInt32 offsetWords, UInt32 length)
-{
-	raise(SIGSEGV);
-}
-
-/* Camera::writeDGCMem
- *
- * Writes data to the display column gain buffer
- *
- * gain:		double value representing gain to apply to column
- * column:		selects which column the gain is applied to
- *
- * returns: nothing
- **/
-
-void Camera::writeDGCMem(double gain, UInt32 column)
-{
-	raise(SIGSEGV);
-}
-
-/* Camera::readIsColor
- *
- * Returns weather the camera is color or mono, read from the hardware jumper
- *
- * returns: true for color, false for mono
- **/
-
-bool Camera::readIsColor(void)
-{
-	return 0;
-}
-
-
-bool Camera::getFocusPeakEnableLL(void)
-{
-	//TODO - when implemented in API
-
-	return false;
-}
-
-
-
-void Camera::setFocusPeakEnableLL(bool en)
-{
-	//TODO - when implemented in API
-	raise(SIGSEGV);
-}
-
 
 UInt8 Camera::getFocusPeakColorLL(void)
 {
@@ -158,23 +56,9 @@ UInt8 Camera::getFocusPeakColorLL(void)
 
 	}
 
-
 void Camera::setFocusPeakColorLL(UInt8 color)
 {
 		cinst->setString("focusPeakingColor", fpColors[color]);
-}
-
-
-bool Camera::getZebraEnableLL(void)
-{
-	return 0;
-}
-
-
-
-void Camera::setZebraEnableLL(bool en)
-{
-	//TODO - when implemented in API
 }
 
 void Camera::setFocusPeakThresholdLL(UInt32 thresh)
@@ -187,8 +71,6 @@ UInt32 Camera::getFocusPeakThresholdLL(void)
 	//TODO - when implemented in API
 	return 4;
 }
-
-
 
 Int32 Camera::getRamSizeGB(UInt32 * stick0SizeGB, UInt32 * stick1SizeGB)
 {
