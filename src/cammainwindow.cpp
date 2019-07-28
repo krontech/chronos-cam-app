@@ -531,9 +531,15 @@ void CamMainWindow::recSettingsClosed()
 	updateCurrentSettingsLabel();
 }
 
-//Upate the exposure slider limits and step size.
+//Update the exposure slider limits and step size.
 void CamMainWindow::updateExpSliderLimits()
 {
+	UInt32 period;
+	cinst->getInt("framePeriod", &period);
+	camera->sensor->setCurrentPeriod(period);
+	cinst->getInt("exposurePeriod", &period);
+	camera->sensor->setCurrentExposure(period);
+
 	FrameGeometry fSize = camera->getImagerSettings().geometry;
 	UInt32 fPeriod = camera->sensor->getFramePeriod();
 	UInt32 exposure = camera->sensor->getIntegrationTime();

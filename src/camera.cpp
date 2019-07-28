@@ -39,6 +39,7 @@
 #include "exec.h"
 #include "camera.h"
 #include "pysensor.h"
+#include "cammainwindow.h"
 
 
 void* recDataThread(void *arg);
@@ -188,6 +189,7 @@ CameraErrortype Camera::init(Video * vinstInst, Control * cinstInst, ImageSensor
 
 	setImagerSettings(settings);
 
+
 	vinst->bitsPerPixel        = appSettings.value("recorder/bitsPerPixel", 0.7).toDouble();
 	vinst->maxBitrate          = appSettings.value("recorder/maxBitrate", 40.0).toDouble();
 	vinst->framerate           = appSettings.value("recorder/framerate", 60).toUInt();
@@ -231,6 +233,7 @@ UInt32 Camera::loadImagerSettings(ImagerSettings_t *settings)
 	UInt32 gainIndex = 0;
 	for (int i=gain; i > 1; i /= 2) gainIndex++;
 	settings->gain = gainIndex;
+	return SUCCESS;
 }
 
 
@@ -260,7 +263,7 @@ UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 	values.insert("resolution", QVariant(resolution));
 	values.insert("framePeriod", QVariant(settings.period));
 	values.insert("currentGain", QVariant(1 << settings.gain));
-	values.insert("currentExposure", QVariant(settings.exposure));
+	values.insert("exposurePeriod", QVariant(settings.exposure));
 	if (settings.mode > 3 ) qFatal("imagerSetting mode is FPN");
 	else values.insert("recMode", modes[imagerSettings.mode]);
 	values.insert("recSegments", QVariant(settings.segments));
@@ -1015,6 +1018,8 @@ void* recDataThread(void *arg)
 	pthread_exit(NULL);
 }
 
+extern CamMainWindow *camMainWindow;
+
 
 
 void Camera::apiDoSetFramePeriod(UInt32 period)
@@ -1025,6 +1030,7 @@ void Camera::apiDoSetFramePeriod(UInt32 period)
 
 void Camera::apiDoSetExposurePeriod(UInt32 period)
 {
+	camMainWindow->updateExpSliderLimits();
 	sensor->setCurrentExposure(period);
 	//qDebug() << "apiDoSetExposurePeriod";
 }

@@ -38,6 +38,8 @@ public:
 	explicit CamMainWindow(QWidget *parent = 0);
 	short getWindowsAlwaysOpen();
 	~CamMainWindow();
+	void updateExpSliderLimits(void);
+
 
 public slots:
 	void updateCamMainWindowPosition();
@@ -84,7 +86,6 @@ private slots:
 private:
 	void updateRecordingState(bool recording);
 	void updateCurrentSettingsLabel(void);
-	void updateExpSliderLimits(void);
 	Ui::CamMainWindow *ui;
 	StatusWindow * sw;
 	QTimer *timer;
