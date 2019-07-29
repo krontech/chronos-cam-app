@@ -1,5 +1,5 @@
 ## Ignore project and compiled files
-src/camApp.pro.user
+src/camApp.pro.user*
 build-camApp-*-Debug/
 build-camApp-*-Release/
 
