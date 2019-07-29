@@ -218,12 +218,12 @@
      <rect>
       <x>20</x>
       <y>63</y>
-      <width>66</width>
+      <width>106</width>
       <height>17</height>
      </rect>
     </property>
     <property name="text">
-     <string>Threshold</string>
+     <string>Threshold (volts)</string>
     </property>
    </widget>
    <widget class="QRadioButton" name="radioIO1None">
@@ -321,7 +321,7 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
      <double>0.000000000000000</double>
     </property>
     <property name="maximum">
-     <double>7200.000000000000000</double>
+     <double>6.600000000000000</double>
     </property>
     <property name="singleStep">
      <double>0.100000000000000</double>
@@ -490,12 +490,12 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
      <rect>
       <x>20</x>
       <y>40</y>
-      <width>66</width>
+      <width>106</width>
       <height>17</height>
      </rect>
     </property>
     <property name="text">
-     <string>Threshold</string>
+     <string>Threshold (volts)</string>
     </property>
    </widget>
    <widget class="QRadioButton" name="radioIO2None">
@@ -617,7 +617,7 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
      <double>0.000000000000000</double>
     </property>
     <property name="maximum">
-     <double>7200.000000000000000</double>
+     <double>6.600000000000000</double>
     </property>
     <property name="singleStep">
      <double>0.100000000000000</double>
