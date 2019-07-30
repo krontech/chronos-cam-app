@@ -1249,10 +1249,7 @@ Int32 UtilWindow::blackCalAllStdRes(void)
 	//do initial analog gain, in case gain is already 1.
 	camera->cinst->startCalibration("analogCal");
 
-	//QString timing[100];
-	char timing[100][100];
 	UInt32 lastTime = timer.elapsed() / 1000;
-	int iter = 0;
 
 	while(true) {
 		FrameGeometry fSize;
@@ -1299,11 +1296,6 @@ Int32 UtilWindow::blackCalAllStdRes(void)
 				camera->cinst->startCalibration("blackCal");
 			}
 
-			UInt32 now = timer.elapsed()/1000;
-			sprintf(timing[iter],"%dx%d @ %d, %d seconds", fSize.hRes, fSize.vRes, gain, now - lastTime);
-			lastTime = now;
-			iter++;
-
 			gain *= 2;
 
 		} while ((gain <= maxGain) && !cancelButton);
@@ -1319,11 +1311,7 @@ Int32 UtilWindow::blackCalAllStdRes(void)
 	camera->cinst->setInt("framePeriod", keepFramePeriod);
 	camera->cinst->setInt("currentGain", keepCurrentGain);
 
-	for (int i=0; i<100; i++)
-	{
-		qDebug() << timing[i];
-	}
-	qDebug() << "Black cal all resolutions took" << timer.elapsed()/1000 << "seconds";
+	//qDebug() << "Black cal all resolutions took" << timer.elapsed()/1000 << "seconds";
 
 	if (cancelButton)
 	{
