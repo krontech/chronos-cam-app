@@ -531,6 +531,11 @@ void CamMainWindow::recSettingsClosed()
 	updateCurrentSettingsLabel();
 }
 
+void CamMainWindow::updateParameters()
+{
+	updateExpSliderLimits();
+}
+
 //Update the exposure slider limits and step size.
 void CamMainWindow::updateExpSliderLimits()
 {
@@ -618,6 +623,7 @@ void CamMainWindow::on_cmdUtil_clicked()
 	w->setAttribute(Qt::WA_DeleteOnClose);
 	w->show();
 	connect(w, SIGNAL(moveCamMainWindow()), this, SLOT(updateCamMainWindowPosition()));
+	connect(w, SIGNAL(receivedParameters()), this, SLOT(updateParameters()));
 	connect(w, SIGNAL(destroyed()), this, SLOT(UtilWindow_closed()));
 }
 

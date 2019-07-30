@@ -168,8 +168,9 @@ UInt32 PySensor::setIntegrationTime(UInt32 intTime, FrameGeometry *size)
 UInt32 PySensor::getIntegrationTime(void)
 {
 	UInt32 exp;
-	cinst->getInt("exposurePeriod", &exp);
-	return exp;
+	//cinst->getInt("exposurePeriod", &exp);
+	//return exp;
+	return currentExposure;
 }
 
 unsigned int PySensor::enableAnalogTestMode(void)

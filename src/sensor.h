@@ -67,6 +67,7 @@ public:
 	virtual void setADCOffset(UInt8 channel, Int16 offset) = 0;
 	virtual void setCurrentPeriod(UInt32 period) {}
 	virtual void setCurrentExposure(UInt32 period) {}
+	//virtual UInt32 setShadowExposurePeriod();
 
 
 	/* TODO: Need a better way to communicate what gains are valid to the GUI. */

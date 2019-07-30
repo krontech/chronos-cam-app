@@ -136,7 +136,6 @@ public:
 	void setCurrentPeriod(UInt32 period);
 	void setCurrentExposure(UInt32 period);
 
-
 	double getCurrentFramePeriodDouble(void);
 	double getCurrentExposureDouble();
 	double getCurrentExposureAngle();

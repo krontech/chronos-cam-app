@@ -43,6 +43,8 @@ public:
 
 public slots:
 	void updateCamMainWindowPosition();
+	void updateParameters();
+
 private slots:
 	void on_cmdClose_clicked();
 

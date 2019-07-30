@@ -1028,9 +1028,11 @@ void Camera::apiDoSetFramePeriod(UInt32 period)
 	//qDebug() << "apiDoSetFramePeriod";
 }
 
+void moveCamMainWindow();
 void Camera::apiDoSetExposurePeriod(UInt32 period)
 {
-	camMainWindow->updateExpSliderLimits();
+	camMainWindow->updateParameters();
+	//emit receivedParameters();  - can't get this signal to work
 	sensor->setCurrentExposure(period);
 	//qDebug() << "apiDoSetExposurePeriod";
 }

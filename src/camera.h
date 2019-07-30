@@ -346,6 +346,8 @@ private:
 	QTimer * loopTimer;
 	bool loopTimerEnabled = false;
 
+signals:
+	void receivedParameters();
 
 protected slots:
 	void apiDoSetFramePeriod(UInt32 period);
