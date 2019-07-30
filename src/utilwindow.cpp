@@ -416,6 +416,7 @@ void UtilWindow::on_radioFPSensHigh_toggled(bool checked)
 	}
 }
 
+
 void UtilWindow::on_cmdAutoCal_clicked()
 {
 	StatusWindow sw;
@@ -432,7 +433,7 @@ void UtilWindow::on_cmdAutoCal_clicked()
 
 	//Black cal all standard resolutions
 	qDebug("cmdAutoCal: blackCalAllStdRes");
-	retVal = camera->blackCalAllStdRes(true);
+	retVal = blackCalAllStdRes();
 
 	if(SUCCESS != retVal)
 	{
@@ -467,7 +468,6 @@ void UtilWindow::on_cmdAutoCal_clicked()
 		msg.exec();
 	}
 }
-
 
 
 void UtilWindow::on_cmdClose_clicked()
@@ -1249,6 +1249,11 @@ Int32 UtilWindow::blackCalAllStdRes(void)
 	//do initial analog gain, in case gain is already 1.
 	camera->cinst->startCalibration("analogCal");
 
+	//QString timing[100];
+	char timing[100][100];
+	UInt32 lastTime = timer.elapsed() / 1000;
+	int iter = 0;
+
 	while(true) {
 		FrameGeometry fSize;
 
@@ -1294,6 +1299,11 @@ Int32 UtilWindow::blackCalAllStdRes(void)
 				camera->cinst->startCalibration("blackCal");
 			}
 
+			UInt32 now = timer.elapsed()/1000;
+			sprintf(timing[iter],"%dx%d @ %d, %d seconds", fSize.hRes, fSize.vRes, gain, now - lastTime);
+			lastTime = now;
+			iter++;
+
 			gain *= 2;
 
 		} while ((gain <= maxGain) && !cancelButton);
@@ -1309,6 +1319,10 @@ Int32 UtilWindow::blackCalAllStdRes(void)
 	camera->cinst->setInt("framePeriod", keepFramePeriod);
 	camera->cinst->setInt("currentGain", keepCurrentGain);
 
+	for (int i=0; i<100; i++)
+	{
+		qDebug() << timing[i];
+	}
 	qDebug() << "Black cal all resolutions took" << timer.elapsed()/1000 << "seconds";
 
 	if (cancelButton)
