@@ -126,8 +126,6 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	aboutText.append(QString("FPGA Revision: %1.%2").arg(QString::number(camera->getFPGAVersion()), QString::number(camera->getFPGASubVersion())));
 	ui->lblAbout->setText(aboutText);
 	
-	ui->cmdAutoCal->setVisible(false);
-	//ui->cmdBlackCalAll->setVisible(false);
 	ui->cmdCloseApp->setVisible(false);
 	ui->cmdColumnGain->setVisible(false);
 	ui->cmdWhiteRef->setVisible(false);
@@ -416,60 +414,6 @@ void UtilWindow::on_radioFPSensHigh_toggled(bool checked)
 	}
 }
 
-
-void UtilWindow::on_cmdAutoCal_clicked()
-{
-	StatusWindow sw;
-	Int32 retVal;
-	char text[100];
-
-	sw.setText("Performing factory calibration. Please wait...");
-	sw.show();
-	QCoreApplication::processEvents();
-
-	//Turn off calibration light
-	qDebug("cmdAutoCal: turn off cal light");
-	camera->setBncDriveLevel(0);	//Turn off output drive
-
-	//Black cal all standard resolutions
-	qDebug("cmdAutoCal: blackCalAllStdRes");
-	retVal = blackCalAllStdRes();
-
-	if(SUCCESS != retVal)
-	{
-		sw.hide();
-		QMessageBox msg;
-		sprintf(text, "Error during black calibration, error %d", retVal);
-		msg.setText(text);
-		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
-		msg.exec();
-		return;
-	}
-
-	//Turn on calibration light
-	qDebug("cmdAutoCal: turn on cal light");
-	camera->setBncDriveLevel((1 << 1));	//Turn on output drive
-
-
-	if(SUCCESS != retVal) {
-		sw.hide();
-		QMessageBox msg;
-		sprintf(text, "Error during gain calibration, error %d", retVal);
-		msg.setText(text);
-		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
-		msg.exec();
-		return;
-	}
-	else {
-		sw.hide();
-		QMessageBox msg;
-		msg.setText("Done!");
-		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
-		msg.exec();
-	}
-}
-
-
 void UtilWindow::on_cmdClose_clicked()
 {
 	bool ButtonsOnLeftChanged = (camera->ButtonsOnLeft !=	 ui->chkUiOnLeft->isChecked());
@@ -712,8 +656,6 @@ void UtilWindow::on_linePassword_textEdited(const QString &arg1)
 {
 	if(0 == QString::compare(arg1, "4242"))
 	{
-		ui->cmdAutoCal->setVisible(true);
-		//ui->cmdBlackCalAll->setVisible(true);
 		ui->cmdCloseApp->setVisible(true);
 		ui->cmdColumnGain->setVisible(true);
 		ui->cmdWhiteRef->setVisible(true);
