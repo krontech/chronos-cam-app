@@ -285,6 +285,11 @@ void IOSettingsWindow::getIoSettings()
 	ioMapping["ioInputConfigIo1"].value<QDBusArgument>() >> io1thresh;
 	ioMapping["ioInputConfigIo2"].value<QDBusArgument>() >> io2thresh;
 
+	/* Start with nothing selected. */
+	ui->radioIO1None->setChecked(true);
+	ui->radioIO2None->setChecked(true);
+	ui->chkIO3TriggerInEn->setChecked(false);
+
 	ui->chkIO1InvertOut->setChecked(io1config["invert"].toBool());
 	ui->radioIO1FSOut->setChecked(io1config["source"].toString() == "timingIo");
 	ui->spinIO1Thresh->setValue(io1thresh["threshold"].toDouble());
@@ -298,9 +303,6 @@ void IOSettingsWindow::getIoSettings()
 	ui->chkIO1Pull->setChecked((io1pull & 2) != 0);
 
 	/* Load the record-end configuration. */
-	ui->radioIO1None->setChecked(true);
-	ui->radioIO2None->setChecked(true);
-	ui->chkIO3TriggerInEn->setChecked(false);
 	if (triggerConfig["source"].toString() == "comb") {
 		getIoTriggerConfig(orConfig[0]);
 		getIoTriggerConfig(orConfig[1]);
