@@ -57,6 +57,13 @@ public Q_SLOTS: // METHODS
 		return asyncCallWithArgumentList(QLatin1String("livedisplay"), argumentList);
 	}
 
+	inline QDBusPendingReply<QVariantMap> liverecord(const QVariantMap &args)
+	{
+		QList<QVariant> argumentList;
+		argumentList << qVariantFromValue(args);
+		return asyncCallWithArgumentList(QLatin1String("liverecord"), argumentList);
+	}
+
 	inline QDBusPendingReply<QVariantMap> configure(const QVariantMap &settings)
 	{
 		QList<QVariant> argumentList;

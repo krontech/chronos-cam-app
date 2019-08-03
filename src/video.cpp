@@ -195,6 +195,24 @@ void Video::liveDisplay(bool flip)
 	pthread_mutex_unlock(&mutex);
 }
 
+void Video::liveRecord(void)
+{
+	QVariantMap args;
+	QDBusPendingReply<QVariantMap> reply;
+	bool enableLiveRec = true;
+	const char *path = "/media/sda1/live";	//TODO: get from UI
+	unsigned int duration = 300;			//TODO: no hardcoding
+
+	args.insert("liverecord", QVariant(enableLiveRec));
+	args.insert("liverec_filename", QVariant(path));
+	args.insert("duration", QVariant(duration));
+
+	pthread_mutex_lock(&mutex);
+	reply = iface.liverecord(args);
+	reply.waitForFinished();
+	pthread_mutex_unlock(&mutex);
+}
+
 void Video::pauseDisplay(void)
 {
 	QDBusPendingReply<QVariantMap> reply;

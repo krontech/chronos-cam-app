@@ -88,6 +88,8 @@ private slots:
 
 	void on_chkAutoRecord_stateChanged(int arg1);
 
+	void on_chkLiveRecord_stateChanged(int arg1);
+
 	void on_chkDemoMode_stateChanged(int arg1);
 
 	void on_autoPowerSetting_currentIndexChanged(int index);
@@ -114,6 +116,8 @@ private slots:
 	void on_tabWidget_currentChanged(int index);
 	
 	int updateSoftware(char *updateLocation);
+	void on_chkUiOnLeft_clicked();
+
 private:
 	Ui::UtilWindow *ui;
 	Camera * camera;

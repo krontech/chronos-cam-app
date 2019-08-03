@@ -328,6 +328,10 @@ public:
 	void set_autoRecord(bool state);
 	bool get_autoRecord();
 
+	bool liveRecord;
+	void set_liveRecord(bool state);
+	bool get_liveRecord();
+
 	bool demoMode;
 	void set_demoMode(bool state);
 	bool get_demoMode();

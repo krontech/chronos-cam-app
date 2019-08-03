@@ -116,6 +116,7 @@ public:
 	void setDisplayOptions(bool zebra, FocusPeakColors fpColor);
 	void setDisplayPosition(bool videoOnRight);
 	void liveDisplay(bool flip);
+	void liveRecord(void);
 	void pauseDisplay(void);
 	VideoState getStatus(VideoStatus *st);
 

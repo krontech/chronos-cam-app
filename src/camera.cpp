@@ -60,6 +60,7 @@ Camera::Camera()
 	unsavedWarnEnabled = getUnsavedWarnEnable();
 	autoSave = appSettings.value("camera/autoSave", 0).toBool();
 	autoRecord = appSettings.value("camera/autoRecord", 0).toBool();
+	liveRecord = appSettings.value("camera/liveRecord", 0).toBool();
 	ButtonsOnLeft = getButtonsOnLeft();
 	UpsideDownDisplay = getUpsideDownDisplay();
 	strcpy(serialNumber, "Not_Set");
@@ -621,6 +622,9 @@ Int32 Camera::stopRecording(void)
 
 	terminateRecord();
 	//recording = false;
+
+	if(liveRecord)
+		vinst->stopRecording();
 
 	return SUCCESS;
 }
@@ -2932,6 +2936,18 @@ void Camera::set_autoRecord(bool state) {
 bool Camera::get_autoRecord() {
 	QSettings appSettings;
 	return appSettings.value("camera/autoRecord", false).toBool();
+}
+
+
+void Camera::set_liveRecord(bool state) {
+	QSettings appSettings;
+	liveRecord = state;
+	appSettings.setValue("camera/liveRecord", state);
+}
+
+bool Camera::get_liveRecord() {
+	QSettings appSettings;
+	return appSettings.value("camera/liveRecord", false).toBool();
 }
 
 

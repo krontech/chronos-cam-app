@@ -193,10 +193,10 @@ void CamMainWindow::on_cmdRec_clicked()
 
 		camera->setRecSequencerModeNormal();
 		camera->startRecording();
+
+		if (camera->get_liveRecord()) vinst->liveRecord();
 		if (camera->get_autoSave()) autoSaveActive = true;
-
 	}
-
 }
 
 void CamMainWindow::on_cmdPlay_clicked()
@@ -364,12 +364,15 @@ void CamMainWindow::on_MainWindowTimer()
 					{
 						camera->setRecSequencerModeNormal();
 						camera->startRecording();
+						if (camera->get_liveRecord()) vinst->liveRecord();
+						if (camera->get_autoSave()) autoSaveActive = true;
 					}
 				}
 				else
 				{
 					camera->setRecSequencerModeNormal();
 					camera->startRecording();
+					if (camera->get_liveRecord()) vinst->liveRecord();
 					if (camera->get_autoSave()) autoSaveActive = true;
 				}
 			}

@@ -29,7 +29,7 @@
     <enum>QTabWidget::East</enum>
    </property>
    <property name="currentIndex">
-    <number>4</number>
+    <number>0</number>
    </property>
    <widget class="QWidget" name="tabMain">
     <attribute name="title">
@@ -250,7 +250,7 @@ Time</string>
      <property name="geometry">
       <rect>
        <x>480</x>
-       <y>120</y>
+       <y>170</y>
        <width>191</width>
        <height>41</height>
       </rect>
@@ -353,7 +353,7 @@ unsaved video in RAM</string>
      <property name="geometry">
       <rect>
        <x>480</x>
-       <y>220</y>
+       <y>270</y>
        <width>191</width>
        <height>41</height>
       </rect>
@@ -380,7 +380,7 @@ unsaved video in RAM</string>
      <property name="geometry">
       <rect>
        <x>480</x>
-       <y>260</y>
+       <y>310</y>
        <width>171</width>
        <height>61</height>
       </rect>
@@ -438,7 +438,7 @@ Display</string>
      <property name="geometry">
       <rect>
        <x>480</x>
-       <y>170</y>
+       <y>220</y>
        <width>171</width>
        <height>41</height>
       </rect>
@@ -511,6 +511,34 @@ Display</string>
      </property>
      <property name="text">
       <string>Auto Power Mode</string>
+     </property>
+    </widget>
+    <widget class="QCheckBox" name="chkLiveRecord">
+     <property name="geometry">
+      <rect>
+       <x>480</x>
+       <y>120</y>
+       <width>191</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>16</pointsize>
+       <italic>false</italic>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QCheckBox::indicator {
+     width: 40px;
+     height: 40px;
+}</string>
+     </property>
+     <property name="text">
+      <string>Live Record</string>
+     </property>
+     <property name="tristate">
+      <bool>false</bool>
      </property>
     </widget>
    </widget>
