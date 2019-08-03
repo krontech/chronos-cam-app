@@ -104,6 +104,7 @@ public:
 	void setZebra(bool zebra);
 	void setDisplayPosition(bool videoOnRight);
 	void liveDisplay(bool flip);
+	void liveRecord(void);
 	void pauseDisplay(void);
 	void reset(void);
 	VideoState getStatus(VideoStatus *st);

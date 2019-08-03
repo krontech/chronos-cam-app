@@ -178,6 +178,7 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 
 	ui->chkAutoSave->setChecked(camera->get_autoSave());
 	ui->chkAutoRecord->setChecked(camera->get_autoRecord());
+	ui->chkLiveRecord->setChecked(camera->get_liveRecord());
 	ui->chkDemoMode->setChecked(camera->get_demoMode());
 	ui->chkUiOnLeft->setChecked(camera->getButtonsOnLeft());
 	ui->comboDisableUnsavedWarning->setCurrentIndex(camera->getUnsavedWarnEnable());
@@ -1015,6 +1016,11 @@ void UtilWindow::on_chkShippingMode_clicked()
 	camera->cinst->setBool("shippingMode", state);
 }
 
+void UtilWindow::on_chkLiveRecord_stateChanged(int arg1)
+{
+	camera->set_liveRecord(ui->chkLiveRecord->isChecked());
+}
+
 void UtilWindow::on_cmdDefaults_clicked()
 {
 	QMessageBox::StandardButton reply;
@@ -1682,3 +1688,8 @@ void UtilWindow::on_cmdNetListConnections_clicked()
 	}
 }
 #endif
+
+void UtilWindow::on_chkUiOnLeft_clicked()
+{
+
+}

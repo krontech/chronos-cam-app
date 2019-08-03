@@ -242,8 +242,8 @@ void CamMainWindow::on_cmdRec_clicked()
 			}
 
 			camera->startRecording();
+			if (camera->get_liveRecord()) vinst->liveRecord();
 			if (camera->get_autoSave()) autoSaveActive = true;
-
 		}
 	}
 }
@@ -474,11 +474,13 @@ void CamMainWindow::on_MainWindowTimer()
 						if(QMessageBox::Yes == question("Unsaved video in RAM", "Start recording anyway and discard the unsaved video in RAM?"))
 						{
 							camera->startRecording();
+							if (camera->get_liveRecord()) vinst->liveRecord();
 						}
 					}
 					else
 					{
 						camera->startRecording();
+						if (camera->get_liveRecord()) vinst->liveRecord();
 						if (camera->get_autoSave()) autoSaveActive = true;
 					}
 				}

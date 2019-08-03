@@ -87,6 +87,8 @@ private slots:
 
 	void on_chkAutoRecord_stateChanged(int arg1);
 
+	void on_chkLiveRecord_stateChanged(int arg1);
+
 	void on_chkDemoMode_stateChanged(int arg1);
 
 	void on_chkShippingMode_clicked();
@@ -146,6 +148,7 @@ private slots:
 	void on_lineStaticGwPart2_editingFinished();
 	void on_lineStaticGwPart3_editingFinished();
 	void on_lineStaticGwPart4_editingFinished();
+	void on_chkUiOnLeft_clicked();
 
 private:
 	Ui::UtilWindow *ui;
