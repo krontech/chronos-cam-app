@@ -328,7 +328,7 @@ void UtilWindow::on_cmdBlackCalAll_clicked()
 	Int32 retVal;
 	char text[100];
 
-	sw.setText("\n\n\n\n\n\n\n\n\Performing black cal on all standard resolutions. Please wait...");
+	sw.setText("\n\n\n\n\n\n\nPerforming black cal on all standard resolutions. Please wait...");
 	sw.show();
 	QCoreApplication::processEvents();
 
@@ -1091,6 +1091,7 @@ void UtilWindow::on_chkShippingMode_stateChanged(int arg1)
 void UtilWindow::waitForIdle(void)
 {
 	bool waiting;
+	int rounds = 0;
 	do
 	{
 		QString state;
@@ -1100,9 +1101,10 @@ void UtilWindow::waitForIdle(void)
 		if (waiting)
 		{
 			delayms(50);
+			rounds++;
 		}
 	} while (waiting);
-
+	qd "## Waiting" << rounds*50 << "ms";
 }
 
 
@@ -1189,11 +1191,13 @@ Int32 UtilWindow::blackCalAllStdRes(void)
 	bool cancelButton = false;
 
 	//do initial analog gain, in case gain is already 1.
+	qd "### analog cal";
 	camera->cinst->startCalibration("analogCal");
 
 	UInt32 lastTime = timer.elapsed() / 1000;
 
-	while(true) {
+	while(!cancelButton) {
+		qDebug() << "########## TOP WHILE LOOP";
 		FrameGeometry fSize;
 
 		line = fp.readLine(30);
@@ -1210,6 +1214,8 @@ Int32 UtilWindow::blackCalAllStdRes(void)
 		fSize.hOffset = round((hMax - fSize.hRes) / 2);
 		fSize.vOffset = round((vMax - fSize.vRes) / 2);
 
+		qDebug() << "####" << fSize.hRes << fSize.vRes;
+
 		waitForIdle();
 		camera->cinst->setResolution(&fSize);
 
@@ -1218,6 +1224,7 @@ Int32 UtilWindow::blackCalAllStdRes(void)
 
 		do
 		{
+			qDebug() << "######## DO LOOP - gain" << gain;
 			char str[200];
 			sprintf(str, "%ux%u at gain %u", fSize.hRes, fSize.vRes, gain);
 			progress->setLabelText(str);
@@ -1226,15 +1233,18 @@ Int32 UtilWindow::blackCalAllStdRes(void)
 			progressCount++;
 
 			waitForIdle();
+			qd "### set gain";
 			camera->cinst->setInt("currentGain", gain);
 			qDebug() << "black cal at gain" << gain;
 			waitForIdle();
 			if (progress->wasCanceled())
 			{
 				cancelButton = true;
+				qDebug() << "### CANCELED!";
 			}
 			else
 			{
+				qd "### black cal";
 				camera->cinst->startCalibration("blackCal");
 			}
 
@@ -1243,17 +1253,23 @@ Int32 UtilWindow::blackCalAllStdRes(void)
 		} while ((gain <= maxGain) && !cancelButton);
 	}
 
+	qDebug() << "###################### END LOOP, RESTORING";
 	fp.close();
 	delete progress;
 
 	//restore settings
 	waitForIdle();
+	qd "### set resolution";
 	camera->cinst->setResolution(&saveGeometry);
+	qd "### set exposure period";
+	waitForIdle();
 	camera->cinst->setInt("exposurePeriod", keepIntegrationTime);
+	qd "### set frame period";
 	camera->cinst->setInt("framePeriod", keepFramePeriod);
+	qd "### set gain";
 	camera->cinst->setInt("currentGain", keepCurrentGain);
 
-	//qDebug() << "Black cal all resolutions took" << timer.elapsed()/1000 << "seconds";
+	qDebug() << "###################### Black cal all resolutions took" << timer.elapsed()/1000 << "seconds";
 
 	if (cancelButton)
 	{

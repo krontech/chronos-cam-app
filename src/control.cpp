@@ -575,7 +575,7 @@ ControlStatus Control::parseNotification(const QVariantMap &args)
 		else if (e == "wbMatrix") {
 			emit apiSetWbMatrix(args.value(e));
 			}
-		else if (e == "wbMatrix") {
+		else if (e == "colorMatrix") {
 			emit apiSetColorMatrix(args.value(e));
 			}
 

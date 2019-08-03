@@ -72,6 +72,17 @@
 #define TRIGGERDELAY_SECONDS 1
 #define TRIGGERDELAY_FRAMES 2
 
+#define FLAG_BATTERY_PRESENT   (1 << 0)
+#define FLAG_ADAPTOR_PRESENT   (1 << 1)
+#define FLAG_CHARGING          (1 << 2)
+#define FLAG_AUTO_POWERON      (1 << 3)
+#define FLAG_OVER_TEMP         (1 << 4)
+#define FLAG_SHIPPING_MODE     (1 << 5)
+#define FLAG_SHUTDOWN_REQUEST  (1 << 6)
+
+
+#define qd qDebug() <<
+
 /*
 typedef enum CameraErrortype
 {

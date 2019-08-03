@@ -104,6 +104,8 @@ private:
 	UInt32 battHiResSOC;
 	double battVoltageCam;
 	double battCurrentCam;
+	bool batteryPresent;
+	bool externalPower;
 	Int32 mbTemperature;
 	UInt8 flags;
 	UInt8 fanPWM;

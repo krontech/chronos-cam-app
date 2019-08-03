@@ -487,6 +487,8 @@ void CamMainWindow::on_MainWindowTimer()
 	{
 		camera->cinst->getFloat("batteryVoltage", &battVoltageCam);
 		camera->cinst->getFloat("batteryChargePercent", &battCapacityPercent);
+		camera->cinst->getBool("batteryPresent", &batteryPresent);
+		camera->cinst->getBool("externalPower", &externalPower);
 	}
 
 	updateCurrentSettingsLabel();
@@ -586,7 +588,7 @@ void CamMainWindow::updateCurrentSettingsLabel()
 	getSIText(expString, expPeriod, 4, DEF_SI_OPTS, 10);
 	shutterAngle = max(shutterAngle, 1); //to prevent 0 degrees from showing on the label if the current exposure is less than 1/360'th of the frame period.
 
-	double battPercent = (flags & 4) ?	//If battery is charging
+	double battPercent = (externalPower) ?	//If battery is charging
 						within(((double)battVoltageCam/1000.0 - 10.75) / (12.4 - 10.75) * 80, 0.0, 80.0) +
 							20 - 20*within(((double)battCurrentCam/1000.0 - 0.1) / (1.28 - 0.1), 0.0, 1.0) :	//Charging
 						within(((double)battVoltageCam/1000.0 - 9.75) / (11.8 - 9.75) * 100, 0.0, 100.0);		//Dicharging
@@ -595,7 +597,7 @@ void CamMainWindow::updateCurrentSettingsLabel()
 	//pychronos:
 	battPercent = battCapacityPercent;
 
-	if(flags)	//If battery present
+	if(batteryPresent)	//If battery present
 	{
 		sprintf(battStr, "Batt %d%% %.2fV", (UInt32)battPercent,  (double)battVoltageCam);
 	}
