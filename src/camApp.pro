@@ -105,7 +105,8 @@ SOURCES += main.cpp\
     qjson4/QJsonParseError.cpp \
     qjson4/QJsonParser.cpp \
     qjson4/QJsonValue.cpp \
-    qjson4/QJsonValueRef.cpp
+    qjson4/QJsonValueRef.cpp \
+    errorStrings.cpp
 
 ## Generate version.cpp on every build
 versionTarget.target = version.cpp

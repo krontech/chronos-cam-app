@@ -111,4 +111,6 @@ typedef enum CameraErrortype
 	DBUS_CONTROL_FAIL						  = 1001,
 } CameraErrortype;
 
+const char *errorCodeString(int code);
+
 #endif // ERRORCODES_H

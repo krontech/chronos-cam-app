@@ -1601,20 +1601,21 @@ calibration data
   <tabstop>cmdSetSN</tabstop>
   <tabstop>cmdCloseApp</tabstop>
   <tabstop>cmdWhiteRef</tabstop>
-  <tabstop>cmdBlackCalAll</tabstop>
   <tabstop>cmdColumnGain</tabstop>
+  <tabstop>cmdBlackCalAll</tabstop>
   <tabstop>cmdRevertCalData</tabstop>
+  <tabstop>chkShippingMode</tabstop>
   <tabstop>linePassword</tabstop>
   <tabstop>textKickstarter</tabstop>
   <tabstop>cmdClose_3</tabstop>
   <tabstop>cmdClose_2</tabstop>
   <tabstop>cmdSWUpdate</tabstop>
+  <tabstop>cmdFormatSD</tabstop>
+  <tabstop>cmdEjectSD</tabstop>
+  <tabstop>cmdNetTest</tabstop>
   <tabstop>lineNetPassword</tabstop>
   <tabstop>lineNetUser</tabstop>
   <tabstop>lineNetAddress</tabstop>
-  <tabstop>cmdNetTest</tabstop>
-  <tabstop>cmdFormatSD</tabstop>
-  <tabstop>cmdEjectSD</tabstop>
   <tabstop>cmdFormatDisk</tabstop>
   <tabstop>cmdEjectDisk</tabstop>
   <tabstop>cmdRestoreCal</tabstop>
@@ -1623,12 +1624,18 @@ calibration data
   <tabstop>cmdRestoreSettings</tabstop>
   <tabstop>cmdBackupSettings</tabstop>
   <tabstop>cmdClose</tabstop>
+  <tabstop>spinLiveLoopTime</tabstop>
+  <tabstop>chkLiveLoop</tabstop>
+  <tabstop>chkFanDisable</tabstop>
   <tabstop>chkUpsideDownDisplay</tabstop>
   <tabstop>chkUiOnLeft</tabstop>
   <tabstop>chkDemoMode</tabstop>
   <tabstop>chkZebraEnable</tabstop>
   <tabstop>chkAutoSave</tabstop>
   <tabstop>chkAutoRecord</tabstop>
+  <tabstop>spinAutoSavePercent</tabstop>
+  <tabstop>chkAutoSavePercent</tabstop>
+  <tabstop>comboAutoPowerMode</tabstop>
   <tabstop>comboDisableUnsavedWarning</tabstop>
   <tabstop>radioFPSensHigh</tabstop>
   <tabstop>radioFPSensMed</tabstop>
