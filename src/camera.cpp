@@ -1068,13 +1068,13 @@ void Camera::onLoopTimer()
 
 	cinst->startRecording();
 
-	struct timespec t = {0, 250000000};
+	struct timespec t = {0, 150000000};
 	nanosleep(&t, NULL);
 
 	cinst->stopRecording();
 
 	//play back snippet
-	vinst->loopPlayback(1, 400, 60);
+	vinst->loopPlayback(1, 400, 30);
 }
 
 void Camera::on_spinLiveLoopTime_valueChanged(int arg1)
