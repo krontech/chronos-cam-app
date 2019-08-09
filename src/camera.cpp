@@ -992,6 +992,22 @@ void Camera::apiDoSetNetworkHostname(QString name)
 	qDebug() << "apiDoSetNetworkHostname";
 }
 
+void Camera::apiDoStateChanged(QString state)
+{
+	qDebug() << "new state:" << state;
+
+	if ((lastState == "idle") && (state == "recording"))
+	{
+		qDebug() << "### API recording";
+		recording = true;
+	}
+	if ((lastState == "recording") && (state == "idle"))
+	{
+		qDebug() << "### API stop recording";
+	}
+	lastState = state;
+}
+
 void Camera::apiDoSetWbMatrix(QVariant wb)
 {
 	QDBusArgument dbusArgs = wb.value<QDBusArgument>();

@@ -570,6 +570,8 @@ ControlStatus Control::parseNotification(const QVariantMap &args)
 			emit apiSetCameraDescription(args.value(e).toString()); }
 		else if (e == "networkHostname") {
 			emit apiSetNetworkHostname(args.value(e).toString()); }
+		else if (e == "state") {
+			emit apiStateChanged(args.value(e).toString()); }
 
 //array
 		else if (e == "wbMatrix") {

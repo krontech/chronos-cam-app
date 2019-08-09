@@ -351,6 +351,7 @@ public:
 
 private:
 	bool lastRecording;
+	QString lastState = "idle";
 	bool terminateRecDataThread;
 	UInt32 ramSize;
 	pthread_t recDataThreadID;
@@ -383,6 +384,7 @@ protected slots:
 	void apiDoSetCameraTallyMode(QString mode);
 	void apiDoSetCameraDescription(QString desc);
 	void apiDoSetNetworkHostname(QString name);
+	void apiDoStateChanged(QString state);
 
 	void apiDoSetWbMatrix(QVariant wb);
 	void apiDoSetColorMatrix(QVariant color);

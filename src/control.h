@@ -174,6 +174,7 @@ signals:
 	void apiSetCameraTallyMode(QString mode);
 	void apiSetCameraDescription(QString desc);
 	void apiSetNetworkHostname(QString name);
+	void apiStateChanged(QString state);
 
 	void apiSetWbMatrix(QVariant wb);
 	void apiSetColorMatrix(QVariant wb);

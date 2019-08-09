@@ -181,6 +181,8 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 		qDebug() << "Connect failed"; }
 	if (!QObject::connect(cinst, SIGNAL(apiSetNetworkHostname(QString)), camera, SLOT(apiDoSetNetworkHostname(QString)))) {
 		qDebug() << "Connect failed"; }
+	if (!QObject::connect(cinst, SIGNAL(apiStateChanged(QString)), camera, SLOT(apiDoStateChanged(QString)))) {
+		qDebug() << "Connect failed"; }
 
 	if (!QObject::connect(cinst, SIGNAL(apiSetWbMatrix(QVariant)), camera, SLOT(apiDoSetWbMatrix(QVariant)))) {
 		qDebug() << "Connect failed"; }
@@ -475,6 +477,14 @@ void CamMainWindow::on_MainWindowTimer()
 
 	if(recording != lastRecording)
 	{
+		if(recording)
+		{
+			qDebug() << "### RECORDING:";
+		}
+		else
+		{
+			qDebug() << "### NOT RECORDING:";
+		}
 		updateRecordingState(recording);
 		lastRecording = recording;
 	}
