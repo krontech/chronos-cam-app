@@ -331,13 +331,10 @@ CameraErrortype Control::testResolution(void)
 
 CameraErrortype Control::doReset(void)
 {
-	QVariantMap args;
 	QDBusPendingReply<QVariantMap> reply;
 
-	qDebug("doReset");
-
 	pthread_mutex_lock(&mutex);
-	reply = iface.doReset(args);
+	reply = iface.doReset();
 	reply.waitForFinished();
 	pthread_mutex_unlock(&mutex);
 

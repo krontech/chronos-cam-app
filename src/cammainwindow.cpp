@@ -213,6 +213,9 @@ void CamMainWindow::on_cmdClose_clicked()
 
 void CamMainWindow::on_cmdDebugWnd_clicked()
 {
+	//temporary: API softReset call instead
+	camera->cinst->doReset();
+	return;
 	MainWindow *w = new MainWindow;
 	w->camera = camera;
 	w->setAttribute(Qt::WA_DeleteOnClose);
