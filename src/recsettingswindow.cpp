@@ -208,6 +208,11 @@ void RecSettingsWindow::on_cmdOK_clicked()
 
 	camera->updateTriggerValues(*is);
 
+	/* Segment count remains same, even if resolution was changed.
+	 * This means that is->segments may exceed *is->recRegionSizeFrames.
+	 * Ensure that doesn't happen.*/
+	is->segments = min(is->segments, is->recRegionSizeFrames);
+
 	camera->setImagerSettings(*is);
 	camera->vinst->liveDisplay();
 
