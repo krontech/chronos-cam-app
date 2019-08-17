@@ -249,7 +249,7 @@ Time</string>
     <widget class="QCheckBox" name="chkZebraEnable">
      <property name="geometry">
       <rect>
-       <x>480</x>
+       <x>510</x>
        <y>170</y>
        <width>191</width>
        <height>41</height>
@@ -276,7 +276,7 @@ Time</string>
     <widget class="QCheckBox" name="chkAutoSave">
      <property name="geometry">
       <rect>
-       <x>480</x>
+       <x>510</x>
        <y>70</y>
        <width>161</width>
        <height>41</height>
@@ -303,7 +303,7 @@ Time</string>
     <widget class="QCheckBox" name="chkAutoRecord">
      <property name="geometry">
       <rect>
-       <x>480</x>
+       <x>510</x>
        <y>20</y>
        <width>181</width>
        <height>41</height>
@@ -352,7 +352,7 @@ unsaved video in RAM</string>
     <widget class="QCheckBox" name="chkUiOnLeft">
      <property name="geometry">
       <rect>
-       <x>480</x>
+       <x>510</x>
        <y>270</y>
        <width>191</width>
        <height>41</height>
@@ -379,7 +379,7 @@ unsaved video in RAM</string>
     <widget class="QCheckBox" name="chkUpsideDownDisplay">
      <property name="geometry">
       <rect>
-       <x>480</x>
+       <x>510</x>
        <y>310</y>
        <width>171</width>
        <height>61</height>
@@ -409,7 +409,7 @@ Display</string>
       <rect>
        <x>200</x>
        <y>250</y>
-       <width>231</width>
+       <width>281</width>
        <height>41</height>
       </rect>
      </property>
@@ -437,7 +437,7 @@ Display</string>
     <widget class="QCheckBox" name="chkDemoMode">
      <property name="geometry">
       <rect>
-       <x>480</x>
+       <x>510</x>
        <y>220</y>
        <width>171</width>
        <height>41</height>
@@ -463,7 +463,7 @@ Display</string>
       <rect>
        <x>200</x>
        <y>310</y>
-       <width>231</width>
+       <width>281</width>
        <height>41</height>
       </rect>
      </property>
@@ -517,7 +517,7 @@ Display</string>
     <widget class="QCheckBox" name="chkLiveRecord">
      <property name="geometry">
       <rect>
-       <x>480</x>
+       <x>510</x>
        <y>120</y>
        <width>191</width>
        <height>41</height>
@@ -540,6 +540,41 @@ Display</string>
      </property>
      <property name="tristate">
       <bool>false</bool>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_3">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>360</y>
+       <width>101</width>
+       <height>51</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>15</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>Live Record
+Location</string>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="liveRecordComboBox">
+     <property name="geometry">
+      <rect>
+       <x>120</x>
+       <y>370</y>
+       <width>361</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>16</pointsize>
+       <italic>false</italic>
+      </font>
      </property>
     </widget>
    </widget>

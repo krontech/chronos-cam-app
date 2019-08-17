@@ -88,6 +88,7 @@ private slots:
 	void on_chkAutoRecord_stateChanged(int arg1);
 
 	void on_chkLiveRecord_stateChanged(int arg1);
+	void on_liveRecordComboBox_currentIndexChanged(const QString &arg1);
 
 	void on_chkDemoMode_stateChanged(int arg1);
 
@@ -158,9 +159,12 @@ private:
 	bool settingClock;
 	bool openingWindow;
 	bool lineSmbPassword_wasEdited;
+	bool okToSaveLocation = false;
 
 	void formatStorageDevice(const char *blkdev);
 	void statErrorMessage();
+	void refreshDriveList();
+	void saveFileDirectory();
 
 	void ipChunkChanged(QLineEdit *edit);
 };
