@@ -89,6 +89,7 @@ private slots:
 	void on_chkAutoRecord_stateChanged(int arg1);
 
 	void on_chkLiveRecord_stateChanged(int arg1);
+	void on_liveRecordComboBox_currentIndexChanged(const QString &arg1);
 
 	void on_chkDemoMode_stateChanged(int arg1);
 
@@ -123,9 +124,12 @@ private:
 	Camera * camera;
 	QTimer * timer;
 	bool settingClock;
+	bool okToSaveLocation = false;
 
 	void formatStorageDevice(const char *blkdev);
 	void statErrorMessage();
+	void refreshDriveList();
+	void saveFileDirectory();
 };
 
 #endif // UTILWINDOW_H

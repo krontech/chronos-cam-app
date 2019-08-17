@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <QDebug>
+#include <QMessageBox>
 #include <memory.h>
 #include <getopt.h>
 #include <string.h>
@@ -199,17 +200,29 @@ void Video::liveRecord(void)
 {
 	QVariantMap args;
 	QDBusPendingReply<QVariantMap> reply;
+	QMessageBox msg;
 	bool enableLiveRec = true;
-	const char *path = "/media/sda1/live";	//TODO: get from UI
-	unsigned int duration = 300;			//TODO: no hardcoding
+	char errStr[200];
+	char savePath[2000] = "";
+
+	strcat(savePath, liveRecFileDirectory);
+	strcat(savePath, "/");
+	strcat(savePath, liveRecFilename);
 
 	args.insert("liverecord", QVariant(enableLiveRec));
-	args.insert("liverec_filename", QVariant(path));
-	args.insert("duration", QVariant(duration));
+	args.insert("liverec_filename", QVariant(savePath));
 
 	pthread_mutex_lock(&mutex);
 	reply = iface.liverecord(args);
 	reply.waitForFinished();
+	if (reply.isError()) {
+		QDBusError err = reply.error();
+		fprintf(stderr, "Failed to configure video overlay: %s - %s\n", err.name().data(), err.message().toAscii().data());
+		sprintf(errStr, "Failed to start live recording mode: %s\nHigh-speed footage will still be recorded.",err.message().toAscii().data());
+		msg.setText(errStr);
+		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
+		msg.exec();
+	}
 	pthread_mutex_unlock(&mutex);
 }
 

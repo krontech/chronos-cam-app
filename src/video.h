@@ -134,6 +134,8 @@ public:
 	UInt32 level;
 	char filename[1000];
 	char fileDirectory[1000];
+	char liveRecFilename[1000] = "live";
+	char liveRecFileDirectory[1000];
 	UInt32 displayWindowXOff;
 	UInt32 displayWindowYOff;
 

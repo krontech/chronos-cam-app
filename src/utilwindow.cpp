@@ -33,6 +33,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/mount.h>
+#include <sys/vfs.h>
 #include <sys/sendfile.h>
 #include <mntent.h>
 
@@ -141,6 +142,8 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	ui->chkUiOnLeft->setChecked(camera->getButtonsOnLeft());
 	ui->comboDisableUnsavedWarning->setCurrentIndex(camera->getUnsavedWarnEnable());
 	ui->autoPowerSetting->setCurrentIndex(camera->get_autoPowerMode());
+
+	refreshDriveList();
 
 	ui->cmdSshApply->setEnabled(false);
 	ui->lineSshPassword->setText("********");
@@ -949,6 +952,154 @@ void UtilWindow::on_chkShippingMode_clicked()
 	camera->set_shippingMode(state);
 }
 
+void UtilWindow::refreshDriveList()
+{
+	QSettings settings;
+	FILE * fp;
+	FILE * mtab = setmntent("/etc/mtab", "r");
+	struct mntent* m;
+	struct mntent mnt;
+	char strings[4096];		//Temp buffer used by mntent
+	char model[256];		//Stores model name of sd* device
+	char vendor[256];		//Stores vendor of sd* device
+	char drive[1024];		//Stores string to be placed in combo box
+	UInt32 len;
+	bool setDefault = true;	//Revert to defaults if the prevDirectory was not found.
+	QString prevDirectory = settings.value("recorder/liveRecFileDirectory", QString(camera->vinst->liveRecFileDirectory)).toString();
+
+	okToSaveLocation = false;//prevent saving a new value while drive list is being updated
+	ui->liveRecordComboBox->clear();
+
+	//ui->comboDrive->addItem("/");
+
+	while ((m = getmntent_r(mtab, &mnt, strings, sizeof(strings))))
+	{
+		struct statfs fs;
+		if ((mnt.mnt_dir != NULL) && (statfs(mnt.mnt_dir, &fs) == 0))
+		{
+			ui->liveRecordComboBox->setEnabled(true);
+
+			//Find only SATA drives, SD cards, and USB drives.
+			if(strstr(mnt.mnt_dir, "/media/mmcblk1") ||
+					strstr(mnt.mnt_dir, "/media/sd"))
+			{
+				if(strstr(mnt.mnt_dir, "/media/sd"))
+				{	//If this is not an SD card (ie a "sd*") type, get the
+					char * mountPoint = mnt.mnt_dir + 7;	//Get the mounted name eg "sda1"
+					Int32 part;
+					char device[10];
+					strncpy(device, mountPoint, 3);		//keep only the "sda" (discard any numbers such as "sda1"
+					device[3] = '\0';					//Add null terminator
+					char modelPath[256];
+					char vendorPath[256];
+
+					//If there's a number following the block name, that's our partition number
+					if(*(mountPoint+3))
+						part = atoi(mountPoint + 3);
+					else
+						part = 1;
+
+					//Produce the paths to read the model and vendor strings
+					sprintf(modelPath, "/sys/block/%s/device/model", device);
+					sprintf(vendorPath, "/sys/block/%s/device/vendor", device);
+
+					//Read the model and vendor strings for this block device
+					fp = fopen(modelPath, "r");
+					if(fp)
+					{
+						len = fread(model, 1, 255, fp);
+						model[len] = '\0';
+						fclose(fp);
+					}
+					else
+						strcpy(model, "???");
+
+					fp = fopen(vendorPath, "r");
+					if(fp)
+					{
+						len = fread(vendor, 1, 255, fp);
+						vendor[len] = '\0';
+						fclose(fp);
+					}
+					else
+						strcpy(vendor, "???");
+
+					//remove all trailing whitespace and carrage returns
+					int i;
+					for(i = strlen(vendor) - 1; ' ' == vendor[i] || '\n' == vendor[i]; i--) {};	//Search back from the end and put a null at the first trailing space
+					vendor[i + 1] = '\0';
+
+					for(i = strlen(model) - 1; ' ' == model[i] || '\n' == model[i]; i--) {};	//Search back from the end and put a null at the first trailing space
+					model[i + 1] = '\0';
+
+					sprintf(drive, "%s (%s %s Partition %d)", mnt.mnt_dir, vendor, model, part);
+				}
+				else
+				{
+					Int32 part;
+
+					//If there's a number following the block name, that's our partition number
+					if(*(mnt.mnt_dir + 15))		//Find the first character after "/media/mmcblk1p"
+						part = atoi(mnt.mnt_dir + 15);
+					else
+						part = 1;
+					sprintf(drive, "%s (SD Card Partition %d)", mnt.mnt_dir, part);
+
+				}
+
+				ui->liveRecordComboBox->addItem(drive);
+
+				// If this drive matches the previous selection, select it.
+				if (strcmp(mnt.mnt_dir, prevDirectory.toAscii().data()) == 0) {
+					ui->liveRecordComboBox->setCurrentIndex(ui->liveRecordComboBox->count() - 1);
+					setDefault = false;
+				}
+
+				unsigned long long int size = fs.f_blocks * fs.f_bsize;
+				unsigned long long int free = fs.f_bfree * fs.f_bsize;
+				unsigned long long int avail = fs.f_bavail * fs.f_bsize;
+				printf("%s %s size=%lld free=%lld avail=%lld\n",
+				mnt.mnt_fsname, mnt.mnt_dir, size, free, avail);
+			}
+		}
+	}
+
+	endmntent(mtab);
+
+	if(ui->liveRecordComboBox->count() == 0)
+	{
+		ui->liveRecordComboBox->addItem("No storage devices detected");
+		ui->liveRecordComboBox->setEnabled(false);
+	}
+	else if (setDefault) {
+		ui->liveRecordComboBox->setCurrentIndex(0);
+		saveFileDirectory();
+	}
+	okToSaveLocation = true;
+}
+
+void UtilWindow::saveFileDirectory(){
+	//Keep the beginning of the combo box text (the path)
+	char str[100];
+	const char * path;
+
+	if(ui->liveRecordComboBox->isEnabled())
+	{
+		strcpy(str, ui->liveRecordComboBox->currentText().toStdString().c_str());
+
+		//Keep only the part before the first space (the actual path)
+		path = strtok(str, " ");
+	}
+	else	//No valid paths available
+		path = "";
+
+	strcpy(camera->vinst->liveRecFileDirectory, path);
+	QSettings settings;
+	settings.setValue("recorder/liveRecFileDirectory", camera->vinst->liveRecFileDirectory);
+}
+
+
+
 void UtilWindow::on_chkLiveRecord_stateChanged(int arg1)
 {
 	camera->set_liveRecord(ui->chkLiveRecord->isChecked());
@@ -1188,4 +1339,9 @@ void UtilWindow::on_autoPowerSetting_currentIndexChanged(int index)
 void UtilWindow::on_chkUiOnLeft_clicked()
 {
 
+}
+
+void UtilWindow::on_liveRecordComboBox_currentIndexChanged(const QString &arg1)
+{
+	if(okToSaveLocation) saveFileDirectory();
 }
