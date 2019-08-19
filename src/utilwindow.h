@@ -119,12 +119,16 @@ private slots:
 	int updateSoftware(char *updateLocation);
 	void on_chkUiOnLeft_clicked();
 
+	void updateDrives();
+
 private:
 	Ui::UtilWindow *ui;
 	Camera * camera;
 	QTimer * timer;
+	QTimer * liveRecPathTimer;
 	bool settingClock;
 	bool okToSaveLocation = false;
+	UInt32 driveCount;
 
 	void formatStorageDevice(const char *blkdev);
 	void statErrorMessage();
