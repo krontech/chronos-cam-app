@@ -53,6 +53,7 @@ Camera::Camera()
 	autoSave = appSettings.value("camera/autoSave", 0).toBool();
 	autoRecord = appSettings.value("camera/autoRecord", 0).toBool();
 	liveRecord = appSettings.value("camera/liveRecord", 0).toBool();
+
 	ButtonsOnLeft = getButtonsOnLeft();
 	UpsideDownDisplay = getUpsideDownDisplay();
 	strcpy(serialNumber, "Not_Set");
@@ -99,6 +100,7 @@ CameraErrortype Camera::init(Video * vinstInst, Control * cinstInst)
 	vinst->bitsPerPixel        = appSettings.value("recorder/bitsPerPixel", 0.7).toDouble();
 	vinst->maxBitrate          = appSettings.value("recorder/maxBitrate", 40.0).toDouble();
 	vinst->framerate           = appSettings.value("recorder/framerate", 60).toUInt();
+	strcpy(vinst->liveRecFileDirectory, appSettings.value("recorder/liveRecFileDirectory", "").toString().toAscii());
 	strcpy(cinst->filename,      appSettings.value("recorder/filename", "").toString().toAscii());
 	strcpy(cinst->fileDirectory, appSettings.value("recorder/fileDirectory", "").toString().toAscii());
 	strcpy(cinst->fileFolder,    appSettings.value("recorder/fileFolder", "").toString().toAscii());
