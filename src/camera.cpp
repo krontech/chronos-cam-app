@@ -61,6 +61,7 @@ Camera::Camera()
 	autoSave = appSettings.value("camera/autoSave", 0).toBool();
 	autoRecord = appSettings.value("camera/autoRecord", 0).toBool();
 	liveRecord = appSettings.value("camera/liveRecord", 0).toBool();
+
 	ButtonsOnLeft = getButtonsOnLeft();
 	UpsideDownDisplay = getUpsideDownDisplay();
 	strcpy(serialNumber, "Not_Set");
@@ -75,7 +76,6 @@ Camera::Camera()
 
 	//Disable Shipping Mode
 	this->set_shippingMode(FALSE);
-
 }
 
 Camera::~Camera()
@@ -233,6 +233,7 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, ImageSensor * s
 	vinst->framerate           = appSettings.value("recorder/framerate", 60).toUInt();
 	strcpy(vinst->filename,      appSettings.value("recorder/filename", "").toString().toAscii());
 	strcpy(vinst->fileDirectory, appSettings.value("recorder/fileDirectory", "").toString().toAscii());
+	strcpy(vinst->liveRecFileDirectory, appSettings.value("recorder/liveRecFileDirectory", "").toString().toAscii());
 	if(strlen(vinst->fileDirectory) == 0){
 		/* Set the default file path, or fall back to the MMC card. */
 		int i;
