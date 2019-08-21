@@ -255,6 +255,7 @@ void playbackWindow::on_cmdSave_clicked()
 				bpp *= 1.2;	/* Add a fudge factor. */
 				break;
 			case SAVE_MODE_DNG:
+			case SAVE_MODE_DNG_UNCAL:
 			case SAVE_MODE_TIFF_RAW:
 				fileOverMaxSize = false;
 				fileOverhead *= numFrames;
@@ -580,6 +581,7 @@ save_mode_type playbackWindow::getSaveFormat()
 	case 3:  return SAVE_MODE_DNG;
 	case 4:  return SAVE_MODE_TIFF;
 	case 5:  return SAVE_MODE_TIFF_RAW;
+	case 6:	 return SAVE_MODE_DNG_UNCAL;
 	default: return SAVE_MODE_H264;
 	}
 }

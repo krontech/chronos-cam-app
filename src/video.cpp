@@ -294,6 +294,7 @@ int Video::mkfilename(char *path, save_mode_type save_mode)
 		strcat(path, ".raw");
 		break;
 	case SAVE_MODE_DNG:
+	case SAVE_MODE_DNG_UNCAL:
 	case SAVE_MODE_TIFF:
 	case SAVE_MODE_TIFF_RAW:
 		break;
@@ -360,6 +361,11 @@ CameraErrortype Video::startRecording(UInt32 sizeX, UInt32 sizeY, UInt32 start, 
 		estFileSize = 16 * sizeX * sizeY * length / 8;
 		estFileSize += (4096 * length);
 		map.insert("format", QVariant("tiffraw"));
+		break;
+	case SAVE_MODE_DNG_UNCAL:
+		estFileSize = 16 * sizeX * sizeY * length / 8;
+		estFileSize += (4096 * length);
+		map.insert("format", QVariant("dnguncal"));
 		break;
 	}
 	printf("Saving video to %s\r\n", path);

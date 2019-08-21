@@ -29,6 +29,7 @@ typedef enum {
 	SAVE_MODE_DNG,
 	SAVE_MODE_TIFF,
 	SAVE_MODE_TIFF_RAW,
+	SAVE_MODE_DNG_UNCAL,
 } save_mode_type;
 
 typedef enum {

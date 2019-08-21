@@ -111,6 +111,7 @@ saveSettingsWindow::saveSettingsWindow(QWidget *parent, Camera * camInst) :
 	ui->comboSaveFormat->addItem("CinemaDNG");  // SAVE_MODE_DNG
 	ui->comboSaveFormat->addItem("TIFF");       // SAVE_MODE_TIFF
 	ui->comboSaveFormat->addItem("TIFF Raw");   // SAVE_MODE_TIFF_RAW
+	ui->comboSaveFormat->addItem("Uncal DNG");  // SAVE_MODE_DNG_UNCAL
 	
 	ui->comboSaveFormat->setCurrentIndex(settings.value("recorder/saveFormat", 0).toUInt());
 
@@ -350,6 +351,7 @@ void saveSettingsWindow::updateBitrate()
 	else {
 		switch(saveFormat) {
 			case SAVE_MODE_DNG:
+			case SAVE_MODE_DNG_UNCAL:
 			case SAVE_MODE_TIFF_RAW:
 			case SAVE_MODE_RAW16:
 				bitsPerPixel = 16.0;

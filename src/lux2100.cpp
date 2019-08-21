@@ -223,7 +223,7 @@ CameraErrortype LUX2100::initSensor()
 	initDAC();
 
 #if LUX2100_BINNING_MODE
-	colorBinning = true;
+	colorBinning = false;
 	initLUX2100();
 #else
 	initLUX8M();
