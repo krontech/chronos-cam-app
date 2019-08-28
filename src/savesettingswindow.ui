@@ -86,6 +86,9 @@ QSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}<
       <bold>true</bold>
      </font>
     </property>
+    <property name="minimum">
+     <number>1</number>
+    </property>
     <property name="maximum">
      <number>60</number>
     </property>
@@ -137,6 +140,9 @@ QSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}<
 QDoubleSpinBox::up-button { subcontrol-position: right; right: 40px; width: 40px; height: 35px;}
 
 QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}</string>
+    </property>
+    <property name="minimum">
+     <double>0.010000000000000</double>
     </property>
     <property name="singleStep">
      <double>0.100000000000000</double>
