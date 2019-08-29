@@ -1013,7 +1013,12 @@ void UtilWindow::on_cmdDefaults_clicked()
 	if(QMessageBox::Yes != reply2)
 		return;
 
-	system("killall camApp && /etc/init.d/camera restart");
+    if (fork() == 0) {
+		setsid();
+		kill(getppid(), SIGTERM);
+		system("/etc/init.d/camera start");
+		exit(0);
+	}
 }
 
 void UtilWindow::on_cmdBackupSettings_clicked()
