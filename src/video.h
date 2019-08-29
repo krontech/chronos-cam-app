@@ -114,13 +114,12 @@ public:
 	CameraErrortype setScaling(UInt32 startX, UInt32 startY, UInt32 cropX, UInt32 cropY);
 
 	/* Settings moved over from the VideoRecord class */
+
 	double bitsPerPixel;
 	double maxBitrate;
 	UInt32 framerate;
 	UInt32 profile;
 	UInt32 level;
-	char filename[1000];
-	char fileDirectory[1000];
 
 signals:
 	void started(VideoState state);

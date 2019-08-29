@@ -54,7 +54,7 @@ public Q_SLOTS: // METHODS
 	{
 		QList<QVariant> argumentList;
 		argumentList << qVariantFromValue(settings);
-		return asyncCallWithArgumentList(QLatin1String("recordfile"), argumentList);
+		return asyncCallWithArgumentList(QLatin1String("startFilesave"), argumentList);
 	}
 
 	inline QDBusPendingReply<QVariantMap> testResolution(const QVariantMap &args)

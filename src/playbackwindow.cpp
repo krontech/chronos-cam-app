@@ -87,11 +87,11 @@ playbackWindow::playbackWindow(QWidget *parent, Camera * cameraInst, bool autosa
 	settingsWindowIsOpen = false;
 
 	if(autoSaveFlag) {
-		strcpy(camera->vinst->filename, USE_AUTONAME_FOR_SAVE);
+		strcpy(camera->cinst->filename, USE_AUTONAME_FOR_SAVE);
 
 		on_cmdSave_clicked();
 	} else {
-		strcpy(camera->vinst->filename, appSettings.value("recorder/filename", "").toString().toAscii());
+		strcpy(camera->cinst->filename, appSettings.value("recorder/filename", "").toString().toAscii());
 	}
 	
 	if(camera->vinst->getOverlayStatus())	camera->vinst->setOverlay("%.6h/%.6z Sg=%g/%i T=%.8Ss");
@@ -224,7 +224,7 @@ void playbackWindow::on_cmdSave_clicked()
 	autoRecordFlag = camera->autoRecord = camera->get_autoRecord();
 
 	//Build the parent path of the save directory, to determine if it's a mount point
-	strcpy(parentPath, camera->vinst->fileDirectory);
+	strcpy(parentPath, camera->cinst->fileDirectory);
 	strcat(parentPath, "/..");
 
 	if(camera->vinst->getStatus(NULL) != VIDEO_STATE_FILESAVE)
@@ -246,14 +246,14 @@ void playbackWindow::on_cmdSave_clicked()
 	}
 
 		//If no directory set, complain to the user
-		if(strlen(camera->vinst->fileDirectory) == 0)
+		if(strlen(camera->cinst->fileDirectory) == 0)
 		{
 			msg.setText("No save location set! Set save location in Settings");
 			msg.exec();
 			return;
 		}
 
-		if (!statfs(camera->vinst->fileDirectory, &statfsBuf)) {
+		if (!statfs(camera->cinst->fileDirectory, &statfsBuf)) {
 			unsigned int numFrames = (markOutFrame - markInFrame + 3);
 			uint64_t freeSpace = statfsBuf.f_bsize * (uint64_t)statfsBuf.f_bfree;
 			uint64_t fileOverhead = 4096;
@@ -339,11 +339,11 @@ void playbackWindow::on_cmdSave_clicked()
 		//Check that the path exists
 		struct stat sb;
 		struct stat sbP;
-		if (stat(camera->vinst->fileDirectory, &sb) == 0 && S_ISDIR(sb.st_mode) &&
+		if (stat(camera->cinst->fileDirectory, &sb) == 0 && S_ISDIR(sb.st_mode) &&
 				stat(parentPath, &sbP) == 0 && sb.st_dev != sbP.st_dev)		//If location is directory and is a mount point (device ID of parent is different from device ID of path)
 		{
-			ret = camera->vinst->startRecording((hRes + 15) & 0xFFFFFFF0, vRes, markInFrame - 1, markOutFrame - markInFrame + 1, format);
-			//ret = camera->cinst->saveRecording((hRes + 15) & 0xFFFFFFF0, vRes, markInFrame - 1, markOutFrame - markInFrame + 1, format);
+			//ret = camera->vinst->startRecording((hRes + 15) & 0xFFFFFFF0, vRes, markInFrame - 1, markOutFrame - markInFrame + 1, format);
+			ret = camera->cinst->saveRecording((hRes + 15) & 0xFFFFFFF0, vRes, markInFrame - 1, markOutFrame - markInFrame + 1, format, camera->vinst->bitsPerPixel, camera->vinst->framerate, camera->vinst->maxBitrate);
 			if (RECORD_FILE_EXISTS == ret) {
 				msg.setText("File already exists. Rename then try saving again.");
 				msg.exec();
@@ -362,7 +362,7 @@ void playbackWindow::on_cmdSave_clicked()
 
 			ui->cmdSave->setEnabled(false);
 			setControlEnable(false);
-			sw->setText("Saving...");
+			sw->setText(" Saving... ");
 			sw->show();
 
 			ui->verticalSlider->appendRegionToList();
@@ -372,7 +372,7 @@ void playbackWindow::on_cmdSave_clicked()
 			emit enableSaveSettingsButtons(false);
 		}
 		else {
-			msg.setText(QString("Save location ") + QString(camera->vinst->fileDirectory) + " not found, set save location in Settings");
+			msg.setText(QString("Save location ") + QString(camera->cinst->fileDirectory) + " not found, set save location in Settings");
 			msg.exec();
 			return;
 		}
@@ -397,6 +397,14 @@ void playbackWindow::addDotsToString(QString* abc)
 	else if(periodsToAdd == 2) abc->append(".. ");
 	else if(periodsToAdd == 3) abc->append("...");
 }
+
+void playbackWindow::addPercentToString(QString* abc)
+{
+	UInt32 percent = 100 * (playFrame - markInFrame) / (markOutFrame - markInFrame);
+
+	abc->append(QString::number(percent));
+	abc->append("% ");
+	}
 
 void playbackWindow::on_cmdSaveSettings_clicked()
 {
@@ -476,13 +484,14 @@ void playbackWindow::updateStatusText()
 void playbackWindow::updateSWText(){
 	QString statusWindowText;
 	if (!saveAborted) {
-		statusWindowText = QString("Saving");
+		statusWindowText = QString(" Saving ");
 	} else if (saveAbortedAutomatically) {
-		statusWindowText = QString("Storage is now full; Aborting");
+		statusWindowText = QString(" Storage is now full; Aborting ");
 	} else {
-		statusWindowText = QString("Aborting Save");
+		statusWindowText = QString(" Aborting Save ");
 	}
-	addDotsToString(&statusWindowText);
+	//addDotsToString(&statusWindowText);
+	addPercentToString(&statusWindowText);
 	sw->setText(statusWindowText);
 }
 
@@ -515,7 +524,7 @@ void playbackWindow::checkForSaveDone()
 		setControlEnable(false);
 
 		struct statvfs statvfsBuf;
-		statvfs(camera->vinst->fileDirectory, &statvfsBuf);
+		statvfs(camera->cinst->fileDirectory, &statvfsBuf);
 		qDebug("Free space: %llu  (%lu * %lu)", statvfsBuf.f_bsize * (uint64_t)statvfsBuf.f_bfree, statvfsBuf.f_bsize, statvfsBuf.f_bfree);
 		
 		/* Prevent the user from pressing the abort/save button just after the last frame,

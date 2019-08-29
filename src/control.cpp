@@ -467,10 +467,22 @@ CameraErrortype Control::availableCalls(void)
 Control::Control() : iface("ca.krontech.chronos.control", "/ca/krontech/chronos/control", QDBusConnection::systemBus())
 {
     QDBusConnection conn = iface.connection();
-    //int i;
+	int i;
 
     pid = -1;
     running = false;
+
+	// Prepare the recording parameters
+	strcpy(filename, "");
+
+	// Set the default file path, or fall back to the MMC card.
+	for (i = 1; i <= 3; i++) {
+		sprintf(fileDirectory, "/media/sda%d", i);
+		if (path_is_mounted(fileDirectory)) {
+			break;
+		}
+	}
+	strcpy(fileDirectory, "/media/mmcblk1p1");
 
     pthread_mutex_init(&mutex, NULL);
 
@@ -649,7 +661,7 @@ int Control::mkfilename(char *path, save_mode_type save_mode)
 	return SUCCESS;
 }
 
-CameraErrortype Control::saveRecording(UInt32 sizeX, UInt32 sizeY, UInt32 start, UInt32 length, save_mode_type save_mode)
+CameraErrortype Control::saveRecording(UInt32 sizeX, UInt32 sizeY, UInt32 start, UInt32 length, save_mode_type save_mode, double bitsPerPixel, UInt32 framerate, UInt32 maxBitrate)
 {
 	QDBusPendingReply<QVariantMap> reply;
 	QVariantMap map;
@@ -715,5 +727,4 @@ CameraErrortype Control::saveRecording(UInt32 sizeX, UInt32 sizeY, UInt32 start,
 	else {
 		return SUCCESS;
 	}
-
 }

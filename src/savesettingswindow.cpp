@@ -57,7 +57,7 @@ saveSettingsWindow::saveSettingsWindow(QWidget *parent, Camera * camInst) :
 	ui->spinBitrate->setValue(settings.value("recorder/bitsPerPixel", camera->vinst->bitsPerPixel).toDouble());
 	ui->spinMaxBitrate->setValue(settings.value("recorder/maxBitrate", camera->vinst->maxBitrate).toDouble());
 	ui->spinFramerate->setValue(settings.value("recorder/framerate", camera->vinst->framerate).toUInt());
-	ui->lineFilename->setText(settings.value("recorder/filename", camera->vinst->filename).toString());
+	ui->lineFilename->setText(settings.value("recorder/filename", camera->cinst->filename).toString());
 
 	if(camera->autoSave){
 		ui->lineFilename->setEnabled(false);
@@ -177,9 +177,9 @@ void saveSettingsWindow::saveFileDirectory(){
 	else	//No valid paths available
 		path = "";
 
-	strcpy(camera->vinst->fileDirectory, path);
+	strcpy(camera->cinst->fileDirectory, path);
 	QSettings settings;
-	settings.setValue("recorder/fileDirectory", camera->vinst->fileDirectory);
+	settings.setValue("recorder/fileDirectory", camera->cinst->fileDirectory);
 }
 
 void saveSettingsWindow::on_cmdUMount_clicked()
@@ -215,7 +215,7 @@ void saveSettingsWindow::refreshDriveList()
 	char drive[1024];		//Stores string to be placed in combo box
 	UInt32 len;
 	bool setDefault = true;	//Revert to defaults if the prevDirectory was not found.
-	QString prevDirectory = settings.value("recorder/fileDirectory", QString(camera->vinst->fileDirectory)).toString();
+	QString prevDirectory = settings.value("recorder/fileDirectory", QString(camera->cinst->fileDirectory)).toString();
 
 	okToSaveLocation = false;//prevent saving a new value while drive list is being updated
 	ui->comboDrive->clear();
@@ -424,8 +424,8 @@ void saveSettingsWindow::on_lineFilename_textEdited(const QString &arg1)
 {
 	if(camera->autoSave) return; //Keep blank filename to use autoname
 	QSettings settings;
-	strcpy(camera->vinst->filename, ui->lineFilename->text().toStdString().c_str());
-	settings.setValue("recorder/filename", camera->vinst->filename);
+	strcpy(camera->cinst->filename, ui->lineFilename->text().toStdString().c_str());
+	settings.setValue("recorder/filename", camera->cinst->filename);
 }
 
 void saveSettingsWindow::on_spinMaxBitrate_valueChanged(int arg1)

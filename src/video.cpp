@@ -245,79 +245,15 @@ void Video::flushRegions(void)
 	pthread_mutex_unlock(&mutex);
 }
 
-int Video::mkfilename(char *path, save_mode_type save_mode)
-{
-	char fname[1000];
-
-	if(strlen(fileDirectory) == 0)
-		return RECORD_NO_DIRECTORY_SET;
-
-	strcpy(path, fileDirectory);
-	if(strlen(filename) == 0)
-	{
-		//Fill timeinfo structure with the current time
-		time_t rawtime;
-		struct tm * timeinfo;
-
-		time (&rawtime);
-		timeinfo = localtime (&rawtime);
-
-		sprintf(fname, "/vid_%04d-%02d-%02d_%02d-%02d-%02d",
-					timeinfo->tm_year + 1900,
-					timeinfo->tm_mon + 1,
-					timeinfo->tm_mday,
-					timeinfo->tm_hour,
-					timeinfo->tm_min,
-					timeinfo->tm_sec);
-		strcat(path, fname);
-	}
-	else
-	{
-		strcat(path, "/");
-		strcat(path, filename);
-	}
-
-	switch(save_mode) {
-	case SAVE_MODE_H264:
-		strcat(path, ".mp4");
-		break;
-	case SAVE_MODE_RAW16:
-	case SAVE_MODE_RAW12:
-		strcat(path, ".raw");
-		break;
-	case SAVE_MODE_DNG:
-	case SAVE_MODE_TIFF:
-	case SAVE_MODE_TIFF_RAW:
-		break;
-	}
-
-	//If a file of this name already exists
-	struct stat buffer;
-	if(stat (path, &buffer) == 0)
-	{
-		return RECORD_FILE_EXISTS;
-	}
-
-	//Check that the directory is writable
-	if(access(fileDirectory, W_OK) != 0)
-	{	//Not writable
-		return RECORD_DIRECTORY_NOT_WRITABLE;
-	}
-	return SUCCESS;
-}
-
 CameraErrortype Video::startRecording(UInt32 sizeX, UInt32 sizeY, UInt32 start, UInt32 length, save_mode_type save_mode)
 {
 	QDBusPendingReply<QVariantMap> reply;
 	QVariantMap map;
 	UInt64 estFileSize;
 	UInt32 realBitrate;
-	char path[1000];
+	char path[1000] = "/media/mmcblk1p1/testvid.mp4";
 
-	/* Generate the desired filename, and check that we can write it. */
-	if(mkfilename(path, save_mode) == RECORD_FILE_EXISTS) return RECORD_FILE_EXISTS;
-
-	/* Attempt to start the video recording process. */
+	// Attempt to start the video recording process.
 	map.insert("filename", QVariant(path));
 	qDebug() << "==== filename:" << path;
 	map.insert("start", QVariant(start));
@@ -325,7 +261,7 @@ CameraErrortype Video::startRecording(UInt32 sizeX, UInt32 sizeY, UInt32 start, 
 	switch(save_mode) {
 	case SAVE_MODE_H264:
 		realBitrate = min(bitsPerPixel * sizeX * sizeY * framerate, min(60000000, (UInt32)(maxBitrate * 1000000.0)));
-		estFileSize = realBitrate * (length / framerate) / 8; /* size = (bits/sec) * (seconds) / (8 bits/byte) */
+		estFileSize = realBitrate * (length / framerate) / 8; // size = (bits/sec) * (seconds) / (8 bits/byte)
 		map.insert("format", QVariant("h264"));
 		map.insert("bitrate", QVariant((uint)realBitrate));
 		map.insert("framerate", QVariant((uint)framerate));
@@ -357,7 +293,7 @@ CameraErrortype Video::startRecording(UInt32 sizeX, UInt32 sizeY, UInt32 start, 
 	printf("Saving video to %s\r\n", path);
 
 	qDebug() << map;
-	/* Send the DBus command to be*/
+	// Send the DBus command to be
 	pthread_mutex_lock(&mutex);
 	reply = iface.recordfile(map);
 	reply.waitForFinished();
@@ -372,6 +308,7 @@ CameraErrortype Video::startRecording(UInt32 sizeX, UInt32 sizeY, UInt32 start, 
 		return SUCCESS;
 	}
 }
+
 
 CameraErrortype Video::stopRecording()
 {
@@ -445,23 +382,6 @@ Video::Video() : iface("ca.krontech.chronos.video", "/ca/krontech/chronos/video"
 	displayWindowYSize = 480;
 	displayWindowXOff = 0;
 	displayWindowYOff = 0;
-
-	/* Prepare the recording parameters */
-	bitsPerPixel = 0.7;
-	maxBitrate = 40.0;
-	framerate = 60;
-	profile = OMX_H264ENC_PROFILE_HIGH;
-	level = OMX_H264ENC_LVL_51;
-	strcpy(filename, "");
-
-	/* Set the default file path, or fall back to the MMC card. */
-	for (i = 1; i <= 3; i++) {
-		sprintf(fileDirectory, "/media/sda%d", i);
-		if (path_is_mounted(fileDirectory)) {
-			break;
-		}
-	}
-	strcpy(fileDirectory, "/media/mmcblk1p1");
 
 	pthread_mutex_init(&mutex, NULL);
 

@@ -76,6 +76,7 @@ private slots:
 	void videoEnded(VideoState state, QString err);
 	
 	void addDotsToString(QString* abc);
+	void addPercentToString(QString* abc);
 	void updateSWText();
 	
 private:
