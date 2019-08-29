@@ -50,6 +50,13 @@ public Q_SLOTS: // METHODS
 		return asyncCallWithArgumentList(QLatin1String("stopRecording"), argumentList);
 	}
 
+	inline QDBusPendingReply<QVariantMap> recordfile(const QVariantMap &settings)
+	{
+		QList<QVariant> argumentList;
+		argumentList << qVariantFromValue(settings);
+		return asyncCallWithArgumentList(QLatin1String("recordfile"), argumentList);
+	}
+
 	inline QDBusPendingReply<QVariantMap> testResolution(const QVariantMap &args)
 	{
 		QList<QVariant> argumentList;

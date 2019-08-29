@@ -343,6 +343,7 @@ void playbackWindow::on_cmdSave_clicked()
 				stat(parentPath, &sbP) == 0 && sb.st_dev != sbP.st_dev)		//If location is directory and is a mount point (device ID of parent is different from device ID of path)
 		{
 			ret = camera->vinst->startRecording((hRes + 15) & 0xFFFFFFF0, vRes, markInFrame - 1, markOutFrame - markInFrame + 1, format);
+			//ret = camera->cinst->saveRecording((hRes + 15) & 0xFFFFFFF0, vRes, markInFrame - 1, markOutFrame - markInFrame + 1, format);
 			if (RECORD_FILE_EXISTS == ret) {
 				msg.setText("File already exists. Rename then try saving again.");
 				msg.exec();
@@ -488,6 +489,8 @@ void playbackWindow::updateSWText(){
 //Periodically check if the play frame is updated
 void playbackWindow::updatePlayFrame()
 {
+	//return; //until this starts using API
+
 	VideoStatus st;
 	char playRateStr[100];
 	camera->vinst->getStatus(&st);

@@ -588,3 +588,132 @@ ControlStatus Control::parseNotification(const QVariantMap &args)
 	}
 }
 
+int Control::mkfilename(char *path, save_mode_type save_mode)
+{
+	char fname[1000];
+
+	if(strlen(fileDirectory) == 0)
+		return RECORD_NO_DIRECTORY_SET;
+
+	strcpy(path, fileDirectory);
+	if(strlen(filename) == 0)
+	{
+		//Fill timeinfo structure with the current time
+		time_t rawtime;
+		struct tm * timeinfo;
+
+		time (&rawtime);
+		timeinfo = localtime (&rawtime);
+
+		sprintf(fname, "/vid_%04d-%02d-%02d_%02d-%02d-%02d",
+					timeinfo->tm_year + 1900,
+					timeinfo->tm_mon + 1,
+					timeinfo->tm_mday,
+					timeinfo->tm_hour,
+					timeinfo->tm_min,
+					timeinfo->tm_sec);
+		strcat(path, fname);
+	}
+	else
+	{
+		strcat(path, "/");
+		strcat(path, filename);
+	}
+
+	switch(save_mode) {
+	case SAVE_MODE_H264:
+		strcat(path, ".mp4");
+		break;
+	case SAVE_MODE_RAW16:
+	case SAVE_MODE_RAW12:
+		strcat(path, ".raw");
+		break;
+	case SAVE_MODE_DNG:
+	case SAVE_MODE_TIFF:
+	case SAVE_MODE_TIFF_RAW:
+		break;
+	}
+
+	//If a file of this name already exists
+	struct stat buffer;
+	if(stat (path, &buffer) == 0)
+	{
+		return RECORD_FILE_EXISTS;
+	}
+
+	//Check that the directory is writable
+	if(access(fileDirectory, W_OK) != 0)
+	{	//Not writable
+		return RECORD_DIRECTORY_NOT_WRITABLE;
+	}
+	return SUCCESS;
+}
+
+CameraErrortype Control::saveRecording(UInt32 sizeX, UInt32 sizeY, UInt32 start, UInt32 length, save_mode_type save_mode)
+{
+	QDBusPendingReply<QVariantMap> reply;
+	QVariantMap map;
+	UInt64 estFileSize;
+	UInt32 realBitrate;
+	char path[1000];
+
+	/* Generate the desired filename, and check that we can write it. */
+	//if(camera->vinst->mkfilename(path, save_mode) == RECORD_FILE_EXISTS) return RECORD_FILE_EXISTS;
+	if(mkfilename(path, save_mode) == RECORD_FILE_EXISTS) return RECORD_FILE_EXISTS;
+
+	/* Attempt to start the video recording process. */
+	map.insert("filename", QVariant(path));
+	qDebug() << "==== filename:" << path;
+	map.insert("start", QVariant(start));
+	map.insert("length", QVariant(length));
+	switch(save_mode) {
+	case SAVE_MODE_H264:
+		realBitrate = min(bitsPerPixel * sizeX * sizeY * framerate, min(60000000, (UInt32)(maxBitrate * 1000000.0)));
+		estFileSize = realBitrate * (length / framerate) / 8; /* size = (bits/sec) * (seconds) / (8 bits/byte) */
+		map.insert("format", QVariant("h264"));
+		map.insert("bitrate", QVariant((uint)realBitrate));
+		map.insert("framerate", QVariant((uint)framerate));
+		break;
+	case SAVE_MODE_RAW16:
+		estFileSize = 16 * sizeX * sizeY * length / 8;
+		map.insert("format", QVariant("y16"));
+		break;
+	case SAVE_MODE_RAW12:
+		estFileSize = 12 * sizeX * sizeY * length / 8;
+		map.insert("format", QVariant("y12b"));
+		break;
+	case SAVE_MODE_DNG:
+		estFileSize = 16 * sizeX * sizeY * length / 8;
+		estFileSize += (4096 * length);
+		map.insert("format", QVariant("dng"));
+		break;
+	case SAVE_MODE_TIFF:
+		estFileSize = 24 * sizeX * sizeY * length / 8;
+		estFileSize += (4096 * length);
+		map.insert("format", QVariant("tiff"));
+		break;
+	case SAVE_MODE_TIFF_RAW:
+		estFileSize = 16 * sizeX * sizeY * length / 8;
+		estFileSize += (4096 * length);
+		map.insert("format", QVariant("tiffraw"));
+		break;
+	}
+	printf("Saving video to %s\r\n", path);
+
+	qDebug() << map;
+	/* Send the DBus command to be*/
+	pthread_mutex_lock(&mutex);
+	reply = iface.recordfile(map);
+	reply.waitForFinished();
+	pthread_mutex_unlock(&mutex);
+
+	if (reply.isError()) {
+		QDBusError err = reply.error();
+		qDebug() << "Recording failed with error " << err.message();
+		return RECORD_ERROR;
+	}
+	else {
+		return SUCCESS;
+	}
+
+}

@@ -319,6 +319,7 @@ CameraErrortype Video::startRecording(UInt32 sizeX, UInt32 sizeY, UInt32 start, 
 
 	/* Attempt to start the video recording process. */
 	map.insert("filename", QVariant(path));
+	qDebug() << "==== filename:" << path;
 	map.insert("start", QVariant(start));
 	map.insert("length", QVariant(length));
 	switch(save_mode) {
@@ -355,6 +356,7 @@ CameraErrortype Video::startRecording(UInt32 sizeX, UInt32 sizeY, UInt32 start, 
 	}
 	printf("Saving video to %s\r\n", path);
 
+	qDebug() << map;
 	/* Send the DBus command to be*/
 	pthread_mutex_lock(&mutex);
 	reply = iface.recordfile(map);

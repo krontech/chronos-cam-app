@@ -7,6 +7,7 @@
 #include "errorCodes.h"
 #include "chronosControlInterface.h"
 #include "types.h"
+#include "video.h"
 #include "frameGeometry.h"
 
 #include <QObject>
@@ -89,6 +90,16 @@ class Control : public QObject {
     Q_OBJECT
 
 public:
+	/* Settings moved over from the VideoRecord class, into Video class, and then into Control */
+
+	double bitsPerPixel;
+	double maxBitrate;
+	UInt32 framerate;
+	UInt32 profile;
+	char filename[1000];
+	char fileDirectory[1000];
+
+
     Control();
     ~Control();
 
@@ -138,6 +149,8 @@ public:
     CameraErrortype stopRecord(void);
     CameraErrortype getCalCapabilities(void);
 	ControlStatus parseNotification(const QVariantMap &args);
+	int mkfilename(char *path, save_mode_type save_mode);
+	CameraErrortype saveRecording(UInt32 sizeX, UInt32 sizeY, UInt32 start, UInt32 length, save_mode_type save_mode);
 
     CameraData cd;
 

@@ -215,7 +215,8 @@ CameraErrortype Camera::init(Video * vinstInst, Control * cinstInst, ImageSensor
 
 	vinst->setDisplayOptions(getZebraEnable(), getFocusPeakEnable());
 	vinst->setDisplayPosition(ButtonsOnLeft ^ UpsideDownDisplay);
-	cinst->doReset();
+	usleep(2000000); //needed temporarily with current pychronos
+	cinst->doReset(); //also needed temporarily
 
 	printf("Video init done\n");
 	return SUCCESS;
