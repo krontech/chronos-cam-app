@@ -1152,6 +1152,8 @@ void UtilWindow::on_cmdRestoreSettings_clicked()
 	}
 	QSettings appSettings;
 	appSettings.sync();
+    
+    ui->autoPowerSetting->setCurrentIndex(camera->get_autoPowerMode());
 
 	sw.hide();
 	msg.setText("User settings restore successful!");
