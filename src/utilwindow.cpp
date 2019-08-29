@@ -1002,6 +1002,8 @@ void UtilWindow::on_cmdDefaults_clicked()
 	if(QMessageBox::Yes != reply)
 		return;
 
+    ui->autoPowerSetting->setCurrentIndex(0);
+
 	QSettings appSettings;
 	appSettings.clear();
 	appSettings.sync();
