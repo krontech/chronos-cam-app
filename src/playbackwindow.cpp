@@ -61,6 +61,7 @@ playbackWindow::playbackWindow(QWidget *parent, Camera * cameraInst, bool autosa
 	totalFrames = vStatus.totalFrames;
 
 	sw = new StatusWindow;
+	saveDoneTimer = NULL;
 
 	connect(ui->cmdClose, SIGNAL(clicked()), this, SLOT(close()));
 
@@ -152,6 +153,7 @@ void playbackWindow::videoEnded(VideoState state, QString err)
 		if(saveDoneTimer){
 			saveDoneTimer->stop();
 			delete saveDoneTimer;
+			saveDoneTimer = NULL;
 			qDebug()<<"saveDoneTimer deleted";
 		} else qDebug("cannot delete saveDoneTimer because it is null");
 
