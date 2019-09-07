@@ -45,6 +45,9 @@
    <property name="styleSheet">
     <string notr="true"/>
    </property>
+   <property name="accelerated">
+    <bool>true</bool>
+   </property>
    <property name="maximum">
     <number>100000000</number>
    </property>
@@ -294,6 +297,9 @@ QSlider::handle:horizontal {
    <property name="styleSheet">
     <string notr="true"/>
    </property>
+   <property name="accelerated">
+    <bool>true</bool>
+   </property>
    <property name="maximum">
     <number>100000000</number>
    </property>
@@ -398,6 +404,9 @@ QSlider::handle:horizontal {
    </property>
    <property name="styleSheet">
     <string notr="true"/>
+   </property>
+   <property name="accelerated">
+    <bool>true</bool>
    </property>
    <property name="maximum">
     <number>100000000</number>

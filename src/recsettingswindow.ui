@@ -63,6 +63,9 @@
    <property name="styleSheet">
     <string notr="true"/>
    </property>
+   <property name="accelerated">
+    <bool>true</bool>
+   </property>
    <property name="correctionMode">
     <enum>QAbstractSpinBox::CorrectToNearestValue</enum>
    </property>
@@ -88,6 +91,9 @@
     <string notr="true"/>
    </property>
    <property name="frame">
+    <bool>true</bool>
+   </property>
+   <property name="accelerated">
     <bool>true</bool>
    </property>
    <property name="correctionMode">
@@ -198,6 +204,9 @@
     <string notr="true"/>
    </property>
    <property name="frame">
+    <bool>true</bool>
+   </property>
+   <property name="accelerated">
     <bool>true</bool>
    </property>
   </widget>

@@ -86,6 +86,9 @@ QSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}<
       <bold>true</bold>
      </font>
     </property>
+    <property name="accelerated">
+     <bool>true</bool>
+    </property>
     <property name="minimum">
      <number>1</number>
     </property>
@@ -167,6 +170,9 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
       <italic>true</italic>
       <bold>true</bold>
      </font>
+    </property>
+    <property name="accelerated">
+     <bool>true</bool>
     </property>
     <property name="minimum">
      <number>1</number>
