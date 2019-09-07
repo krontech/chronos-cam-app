@@ -131,7 +131,7 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	ui->cmdWhiteRef->setVisible(false);
 	ui->cmdSetSN->setVisible(false);
 	ui->lineSerialNumber->setVisible(false);
-	//ui->chkShowDebugControls->setVisible(false);
+	ui->chkShowDebugControls->setVisible(false);
 	ui->spinLiveLoopTime->setVisible(false);
 	ui->chkLiveLoop->setVisible(false);
 

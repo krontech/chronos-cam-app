@@ -29,6 +29,12 @@
 
 #include <cstring>
 
+#include <cstdio>
+#include <iostream>
+#include <memory>
+#include <stdexcept>
+#include <array>
+
 #include <QMessageBox>
 #include <QTimer>
 #include <QDebug>
@@ -201,6 +207,19 @@ void saveSettingsWindow::on_cmdUMount_clicked()
 	refreshDriveList();
 }
 
+std::string exec(const char* cmd) {
+	std::array<char, 128> buffer;
+	std::string result;
+	std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
+	if (!pipe) {
+		throw std::runtime_error("popen() failed!");
+	}
+	while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
+		result += buffer.data();
+	}
+	return result;
+}
+
 //Find all mounted drives and populate the drive comboBox
 void saveSettingsWindow::refreshDriveList()
 {
@@ -221,6 +240,16 @@ void saveSettingsWindow::refreshDriveList()
 	ui->comboDrive->clear();
 
 	//ui->comboDrive->addItem("/");
+
+	//scan for Samba shares
+	QString drives = QString::fromStdString(exec("mount -t cifs"));
+	QStringList splitString = drives.split(" on ");
+
+	for (int i=1; i<splitString.length(); i++)
+	{
+		QString mountString = splitString.value(i).split(" ").value(0);
+		ui->comboDrive->addItem(mountString);
+	}
 
 	while ((m = getmntent_r(mtab, &mnt, strings, sizeof(strings))))
 	{

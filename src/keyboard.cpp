@@ -54,6 +54,7 @@ keyboard::keyboard(QWidget *parent) :
 	signalMapper.setMapping(ui->B, ui->B);
 	signalMapper.setMapping(ui->N, ui->N);
 	signalMapper.setMapping(ui->M, ui->M);
+	signalMapper.setMapping(ui->slash, ui->slash);
 	signalMapper.setMapping(ui->num0, ui->num0);
 	signalMapper.setMapping(ui->num1, ui->num1);
 	signalMapper.setMapping(ui->num2, ui->num2);
@@ -94,6 +95,7 @@ keyboard::keyboard(QWidget *parent) :
 	connect(ui->B, SIGNAL(clicked()), &signalMapper, SLOT(map()));
 	connect(ui->N, SIGNAL(clicked()), &signalMapper, SLOT(map()));
 	connect(ui->M, SIGNAL(clicked()), &signalMapper, SLOT(map()));
+	connect(ui->slash, SIGNAL(clicked()), &signalMapper, SLOT(map()));
 	connect(ui->num0, SIGNAL(clicked()), &signalMapper, SLOT(map()));
 	connect(ui->num1, SIGNAL(clicked()), &signalMapper, SLOT(map()));
 	connect(ui->num2, SIGNAL(clicked()), &signalMapper, SLOT(map()));
@@ -196,6 +198,7 @@ void keyboard::setUppercase(){
 	ui->B->setText("B");
 	ui->N->setText("N");
 	ui->M->setText("M");
+	ui->slash->setText("/");
 }
 
 void keyboard::setLowercase(){
@@ -225,4 +228,5 @@ void keyboard::setLowercase(){
 	ui->B->setText("b");
 	ui->N->setText("n");
 	ui->M->setText("m");
+	ui->slash->setText("/");
 }
