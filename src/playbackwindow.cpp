@@ -250,7 +250,6 @@ void playbackWindow::on_cmdSave_clicked()
 			/* Estimate bits per pixel, by format. */
 			switch(format) {
 			case SAVE_MODE_H264:
-				bpp *= 1.2;	/* Add a fudge factor. */
 				break;
 			case SAVE_MODE_DNG:
 			case SAVE_MODE_TIFF_RAW:
@@ -282,9 +281,18 @@ void playbackWindow::on_cmdSave_clicked()
 			estimatedSize = ((double)estimatedSize * bpp) / 8;
 			estimatedSize += fileOverhead;
 
+			// Estimate size by maxBitrate if necessary
+			double savedFileLengthSeconds;
+			if(format == SAVE_MODE_H264){
+				savedFileLengthSeconds = (double)numFrames / (double)camera->vinst->framerate;
+				estimatedSize = min(estimatedSize, savedFileLengthSeconds * camera->vinst->maxBitrate * 1000000 / 8);
+				bpp *= 1.2;	/* Add a fudge factor. */
+			}
+
 			qDebug("===================================");
 			qDebug("Resolution: %d x %d", hRes, vRes);
 			qDebug("Bits/pixel: %f", bpp);
+			qDebug("Bits/pixel: %f without fudge factor", bpp/1.2);
 			qDebug("Frames: %d", markOutFrame - markInFrame + 1);
 			qDebug("Free space: %llu", freeSpace);
 			qDebug("Estimated file size: %llu", estimatedSize);
