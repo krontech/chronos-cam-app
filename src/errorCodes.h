@@ -103,7 +103,8 @@ typedef enum CameraErrortype
 	RECORD_DIRECTORY_NOT_WRITABLE             = 806,
 	RECORD_ERROR                              = 807,
     RECORD_INSUFFICIENT_SPACE                 = 808,
-	
+	RECORD_FOLDER_DOES_NOT_EXIST              = 809,
+
 	
 	SETTINGS_LOAD_ERROR                       = 901,
 	SETTINGS_SAVE_ERROR                       = 902,

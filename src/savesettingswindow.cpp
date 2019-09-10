@@ -64,6 +64,7 @@ saveSettingsWindow::saveSettingsWindow(QWidget *parent, Camera * camInst) :
 	ui->spinMaxBitrate->setValue(settings.value("recorder/maxBitrate", camera->vinst->maxBitrate).toDouble());
 	ui->spinFramerate->setValue(settings.value("recorder/framerate", camera->vinst->framerate).toUInt());
 	ui->lineFilename->setText(settings.value("recorder/filename", camera->cinst->filename).toString());
+	ui->lineFoldername->setText(settings.value("recorder/fileFolder", camera->cinst->fileFolder).toString());
 
 	if(camera->autoSave){
 		ui->lineFilename->setEnabled(false);
@@ -186,6 +187,7 @@ void saveSettingsWindow::saveFileDirectory(){
 	strcpy(camera->cinst->fileDirectory, path);
 	QSettings settings;
 	settings.setValue("recorder/fileDirectory", camera->cinst->fileDirectory);
+	settings.setValue("recorder/fileFolder", camera->cinst->fileFolder);
 }
 
 void saveSettingsWindow::on_cmdUMount_clicked()
@@ -248,7 +250,7 @@ void saveSettingsWindow::refreshDriveList()
 	for (int i=1; i<splitString.length(); i++)
 	{
 		QString mountString = splitString.value(i).split(" ").value(0);
-		ui->comboDrive->addItem(mountString);
+		ui->comboDrive->addItem(mountString + " (Samba share)");
 	}
 
 	while ((m = getmntent_r(mtab, &mnt, strings, sizeof(strings))))
@@ -455,6 +457,13 @@ void saveSettingsWindow::on_lineFilename_textEdited(const QString &arg1)
 	QSettings settings;
 	strcpy(camera->cinst->filename, ui->lineFilename->text().toStdString().c_str());
 	settings.setValue("recorder/filename", camera->cinst->filename);
+}
+
+void saveSettingsWindow::on_lineFoldername_textEdited(const QString &arg1)
+{
+	QSettings settings;
+	strcpy(camera->cinst->fileFolder, ui->lineFoldername->text().toStdString().c_str());
+	settings.setValue("recorder/fileFolder", camera->cinst->fileFolder);
 }
 
 void saveSettingsWindow::on_spinMaxBitrate_valueChanged(int arg1)

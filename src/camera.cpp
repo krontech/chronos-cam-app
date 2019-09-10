@@ -195,6 +195,7 @@ CameraErrortype Camera::init(Video * vinstInst, Control * cinstInst, ImageSensor
 	vinst->framerate           = appSettings.value("recorder/framerate", 60).toUInt();
 	strcpy(cinst->filename,      appSettings.value("recorder/filename", "").toString().toAscii());
 	strcpy(cinst->fileDirectory, appSettings.value("recorder/fileDirectory", "").toString().toAscii());
+	strcpy(cinst->fileFolder,    appSettings.value("recorder/fileFolder", "").toString().toAscii());
 	if(strlen(cinst->fileDirectory) == 0){
 		/* Set the default file path, or fall back to the MMC card. */
 		int i;

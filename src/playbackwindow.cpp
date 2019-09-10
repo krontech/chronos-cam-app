@@ -339,6 +339,7 @@ void playbackWindow::on_cmdSave_clicked()
 		//Check that the path exists
 		struct stat sb;
 		struct stat sbP;
+
 		if (stat(camera->cinst->fileDirectory, &sb) == 0 && S_ISDIR(sb.st_mode) &&
 				stat(parentPath, &sbP) == 0 && sb.st_dev != sbP.st_dev)		//If location is directory and is a mount point (device ID of parent is different from device ID of path)
 		{
@@ -346,6 +347,11 @@ void playbackWindow::on_cmdSave_clicked()
 			ret = camera->cinst->saveRecording((hRes + 15) & 0xFFFFFFF0, vRes, markInFrame - 1, markOutFrame - markInFrame + 1, format, camera->vinst->bitsPerPixel, camera->vinst->framerate, camera->vinst->maxBitrate);
 			if (RECORD_FILE_EXISTS == ret) {
 				msg.setText("File already exists. Rename then try saving again.");
+				msg.exec();
+				return;
+			}
+			else if (RECORD_FOLDER_DOES_NOT_EXIST == ret) {
+				msg.setText("Save folder does not exist.");
 				msg.exec();
 				return;
 			}

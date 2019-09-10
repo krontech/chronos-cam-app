@@ -101,7 +101,7 @@ errorCodeString(int code)
 	case RECORD_DIRECTORY_NOT_WRITABLE: return "Recording directory not writeable";
 	case RECORD_ERROR:					return "Recording error";
 	case RECORD_INSUFFICIENT_SPACE:		return "Recording insufficient space available";
-
+	case RECORD_FOLDER_DOES_NOT_EXIST:	return "Recording folder does not exist";
 	/* QSettings error group. */
 	case SETTINGS_LOAD_ERROR:			return "Settings load error";
 	case SETTINGS_SAVE_ERROR:			return "Settings save error";

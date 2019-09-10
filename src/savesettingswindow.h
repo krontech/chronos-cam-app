@@ -56,11 +56,13 @@ private slots:
 
 	void on_spinMaxBitrate_valueChanged(int arg1);
 
-    void on_comboSaveFormat_currentIndexChanged(int index);
+	void on_comboSaveFormat_currentIndexChanged(int index);
 
-    void on_lineFilename_textEdited(const QString &arg1);
+	void on_lineFilename_textEdited(const QString &arg1);
 
-    void on_comboDrive_currentIndexChanged(const QString &arg1);
+	void on_lineFoldername_textEdited(const QString &arg1);
+
+	void on_comboDrive_currentIndexChanged(const QString &arg1);
 
     void on_chkEnableOverlay_toggled(bool checked);
     

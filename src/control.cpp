@@ -603,11 +603,14 @@ ControlStatus Control::parseNotification(const QVariantMap &args)
 int Control::mkfilename(char *path, save_mode_type save_mode)
 {
 	char fname[1000];
+	char folderPath[1000];
 
 	if(strlen(fileDirectory) == 0)
 		return RECORD_NO_DIRECTORY_SET;
 
 	strcpy(path, fileDirectory);
+	strcat(path, "/");		//add a slash, in case there wasn't one
+	strcat(path, fileFolder);
 	if(strlen(filename) == 0)
 	{
 		//Fill timeinfo structure with the current time
@@ -646,6 +649,15 @@ int Control::mkfilename(char *path, save_mode_type save_mode)
 		break;
 	}
 
+	//If the folder does not exist
+	strcpy(folderPath, fileDirectory);
+	strcat(folderPath, "/");
+	strcat(folderPath, fileFolder);
+	if(access(folderPath, W_OK) != 0)
+	{	//Not existing
+		return RECORD_FOLDER_DOES_NOT_EXIST;
+	}
+
 	//If a file of this name already exists
 	struct stat buffer;
 	if(stat (path, &buffer) == 0)
@@ -671,7 +683,8 @@ CameraErrortype Control::saveRecording(UInt32 sizeX, UInt32 sizeY, UInt32 start,
 
 	/* Generate the desired filename, and check that we can write it. */
 	//if(camera->vinst->mkfilename(path, save_mode) == RECORD_FILE_EXISTS) return RECORD_FILE_EXISTS;
-	if(mkfilename(path, save_mode) == RECORD_FILE_EXISTS) return RECORD_FILE_EXISTS;
+	int ret = mkfilename(path, save_mode);
+	if(ret != SUCCESS) return (CameraErrortype)ret;
 
 	/* Attempt to start the video recording process. */
 	map.insert("filename", QVariant(path));

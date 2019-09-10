@@ -93,6 +93,7 @@ public:
 	/* Settings moved over from the VideoRecord class, into Video class, and then into Control */
 	char filename[1000];
 	char fileDirectory[1000];
+	char fileFolder[1000];
 
     Control();
     ~Control();
