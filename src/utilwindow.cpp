@@ -253,6 +253,7 @@ bool copyFile(const char * fromfile, const char * tofile)
 
 void UtilWindow::onUtilWindowTimer()
 {
+	struct statvfs fsInfoBuf;
 	if(!settingClock)
 	{
 		if(ui->dateTimeEdit->hasFocus())
@@ -279,6 +280,14 @@ void UtilWindow::onUtilWindowTimer()
 		/* Update the disk status text. */
 		ui->lblStatusDisk->setText(listStorageDevice("sda"));
 		ui->lblStatusSD->setText(listStorageDevice("mmcblk1"));
+
+		/* enable/disable the format/eject buttons */
+		bool usbPresent = (!statvfs("/dev/sda", &fsInfoBuf));
+		ui->cmdEjectDisk->setEnabled(usbPresent);
+		ui->cmdFormatDisk->setEnabled(usbPresent);
+		bool SDPresent = (!statvfs("/dev/mmcblk1p1", &fsInfoBuf));
+		ui->cmdEjectSD->setEnabled(SDPresent);
+		ui->cmdFormatSD->setEnabled(SDPresent);
 	}
 }
 
