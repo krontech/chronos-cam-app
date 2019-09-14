@@ -36,6 +36,7 @@
 #include <sys/mount.h>
 #include <sys/sendfile.h>
 #include <mntent.h>
+#include <sys/statvfs.h>
 
 extern "C" {
 #include "siText.h"
@@ -852,6 +853,10 @@ void UtilWindow::formatStorageDevice(const char *blkdev)
 	char partpath[128];
 	char diskname[128];
 	int filepathlen;
+	int mkfsReturn;
+	char title[128];
+	char message[1024];
+	struct statvfs fsInfoBuf;
 	FILE *fp;
 
 	/* Read the disk name from sysfs. */
@@ -871,6 +876,15 @@ void UtilWindow::formatStorageDevice(const char *blkdev)
 		else {
 			strcpy(diskname, blkdev);
 		}
+	}
+
+	/* Check if storage device exists */
+	sprintf(filepath, "/dev/%s", blkdev);
+	if(statvfs(filepath, &fsInfoBuf) == -1){
+		sprintf(title, "Storage device not found");
+		sprintf(message, "\"%s\" not found", diskname);
+		QMessageBox::warning(this, title, message);
+		return;
 	}
 
 	/* Prompt the user for confirmation */
