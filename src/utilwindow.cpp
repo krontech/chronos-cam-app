@@ -215,7 +215,7 @@ UtilWindow::~UtilWindow()
 
 void UtilWindow::on_cmdNetTest_clicked()
 {
-	if (isUserConnected(ui->lineNetUser->text()))
+	if (isUserConnected(ui->lineNetUser->text(), ui->lineNetAddress->text()))
 	{
 
 		QString mountPoint = "/mnt/" + ui->lineNetUser->text();
@@ -1395,7 +1395,7 @@ void UtilWindow::on_cmdSambaConnect_clicked()
 	ui->lblNetStatus->setText(returnString);
 }
 
-bool UtilWindow::isUserConnected(QString user)
+bool UtilWindow::isUserConnected(QString user, QString address)
 {
 	//scan for Samba shares
 	QString drives = runCommand("mount -t cifs");
@@ -1409,8 +1409,13 @@ bool UtilWindow::isUserConnected(QString user)
 		//qDebug() << userString;
 		if (userString == ui->lineNetUser->text())
 		{
-			qDebug() << "found:" << userString;
-			found = true;
+			QString addressString = splitString.value(i).split("addr=").value(1).split(",").value(0);
+			qDebug() << addressString;
+			if (addressString == address)
+			{
+				qDebug() << "found:" << userString << "at" << addressString;
+				found = true;
+			}
 		}
 		i++;
 	} while (i<splitString.length() && !found);
@@ -1424,7 +1429,7 @@ void UtilWindow::on_cmdSambaConnectPermanently_clicked()
 	QString returnString = runCommand(mountStringRedirect.toLatin1());
 	ui->lblNetStatus->setText(returnString);
 
-	if (isUserConnected(ui->lineNetUser->text()))
+	if (isUserConnected(ui->lineNetUser->text(), ui->lineNetAddress->text()))
 	{
 		QFile file("/root/.sambamount");
 
