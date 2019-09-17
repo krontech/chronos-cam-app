@@ -240,7 +240,7 @@ void UtilWindow::on_cmdNetTest_clicked()
 	}
 	else
 	{
-		QString text = "Samba share /mnt/" + ui->lineNetUser->text() + " is not connected!";
+		QString text = "Samba share /mnt/" + ui->lineNetUser->text() + " on " + ui->lineNetAddress->text() + " is not connected!";
 		ui->lblNetStatus->setText(text);
 
 	}
@@ -1389,10 +1389,28 @@ QString UtilWindow::buildSambaString()
 
 void UtilWindow::on_cmdSambaConnect_clicked()
 {
-	QString mountString = buildSambaString();
-	mountString.append(" 2>&1");
-	QString returnString = runCommand(mountString.toLatin1());
-	ui->lblNetStatus->setText(returnString);
+	if (isUserConnected(ui->lineNetUser->text(), ui->lineNetAddress->text()))
+	{
+		ui->lblNetStatus->setText("Samba share already connected.");
+	}
+	else
+	{
+		QString mountString = buildSambaString();
+		mountString.append(" 2>&1");
+		ui->lblNetStatus->setText("Attempting to connect...");
+		ui->lblNetStatus->show();
+		QCoreApplication::processEvents();
+
+		QString returnString = runCommand(mountString.toLatin1());
+		if (returnString != "")
+		{
+			ui->lblNetStatus->setText(returnString);
+		}
+		else
+		{
+			ui->lblNetStatus->setText("Connection successful");
+		}
+	}
 }
 
 bool UtilWindow::isUserConnected(QString user, QString address)
@@ -1426,6 +1444,10 @@ void UtilWindow::on_cmdSambaConnectPermanently_clicked()
 {
 	QString mountString = buildSambaString();
 	QString mountStringRedirect = mountString + " 2>&1";
+	ui->lblNetStatus->setText("Attempting to connect...");
+	ui->lblNetStatus->show();
+	QCoreApplication::processEvents();
+
 	QString returnString = runCommand(mountStringRedirect.toLatin1());
 	ui->lblNetStatus->setText(returnString);
 
@@ -1445,13 +1467,13 @@ void UtilWindow::on_cmdSambaConnectPermanently_clicked()
 		}
 		else
 		{
-			QString text = "Samba share /mnt/" + ui->lineNetUser->text() + " failed to mount permanently!";
+			QString text = "Samba share /mnt/" + ui->lineNetUser->text() + " on " + ui->lineNetAddress->text()+ " failed to mount permanently!";
 			ui->lblNetStatus->setText(text);
 		}
 	}
 	else
 	{
-		QString text = "Samba share /mnt/" + ui->lineNetUser->text() + " failed to mount!";
+		QString text = "Samba share /mnt/" + ui->lineNetUser->text() + " on " + ui->lineNetAddress->text() + " failed to mount!";
 		ui->lblNetStatus->setText(text);
 	}
 }
