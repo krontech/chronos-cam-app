@@ -215,29 +215,36 @@ UtilWindow::~UtilWindow()
 
 void UtilWindow::on_cmdNetTest_clicked()
 {
-	QString mountString = "mount -t cifs -o user=" + ui->lineNetUser->text() + ",password=";
-	mountString += ui->lineNetPassword->text() + " //";
-	mountString += ui->lineNetAddress->text() + " /mnt/" + ui->lineNetUser->text();
-	qDebug() << mountString;
-
-	QString mountPoint = "/mnt/" + ui->lineNetUser->text();
-	QString mountFile = mountPoint + "/testfile";
-
-	QFile file(mountFile);
-	if (file.open(QFile::WriteOnly))
+	if (isUserConnected(ui->lineNetUser->text()))
 	{
-		QTextStream out(&file);
-		out << "TESTING";
-		file.flush();
-		file.close();
-		qDebug() << file.remove();
-		ui->lblNetStatus->setText("OK!");
 
+		QString mountPoint = "/mnt/" + ui->lineNetUser->text();
+		QString mountFile = mountPoint + "/testfile";
+
+		QFile file(mountFile);
+		if (file.open(QFile::WriteOnly))
+		{
+			QTextStream out(&file);
+			out << "TESTING";
+			file.flush();
+			file.close();
+			qDebug() << file.remove();
+			QString text = "Samba share /mnt/" + ui->lineNetUser->text() + " connection is OK.";
+			ui->lblNetStatus->setText(text);
+		}
+		else
+		{
+			QString text = "Samba share /mnt/" + ui->lineNetUser->text() + " write failed!";
+			ui->lblNetStatus->setText(text);
+		}
 	}
 	else
 	{
-		ui->lblNetStatus->setText("Fail!");
+		QString text = "Samba share /mnt/" + ui->lineNetUser->text() + " is not connected!";
+		ui->lblNetStatus->setText(text);
+
 	}
+
 }
 
 void UtilWindow::on_cmdSWUpdate_clicked()
@@ -1388,6 +1395,28 @@ void UtilWindow::on_cmdSambaConnect_clicked()
 	ui->lblNetStatus->setText(returnString);
 }
 
+bool UtilWindow::isUserConnected(QString user)
+{
+	//scan for Samba shares
+	QString drives = runCommand("mount -t cifs");
+	QStringList splitString = drives.split(" on ");
+
+	int i=1;
+	bool found = false;
+	do
+	{
+		QString userString = splitString.value(i).split(" ").value(0).split("mnt/").value(1);
+		//qDebug() << userString;
+		if (userString == ui->lineNetUser->text())
+		{
+			qDebug() << "found:" << userString;
+			found = true;
+		}
+		i++;
+	} while (i<splitString.length() && !found);
+	return found;
+}
+
 void UtilWindow::on_cmdSambaConnectPermanently_clicked()
 {
 	QString mountString = buildSambaString();
@@ -1395,19 +1424,29 @@ void UtilWindow::on_cmdSambaConnectPermanently_clicked()
 	QString returnString = runCommand(mountStringRedirect.toLatin1());
 	ui->lblNetStatus->setText(returnString);
 
-	QFile file("/root/.sambamount");
-
-	if (file.open(QFile::WriteOnly))
+	if (isUserConnected(ui->lineNetUser->text()))
 	{
-		QTextStream out(&file);
-		out << mountString;
-		file.flush();
-		file.close();
-		ui->lblNetStatus->setText("OK!");
+		QFile file("/root/.sambamount");
 
+		if (file.open(QFile::WriteOnly))
+		{
+			QTextStream out(&file);
+			out << mountString;
+			file.flush();
+			file.close();
+			QString text = "Samba share /mnt/" + ui->lineNetUser->text() + " is mounted permanently.";
+			ui->lblNetStatus->setText(text);
+
+		}
+		else
+		{
+			QString text = "Samba share /mnt/" + ui->lineNetUser->text() + " failed to mount permanently!";
+			ui->lblNetStatus->setText(text);
+		}
 	}
 	else
 	{
-		ui->lblNetStatus->setText("Fail!");
+		QString text = "Samba share /mnt/" + ui->lineNetUser->text() + " failed to mount!";
+		ui->lblNetStatus->setText(text);
 	}
 }

@@ -125,6 +125,7 @@ private slots:
 	QString buildSambaString();
 	void on_cmdSambaConnect_clicked();
 	void on_cmdSambaConnectPermanently_clicked();
+	bool isUserConnected(QString user);
 
 
 private:
