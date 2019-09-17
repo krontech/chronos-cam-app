@@ -29,7 +29,7 @@
     <enum>QTabWidget::East</enum>
    </property>
    <property name="currentIndex">
-    <number>0</number>
+    <number>2</number>
    </property>
    <widget class="QWidget" name="tabMain">
     <attribute name="title">
@@ -932,17 +932,217 @@ SD Card</string>
       </property>
      </widget>
     </widget>
-    <widget class="QGroupBox" name="gbNetwork">
+    <widget class="QGroupBox" name="gbMountedDevices">
      <property name="geometry">
       <rect>
-       <x>250</x>
-       <y>110</y>
-       <width>441</width>
-       <height>191</height>
+       <x>10</x>
+       <y>310</y>
+       <width>581</width>
+       <height>131</height>
       </rect>
      </property>
      <property name="title">
-      <string>Network Storage</string>
+      <string>Mounted Devices</string>
+     </property>
+     <widget class="QLabel" name="lblMountedDevices">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>20</y>
+        <width>561</width>
+        <height>101</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>DejaVu Sans Mono</family>
+       </font>
+      </property>
+      <property name="text">
+       <string>TextLabel</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+      </property>
+     </widget>
+    </widget>
+   </widget>
+   <widget class="QWidget" name="tabNetwork">
+    <attribute name="title">
+     <string>Network</string>
+    </attribute>
+    <widget class="QPushButton" name="cmdNetUpdate">
+     <property name="geometry">
+      <rect>
+       <x>620</x>
+       <y>310</y>
+       <width>121</width>
+       <height>51</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Download
+Software Updates</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="cmdClose_5">
+     <property name="geometry">
+      <rect>
+       <x>670</x>
+       <y>390</y>
+       <width>71</width>
+       <height>51</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>16</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>Close</string>
+     </property>
+    </widget>
+    <widget class="QGroupBox" name="gbSSH">
+     <property name="geometry">
+      <rect>
+       <x>19</x>
+       <y>9</y>
+       <width>441</width>
+       <height>121</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string>SSH Access</string>
+     </property>
+     <widget class="CamLineEdit" name="lineSshPassword">
+      <property name="geometry">
+       <rect>
+        <x>130</x>
+        <y>30</y>
+        <width>171</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>16</pointsize>
+       </font>
+      </property>
+      <property name="echoMode">
+       <enum>QLineEdit::PasswordEchoOnEdit</enum>
+      </property>
+     </widget>
+     <widget class="QLabel" name="lblSshPassword">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>30</y>
+        <width>111</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>Sans Serif</family>
+        <pointsize>16</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>Password</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+     </widget>
+     <widget class="CamLineEdit" name="lineSshPort">
+      <property name="geometry">
+       <rect>
+        <x>130</x>
+        <y>70</y>
+        <width>171</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>16</pointsize>
+       </font>
+      </property>
+     </widget>
+     <widget class="QLabel" name="lblSshPort">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>70</y>
+        <width>111</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>16</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>Port</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="cmdSshApply">
+      <property name="geometry">
+       <rect>
+        <x>310</x>
+        <y>30</y>
+        <width>81</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Apply</string>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="chkSshEnable">
+      <property name="geometry">
+       <rect>
+        <x>310</x>
+        <y>70</y>
+        <width>121</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>16</pointsize>
+       </font>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QCheckBox::indicator {
+     width: 30px;
+     height: 30px;
+}</string>
+      </property>
+      <property name="text">
+       <string>Enable</string>
+      </property>
+      <property name="tristate">
+       <bool>false</bool>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QGroupBox" name="gbNetwork">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>140</y>
+       <width>581</width>
+       <height>151</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string>Samba Network Storage</string>
      </property>
      <widget class="QLineEdit" name="lineNetUser">
       <property name="geometry">
@@ -1052,24 +1252,6 @@ SD Card</string>
        <string>Test Connection</string>
       </property>
      </widget>
-     <widget class="QLabel" name="lblNetStatus">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>150</y>
-        <width>411</width>
-        <height>31</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>16</pointsize>
-       </font>
-      </property>
-      <property name="text">
-       <string>IP address and netmask and status</string>
-      </property>
-     </widget>
      <widget class="QLineEdit" name="lineNetAddress">
       <property name="geometry">
        <rect>
@@ -1080,37 +1262,99 @@ SD Card</string>
        </rect>
       </property>
       <property name="text">
-       <string>smb://192.168.1.201/Something</string>
+       <string/>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="cmdSambaConnect">
+      <property name="geometry">
+       <rect>
+        <x>450</x>
+        <y>20</y>
+        <width>121</width>
+        <height>51</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Connect</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="cmdSambaConnectPermanently">
+      <property name="geometry">
+       <rect>
+        <x>450</x>
+        <y>80</y>
+        <width>121</width>
+        <height>51</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Connect
+Permanently</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_2">
+      <property name="geometry">
+       <rect>
+        <x>450</x>
+        <y>132</y>
+        <width>121</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>(single share only)</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
       </property>
      </widget>
     </widget>
-    <widget class="QPushButton" name="cmdSWUpdate">
+    <widget class="QLabel" name="lblIpLabel">
      <property name="geometry">
       <rect>
-       <x>610</x>
-       <y>320</y>
-       <width>121</width>
-       <height>51</height>
+       <x>520</x>
+       <y>10</y>
+       <width>141</width>
+       <height>16</height>
       </rect>
      </property>
      <property name="text">
-      <string>Apply
-Software Update</string>
+      <string>Camera IP Address:</string>
      </property>
     </widget>
-    <widget class="QGroupBox" name="gbMountedDevices">
+    <widget class="QLabel" name="lblIpAddress">
      <property name="geometry">
       <rect>
-       <x>10</x>
-       <y>310</y>
-       <width>581</width>
-       <height>131</height>
+       <x>530</x>
+       <y>30</y>
+       <width>161</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>16</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>TextLabel</string>
+     </property>
+    </widget>
+    <widget class="QGroupBox" name="gbNetStatus">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>290</y>
+       <width>580</width>
+       <height>141</height>
       </rect>
      </property>
      <property name="title">
-      <string>Mounted Devices</string>
+      <string>Network Status</string>
      </property>
-     <widget class="QLabel" name="lblMountedDevices">
+     <widget class="QLabel" name="lblNetStatus">
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -1178,7 +1422,7 @@ Software Update</string>
    </widget>
    <widget class="QWidget" name="tabKickstarter">
     <attribute name="title">
-     <string>Kickstarter Backers</string>
+     <string>Kickstarter</string>
     </attribute>
     <widget class="QTextEdit" name="textKickstarter">
      <property name="geometry">
@@ -1609,13 +1853,8 @@ calibration data
   <tabstop>textKickstarter</tabstop>
   <tabstop>cmdClose_3</tabstop>
   <tabstop>cmdClose_2</tabstop>
-  <tabstop>cmdSWUpdate</tabstop>
   <tabstop>cmdFormatSD</tabstop>
   <tabstop>cmdEjectSD</tabstop>
-  <tabstop>cmdNetTest</tabstop>
-  <tabstop>lineNetPassword</tabstop>
-  <tabstop>lineNetUser</tabstop>
-  <tabstop>lineNetAddress</tabstop>
   <tabstop>cmdFormatDisk</tabstop>
   <tabstop>cmdEjectDisk</tabstop>
   <tabstop>cmdRestoreCal</tabstop>

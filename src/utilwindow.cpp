@@ -73,7 +73,8 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 {
 	openingWindow = true;
 	QSettings appSettings;
-	QString aboutText;
+	QString aboutText;\
+	QString ifconfig;
 
 	ui->setupUi(this);
 	this->setWindowFlags(Qt::Dialog | Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
@@ -144,12 +145,55 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	ui->comboAutoPowerMode->setCurrentIndex(camera->getAutoPowerMode());
 	ui->spinAutoSavePercent->setValue(camera->getAutoSavePercent());
 
-	ui->lineNetAddress->setEnabled(false);
-	ui->lineNetUser->setEnabled(false);
-	ui->lineNetPassword->setEnabled(false);
-	ui->cmdNetTest->setEnabled(false);
-	ui->lblNetStatus->setText("Placeholder - Work in Progress");
+	//ui->lineNetAddress->setEnabled(false);
+	//ui->lineNetUser->setEnabled(false);
+	//ui->lineNetPassword->setEnabled(false);
+	//ui->cmdNetTest->setEnabled(false);
 
+	//get IP address
+
+	ifconfig = runCommand("ifconfig");
+	QString ipAddress = ifconfig.split("inet addr:").value(1).split(" ").value(0);
+	ui->lblIpAddress->setText(ipAddress);
+
+	//populate fields from first line of Samba mount script
+
+	QFile file("/root/.sambamount");
+	if (file.open(QIODevice::ReadOnly))
+	{
+	   QTextStream in(&file);
+	   //while (!in.atEnd())
+	   //{
+	   QString line = in.readLine();
+	   //}
+	   QStringList splitString = line.split(" ");
+
+	   //name
+	   QString netName = splitString.value(4).split("=").value(1).split(",").value(0);
+
+	   //password
+	   QString netPassword = splitString.value(4).split("=").value(2);
+
+	   //address
+	   //QString netAddress = splitString.value(5).right(splitString.value(5).length()-2);
+	   QString netAddress = splitString.value(5).right(splitString.value(5).length()-2).split("/").value(0);
+
+
+	   //mount
+	   QString netMount = splitString.value(6);
+
+	   ui->lineNetUser->setText(netName);
+	   ui->lineNetPassword->setText(netPassword);
+	   ui->lineNetAddress->setText(netAddress);
+
+
+	   file.close();
+	}
+
+	ui->lblNetStatus->setText("Placeholder - Work in Progress");
+	//ui->lineNetUser->setText("cam");
+	//ui->lineNetPassword->setText("chronos");
+	//ui->lineNetAddress->setText("192.168.1.180");
 	if(camera->RotationArgumentIsSet())
 		ui->chkUpsideDownDisplay->setChecked(camera->getUpsideDownDisplay());
 	else //If the argument was not added, set the control to invisible because it would be useless anyway
@@ -167,6 +211,33 @@ UtilWindow::~UtilWindow()
 	timer->stop();
 	delete timer;
 	delete ui;
+}
+
+void UtilWindow::on_cmdNetTest_clicked()
+{
+	QString mountString = "mount -t cifs -o user=" + ui->lineNetUser->text() + ",password=";
+	mountString += ui->lineNetPassword->text() + " //";
+	mountString += ui->lineNetAddress->text() + " /mnt/" + ui->lineNetUser->text();
+	qDebug() << mountString;
+
+	QString mountPoint = "/mnt/" + ui->lineNetUser->text();
+	QString mountFile = mountPoint + "/testfile";
+
+	QFile file(mountFile);
+	if (file.open(QFile::WriteOnly))
+	{
+		QTextStream out(&file);
+		out << "TESTING";
+		file.flush();
+		file.close();
+		qDebug() << file.remove();
+		ui->lblNetStatus->setText("OK!");
+
+	}
+	else
+	{
+		ui->lblNetStatus->setText("Fail!");
+	}
 }
 
 void UtilWindow::on_cmdSWUpdate_clicked()
@@ -465,6 +536,12 @@ void UtilWindow::on_cmdClose_3_clicked()
 void UtilWindow::on_cmdClose_4_clicked()
 {
 	qDebug()<<"on_cmdClose_4_clicked";
+	on_cmdClose_clicked();
+}
+
+void UtilWindow::on_cmdClose_5_clicked()
+{
+	qDebug()<<"on_cmdClose_5_clicked";
 	on_cmdClose_clicked();
 }
 
@@ -1287,3 +1364,50 @@ Int32 UtilWindow::blackCalAllStdRes(void)
 	}
 }
 
+QString UtilWindow::buildSambaString()
+{
+	QString mountString = "mount -t cifs -o user=";
+	mountString.append(ui->lineNetUser->text());
+	mountString.append(",password=");
+	mountString.append(ui->lineNetPassword->text());
+	mountString.append(" //");
+	mountString.append(ui->lineNetAddress->text());
+	mountString.append("/");
+	mountString.append(ui->lineNetUser->text());
+	mountString.append(" /mnt/");
+	mountString.append(ui->lineNetUser->text());
+	qDebug() << mountString;
+	return mountString;
+}
+
+void UtilWindow::on_cmdSambaConnect_clicked()
+{
+	QString mountString = buildSambaString();
+	mountString.append(" 2>&1");
+	QString returnString = runCommand(mountString.toLatin1());
+	ui->lblNetStatus->setText(returnString);
+}
+
+void UtilWindow::on_cmdSambaConnectPermanently_clicked()
+{
+	QString mountString = buildSambaString();
+	QString mountStringRedirect = mountString + " 2>&1";
+	QString returnString = runCommand(mountStringRedirect.toLatin1());
+	ui->lblNetStatus->setText(returnString);
+
+	QFile file("/root/.sambamount");
+
+	if (file.open(QFile::WriteOnly))
+	{
+		QTextStream out(&file);
+		out << mountString;
+		file.flush();
+		file.close();
+		ui->lblNetStatus->setText("OK!");
+
+	}
+	else
+	{
+		ui->lblNetStatus->setText("Fail!");
+	}
+}

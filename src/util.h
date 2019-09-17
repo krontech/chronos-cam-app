@@ -17,6 +17,9 @@
 #ifndef UTIL_H
 #define UTIL_H
 
+#include <QString>
+
+
 void delayms(int ms);
 
 /* delayms_events:
@@ -30,6 +33,8 @@ void delayms_events(int ms);
 bool checkAndCreateDir(const char * dir);
 
 int path_is_mounted(const char *path);
+
+QString runCommand(QString command);
 
 
 #endif // UTIL_H

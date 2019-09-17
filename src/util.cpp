@@ -67,3 +67,19 @@ int path_is_mounted(const char *path)
 	snprintf(tmp, sizeof(tmp), "%s/..", path);
 	return (stat(tmp, &parent) == 0) && (parent.st_dev != st.st_dev);
 }
+
+QString runCommand(QString command)
+{
+	QString output = "";
+
+	FILE *fp = popen(command.toLocal8Bit().constData(), "r");
+	char line[200];
+	if (!fp) return output;
+	while (fgets(line, sizeof(line), fp) != NULL) {
+		output.append(line);
+	}
+	pclose(fp);
+	return output;
+}
+
+

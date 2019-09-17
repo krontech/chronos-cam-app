@@ -72,6 +72,7 @@ private slots:
 	void on_cmdRestoreCal_clicked();
 
 	void on_linePassword_textEdited(const QString &arg1);
+	void on_cmdNetTest_clicked();
 
 	void on_cmdEjectSD_clicked();
 	void on_cmdFormatSD_clicked();
@@ -111,6 +112,8 @@ private slots:
 	
 	void on_cmdClose_4_clicked();
 
+	void on_cmdClose_5_clicked();
+
 	void on_tabWidget_currentChanged(int index);
 	
 	int updateSoftware(char *updateLocation);
@@ -119,6 +122,10 @@ private slots:
 	void on_spinLiveLoopTime_valueChanged(int arg1);
 	void waitForIdle(void);
 	Int32 blackCalAllStdRes(void);
+	QString buildSambaString();
+	void on_cmdSambaConnect_clicked();
+	void on_cmdSambaConnectPermanently_clicked();
+
 
 private:
 	Ui::UtilWindow *ui;
