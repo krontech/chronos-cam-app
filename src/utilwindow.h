@@ -117,6 +117,7 @@ private:
 
 	void formatStorageDevice(const char *blkdev);
 	void statErrorMessage();
+	void setEjectFormatEnable();
 };
 
 #endif // UTILWINDOW_H

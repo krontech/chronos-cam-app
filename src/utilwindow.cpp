@@ -153,6 +153,8 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 		ui->chkUpsideDownDisplay->setVisible(false);
 
 	ui->chkShowDebugControls->setChecked(!(appSettings.value("debug/hideDebug", true).toBool()));
+	
+	setEjectFormatEnable();
 }
 
 UtilWindow::~UtilWindow()
@@ -253,7 +255,6 @@ bool copyFile(const char * fromfile, const char * tofile)
 
 void UtilWindow::onUtilWindowTimer()
 {
-	struct statvfs fsInfoBuf;
 	if(!settingClock)
 	{
 		if(ui->dateTimeEdit->hasFocus())
@@ -281,14 +282,20 @@ void UtilWindow::onUtilWindowTimer()
 		ui->lblStatusDisk->setText(listStorageDevice("sda"));
 		ui->lblStatusSD->setText(listStorageDevice("mmcblk1"));
 
-		/* enable/disable the format/eject buttons */
-		bool usbPresent = (!statvfs("/dev/sda", &fsInfoBuf));
-		ui->cmdEjectDisk->setEnabled(usbPresent);
-		ui->cmdFormatDisk->setEnabled(usbPresent);
-		bool SDPresent = (!statvfs("/dev/mmcblk1p1", &fsInfoBuf));
-		ui->cmdEjectSD->setEnabled(SDPresent);
-		ui->cmdFormatSD->setEnabled(SDPresent);
+		setEjectFormatEnable();
 	}
+}
+
+/* enable the format/eject buttons if devices are present.
+   disable the format/eject buttons if devices are not present. */
+void UtilWindow::setEjectFormatEnable(){
+	struct statvfs fsInfoBuf;
+	bool usbPresent = (!statvfs("/dev/sda", &fsInfoBuf));
+	ui->cmdEjectDisk->setEnabled(usbPresent);
+	ui->cmdFormatDisk->setEnabled(usbPresent);
+	bool SDPresent = (!statvfs("/dev/mmcblk1p1", &fsInfoBuf));
+	ui->cmdEjectSD->setEnabled(SDPresent);
+	ui->cmdFormatSD->setEnabled(SDPresent);
 }
 
 void UtilWindow::on_cmdSetClock_clicked()
