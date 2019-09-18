@@ -145,47 +145,62 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	ui->comboAutoPowerMode->setCurrentIndex(camera->getAutoPowerMode());
 	ui->spinAutoSavePercent->setValue(camera->getAutoSavePercent());
 
-	//ui->lineNetAddress->setEnabled(false);
-	//ui->lineNetUser->setEnabled(false);
-	//ui->lineNetPassword->setEnabled(false);
-	//ui->cmdNetTest->setEnabled(false);
-
 	//get IP address
-
 	ifconfig = runCommand("ifconfig");
 	QString ipAddress = ifconfig.split("inet addr:").value(1).split(" ").value(0);
 	ui->lblIpAddress->setText(ipAddress);
 
 	//populate fields from first line of Samba mount script
-
+	bool sambaFound = false;
 	QFile file("/root/.sambamount");
 	if (file.open(QIODevice::ReadOnly))
 	{
+		sambaFound = true;
+		QTextStream in(&file);
+		QString line = in.readLine();
+		QStringList splitString = line.split(" ");
+
+		//name
+		QString netName = splitString.value(4).split("=").value(1).split(",").value(0);
+
+		//password
+		QString netPassword = splitString.value(4).split("=").value(2);
+
+		//address
+		QString netAddress = splitString.value(5).right(splitString.value(5).length()-2).split("/").value(0);
+
+
+		//mount
+		QString netMount = splitString.value(6);
+
+		ui->lineNetUser->setText(netName);
+		ui->lineNetPassword->setText(netPassword);
+		ui->lineNetAddress->setText(netAddress);
+
+
+		file.close();
+}
+
+
+
+	//populate field from first line of NFS mount script
+	file.setFileName("/root/.nfsmount");
+	if (file.open(QIODevice::ReadOnly))
+	{
 	   QTextStream in(&file);
-	   //while (!in.atEnd())
-	   //{
 	   QString line = in.readLine();
 	   //}
 	   QStringList splitString = line.split(" ");
 
-	   //name
-	   QString netName = splitString.value(4).split("=").value(1).split(",").value(0);
+	   //NFS mount
+	   QString nfsName = splitString.value(1).split("mnt/").value(1);
 
-	   //password
-	   QString netPassword = splitString.value(4).split("=").value(2);
-
-	   //address
-	   //QString netAddress = splitString.value(5).right(splitString.value(5).length()-2);
-	   QString netAddress = splitString.value(5).right(splitString.value(5).length()-2).split("/").value(0);
-
-
-	   //mount
-	   QString netMount = splitString.value(6);
-
-	   ui->lineNetUser->setText(netName);
-	   ui->lineNetPassword->setText(netPassword);
-	   ui->lineNetAddress->setText(netAddress);
-
+	   ui->lineNfsMount->setText(nfsName);
+	   if (!sambaFound)
+	   {
+		   QString nfsAddress = splitString.value(1).split(":").value(0);
+		   ui->lineNetAddress->setText(nfsAddress);
+	   }
 
 	   file.close();
 	}
@@ -211,40 +226,6 @@ UtilWindow::~UtilWindow()
 	timer->stop();
 	delete timer;
 	delete ui;
-}
-
-void UtilWindow::on_cmdNetTest_clicked()
-{
-	if (isUserConnected(ui->lineNetUser->text(), ui->lineNetAddress->text()))
-	{
-
-		QString mountPoint = "/mnt/" + ui->lineNetUser->text();
-		QString mountFile = mountPoint + "/testfile";
-
-		QFile file(mountFile);
-		if (file.open(QFile::WriteOnly))
-		{
-			QTextStream out(&file);
-			out << "TESTING";
-			file.flush();
-			file.close();
-			qDebug() << file.remove();
-			QString text = "Samba share /mnt/" + ui->lineNetUser->text() + " connection is OK.";
-			ui->lblNetStatus->setText(text);
-		}
-		else
-		{
-			QString text = "Samba share /mnt/" + ui->lineNetUser->text() + " write failed!";
-			ui->lblNetStatus->setText(text);
-		}
-	}
-	else
-	{
-		QString text = "Samba share /mnt/" + ui->lineNetUser->text() + " on " + ui->lineNetAddress->text() + " is not connected!";
-		ui->lblNetStatus->setText(text);
-
-	}
-
 }
 
 void UtilWindow::on_cmdSWUpdate_clicked()
@@ -1461,9 +1442,8 @@ void UtilWindow::on_cmdSambaConnectPermanently_clicked()
 			out << mountString;
 			file.flush();
 			file.close();
-			QString text = "Samba share /mnt/" + ui->lineNetUser->text() + " is mounted permanently.";
+			QString text = "Samba share /mnt/" + ui->lineNetUser->text() + " on " + ui->lineNetAddress->text() + " is mounted permanently.";
 			ui->lblNetStatus->setText(text);
-
 		}
 		else
 		{
@@ -1477,3 +1457,181 @@ void UtilWindow::on_cmdSambaConnectPermanently_clicked()
 		ui->lblNetStatus->setText(text);
 	}
 }
+
+void UtilWindow::on_cmdNetTest_clicked()
+{
+	if (isUserConnected(ui->lineNetUser->text(), ui->lineNetAddress->text()))
+	{
+
+		QString mountPoint = "/mnt/" + ui->lineNetUser->text();
+		QString mountFile = mountPoint + "/testfile";
+
+		QFile file(mountFile);
+		if (file.open(QFile::WriteOnly))
+		{
+			QTextStream out(&file);
+			out << "TESTING";
+			file.flush();
+			file.close();
+			qDebug() << file.remove();
+			QString text = "Samba share /mnt/" + ui->lineNetUser->text() + " on " + ui->lineNetAddress->text() + " is connected.";
+			ui->lblNetStatus->setText(text);
+		}
+		else
+		{
+			QString text = "Samba share /mnt/" + ui->lineNetUser->text() + " write failed!";
+			ui->lblNetStatus->setText(text);
+		}
+	}
+	else
+	{
+		QString text = "Samba share /mnt/" + ui->lineNetUser->text() + " on " + ui->lineNetAddress->text() + " is not connected!";
+		ui->lblNetStatus->setText(text);
+	}
+}
+
+QString UtilWindow::buildNfsString()
+{
+	QString mountString = "mount ";
+	mountString.append(ui->lineNetAddress->text());
+	mountString.append(":/mnt/");
+	mountString.append(ui->lineNfsMount->text());
+	mountString.append(" /mnt/");
+	mountString.append(ui->lineNfsMount->text());
+	qDebug() << mountString;
+	return mountString;
+}
+
+void UtilWindow::on_cmdNfsConnect_clicked()
+{
+	if (ui->lineNfsMount->text() == "")
+	{
+		ui->lblNetStatus->setText("NFS mount name is blank!");
+		return;
+	}
+
+	if (isNfsConnected(ui->lineNfsMount->text(), ui->lineNetAddress->text()))
+	{
+		ui->lblNetStatus->setText("NFS share already connected.");
+	}
+	else
+	{
+		QString mountString = buildNfsString();
+		mountString.append(" 2>&1");
+		ui->lblNetStatus->setText("Attempting to connect...");
+		ui->lblNetStatus->show();
+		QCoreApplication::processEvents();
+
+		QString returnString = runCommand(mountString.toLatin1());
+		if (returnString != "")
+		{
+			ui->lblNetStatus->setText(returnString);
+		}
+		else
+		{
+			ui->lblNetStatus->setText("Connection successful");
+		}
+	}
+}
+
+void UtilWindow::on_cmdNfsConnectPermanently_clicked()
+{
+	QString mountString = buildNfsString();
+	QString mountStringRedirect = mountString + " 2>&1";
+	ui->lblNetStatus->setText("Attempting to connect...");
+	ui->lblNetStatus->show();
+	QCoreApplication::processEvents();
+
+	QString returnString = runCommand(mountStringRedirect.toLatin1());
+	ui->lblNetStatus->setText(returnString);
+
+	if (isNfsConnected(ui->lineNfsMount->text(), ui->lineNetAddress->text()))
+	{
+		QFile file("/root/.nfsmount");
+
+		if (file.open(QFile::WriteOnly))
+		{
+			QTextStream out(&file);
+			out << mountString;
+			file.flush();
+			file.close();
+			QString text = "NFS share /mnt/" + ui->lineNfsMount->text() + " on " + ui->lineNetAddress->text() + " is mounted permanently.";
+			ui->lblNetStatus->setText(text);
+		}
+		else
+		{
+			QString text = "NFS share /mnt/" + ui->lineNfsMount->text() + " on " + ui->lineNetAddress->text()+ " failed to mount permanently!";
+			ui->lblNetStatus->setText(text);
+		}
+	}
+	else
+	{
+		QString text = "NFS share /mnt/" + ui->lineNfsMount->text() + " on " + ui->lineNetAddress->text() + " failed to mount!";
+		ui->lblNetStatus->setText(text);
+	}
+}
+
+void UtilWindow::on_cmdNfsTest_clicked()
+{
+	if (isNfsConnected(ui->lineNfsMount->text(), ui->lineNetAddress->text()))
+	{
+		QString mountPoint = "/mnt/" + ui->lineNfsMount->text();
+		QString mountFile = mountPoint + "/testfile";
+
+		QFile file(mountFile);
+		if (file.open(QFile::WriteOnly))
+		{
+			QTextStream out(&file);
+			out << "TESTING";
+			bool nfsOK = file.flush();
+			file.close();
+			nfsOK &= file.remove();
+			if (nfsOK)
+			{
+				QString text = "NFS share /mnt/" + ui->lineNfsMount->text() + " on " + ui->lineNetAddress->text() + " is connected.";
+				ui->lblNetStatus->setText(text);
+			}
+			else
+			{
+				QString text = "NFS share /mnt/" + ui->lineNfsMount->text() + " on " + ui->lineNetAddress->text() + " write connected.";
+				ui->lblNetStatus->setText(text);
+			}
+		}
+		else
+		{
+			QString text = "NFS share /mnt/" + ui->lineNfsMount->text() + " on " + ui->lineNetAddress->text() +" open failed!";
+			ui->lblNetStatus->setText(text);
+		}
+	}
+	else
+	{
+		QString text = "NFS share /mnt/" + ui->lineNfsMount->text() + " on " + ui->lineNetAddress->text() + " is not connected!";
+		ui->lblNetStatus->setText(text);
+	}
+}
+
+bool UtilWindow::isNfsConnected(QString mount, QString address)
+{
+	//scan for NFS shares
+	QString mounts = runCommand("showmount -e " + ui->lineNetAddress->text());
+	if (mounts == "" || mount == "")
+	{
+		return false;
+	}
+	QStringList splitString = mounts.split("\n");
+
+	int i=1;
+	bool found = false;
+	do
+	{
+		QString mountString = splitString.value(i).split(" ").value(0).split("mnt/").value(1);
+		qDebug() << mountString;
+		if (mountString == ui->lineNfsMount->text())
+		{
+			found = true;
+		}
+		i++;
+	} while (i<splitString.length() && !found);
+	return found;
+}
+
