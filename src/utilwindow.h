@@ -131,6 +131,8 @@ private slots:
 	void on_cmdNfsConnectPermanently_clicked();
 	void on_cmdNfsTest_clicked();
 	bool isNfsConnected(QString mount, QString address);
+	void on_cmdNetListConnections_clicked();
+	bool isReachable(QString address);
 
 
 

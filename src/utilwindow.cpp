@@ -205,10 +205,6 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	   file.close();
 	}
 
-	ui->lblNetStatus->setText("Placeholder - Work in Progress");
-	//ui->lineNetUser->setText("cam");
-	//ui->lineNetPassword->setText("chronos");
-	//ui->lineNetAddress->setText("192.168.1.180");
 	if(camera->RotationArgumentIsSet())
 		ui->chkUpsideDownDisplay->setChecked(camera->getUpsideDownDisplay());
 	else //If the argument was not added, set the control to invisible because it would be useless anyway
@@ -1376,12 +1372,17 @@ void UtilWindow::on_cmdSambaConnect_clicked()
 	}
 	else
 	{
-		QString mountString = buildSambaString();
-		mountString.append(" 2>&1");
 		ui->lblNetStatus->setText("Attempting to connect...");
-		ui->lblNetStatus->show();
 		QCoreApplication::processEvents();
 
+		if (!isReachable(ui->lineNetAddress->text()))
+		{
+			ui->lblNetStatus->setText(ui->lineNetAddress->text() + " is not reachable!");
+			return;
+		}
+
+		QString mountString = buildSambaString();
+		mountString.append(" 2>&1");
 		QString returnString = runCommand(mountString.toLatin1());
 		if (returnString != "")
 		{
@@ -1428,12 +1429,17 @@ bool UtilWindow::isUserConnected(QString user, QString address)
 
 void UtilWindow::on_cmdSambaConnectPermanently_clicked()
 {
-	QString mountString = buildSambaString();
-	QString mountStringRedirect = mountString + " 2>&1";
 	ui->lblNetStatus->setText("Attempting to connect...");
-	ui->lblNetStatus->show();
 	QCoreApplication::processEvents();
 
+	if (!isReachable(ui->lineNetAddress->text()))
+	{
+		ui->lblNetStatus->setText(ui->lineNetAddress->text() + " is not reachable!");
+		return;
+	}
+
+	QString mountString = buildSambaString();
+	QString mountStringRedirect = mountString + " 2>&1";
 	QString returnString = runCommand(mountStringRedirect.toLatin1());
 	ui->lblNetStatus->setText(returnString);
 
@@ -1515,6 +1521,15 @@ void UtilWindow::on_cmdNfsConnect_clicked()
 		return;
 	}
 
+	ui->lblNetStatus->setText("Attempting to connect...");
+	QCoreApplication::processEvents();
+
+	if (!isReachable(ui->lineNetAddress->text()))
+	{
+		ui->lblNetStatus->setText(ui->lineNetAddress->text() + " is not reachable!");
+		return;
+	}
+
 	if (isNfsConnected(ui->lineNfsMount->text(), ui->lineNetAddress->text()))
 	{
 		ui->lblNetStatus->setText("NFS share already connected.");
@@ -1523,10 +1538,6 @@ void UtilWindow::on_cmdNfsConnect_clicked()
 	{
 		QString mountString = buildNfsString();
 		mountString.append(" 2>&1");
-		ui->lblNetStatus->setText("Attempting to connect...");
-		ui->lblNetStatus->show();
-		QCoreApplication::processEvents();
-
 		QString returnString = runCommand(mountString.toLatin1());
 		if (returnString != "")
 		{
@@ -1541,12 +1552,29 @@ void UtilWindow::on_cmdNfsConnect_clicked()
 
 void UtilWindow::on_cmdNfsConnectPermanently_clicked()
 {
-	QString mountString = buildNfsString();
-	QString mountStringRedirect = mountString + " 2>&1";
+	if (ui->lineNfsMount->text() == "")
+	{
+		ui->lblNetStatus->setText("NFS mount name is blank!");
+		return;
+	}
+
 	ui->lblNetStatus->setText("Attempting to connect...");
-	ui->lblNetStatus->show();
 	QCoreApplication::processEvents();
 
+	if (!isReachable(ui->lineNetAddress->text()))
+	{
+		ui->lblNetStatus->setText(ui->lineNetAddress->text() + " is not reachable!");
+		return;
+	}
+
+	if (!isReachable(ui->lineNetAddress->text()))
+	{
+		ui->lblNetStatus->setText(ui->lineNetAddress->text() + " is not reachable!");
+		return;
+	}
+
+	QString mountString = buildNfsString();
+	QString mountStringRedirect = mountString + " 2>&1";
 	QString returnString = runCommand(mountStringRedirect.toLatin1());
 	ui->lblNetStatus->setText(returnString);
 
@@ -1667,3 +1695,85 @@ bool UtilWindow::isNfsConnected(QString folder, QString address)
 */
 }
 
+void UtilWindow::on_cmdNetListConnections_clicked()
+{
+	QStringList mountedShares;
+
+	ui->lblNetStatus->setText("Attempting to connect...");
+	QCoreApplication::processEvents();
+
+	//scan for Samba shares
+	QString drives = runCommand("mount -t cifs");
+	QStringList splitString = drives.split("\n");
+
+	for (int i=0; i<splitString.length()-1; i++)
+	{
+		QString mountString = splitString.value(i).split(" on ").value(0).replace("/mnt/", "");
+		mountString.replace("//", "");
+		mountString.replace("/", ":");
+		qDebug() << mountString;
+		mountedShares.append(mountString + " (mounted Samba share)");
+	}
+
+	//scan for NFS shares
+	drives = runCommand("mount -t nfs4");
+	splitString = drives.split("\n");
+
+	for (int i=0; i<splitString.length()-1; i++)
+	{
+		QString mountString = splitString.value(i).split(" on ").value(0).replace("/mnt/", "");
+		qDebug() << mountString;
+		mountedShares.append(mountString + " (mounted NFS share)");
+	}
+
+	//scan for all available NFS shares
+
+	if (!isReachable(ui->lineNetAddress->text()))
+	{
+		ui->lblNetStatus->setText(ui->lineNetAddress->text() + " is not reachable!");
+		return;
+	}
+
+	QStringList mountList;
+	QString mounts = runCommand("showmount -e " + ui->lineNetAddress->text());
+	if (mounts != "")
+	{
+		splitString = mounts.split("\n");
+
+		int i=1;
+		do
+		{
+			QStringList shareList = splitString.value(i).simplified().split(" ");
+			QString mountString = shareList.value(0).split("mnt/").value(1);
+			QString addressString = shareList.value(1).split("/").value(0);
+			QString shareString = addressString + ":" + mountString;
+			mountList.append(shareString + " (available NFS share)");
+			qDebug() << shareString;
+			i++;
+		} while (i < splitString.length()-1);
+	}
+
+	QString text; //("Mounted shares:\n");
+	for (int i=0; i<mountedShares.length(); i++)
+	{
+		//text.append
+		text.append("--> " + mountedShares.value(i) + "\n");
+		//text.append("\n");
+	}
+	//text.append("Available shares:\n");
+	for (int i=0; i<mountList.length(); i++)
+	{
+		text.append("    " + mountList.value(i) + "\n");
+	}
+	qDebug() << text;
+
+	ui->lblNetStatus->setText(text);
+}
+
+bool UtilWindow::isReachable(QString address)
+{
+	if (address == "") return false;
+
+	QString ret = runCommand("fping " + address);
+	return ret.contains("is alive");
+}
