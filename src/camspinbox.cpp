@@ -23,6 +23,7 @@ CamSpinBox::CamSpinBox(QWidget *parent) :
 {
 	CamLineEdit * le = new CamLineEdit(this);	//Have QSpinBox use our CamLineEdit, which takes care of software input panel
 	QSpinBox::setLineEdit(le);
+	connect(le, SIGNAL(textChanged(QString)), this, SLOT(textChanged_slot()));
 //	qDebug() << "CamSpinBox Consturcted";
 }
 
@@ -39,6 +40,7 @@ void CamSpinBox::focusInEvent(QFocusEvent *e)
 void CamSpinBox::focusOutEvent(QFocusEvent *e)
 {
 	QSpinBox::focusOutEvent(e);
+	if(oldValue < minimum()) setValue(minimum());
 }
 
 void CamSpinBox::mouseReleaseEvent(QMouseEvent * e)
@@ -49,4 +51,8 @@ void CamSpinBox::mouseReleaseEvent(QMouseEvent * e)
 void CamSpinBox::selectText(){
 	CamLineEdit * le = qobject_cast<CamLineEdit*>(this->lineEdit());
 	le->selectText();
+}
+
+void CamSpinBox::textChanged_slot(){
+	oldValue = text().toInt();
 }

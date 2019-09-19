@@ -26,10 +26,13 @@ public:
 	CamSpinBox(QWidget * parent = 0);
 	~CamSpinBox();
 	void selectText();
+public slots:
+	void textChanged_slot();
 protected:
 	virtual void focusInEvent(QFocusEvent *e);
 	virtual void focusOutEvent(QFocusEvent *e);
 	void mouseReleaseEvent(QMouseEvent *e);
+	int oldValue;
 };
 
 

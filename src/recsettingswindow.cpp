@@ -245,7 +245,6 @@ void RecSettingsWindow::on_spinHRes_editingFinished()
 
 	ui->spinHRes->setValue(max(camera->sensor->getMinHRes(), round((UInt32)ui->spinHRes->value(), camera->sensor->getHResIncrement())));
 
-	qDebug() << "editing finished ";
 	updateFrameImage();
 	updateInfoText();
 }
