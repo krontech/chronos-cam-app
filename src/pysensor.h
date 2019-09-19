@@ -103,14 +103,12 @@ public:
 	/* Frame Geometry Functions. */
 	void setResolution(FrameGeometry *frameSize);
 	FrameGeometry getMaxGeometry(void);
-	UInt8 getFilterColor(UInt32 h, UInt32 v);
 	UInt32 getHResIncrement() { return PYSENSOR_HRES_INCREMENT; }
 	UInt32 getVResIncrement()  { return PYSENSOR_VRES_INCREMENT; }
 	UInt32 getMinHRes() { return PYSENSOR_MIN_HRES; }
 	UInt32 getMinVRes() { return PYSENSOR_MIN_VRES; }
 
 	/* Frame Timing Functions. */
-	Int32 seqOnOff(bool on);
 	UInt32 getFramePeriodClock(void) { return PYSENSOR_TIMING_CLOCK; }
 	UInt32 getMinFramePeriod(FrameGeometry *frameSize);
 	UInt32 getActualFramePeriod(double target, FrameGeometry *frameSize);
@@ -124,13 +122,6 @@ public:
 	UInt32 getIntegrationTime(void);
 	UInt32 setIntegrationTime(UInt32 intTime, FrameGeometry *frameSize);
 
-	/* Analog calibration APIs. */
-	unsigned int enableAnalogTestMode(void);
-	void disableAnalogTestMode(void);
-	void setAnalogTestVoltage(unsigned int);
-	void setADCOffset(UInt8 channel, Int16 offset);
-
-	Int32 setGain(UInt32 gainSetting);
 	UInt32 currentPeriod;		//moved to public for PyChronos
 	UInt32 currentExposure;		//moved to public for PyChronos
 	void setCurrentPeriod(UInt32 period);

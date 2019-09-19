@@ -53,11 +53,6 @@ CameraErrortype PySensor::setControl(Control *control_inst)
 	cinst = control_inst;
 }
 
-Int32 PySensor::seqOnOff(bool on)
-{
-	return SUCCESS;
-}
-
 FrameGeometry PySensor::getMaxGeometry(void)
 {
 	FrameGeometry size = {
@@ -172,35 +167,6 @@ UInt32 PySensor::getIntegrationTime(void)
 	//return exp;
 	return currentExposure;
 }
-
-unsigned int PySensor::enableAnalogTestMode(void)
-{
-}
-
-void PySensor::disableAnalogTestMode(void)
-{
-}
-
-void PySensor::setAnalogTestVoltage(unsigned int voltage)
-{
-}
-
-//Sets ADC offset for one channel
-//Converts the input 2s complement value to the sensors's weird sign bit plus value format (sort of like float, with +0 and -0)
-void PySensor::setADCOffset(UInt8 channel, Int16 offset)
-{
-}
-
-Int32 PySensor::setGain(UInt32 gainSetting)
-{
-	//do pychronos things when this is implemented
-}
-
-UInt8 PySensor::getFilterColor(UInt32 h, UInt32 v)
-{
-	return 0;
-}
-
 
 void PySensor::setCurrentPeriod(UInt32 period)
 {

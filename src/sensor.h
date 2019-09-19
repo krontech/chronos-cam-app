@@ -33,7 +33,6 @@ public:
 	virtual void setResolution(FrameGeometry *frameSize) = 0;
 	virtual FrameGeometry getMaxGeometry(void) = 0;
 	virtual bool isValidResolution(FrameGeometry *frameSize);
-	virtual UInt8 getFilterColor(UInt32 h, UInt32 v) = 0;
 	/* These APIs seem a bit sloppy. */
 	virtual UInt32 getHResIncrement() = 0;
 	virtual UInt32 getVResIncrement() = 0;
@@ -41,7 +40,6 @@ public:
 	virtual UInt32 getMinVRes() = 0;
 
 	/* Frame Timing Functions. */
-	virtual Int32 seqOnOff(bool on) = 0;
 	virtual UInt32 getFramePeriodClock(void) = 0;
 	virtual UInt32 getMinFramePeriod(FrameGeometry *frameSize) = 0;
 	virtual UInt32 getActualFramePeriod(double target, FrameGeometry *frameSize) = 0;
@@ -56,22 +54,12 @@ public:
 	virtual UInt32 getIntegrationTime(void) = 0;
 	virtual UInt32 setIntegrationTime(UInt32 intTime, FrameGeometry *frameSize) = 0;
 
-	/* Analog Calibration APIs. */
-	/* TODO: The analog calibration algorithm ought to be private to the
-	 * image sensor, so these really should be replaced with a single
-	 * function that does all the analog cal at once.
-	 */
-	virtual unsigned int enableAnalogTestMode(void) { return 0; } /* Return number of voltage steps, or 0 if not supported. */
-	virtual void disableAnalogTestMode(void) {}
-	virtual void setAnalogTestVoltage(unsigned int) {}
-	virtual void setADCOffset(UInt8 channel, Int16 offset) = 0;
 	virtual void setCurrentPeriod(UInt32 period) {}
 	virtual void setCurrentExposure(UInt32 period) {}
 	//virtual UInt32 setShadowExposurePeriod();
 
 
 	/* TODO: Need a better way to communicate what gains are valid to the GUI. */
-	virtual Int32 setGain(UInt32 gainSetting) = 0;
 
 	/* Helper Functions  - now overloaded by pysensor*/
 	//inline double getCurrentFramePeriodDouble() { return (double)getFramePeriod() / getFramePeriodClock(); }
