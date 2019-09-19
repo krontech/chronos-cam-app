@@ -242,11 +242,10 @@ void saveSettingsWindow::refreshDriveList()
 	}
 
 	//scan for NFS shares
-	drives = runCommand("showmount -e 192.168.1.180");
-	QString nfsShares = drives.split(":\n").value(1);
-	splitString = nfsShares.split("\n");
+	drives = runCommand("mount -t nfs4");
+	splitString = drives.split(" on ");
 
-	for (int i=0; i<splitString.length()-1; i++)
+	for (int i=1; i<splitString.length(); i++)
 	{
 		QString mountString = splitString.value(i).split(" ").value(0);
 		ui->comboDrive->addItem(mountString + " (NFS share)");
@@ -460,6 +459,15 @@ void saveSettingsWindow::on_lineFilename_textEdited(const QString &arg1)
 
 void saveSettingsWindow::on_lineFoldername_textEdited(const QString &arg1)
 {
+	//strip out periods and slashes and spaces from the beginning
+	QString path = ui->lineFoldername->text();
+	while (path.left(1) == "." || path.left(1) == "/" || path.left(1) == " ")
+	{
+		path.remove(0,1);
+		ui->lineFoldername->setText(path);
+	}
+
+
 	QSettings settings;
 	strcpy(camera->cinst->fileFolder, ui->lineFoldername->text().toStdString().c_str());
 	settings.setValue("recorder/fileFolder", camera->cinst->fileFolder);
@@ -510,6 +518,17 @@ void saveSettingsWindow::setControlEnable(bool en){
 void saveSettingsWindow::on_comboDrive_currentIndexChanged(const QString &arg1)
 {
 	if(okToSaveLocation) saveFileDirectory();
+
+	//gray out Safely Remove button if it is a share
+	if (ui->comboDrive->currentText().startsWith("/mnt/"))
+	{
+		ui->cmdUMount->setEnabled(false);
+	}
+	else
+	{
+		ui->cmdUMount->setEnabled(true);
+	}
+
 }
 
 void saveSettingsWindow::on_chkEnableOverlay_toggled(bool checked)

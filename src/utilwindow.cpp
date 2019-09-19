@@ -1400,6 +1400,11 @@ bool UtilWindow::isUserConnected(QString user, QString address)
 	QString drives = runCommand("mount -t cifs");
 	QStringList splitString = drives.split(" on ");
 
+	if (drives == "" || user == "" || address == "")
+	{
+		return false;
+	}
+
 	int i=1;
 	bool found = false;
 	do
@@ -1610,8 +1615,34 @@ void UtilWindow::on_cmdNfsTest_clicked()
 	}
 }
 
-bool UtilWindow::isNfsConnected(QString mount, QString address)
+bool UtilWindow::isNfsConnected(QString folder, QString address)
 {
+	//scan for NFS shares
+	QString drives = runCommand("mount -t nfs4");
+	if (drives == "" || folder == "" || address == "")
+	{
+		return false;
+	}
+
+	QStringList splitString = drives.split(" on ");
+
+	for (int i=1; i<splitString.length(); i++)
+	{
+		QString mountString = splitString.value(i).split(" ").value(0);
+		qDebug() << splitString.value(i);
+		QString mountFolder = mountString.split("mnt/").value(1).split(" ").value(0);
+		QString mountAddress = splitString.value(i).split(",addr=").value(1);
+		mountAddress.chop(2);
+
+		if (mountFolder == folder && mountAddress == address)
+		{
+			return true;
+		}
+	}
+	return false;
+
+/*
+
 	//scan for NFS shares
 	QString mounts = runCommand("showmount -e " + ui->lineNetAddress->text());
 	if (mounts == "" || mount == "")
@@ -1633,5 +1664,6 @@ bool UtilWindow::isNfsConnected(QString mount, QString address)
 		i++;
 	} while (i<splitString.length() && !found);
 	return found;
+*/
 }
 
