@@ -94,7 +94,6 @@ SOURCES += main.cpp\
     chronosVideoInterface.cpp \
     colorwindow.cpp \
     colordoublespinbox.cpp \
-    sensor.cpp \
     control.cpp \
     exec.cpp \
     myinputpanel.cpp \
@@ -154,7 +153,6 @@ HEADERS  += mainwindow.h \
     colorwindow.h \
     colordoublespinbox.h \
     frameGeometry.h \
-    sensor.h \
     control.h \
     exec.h \
     myinputpanel.h \

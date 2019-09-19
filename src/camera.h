@@ -25,7 +25,7 @@
 
 #include "video.h"
 #include "control.h"
-#include "sensor.h"
+#include "pysensor.h"
 #include "userInterface.h"
 #include "string.h"
 #include "types.h"
@@ -182,14 +182,14 @@ class Camera : public QObject {
 public:
 	Camera();
 	~Camera();
-	CameraErrortype init(Video * vinstInst, Control * cinstInst, ImageSensor * sensorInst, UserInterface * userInterface, UInt32 ramSizeVal, bool color);
+	CameraErrortype init(Video * vinstInst, Control * cinstInst, PySensor * sensorInst, UserInterface * userInterface, UInt32 ramSizeVal, bool color);
 	Int32 startRecording(void);
 	Int32 setRecSequencerModeNormal();
 	Int32 stopRecording(void);
 	bool getIsRecording(void);
 	Video * vinst;
     Control * cinst;
-	ImageSensor * sensor;
+	PySensor * sensor;
 	UserInterface * ui;
 
 	RecordSettings_t recordingData;

@@ -20,7 +20,6 @@
 
 #include "frameGeometry.h"
 #include "control.h"
-#include "sensor.h"
 #include "errorCodes.h"
 #include "types.h"
 #include <string>
@@ -91,8 +90,11 @@ extern double sensorMinFrameTime;
 /* Array of wavetables, sorted longest first, and terminated with a NULL */
 //extern const lux1310wavetab_t *lux1310wt[];
 
-class PySensor : public ImageSensor
+//class PySensor : public ImageSensor
+class PySensor : QObject
 {
+	Q_OBJECT
+
 public:
 	PySensor(Control *control);
 	~PySensor();
@@ -130,6 +132,9 @@ public:
 	double getCurrentFramePeriodDouble(void);
 	double getCurrentExposureDouble();
 	double getCurrentExposureAngle();
+
+	bool isValidResolution(FrameGeometry *frameSize);
+	UInt32 getActualIntegrationTime(double target, UInt32 period, FrameGeometry *frameSize);
 
 private:
 	FrameGeometry currentRes;

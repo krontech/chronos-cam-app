@@ -179,4 +179,58 @@ void PySensor::setCurrentExposure(UInt32 period)
 }
 
 
+/* Default implementations and helper functions for the ImageSensor class. */
+
+/* Frame size validation function. */
+bool PySensor::isValidResolution(FrameGeometry *frameSize)
+{
+	FrameGeometry maxFrame = getMaxGeometry();
+
+	/* Enforce resolution limits. */
+	if ((frameSize->hRes < getMinHRes()) || (frameSize->hRes + frameSize->hOffset > maxFrame.hRes)) {
+		return false;
+	}
+	if ((frameSize->vRes < getMinVRes()) || (frameSize->vRes + frameSize->vOffset > maxFrame.vRes)) {
+		return false;
+	}
+	if (frameSize->vDarkRows > maxFrame.vDarkRows) {
+		return false;
+	}
+	if (frameSize->bitDepth != maxFrame.bitDepth) {
+		return false;
+	}
+
+	/* Enforce minimum pixel increments. */
+	if ((frameSize->hRes % getHResIncrement()) || (frameSize->hOffset % getHResIncrement())) {
+		return false;
+	}
+	if ((frameSize->vRes % getVResIncrement()) || (frameSize->vOffset % getVResIncrement())) {
+		return false;
+	}
+	if (frameSize->vDarkRows % getVResIncrement()) {
+		return false;
+	}
+
+	/* Otherwise, the resultion and offset are valid. */
+	return true;
+}
+
+/*
+ * Default implementation: quanitize to the timing clock and then limit to
+ * the range given by getMinIntegrationTime() and getMaxIntegrationTime()
+ */
+UInt32 PySensor::getActualIntegrationTime(double target, UInt32 period, FrameGeometry *frameSize)
+{
+	UInt32 intTime = target * getIntegrationClock() + 0.5;
+	UInt32 minIntTime = getMinIntegrationTime(period, frameSize);
+	UInt32 maxIntTime = getMaxIntegrationTime(period, frameSize);
+
+	return within(intTime, minIntTime, maxIntTime);
+}
+
+
+double PySensor::getCurrentFramePeriodDouble()
+{
+	return (double)getFramePeriod() / getFramePeriodClock();
+}
 

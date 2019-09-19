@@ -28,7 +28,6 @@
 #include "recsettingswindow.h"
 #include "iosettingswindow.h"
 #include "utilwindow.h"
-//#include "statuswindow.h"
 #include "cammainwindow.h"
 #include "whitebalancedialog.h"
 #include "ui_cammainwindow.h"
@@ -44,7 +43,7 @@ extern "C" {
 
 #define DEF_SI_OPTS	SI_DELIM_SPACE | SI_SPACE_BEFORE_PREFIX
 
-ImageSensor * sensor;
+PySensor * sensor;
 Camera * camera;
 Video * vinst;
 Control * cinst;

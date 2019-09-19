@@ -32,7 +32,6 @@
 #include "cameraRegisters.h"
 #include "util.h"
 #include "types.h"
-#include "sensor.h"
 #include "defines.h"
 #include <QWSDisplay>
 #include "control.h"
@@ -84,7 +83,7 @@ Camera::~Camera()
 	pthread_join(recDataThreadID, NULL);
 }
 
-CameraErrortype Camera::init(Video * vinstInst, Control * cinstInst, ImageSensor * sensorInst, UserInterface * userInterface, UInt32 ramSizeVal, bool color)
+CameraErrortype Camera::init(Video * vinstInst, Control * cinstInst, PySensor * sensorInst, UserInterface * userInterface, UInt32 ramSizeVal, bool color)
 {
 	CameraErrortype retVal;
 	UInt32 ramSizeGBSlot0, ramSizeGBSlot1;
