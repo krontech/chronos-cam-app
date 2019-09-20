@@ -1437,12 +1437,12 @@ Connections</string>
       <rect>
        <x>520</x>
        <y>30</y>
-       <width>141</width>
+       <width>201</width>
        <height>16</height>
       </rect>
      </property>
      <property name="text">
-      <string>Camera IP Address:</string>
+      <string>Connected Camera IP Addresses:</string>
      </property>
     </widget>
     <widget class="QLabel" name="lblIpAddress">
@@ -1451,7 +1451,7 @@ Connections</string>
        <x>530</x>
        <y>50</y>
        <width>161</width>
-       <height>21</height>
+       <height>51</height>
       </rect>
      </property>
      <property name="font">
@@ -1463,6 +1463,9 @@ Connections</string>
      </property>
      <property name="text">
       <string>TextLabel</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
      </property>
     </widget>
     <widget class="QGroupBox" name="gbNetStatus">

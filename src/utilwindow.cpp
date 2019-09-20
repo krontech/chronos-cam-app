@@ -147,8 +147,25 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 
 	//get IP address
 	ifconfig = runCommand("ifconfig");
-	QString ipAddress = ifconfig.split("inet addr:").value(1).split(" ").value(0);
-	ui->lblIpAddress->setText(ipAddress);
+	QString ifconfigPart = ifconfig.split("packets").value(0);
+	QString ipEthernetAddress = ifconfigPart.split("inet addr:").value(1).split(" ").value(0);
+	bool ethernetConnected = ifconfigPart.contains("RUNNING");
+
+	ifconfigPart = ifconfig.split("usb0").value(1);
+	ifconfigPart = ifconfigPart.split("packets").value(0);
+	QString ipUsbAddress = ifconfig.split("usb0").value(1).split("inet addr:").value(1).split(" ").value(0);
+	bool usbConnected = ifconfigPart.contains("RUNNING");
+
+	QString ipAddresses;
+	if (ethernetConnected)
+	{
+		ipAddresses.append(ipEthernetAddress + "\n");
+	}
+	if (usbConnected)
+	{
+		ipAddresses.append(ipUsbAddress);
+	}
+	ui->lblIpAddress->setText(ipAddresses);
 
 	//populate fields from first line of Samba mount script
 	bool sambaFound = false;
@@ -1264,7 +1281,6 @@ Int32 UtilWindow::blackCalAllStdRes(void)
 	UInt32 lastTime = timer.elapsed() / 1000;
 
 	while(!cancelButton) {
-		qDebug() << "########## TOP WHILE LOOP";
 		FrameGeometry fSize;
 
 		line = fp.readLine(30);
@@ -1291,7 +1307,7 @@ Int32 UtilWindow::blackCalAllStdRes(void)
 
 		do
 		{
-			qDebug() << "######## DO LOOP - gain" << gain;
+			qDebug() << "gain" << gain;
 			char str[200];
 			sprintf(str, "%ux%u at gain %u", fSize.hRes, fSize.vRes, gain);
 			progress->setLabelText(str);
@@ -1320,7 +1336,6 @@ Int32 UtilWindow::blackCalAllStdRes(void)
 		} while ((gain <= maxGain) && !cancelButton);
 	}
 
-	qDebug() << "###################### END LOOP, RESTORING";
 	fp.close();
 	delete progress;
 
@@ -1336,7 +1351,7 @@ Int32 UtilWindow::blackCalAllStdRes(void)
 	qd "### set gain";
 	camera->cinst->setInt("currentGain", keepCurrentGain);
 
-	qDebug() << "###################### Black cal all resolutions took" << timer.elapsed()/1000 << "seconds";
+	//qDebug() << "###################### Black cal all resolutions took" << timer.elapsed()/1000 << "seconds";
 
 	if (cancelButton)
 	{
@@ -1360,7 +1375,6 @@ QString UtilWindow::buildSambaString()
 	mountString.append(ui->lineNetUser->text());
 	mountString.append(" /mnt/");
 	mountString.append(ui->lineNetUser->text());
-	qDebug() << mountString;
 	return mountString;
 }
 
@@ -1411,14 +1425,11 @@ bool UtilWindow::isUserConnected(QString user, QString address)
 	do
 	{
 		QString userString = splitString.value(i).split(" ").value(0).split("mnt/").value(1);
-		//qDebug() << userString;
 		if (userString == ui->lineNetUser->text())
 		{
 			QString addressString = splitString.value(i).split("addr=").value(1).split(",").value(0);
-			qDebug() << addressString;
 			if (addressString == address)
 			{
-				qDebug() << "found:" << userString << "at" << addressString;
 				found = true;
 			}
 		}
@@ -1482,15 +1493,26 @@ void UtilWindow::on_cmdNetTest_clicked()
 		{
 			QTextStream out(&file);
 			out << "TESTING";
-			file.flush();
+			bool sambaOK = file.flush();
+
+
 			file.close();
-			qDebug() << file.remove();
-			QString text = "Samba share /mnt/" + ui->lineNetUser->text() + " on " + ui->lineNetAddress->text() + " is connected.";
-			ui->lblNetStatus->setText(text);
+			sambaOK &= file.remove();
+			if (sambaOK)
+			{
+				QString text = "Samba share /mnt/" + ui->lineNfsMount->text() + " on " + ui->lineNetAddress->text() + " is connected.";
+				ui->lblNetStatus->setText(text);
+			}
+			else
+			{
+				QString text = "Samba share /mnt/" + ui->lineNfsMount->text() + " on " + ui->lineNetAddress->text() + " write Failed.";
+				ui->lblNetStatus->setText(text);
+			}
+
 		}
 		else
 		{
-			QString text = "Samba share /mnt/" + ui->lineNetUser->text() + " write failed!";
+			QString text = "Samba share /mnt/" + ui->lineNetUser->text() + " open failed!";
 			ui->lblNetStatus->setText(text);
 		}
 	}
@@ -1626,7 +1648,7 @@ void UtilWindow::on_cmdNfsTest_clicked()
 			}
 			else
 			{
-				QString text = "NFS share /mnt/" + ui->lineNfsMount->text() + " on " + ui->lineNetAddress->text() + " write connected.";
+				QString text = "NFS share /mnt/" + ui->lineNfsMount->text() + " on " + ui->lineNetAddress->text() + " write failed.";
 				ui->lblNetStatus->setText(text);
 			}
 		}
