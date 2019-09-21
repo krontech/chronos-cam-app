@@ -228,7 +228,7 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 	setImagerSettings(settings);
 
     io->setTriggerDelayFrames(0, FLAG_USESAVED);
-    setTriggerDelayValues((double) io->getTriggerDelayFrames() / settings.recRegionSizeFrames,
+    setTriggerDelayValues((double) io->getTriggerDelayFrames() / settings.segmentLengthFrames,
 			     io->getTriggerDelayFrames() * ((double)settings.period / 100000000),
 			     io->getTriggerDelayFrames());
 
