@@ -87,7 +87,7 @@ UInt32 PySensor::getFramePeriod(void)
 
 double PySensor::getCurrentExposureDouble(void)
 {
-	return currentExposure;
+	return (double)currentExposure / getFramePeriodClock();
 }
 
 double PySensor::getCurrentExposureAngle(void)

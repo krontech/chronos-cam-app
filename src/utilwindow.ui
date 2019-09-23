@@ -1271,20 +1271,6 @@ Connection</string>
        <string/>
       </property>
      </widget>
-     <widget class="QPushButton" name="cmdSambaConnect">
-      <property name="geometry">
-       <rect>
-        <x>340</x>
-        <y>20</y>
-        <width>101</width>
-        <height>51</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Connect
-Samba</string>
-      </property>
-     </widget>
      <widget class="QPushButton" name="cmdSambaConnectPermanently">
       <property name="geometry">
        <rect>
@@ -1313,20 +1299,6 @@ Permanently</string>
       </property>
       <property name="alignment">
        <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="cmdNfsConnect">
-      <property name="geometry">
-       <rect>
-        <x>607</x>
-        <y>20</y>
-        <width>101</width>
-        <height>51</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Connect
-NFS</string>
       </property>
      </widget>
      <widget class="QPushButton" name="cmdNfsTest">
@@ -1376,7 +1348,7 @@ Permanently</string>
      <widget class="QLineEdit" name="lineNfsMount">
       <property name="geometry">
        <rect>
-        <x>450</x>
+        <x>558</x>
         <y>30</y>
         <width>151</width>
         <height>31</height>
@@ -1394,8 +1366,8 @@ Permanently</string>
      <widget class="QLabel" name="lblNetNfsMount">
       <property name="geometry">
        <rect>
-        <x>450</x>
-        <y>5</y>
+        <x>427</x>
+        <y>30</y>
         <width>151</width>
         <height>31</height>
        </rect>
@@ -1417,13 +1389,13 @@ Permanently</string>
        <rect>
         <x>250</x>
         <y>25</y>
-        <width>71</width>
+        <width>81</width>
         <height>41</height>
        </rect>
       </property>
       <property name="font">
        <font>
-        <pointsize>9</pointsize>
+        <pointsize>11</pointsize>
        </font>
       </property>
       <property name="text">
@@ -1495,7 +1467,7 @@ Connections</string>
        </font>
       </property>
       <property name="text">
-       <string>TextLabel</string>
+       <string/>
       </property>
       <property name="alignment">
        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>

@@ -133,6 +133,8 @@ private slots:
 	bool isNfsConnected(QString mount, QString address);
 	void on_cmdNetListConnections_clicked();
 	bool isReachable(QString address);
+	void showIpAddresses();
+
 
 
 

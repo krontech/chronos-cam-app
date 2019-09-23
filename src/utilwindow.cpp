@@ -74,7 +74,6 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	openingWindow = true;
 	QSettings appSettings;
 	QString aboutText;\
-	QString ifconfig;
 
 	ui->setupUi(this);
 	this->setWindowFlags(Qt::Dialog | Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
@@ -145,27 +144,7 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	ui->comboAutoPowerMode->setCurrentIndex(camera->getAutoPowerMode());
 	ui->spinAutoSavePercent->setValue(camera->getAutoSavePercent());
 
-	//get IP address
-	ifconfig = runCommand("ifconfig");
-	QString ifconfigPart = ifconfig.split("packets").value(0);
-	QString ipEthernetAddress = ifconfigPart.split("inet addr:").value(1).split(" ").value(0);
-	bool ethernetConnected = ifconfigPart.contains("RUNNING");
-
-	ifconfigPart = ifconfig.split("usb0").value(1);
-	ifconfigPart = ifconfigPart.split("packets").value(0);
-	QString ipUsbAddress = ifconfig.split("usb0").value(1).split("inet addr:").value(1).split(" ").value(0);
-	bool usbConnected = ifconfigPart.contains("RUNNING");
-
-	QString ipAddresses;
-	if (ethernetConnected)
-	{
-		ipAddresses.append(ipEthernetAddress + "\n");
-	}
-	if (usbConnected)
-	{
-		ipAddresses.append(ipUsbAddress);
-	}
-	ui->lblIpAddress->setText(ipAddresses);
+	showIpAddresses();
 
 	//populate fields from first line of Samba mount script
 	bool sambaFound = false;
@@ -196,7 +175,7 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 
 
 		file.close();
-}
+	}
 
 
 
@@ -239,6 +218,33 @@ UtilWindow::~UtilWindow()
 	timer->stop();
 	delete timer;
 	delete ui;
+}
+
+void UtilWindow::showIpAddresses()
+{
+	QString ifconfig;
+
+	//get IP address
+	ifconfig = runCommand("ifconfig");
+	QString ifconfigPart = ifconfig.split("packets").value(0);
+	QString ipEthernetAddress = ifconfigPart.split("inet addr:").value(1).split(" ").value(0);
+	bool ethernetConnected = ifconfigPart.contains("RUNNING");
+
+	ifconfigPart = ifconfig.split("usb0").value(1);
+	ifconfigPart = ifconfigPart.split("packets").value(0);
+	QString ipUsbAddress = ifconfig.split("usb0").value(1).split("inet addr:").value(1).split(" ").value(0);
+	bool usbConnected = ifconfigPart.contains("RUNNING");
+
+	QString ipAddresses;
+	if (ethernetConnected)
+	{
+		ipAddresses.append(ipEthernetAddress + "\n");
+	}
+	if (usbConnected)
+	{
+		ipAddresses.append(ipUsbAddress);
+	}
+	ui->lblIpAddress->setText(ipAddresses);
 }
 
 void UtilWindow::on_cmdSWUpdate_clicked()
@@ -348,6 +354,12 @@ void UtilWindow::onUtilWindowTimer()
 		pclose(fp);
 		ui->lblMountedDevices->setText(mText);
 	}
+
+	/* If on the network tab, update the network status. */
+	if (ui->tabWidget->currentWidget() == ui->tabNetwork) {
+		showIpAddresses();
+	}
+
 }
 
 void UtilWindow::on_cmdSetClock_clicked()
@@ -1789,7 +1801,14 @@ void UtilWindow::on_cmdNetListConnections_clicked()
 	}
 	qDebug() << text;
 
-	ui->lblNetStatus->setText(text);
+	if (text == "")
+	{
+		ui->lblNetStatus->setText("No connections.");
+	}
+	else
+	{
+		ui->lblNetStatus->setText(text);
+	}
 }
 
 bool UtilWindow::isReachable(QString address)
