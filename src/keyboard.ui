@@ -177,7 +177,7 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>20</pointsize>
+     <pointsize>17</pointsize>
      <weight>75</weight>
      <italic>false</italic>
      <bold>true</bold>
@@ -187,7 +187,8 @@
     <string notr="true"/>
    </property>
    <property name="text">
-    <string>Caps</string>
+    <string>Caps /
+Symb</string>
    </property>
   </widget>
   <widget class="QPushButton" name="num4">

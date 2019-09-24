@@ -199,6 +199,17 @@ void keyboard::setUppercase(){
 	ui->N->setText("N");
 	ui->M->setText("M");
 	ui->slash->setText("/");
+	ui->num0->setText("@");
+	ui->num1->setText("_");
+	ui->num2->setText("$");
+	ui->num3->setText("!");
+	ui->num4->setText("-");
+	ui->num5->setText("+");
+	ui->num6->setText("'");
+	ui->num7->setText("#");
+	ui->num8->setText("(");
+	ui->num9->setText(")");
+	ui->numdot->setText(",");
 }
 
 void keyboard::setLowercase(){
@@ -228,5 +239,16 @@ void keyboard::setLowercase(){
 	ui->B->setText("b");
 	ui->N->setText("n");
 	ui->M->setText("m");
+	ui->num0->setText("0");
+	ui->num1->setText("1");
+	ui->num2->setText("2");
+	ui->num3->setText("3");
+	ui->num4->setText("4");
+	ui->num5->setText("5");
+	ui->num6->setText("6");
+	ui->num7->setText("7");
+	ui->num8->setText("8");
+	ui->num9->setText("9");
+	ui->numdot->setText(".");
 	ui->slash->setText("/");
 }
