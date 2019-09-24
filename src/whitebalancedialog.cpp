@@ -251,6 +251,9 @@ void whiteBalanceDialog::on_cmdResetCustomWB_clicked()
     appSettings.setValue("whiteBalance/currentR", RED);
     appSettings.setValue("whiteBalance/currentG", GREEN);
     appSettings.setValue("whiteBalance/currentB", BLUE);
+    appSettings.setValue("whiteBalance/customR", RED);
+    appSettings.setValue("whiteBalance/customG", GREEN);
+    appSettings.setValue("whiteBalance/customB", BLUE);
     
 	if(ui->comboWB->currentIndex() == COMBO_MAX_INDEX) {
 		camera->setWhiteBalance(camera->whiteBalMatrix);
