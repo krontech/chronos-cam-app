@@ -444,6 +444,12 @@ UInt32 LUX2100::getMinWavetablePeriod(FrameGeometry *frameSize, UInt32 wtSize)
 	unsigned int tFovfb = 50; /* TODO: It's not entirely clear what the minimum limit is here. */
 	unsigned int tFrame = tRow * (frameSize->vRes + frameSize->vDarkRows) + tTx + tFovf + tFovfb - LUX2100_MIN_HBLANK;
 
+	/* Add the overhead to flush the deserializer FIFO to DDR memory, otherwise
+	 * we will get frame corruption at the maximum framerate. I am reasonably
+	 * sure that this is a bug in the FPGA.
+	 */
+	tFrame += 280; /* Approximately 3.75us */
+
 	/* Convert from 75MHz sensor clocks to 100MHz FPGA clocks. */
 	qDebug() << "getMinFramePeriod:" << tFrame;
 	return ceil(tFrame * 100 / 75);
