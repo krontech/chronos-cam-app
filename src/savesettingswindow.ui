@@ -505,22 +505,21 @@ Remove</string>
    <header>camLineEdit.h</header>
   </customwidget>
   <customwidget>
-   <class>CamDoubleSpinBox</class>
-   <extends>QDoubleSpinBox</extends>
-   <header>camdoublespinbox.h</header>
-  </customwidget>
-  <customwidget>
    <class>CamSpinBox</class>
    <extends>QSpinBox</extends>
    <header>camspinbox.h</header>
   </customwidget>
+  <customwidget>
+   <class>CamDoubleSpinBox</class>
+   <extends>QDoubleSpinBox</extends>
+   <header>camdoublespinbox.h</header>
+  </customwidget>
  </customwidgets>
  <tabstops>
-  <tabstop>comboLevel</tabstop>
-  <tabstop>comboProfile</tabstop>
   <tabstop>cmdClose</tabstop>
   <tabstop>cmdUMount</tabstop>
   <tabstop>lineFilename</tabstop>
+  <tabstop>lineFoldername</tabstop>
   <tabstop>comboDrive</tabstop>
   <tabstop>cmdRefresh</tabstop>
   <tabstop>chkEnableOverlay</tabstop>
@@ -528,6 +527,8 @@ Remove</string>
   <tabstop>spinFramerate</tabstop>
   <tabstop>comboSaveFormat</tabstop>
   <tabstop>spinBitrate</tabstop>
+  <tabstop>comboLevel</tabstop>
+  <tabstop>comboProfile</tabstop>
  </tabstops>
  <resources/>
  <connections/>

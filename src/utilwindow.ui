@@ -29,7 +29,7 @@
     <enum>QTabWidget::East</enum>
    </property>
    <property name="currentIndex">
-    <number>2</number>
+    <number>5</number>
    </property>
    <widget class="QWidget" name="tabMain">
     <attribute name="title">
@@ -1981,6 +1981,21 @@ calibration data
   <tabstop>chkFPEnable</tabstop>
   <tabstop>cmdSetClock</tabstop>
   <tabstop>dateTimeEdit</tabstop>
+  <tabstop>cmdClose_5</tabstop>
+  <tabstop>cmdNetUpdate</tabstop>
+  <tabstop>cmdNfsConnectPermanently</tabstop>
+  <tabstop>cmdNfsTest</tabstop>
+  <tabstop>lineNfsMount</tabstop>
+  <tabstop>cmdSambaConnectPermanently</tabstop>
+  <tabstop>cmdNetTest</tabstop>
+  <tabstop>cmdNetListConnections</tabstop>
+  <tabstop>lineNetPassword</tabstop>
+  <tabstop>lineNetUser</tabstop>
+  <tabstop>lineNetAddress</tabstop>
+  <tabstop>chkSshEnable</tabstop>
+  <tabstop>cmdSshApply</tabstop>
+  <tabstop>lineSshPort</tabstop>
+  <tabstop>lineSshPassword</tabstop>
  </tabstops>
  <resources/>
  <connections/>

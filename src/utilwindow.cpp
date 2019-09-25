@@ -754,7 +754,7 @@ void UtilWindow::on_linePassword_textEdited(const QString &arg1)
 		ui->cmdWhiteRef->setVisible(true);
 		ui->cmdSetSN->setVisible(true);
 		ui->lineSerialNumber->setVisible(true);
-		//ui->chkShowDebugControls->setVisible(true);
+		ui->chkShowDebugControls->setVisible(true);
 		ui->spinLiveLoopTime->setVisible(true);
 		ui->chkLiveLoop->setVisible(true);
 

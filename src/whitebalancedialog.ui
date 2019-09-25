@@ -216,12 +216,13 @@
   </widget>
  </widget>
  <tabstops>
-  <tabstop>comboWB</tabstop>
   <tabstop>cmdClose</tabstop>
+  <tabstop>cmdCancel</tabstop>
   <tabstop>cmdMatrix</tabstop>
   <tabstop>comboColor</tabstop>
   <tabstop>cmdResetCustomWB</tabstop>
   <tabstop>cmdSetCustomWB</tabstop>
+  <tabstop>comboWB</tabstop>
  </tabstops>
  <resources/>
  <connections/>
