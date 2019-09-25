@@ -160,7 +160,7 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 		QString netName = splitString.value(4).split("=").value(1).split(",").value(0);
 
 		//password
-		QString netPassword = splitString.value(4).split("=").value(2);
+		QString netPassword = splitString.value(4).split("=").value(2).split(",").value(0);
 
 		//address
 		QString netAddress = splitString.value(5).right(splitString.value(5).length()-2).split("/").value(0);
