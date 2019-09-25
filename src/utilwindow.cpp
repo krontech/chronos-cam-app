@@ -1381,7 +1381,7 @@ QString UtilWindow::buildSambaString()
 	mountString.append(ui->lineNetUser->text());
 	mountString.append(",password=");
 	mountString.append(ui->lineNetPassword->text());
-	mountString.append(" //");
+	mountString.append(",noserverino //");
 	mountString.append(ui->lineNetAddress->text());
 	mountString.append("/");
 	mountString.append(ui->lineNetUser->text());
