@@ -112,6 +112,7 @@ typedef struct {
 
 /* Array of wavetables, sorted longest first, and terminated with a NULL */
 extern const lux2100wavetab_t *lux2100wt[];
+extern const lux2100wavetab_t *lux8mwt[];
 
 class LUX2100 : public ImageSensor
 {
@@ -158,7 +159,7 @@ public:
 	Int32 loadADCOffsetsFromFile(FrameGeometry *size);
 	std::string getFilename(const char * filename, const char * extension);
 
-private:
+protected:
 	CameraErrortype initSensor();
 	CameraErrortype autoPhaseCal(void);
 	UInt32 getDataCorrect(void);
@@ -177,8 +178,6 @@ private:
 	UInt16 SCIRead(UInt8 address);
 	Int32 doAutoADCOffsetCalibration(void);
 	Int32 initLUX2100(void);
-	Int32 initLUX8M(void);
-	Int32 initLUX8M_2(void);
 	void setADCOffset(UInt8 channel, Int16 offset);
 	void offsetCorrectionIteration(FrameGeometry *geometry, int *offsets, UInt32 address, UInt32 framesToAverage, int iter);
 	void updateWavetableSetting(void);
@@ -192,10 +191,25 @@ private:
 	UInt32 gain;
 	UInt32 startDelaySensorClocks;
 	UInt32 sensorVersion;
-	bool colorBinning;
 
 	SPI * spi;
 	GPMC * gpmc;
+	const lux2100wavetab_t **wtlist;
+};
+
+/*
+ * The LUX8M Also exists as a 4k variant of the LUX2100
+ * It's the same die, just with a different CFA pattern.
+ */
+class LUX8M : public LUX2100 {
+	CameraErrortype init(GPMC * gpmc_inst);
+	void setResolution(FrameGeometry *frameSize);
+	unsigned int enableAnalogTestMode(void);
+	void disableAnalogTestMode(void);
+
+private:
+	CameraErrortype initSensor();
+	Int32 initLUX8M(void);
 };
 
 #endif // LUX2100_H

@@ -101,6 +101,7 @@ SOURCES += main.cpp\
     lux2100.cpp \
     lux2100wt.cpp \
     lux2810.cpp \
+    lux8m.cpp \
     utilwindow.cpp \
     statuswindow.cpp \
     eeprom.c \

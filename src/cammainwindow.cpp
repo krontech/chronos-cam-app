@@ -80,6 +80,9 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	else if (strcasecmp(envSensor, "lux1310") == 0) {
 		sensor = new LUX1310();
 	}
+	else if (strcasecmp(envSensor, "lux8m") == 0) {
+		sensor = new LUX8M();
+	}
 	else {
 		qWarning("Unknown sensor override - defaulting to LUX1310");
 		sensor = new LUX1310();
