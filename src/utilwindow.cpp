@@ -178,39 +178,40 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 		//address
 		QString netAddress = splitString.value(5).right(splitString.value(5).length()-2).split("/").value(0);
 
-
 		//mount
-		QString netMount = splitString.value(6);
+		QString netMount = splitString.value(5);
+		netMount.remove(0, 2);
+		netMount = netMount.split("/").value(1);
 
 		ui->lineNetUser->setText(netName);
 		ui->lineNetPassword->setText(netPassword);
 		ui->lineNetAddress->setText(netAddress);
+		ui->lineMountFolder->setText(netMount);
 
 		file.close();
 	}
 
-	//populate field from first line of NFS mount script
-	file.setFileName("/root/.nfsmount");
-	if (file.open(QIODevice::ReadOnly))
+	if (!sambaFound)
 	{
-	   QTextStream in(&file);
-	   QString line = in.readLine();
-	   //}
-	   QStringList splitString = line.split(" ");
+		//populate field from first line of NFS mount script
+		file.setFileName("/root/.nfsmount");
+		if (file.open(QIODevice::ReadOnly))
+		{
+		   QTextStream in(&file);
+		   QString line = in.readLine();
+		   //}
+		   QStringList splitString = line.split(" ");
 
-	   //NFS mount
-	   QString nfsName = splitString.value(1).split(":").value(1);
+		   //NFS mount
+		   QString nfsName = splitString.value(1).split(":").value(1);
 
-	   ui->lineMountFolder->setText(nfsName);
-	   if (!sambaFound)
-	   {
+		   ui->lineMountFolder->setText(nfsName);
 		   QString nfsAddress = splitString.value(1).split(":").value(0);
 		   ui->lineNetAddress->setText(nfsAddress);
-	   }
 
-	   file.close();
+		   file.close();
+		}
 	}
-
 	if(camera->RotationArgumentIsSet())
 		ui->chkUpsideDownDisplay->setChecked(camera->getUpsideDownDisplay());
 	else //If the argument was not added, set the control to invisible because it would be useless anyway
@@ -1394,7 +1395,7 @@ QString UtilWindow::buildSambaString()
 	mountString.append(",noserverino //");
 	mountString.append(ui->lineNetAddress->text());
 	mountString.append("/");
-	mountString.append(ui->lineMountFolder->text());
+	mountString.append(removeFirstAndLastSlash(ui->lineMountFolder->text()));
 	mountString.append(" /media/smb");
 	return mountString;
 }
@@ -1455,7 +1456,6 @@ bool UtilWindow::isSmbConnected(QString user, QString address, QString folder)
 			{
 				mountString = splitString.value(i).split("\n").value(1);
 			}
-			qDebug() << splitString.value(i);
 
 			mountString.replace("//", "");
 			QString mountFolder = mountString.split("/").value(1);
@@ -1709,7 +1709,6 @@ bool UtilWindow::isNfsConnected(QString folder, QString address)
 		{
 			mountString = splitString.value(i).split("\n").value(1);
 		}
-		qDebug() << splitString.value(i);
 
 		QString mountFolder = splitString.value(i).split(":").value(1);
 		QString mountAddress = splitString.value(i).split(":").value(0);
@@ -1744,7 +1743,6 @@ void UtilWindow::on_cmdNetListConnections_clicked()
 	for (int i=0; i<splitString.length()-1; i++)
 	{
 		QString mountString = splitString.value(i).split(".").value(3).split("/").value(1).split(" ").value(0);
-		qDebug() << splitString.value(i).split("/");
 		QString addrString = splitString.value(i).split("/").value(2);
 		mountedShares.append(addrString + ":" + mountString + " (mounted Samba share)");
 	}
@@ -1771,7 +1769,6 @@ void UtilWindow::on_cmdNetListConnections_clicked()
 	}
 
 	//scan for all available NFS shares not already mounted
-
 	QStringList mountList;
 	QString mounts = runCommand("showmount -e " + ui->lineNetAddress->text());
 	if (mounts != "")
@@ -1801,7 +1798,6 @@ void UtilWindow::on_cmdNetListConnections_clicked()
 			if (!inList)
 			{
 				mountList.append(shareString + " (available NFS share)");
-				qDebug() << shareString;
 			}
 			i++;
 		} while (i < splitString.length()-1);
@@ -1819,7 +1815,6 @@ void UtilWindow::on_cmdNetListConnections_clicked()
 	{
 		text.append("    " + mountList.value(i) + "\n");
 	}
-	qDebug() << text;
 
 	if (text == "")
 	{
