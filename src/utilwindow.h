@@ -125,7 +125,7 @@ private slots:
 	QString buildSambaString();
 	void on_cmdSambaConnect_clicked();
 	void on_cmdSambaConnectPermanently_clicked();
-	bool isUserConnected(QString user, QString address);
+	bool isSmbConnected(QString user, QString address);
 	QString buildNfsString();
 	void on_cmdNfsConnect_clicked();
 	void on_cmdNfsConnectPermanently_clicked();
