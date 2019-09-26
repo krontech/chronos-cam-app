@@ -29,7 +29,7 @@
     <enum>QTabWidget::East</enum>
    </property>
    <property name="currentIndex">
-    <number>5</number>
+    <number>2</number>
    </property>
    <widget class="QWidget" name="tabMain">
     <attribute name="title">
@@ -1345,12 +1345,12 @@ Permanently</string>
        <set>Qt::AlignCenter</set>
       </property>
      </widget>
-     <widget class="QLineEdit" name="lineNfsMount">
+     <widget class="QLineEdit" name="lineMountFolder">
       <property name="geometry">
        <rect>
-        <x>558</x>
+        <x>508</x>
         <y>30</y>
-        <width>151</width>
+        <width>201</width>
         <height>31</height>
        </rect>
       </property>
@@ -1366,7 +1366,7 @@ Permanently</string>
      <widget class="QLabel" name="lblNetNfsMount">
       <property name="geometry">
        <rect>
-        <x>427</x>
+        <x>370</x>
         <y>30</y>
         <width>151</width>
         <height>31</height>
@@ -1378,7 +1378,7 @@ Permanently</string>
        </font>
       </property>
       <property name="text">
-       <string>NFS Mount</string>
+       <string>Mount Folder</string>
       </property>
       <property name="alignment">
        <set>Qt::AlignCenter</set>
@@ -1985,7 +1985,7 @@ calibration data
   <tabstop>cmdNetUpdate</tabstop>
   <tabstop>cmdNfsConnectPermanently</tabstop>
   <tabstop>cmdNfsTest</tabstop>
-  <tabstop>lineNfsMount</tabstop>
+  <tabstop>lineMountFolder</tabstop>
   <tabstop>cmdSambaConnectPermanently</tabstop>
   <tabstop>cmdNetTest</tabstop>
   <tabstop>cmdNetListConnections</tabstop>
