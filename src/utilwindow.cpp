@@ -1710,8 +1710,8 @@ bool UtilWindow::isNfsConnected(QString folder, QString address)
 			mountString = splitString.value(i).split("\n").value(1);
 		}
 
-		QString mountFolder = splitString.value(i).split(":").value(1);
-		QString mountAddress = splitString.value(i).split(":").value(0);
+		QString mountFolder = mountString.split(":").value(1);
+		QString mountAddress = mountString.split(":").value(0);
 		if (mountFolder.right(1) == "/")
 		{
 			mountFolder.chop(1);
@@ -1744,7 +1744,7 @@ void UtilWindow::on_cmdNetListConnections_clicked()
 	{
 		QString mountString = splitString.value(i).split(".").value(3).split("/").value(1).split(" ").value(0);
 		QString addrString = splitString.value(i).split("/").value(2);
-		mountedShares.append(addrString + ":" + mountString + " (mounted Samba share)");
+		mountedShares.append(addrString + ":" + mountString + " (mounted SMB share)");
 	}
 
 	//scan for NFS shares

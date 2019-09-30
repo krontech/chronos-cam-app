@@ -219,6 +219,11 @@ CameraErrortype Camera::init(Video * vinstInst, Control * cinstInst, PySensor * 
 	cinst->doReset(); //also needed temporarily
 
 	printf("Video init done\n");
+	int fpColor = getFocusPeakColor();
+	if (fpColor == 0)
+	{
+		setFocusPeakColor(2);	//set to cyan, if starts out set to black
+	}
 	return SUCCESS;
 }
 
@@ -705,7 +710,6 @@ bool Camera::getFocusPeakEnable(void)
 void Camera::setFocusPeakEnable(bool en)
 {
 	cinst->setBool("focusPeakingLevel", en ? 1.0 : 0.0);
-	return;
 	QSettings appSettings;
 	focusPeakEnabled = en;
 	appSettings.setValue("camera/focusPeak", en);
