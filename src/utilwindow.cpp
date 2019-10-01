@@ -40,10 +40,6 @@
 #include "util.h"
 #include "chronosControlInterface.h"
 
-#define FOCUS_PEAK_THRESH_LOW	35
-#define FOCUS_PEAK_THRESH_MED	25
-#define FOCUS_PEAK_THRESH_HIGH	15
-
 #define USER_EXIT -2
 
 extern const char* git_version_str;
@@ -114,12 +110,23 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	ui->comboFPColor->setCurrentIndex(camera->getFocusPeakColorLL() - 1);
 	ui->chkZebraEnable->setChecked(camera->getZebraEnable());
 
-	if(camera->getFocusPeakThresholdLL() == FOCUS_PEAK_THRESH_HIGH)
-		ui->radioFPSensHigh->setChecked(true);
-	else if(camera->getFocusPeakThresholdLL() == FOCUS_PEAK_THRESH_MED)
-		ui->radioFPSensMed->setChecked(true);
-	else if(camera->getFocusPeakThresholdLL() == FOCUS_PEAK_THRESH_LOW)
-		ui->radioFPSensLow->setChecked(true);
+	if (camera->focusPeakEnabled)
+	{
+		if(camera->getFocusPeakThresholdLL() == FOCUS_PEAK_THRESH_HIGH)
+			ui->radioFPSensHigh->setChecked(true);
+		else if(camera->getFocusPeakThresholdLL() == FOCUS_PEAK_THRESH_MED)
+			ui->radioFPSensMed->setChecked(true);
+		else if(camera->getFocusPeakThresholdLL() == FOCUS_PEAK_THRESH_LOW)
+			ui->radioFPSensLow->setChecked(true);
+	}
+	else
+	{
+		if(camera->focusPeakLevel >= FOCUS_PEAK_API_HIGH)
+			ui->radioFPSensHigh->setChecked(true);
+		else if(camera->focusPeakLevel >= FOCUS_PEAK_API_MED)
+			ui->radioFPSensMed->setChecked(true);
+		else ui->radioFPSensLow->setChecked(true);
+	}
 
 
 	ui->lineSerialNumber->setText(camera->getSerialNumber());
@@ -483,32 +490,37 @@ void UtilWindow::on_comboFPColor_currentIndexChanged(int index)
 
 void UtilWindow::on_radioFPSensLow_toggled(bool checked)
 {
-	if(checked)
+	if(checked && ui->chkFPEnable->isChecked())
 	{
 		camera->setFocusPeakThresholdLL(FOCUS_PEAK_THRESH_LOW);
-		QSettings appSettings;
-		appSettings.setValue("camera/focusPeakThreshold", FOCUS_PEAK_THRESH_LOW);
 	}
-
+	if (checked)
+	{
+		camera->focusPeakLevel = FOCUS_PEAK_API_LOW;
+	}
 }
 
 void UtilWindow::on_radioFPSensMed_toggled(bool checked)
 {
-	if(checked)
+	if(checked && ui->chkFPEnable->isChecked())
 	{
 		camera->setFocusPeakThresholdLL(FOCUS_PEAK_THRESH_MED);
-		QSettings appSettings;
-		appSettings.setValue("camera/focusPeakThreshold", FOCUS_PEAK_THRESH_MED);
+	}
+	if (checked)
+	{
+		camera->focusPeakLevel = FOCUS_PEAK_API_MED;
 	}
 }
 
 void UtilWindow::on_radioFPSensHigh_toggled(bool checked)
 {
-	if(checked)
+	if(checked && ui->chkFPEnable->isChecked())
 	{
 		camera->setFocusPeakThresholdLL(FOCUS_PEAK_THRESH_HIGH);
-		QSettings appSettings;
-		appSettings.setValue("camera/focusPeakThreshold", FOCUS_PEAK_THRESH_HIGH);
+	}
+	if (checked)
+	{
+		camera->focusPeakLevel = FOCUS_PEAK_API_HIGH;
 	}
 }
 

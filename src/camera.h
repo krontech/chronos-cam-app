@@ -222,6 +222,7 @@ public:
 	UInt32 setPlayMode(bool playMode);
 	Int32 autoColGainCorrection(void);
 	Int32 takeWhiteReferences(void);
+	bool focusPeakEnabled;
 
 	void setCCMatrix(const double *matrix);
 	void setWhiteBalance(const double *rgb);
@@ -255,6 +256,7 @@ public:
 	UInt8 getFocusPeakColorLL(void);
 	void setFocusPeakColorLL(UInt8 color);
 	void setFocusPeakThresholdLL(UInt32 thresh);
+	double convertFocusPeakThreshold(UInt32 thresh);
 	UInt32 getFocusPeakThresholdLL(void);
 	Int32 getRamSizeGB(UInt32 * stick0SizeGB, UInt32 * stick1SizeGB);
 	Int32 readSerialNumber(char * dest);
@@ -274,7 +276,6 @@ private:
 	bool isColor;
 
 	double imgGain;
-	bool focusPeakEnabled;
 	int focusPeakColorIndex;
 	bool zebraEnabled;
 	bool fanDisabled;
@@ -291,6 +292,7 @@ public:
 		0.0, 1.0, 0.0,
 		0.0, 0.0, 1.0
 	};
+	double focusPeakLevel = FOCUS_PEAK_API_MED;
 
 	/* Color Matrix Presets */
 	const ColorMatrix_t ccmPresets[2] = {

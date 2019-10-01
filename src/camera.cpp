@@ -213,7 +213,7 @@ CameraErrortype Camera::init(Video * vinstInst, Control * cinstInst, PySensor * 
 	ui->setRecLEDFront(false);
 	ui->setRecLEDBack(false);
 
-	vinst->setDisplayOptions(getZebraEnable(), getFocusPeakEnable());
+	//vinst->setDisplayOptions(getZebraEnable(), getFocusPeakEnable());
 	vinst->setDisplayPosition(ButtonsOnLeft ^ UpsideDownDisplay);
 	usleep(2000000); //needed temporarily with current pychronos
 	cinst->doReset(); //also needed temporarily
@@ -704,28 +704,25 @@ void Camera::upsideDownTransform(int rotation){
 
 bool Camera::getFocusPeakEnable(void)
 {
-	QSettings appSettings;
-	return appSettings.value("camera/focusPeak", false).toBool();
+	double level;
+	cinst->getFloat("focusPeakingLevel", &level);
+	return (level > 0.1);
+
 }
 void Camera::setFocusPeakEnable(bool en)
 {
-	cinst->setBool("focusPeakingLevel", en ? 1.0 : 0.0);
-	QSettings appSettings;
+	cinst->setFloat("focusPeakingLevel", en ? focusPeakLevel : 0.0);
 	focusPeakEnabled = en;
-	appSettings.setValue("camera/focusPeak", en);
 	vinst->setDisplayOptions(zebraEnabled, focusPeakEnabled);
 }
 
 int Camera::getFocusPeakColor(){
-	QSettings appSettings;
-	return appSettings.value("camera/focusPeakColorIndex", 2).toInt();//default setting of 3 is cyan
+	return getFocusPeakColorLL();
 }
 
 void Camera::setFocusPeakColor(int value){
-	QSettings appSettings;
 	setFocusPeakColorLL(value);
 	focusPeakColorIndex = value;
-	appSettings.setValue("camera/focusPeakColorIndex", value);
 }
 
 
@@ -740,7 +737,7 @@ void Camera::setZebraEnable(bool en)
 	QSettings appSettings;
 	zebraEnabled = en;
 	appSettings.setValue("camera/zebra", en);
-	vinst->setDisplayOptions(zebraEnabled, focusPeakEnabled);
+	vinst->setZebra(zebraEnabled);
 }
 
 bool Camera::getFanDisable(void)

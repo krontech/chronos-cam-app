@@ -103,6 +103,7 @@ public:
 	void setPlayback(int rate);
 	void loopPlayback(unsigned int start, unsigned int length, int rate);
 	void setDisplayOptions(bool zebra, bool peaking);
+	void setZebra(bool zebra);
 	void setDisplayPosition(bool videoOnRight);
 	void liveDisplay(unsigned int hRes, unsigned int vRes);
 	VideoState getStatus(VideoStatus *st);

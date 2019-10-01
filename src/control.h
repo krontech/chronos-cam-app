@@ -16,28 +16,19 @@
 
 void* frameThread(void *arg);
 
-/*
-typedef enum {
-    CONTROL_STATE_1 = 1,
-    CONTROL_STATE_2 = 2,
-    CONTROL_STATE_3 = 3,
-} ControlState2;
-
-
-struct ControlStatus {
-	//ControlState state;
-    UInt32 status1;
-    UInt32 status2;
-    UInt32 status3;
-};
-*/
-
 typedef enum {
 	CONTROL_STATE_LIVEDISPLAY = 0,
 	CONTROL_STATE_PLAYBACK = 1,
 	CONTROL_STATE_FILESAVE = 2,
 } ControlStatus;
 
+#define FOCUS_PEAK_THRESH_LOW	35
+#define FOCUS_PEAK_THRESH_MED	25
+#define FOCUS_PEAK_THRESH_HIGH	15
+
+#define FOCUS_PEAK_API_LOW	0.33
+#define FOCUS_PEAK_API_MED	0.67
+#define FOCUS_PEAK_API_HIGH	1.0
 
 struct CameraStatus {
 	char state[128];

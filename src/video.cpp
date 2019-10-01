@@ -183,6 +183,22 @@ void Video::setDisplayOptions(bool zebra, bool peaking)
 	}
 }
 
+void Video::setZebra(bool zebra)
+{
+	QVariantMap args;
+	QDBusPendingReply<QVariantMap> reply;
+	args.insert("zebra", QVariant(zebra));
+
+	pthread_mutex_lock(&mutex);
+	reply = iface.configure(args);
+	pthread_mutex_unlock(&mutex);
+
+	if (reply.isError()) {
+		QDBusError err = reply.error();
+		fprintf(stderr, "Failed to configure display options: %s - %s\n", err.name().data(), err.message().toAscii().data());
+	}
+}
+
 void Video::liveDisplay(unsigned int hRes, unsigned int vRes)
 {
     qDebug("###### trying liveDisplay");

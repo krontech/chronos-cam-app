@@ -63,13 +63,28 @@ void Camera::setFocusPeakColorLL(UInt8 color)
 
 void Camera::setFocusPeakThresholdLL(UInt32 thresh)
 {
-	//TODO - when implemented in API
+	double level;
+	level = convertFocusPeakThreshold(thresh);
+	cinst->setFloat("focusPeakingLevel", level);
+	focusPeakLevel = level;
+}
+
+double Camera::convertFocusPeakThreshold(UInt32 thresh)
+{
+	double level;
+	if (thresh <= FOCUS_PEAK_THRESH_HIGH ) level = FOCUS_PEAK_API_HIGH;
+	else if (thresh <= FOCUS_PEAK_THRESH_MED) level = FOCUS_PEAK_API_MED;
+	else level = FOCUS_PEAK_API_LOW;
+	return level;
 }
 
 UInt32 Camera::getFocusPeakThresholdLL(void)
 {
-	//TODO - when implemented in API
-	return 4;
+	double thresh;
+	cinst->getFloat("focusPeakingLevel", &thresh);
+	if (thresh >= FOCUS_PEAK_API_HIGH) return FOCUS_PEAK_THRESH_HIGH;
+	if (thresh >= FOCUS_PEAK_API_MED) return FOCUS_PEAK_THRESH_MED;
+	return FOCUS_PEAK_API_LOW;
 }
 
 Int32 Camera::getRamSizeGB(UInt32 * stick0SizeGB, UInt32 * stick1SizeGB)
