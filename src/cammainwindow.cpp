@@ -254,8 +254,8 @@ void CamMainWindow::on_cmdFPNCal_clicked()//Black cal
 	QCoreApplication::processEvents();
 
 	/* Run the calibration routines. */
-	camera->autoOffsetCalibration();
-	camera->autoGainCalibration();
+	camera->autoOffsetCalibration(true);
+	//camera->autoGainCalibration();
 	camera->autoFPNCorrection(16, true);
 	sw->hide();
 }

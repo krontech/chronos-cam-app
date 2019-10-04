@@ -216,6 +216,9 @@ void RecSettingsWindow::on_cmdOK_clicked()
 	camera->setImagerSettings(*is);
 	camera->vinst->liveDisplay();
 
+	if(CAMERA_FILE_NOT_FOUND == camera->loadADCOffsetsFromFile()) {
+		camera->autoOffsetCalibration(false);
+	}
 	if(CAMERA_FILE_NOT_FOUND == camera->loadFPNFromFile()) {
 		camera->fastFPNCorrection();
 	}

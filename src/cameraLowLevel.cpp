@@ -58,6 +58,11 @@ void Camera::terminateRecord(void)
 	gpmc->write32(SEQ_CTL_ADDR, reg & ~SEQ_CTL_STOP_REC_MASK);
 }
 
+UInt32 Camera::getWriteAddr(void)
+{
+	return gpmc->read32(SEQ_FRAME_WRITE_ADDR);
+}
+
 void Camera::writeSeqPgmMem(SeqPgmMemWord pgmWord, UInt32 address)
 {
 	gpmc->write32((SEQ_PGM_MEM_START_ADDR + address * 8)+4, pgmWord.data.high);

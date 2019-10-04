@@ -174,7 +174,9 @@ CameraErrortype LUX1310::initSensor()
 	}
 
 	/* Load and enable ADC offsets. */
-	loadADCOffsetsFromFile();
+	for (int i = 0; i < LUX1310_HRES_INCREMENT; i++) {
+		setADCOffset(i, 0);
+	}
 	SCIWrite(0x39, 0x1); //ADC offset enable??
 
 	//Set Gain
@@ -779,36 +781,22 @@ Int16 LUX1310::getADCOffset(UInt8 channel)
 		return val & 0x3FF;
 }
 
-Int32 LUX1310::loadADCOffsetsFromFile(void)
+Int32 LUX1310::loadADCOffsets(const char *filename)
 {
 	Int16 offsets[LUX1310_HRES_INCREMENT];
 	Int32 ret = SUCCESS;
-	QString filename;
 	
 	do {
-		//Generate the filename for this particular resolution and offset
-		filename.sprintf("cal:lux1310Offsets");
-
-		std::string fn;
-		fn = getFilename("", ".bin");
-		filename.append(fn.c_str());
-		QFileInfo adcOffsetsFile(filename);
-		if (!adcOffsetsFile.exists() || !adcOffsetsFile.isFile()) {
-			ret = CAMERA_FILE_NOT_FOUND;
-			break;
-		}
-
-		fn = adcOffsetsFile.absoluteFilePath().toLocal8Bit().constData();
-		qDebug() << "attempting to load ADC offsets from" << fn.c_str();
+		qDebug("Attempting to load ADC offsets from %s", filename);
 
 		//If the offsets file exists, read it in
-		if( access( fn.c_str(), R_OK ) == -1 ) {
+		if( access( filename, R_OK ) == -1 ) {
 			ret = CAMERA_FILE_NOT_FOUND;
 			break;
 		}
 
 		FILE * fp;
-		fp = fopen(fn.c_str(), "rb");
+		fp = fopen(filename, "rb");
 		if(!fp) {
 			ret = CAMERA_FILE_ERROR;
 			break;
@@ -831,24 +819,23 @@ Int32 LUX1310::loadADCOffsetsFromFile(void)
 	return ret;
 }
 
-Int32 LUX1310::saveADCOffsetsToFile(void)
+Int32 LUX1310::saveADCOffsets(const char *filename)
 {
 	Int16 offsets[LUX1310_HRES_INCREMENT];
-	std::string fn;
+	FILE *fp;
 
-	fn = getFilename("cal/lux1310Offsets", ".bin");
-	qDebug("writing ADC offsets to %s", fn.c_str());
-	
-	FILE * fp;
-	fp = fopen(fn.c_str(), "wb");
-	if(!fp)
+	qDebug("writing ADC offsets to %s", filename);
+	fp = fopen(filename, "wb");
+	if(!fp) {
 		return CAMERA_FILE_ERROR;
+	}
 
-	for(int i = 0; i < LUX1310_HRES_INCREMENT; i++)
+	for(int i = 0; i < LUX1310_HRES_INCREMENT; i++) {
 		offsets[i] = offsetsA[i];
+	}
 
 	//Ugly print to keep it all on one line
-	qDebug() << "Saving offsets to file" << fn.c_str() << "Offsets:"
+	qDebug() << "Saving offsets to file" << filename << "Offsets:"
 			 << offsets[0] << offsets[1] << offsets[2] << offsets[3]
 			 << offsets[4] << offsets[5] << offsets[6] << offsets[7]
 			 << offsets[8] << offsets[9] << offsets[10] << offsets[11]

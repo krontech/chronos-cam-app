@@ -328,7 +328,7 @@ void MainWindow::on_cmdGC_clicked()
 
 void MainWindow::on_cmdSaveOC_clicked()
 {
-	camera->sensor->saveADCOffsetsToFile();
+	camera->sensor->saveADCOffsets("cal/debug_offsets.bin");
 }
 
 void MainWindow::on_cmdSaveFrame_clicked()

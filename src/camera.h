@@ -223,11 +223,12 @@ public:
 	UInt32 autoFPNCorrection(UInt32 framesToAverage, bool writeToFile = false, bool noCap = false, bool factory = false);
 	Int32 fastFPNCorrection();
 	Int32 loadFPNFromFile(void);
+	Int32 loadADCOffsetsFromFile(void);
 	void loadFPNCorrection(FrameGeometry *geometry, const UInt16 *fpnBuffer, UInt32 framesToAverage);
 	void loadColGainFromFile(void);
 	Int32 computeColGainCorrection(UInt32 framesToAverage, bool writeToFile = false);
 	void offsetCorrectionIteration(FrameGeometry *geometry, UInt32 wordAddress, UInt32 framesToAverage = 1);
-	Int32 autoOffsetCalibration(unsigned int iterations = 32);
+	Int32 autoOffsetCalibration(bool writeToFile = false, bool factory = false);
 	Int32 autoGainCalibration(unsigned int iterations = 32);
 	Int32 autoColGainCorrection(void);
 	Int32 adjustExposureToValue(UInt32 level, UInt32 tolerance = 100, bool includeFPNCorrection = true);
@@ -270,6 +271,7 @@ private:
 	bool getRecording(void);
 	void startSequencer(void);
 	void terminateRecord(void);
+	UInt32 getWriteAddr(void);
 	void writeSeqPgmMem(SeqPgmMemWord pgmWord, UInt32 address);
 	void setRecRegion(UInt32 start, UInt32 count, FrameGeometry *geometry);
 	void readAcqMem(UInt32 * buf, UInt32 offsetWords, UInt32 length);

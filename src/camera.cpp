@@ -257,9 +257,10 @@ CameraErrortype Camera::init(GPMC * gpmcInst, Video * vinstInst, LUX1310 * senso
 	maxPostFramesRatio = 1;
 
 	/* Load calibration and perform perform automated cal. */
-	sensor->loadADCOffsetsFromFile();
 	loadColGainFromFile();
-
+	if(CAMERA_FILE_NOT_FOUND == loadADCOffsetsFromFile()) {
+		autoOffsetCalibration(false);
+	}
 	if(CAMERA_FILE_NOT_FOUND == loadFPNFromFile()) {
 		fastFPNCorrection();
 	}
@@ -324,8 +325,7 @@ UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 	}
 	setRecRegion(REC_REGION_START, imagerSettings.recRegionSizeFrames, &imagerSettings.geometry);
 
-	/* Load calibration. */
-	sensor->loadADCOffsetsFromFile();
+	/* Load gain calibration. */
 	loadColGainFromFile();
 
 	qDebug()	<< "\nSet imager settings:\nhRes" << imagerSettings.geometry.hRes
@@ -819,39 +819,6 @@ void Camera::loadFPNCorrection(FrameGeometry *geometry, const UInt16 *fpnBuffer,
 void Camera::computeFPNCorrection(FrameGeometry *geometry, UInt32 wordAddress, UInt32 framesToAverage, bool writeToFile, bool factory)
 {
 	UInt32 pixelsPerFrame = geometry->pixels();
-	const char *formatStr;
-	char str_removeUserFPNFile[500];
-	QString filename;
-	std::string fn;
-	QFile fp;
-
-	// If writing to file - generate the filename and open for writing
-	if(writeToFile)
-	{
-		//Generate the filename for this particular resolution and offset
-		if(factory) {
-			formatStr = "cal/factoryFPN/fpn_%dx%doff%dx%d";
-		}
-		else {
-			formatStr = "userFPN/fpn_%dx%doff%dx%d";
-		}
-		
-		filename.sprintf(formatStr, geometry->hRes, geometry->vRes, geometry->hOffset, geometry->vOffset);
-		fn = sensor->getFilename("", ".raw");
-		filename.append(fn.c_str());
-		
-		qDebug("Writing FPN to file %s", filename.toUtf8().data());
-
-		fp.setFileName(filename);
-
-		fp.open(QIODevice::WriteOnly);
-		if(!fp.isOpen())
-		{
-			qDebug() << "Error: File couldn't be opened";
-			return;
-		}
-	}
-
 	UInt16 * fpnBuffer = (UInt16 *)calloc(pixelsPerFrame, sizeof(UInt16));
 	UInt8  * pixBuffer = (UInt8  *)malloc(geometry->size());
 
@@ -880,22 +847,40 @@ void Camera::computeFPNCorrection(FrameGeometry *geometry, UInt32 wordAddress, U
 	qDebug() << "About to write file...";
 	if(writeToFile)
 	{
+		QFile fp;
+		QString filename;
 		quint64 retVal;
-		for (int i = 0; i < pixelsPerFrame; i++) {
-			fpnBuffer[i] /= framesToAverage;
+
+		filename.sprintf("userFPN/fpn_%dx%doff%dx%d",
+						 geometry->hRes, geometry->vRes,
+						 geometry->hOffset, geometry->vOffset);
+		filename.append(sensor->getFilename("", ".raw").c_str());
+
+		/* If factory black cal is successful, delete any conflicting user cal */
+		if (factory) {
+			unlink(filename.toUtf8().constData());
+
+			/* Generate the factory cal filename instead */
+			filename.sprintf("cal/factoryFPN/fpn_%dx%doff%dx%d",
+							 geometry->hRes, geometry->vRes,
+							 geometry->hOffset, geometry->vOffset);
+			filename.append(sensor->getFilename("", ".raw").c_str());
 		}
-		retVal = fp.write((const char*)fpnBuffer, sizeof(fpnBuffer[0])*pixelsPerFrame);
-		if (retVal != (sizeof(fpnBuffer[0])*pixelsPerFrame)) {
-			qDebug("Error writing FPN data to file: %s", fp.errorString().toUtf8().data());
+
+		qDebug("Writing FPN to file %s", filename.toUtf8().data());
+		fp.setFileName(filename);
+		fp.open(QIODevice::WriteOnly);
+		if (fp.isOpen()) {
+			for (int i = 0; i < pixelsPerFrame; i++) {
+				fpnBuffer[i] /= framesToAverage;
+			}
+			retVal = fp.write((const char*)fpnBuffer, sizeof(fpnBuffer[0])*pixelsPerFrame);
+			fp.flush();
+			fp.close();
 		}
-		else if (factory) {
-			/*If factory black cal successfully written, delete the user-made black cal
-			 * so that that doesn't get chosen over the new factory black cal*/
-			sprintf(str_removeUserFPNFile, "rm userFPN/fpn_%dx%doff%dx%d%s", geometry->hRes, geometry->vRes, geometry->hOffset, geometry->vOffset, fn.c_str());
-			system(str_removeUserFPNFile);
+		else {
+			qDebug() << "Error: File couldn't be opened";
 		}
-		fp.flush();
-		fp.close();
 	}
 
 	free(fpnBuffer);
@@ -1045,6 +1030,48 @@ loadFPNFromFileCleanup:
 	delete buffer;
 
 	return retVal;
+}
+
+Int32 Camera::loadADCOffsetsFromFile(void)
+{
+	QString filename;
+	QFileInfo fileinfo;
+	Int32 ret;
+
+	do {
+		/* Generate the filename for this particular resolution and offset */
+		filename.sprintf("fpn:offset_%dx%doff%dx%d",
+						 imagerSettings.geometry.hRes, imagerSettings.geometry.vRes,
+						 imagerSettings.geometry.hOffset, imagerSettings.geometry.vOffset);
+		filename.append(sensor->getFilename("", ".bin").c_str());
+		fileinfo.setFile(filename);
+		if (fileinfo.exists() && fileinfo.isFile()) {
+			break;
+		}
+
+		/* Also try the old calibration filenames. */
+		filename.clear();
+		filename.append(sensor->getFilename("cal:lux1310Offsets", ".bin").c_str());
+		fileinfo.setFile(filename);
+		if (fileinfo.exists() && fileinfo.isFile()) {
+			break;
+		}
+
+		/* Unable to locate the offsets file, set the offsets to zero. */
+		for (int i = 0; i < LUX1310_HRES_INCREMENT; i++) {
+			sensor->setADCOffset(i, 0);
+		}
+		return CAMERA_FILE_NOT_FOUND;
+	} while (0);
+
+	/* Load the ADC offset file. */
+	ret = sensor->loadADCOffsets(fileinfo.absoluteFilePath().toLocal8Bit().constData());
+	if (ret != SUCCESS) {
+		for (int i = 0; i < LUX1310_HRES_INCREMENT; i++) {
+			sensor->setADCOffset(i, 0);
+		}
+	}
+	return ret;
 }
 
 Int32 Camera::computeColGainCorrection(UInt32 framesToAverage, bool writeToFile)
@@ -1744,41 +1771,33 @@ void Camera::computeGainColumns(FrameGeometry *geometry, UInt32 wordAddress, con
 	}
 }
 
-Int32 Camera::autoOffsetCalibration(unsigned int iterations)
+Int32 Camera::autoOffsetCalibration(bool writeToFile, bool factory)
 {
-	ImagerSettings_t isPrev = imagerSettings;
-	ImagerSettings_t isCal;
+	const unsigned int iterations = 32;
 	struct timespec tRefresh;
 	Int32 retVal;
 
-	/* Swap the black rows into the top of the frame. */
-	memcpy(&isCal, &isPrev, sizeof(isCal));
-	isCal.recRegionSizeFrames = CAL_REGION_FRAMES;
-	isCal.disableRingBuffer = 0;
-	isCal.mode = RECORD_MODE_NORMAL;
-	isCal.prerecordFrames = 1;
-	isCal.segmentLengthFrames = CAL_REGION_FRAMES;
-	isCal.segments = 1;
-	isCal.temporary = 1;
-	retVal = setImagerSettings(isCal);
-	if(SUCCESS != retVal) {
-		return retVal;
+	/* Swap the black rows into the top of the frame, if necessary. */
+	if (!imagerSettings.geometry.vDarkRows) {
+		FrameGeometry size = imagerSettings.geometry;
+
+		size.vDarkRows = LUX1310_MAX_V_DARK / 2;
+		size.vRes     -= size.vDarkRows;
+		size.vOffset  += size.vDarkRows;
+		sensor->setResolution(&size);
 	}
 
 	retVal = setRecSequencerModeCalLoop();
 	if (SUCCESS != retVal) {
-		setImagerSettings(isPrev);
+		sensor->setResolution(&imagerSettings.geometry);
 		return retVal;
 	}
-
-	/* Activate the recording sequencer. */
-	startSequencer();
 	ui->setRecLEDFront(true);
 	ui->setRecLEDBack(true);
 
-	/* Compute the live display worst-case frame refresh time. */
+	/* Compute the worst-case frame refresh time. */
 	tRefresh.tv_sec = 0;
-	tRefresh.tv_nsec = (CAL_REGION_FRAMES+10) * isCal.period * 10;
+	tRefresh.tv_nsec = (CAL_REGION_FRAMES+10) * imagerSettings.period * 10;
 
 	/* Clear out the ADC Offsets. */
 	for (int i = 0; i < LUX1310_HRES_INCREMENT; i++) {
@@ -1787,17 +1806,39 @@ Int32 Camera::autoOffsetCalibration(unsigned int iterations)
 
 	/* Tune the ADC offset calibration. */
 	for (int i = 0; i < iterations; i++) {
+		/* Acquire frames. */
+		startSequencer();
 		nanosleep(&tRefresh, NULL);
-		offsetCorrectionIteration(&isCal.geometry, CAL_REGION_START, CAL_REGION_FRAMES);
-	}
-	sensor->saveADCOffsetsToFile();
+		terminateRecord();
+		while (getWriteAddr() < LIVE_REGION_START) { /* nop */ }
 
-	terminateRecord();
+		/* Do a calibration iteration */
+		offsetCorrectionIteration(&imagerSettings.geometry, CAL_REGION_START, CAL_REGION_FRAMES);
+	}
+	if (writeToFile) {
+		QString filename;
+
+		filename.sprintf("userFPN/offset_%dx%doff%dx%d",
+						 imagerSettings.geometry.hRes, imagerSettings.geometry.vRes,
+						 imagerSettings.geometry.hOffset, imagerSettings.geometry.vOffset);
+		filename.append(sensor->getFilename("", ".bin").c_str());
+
+
+		if(factory) {
+			unlink(filename.toUtf8().constData());
+			filename.sprintf("cal/factoryFPN/offset_%dx%doff%dx%d",
+							 imagerSettings.geometry.hRes, imagerSettings.geometry.vRes,
+							 imagerSettings.geometry.hOffset, imagerSettings.geometry.vOffset);
+			filename.append(sensor->getFilename("", ".bin").c_str());
+		}
+
+		sensor->saveADCOffsets(filename.toUtf8().constData());
+	}
+
 	ui->setRecLEDFront(false);
 	ui->setRecLEDBack(false);
-
-	/* Restore the sensor settings. */
-	return setImagerSettings(isPrev);
+	sensor->setResolution(&imagerSettings.geometry);
+	return SUCCESS;
 }
 
 Int32 Camera::autoGainCalibration(unsigned int iterations)
@@ -2787,7 +2828,7 @@ Int32 Camera::blackCalAllStdRes(bool factory, QProgressDialog *dialog)
 				return retVal;
 
 			qDebug("Doing offset correction for %ux%u...", settings.geometry.hRes, settings.geometry.vRes);
-			retVal = autoOffsetCalibration();
+			retVal = autoOffsetCalibration(true, factory);
 			if(SUCCESS != retVal)
 				return retVal;
 
@@ -2814,6 +2855,12 @@ exit_calibration:
 	vinst->liveDisplay();
 	if(SUCCESS != retVal) {
 		qDebug("blackCalAllStdRes: Error during setImagerSettings %d", retVal);
+		return retVal;
+	}
+
+	retVal = loadADCOffsetsFromFile();
+	if(SUCCESS != retVal) {
+		qDebug("blackCalAllStdRes: Error during loadADCOffsetsFromFile %d", retVal);
 		return retVal;
 	}
 

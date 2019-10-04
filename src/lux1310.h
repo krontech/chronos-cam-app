@@ -157,8 +157,8 @@ public:
 	void updateWavetableSetting(bool gainCalMode = false);
 	void setADCOffset(UInt8 channel, Int16 offset);
 	Int16 getADCOffset(UInt8 channel);
-	Int32 loadADCOffsetsFromFile(void);
-	Int32 saveADCOffsetsToFile(void);
+	Int32 loadADCOffsets(const char * filename);
+	Int32 saveADCOffsets(const char * filename);
 	std::string getFilename(const char * filename, const char * extension);
 	Int32 setGain(UInt32 gainSetting);
 	UInt8 getFilterColor(UInt32 h, UInt32 v);
