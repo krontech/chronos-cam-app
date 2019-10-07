@@ -146,6 +146,8 @@ void playbackWindow::videoEnded(VideoState state, QString err)
 		camera->sensor->seqOnOff(true);
 
 		sw->close();
+		if(saveAbortedAutomatically)
+			QMessageBox::warning(this, "Warning - Insufficient free space", "Save aborted due to insufficient free space.");
 		ui->cmdSave->setText("Save");
 		saveAborted = false;
 		autoSaveFlag = false;
