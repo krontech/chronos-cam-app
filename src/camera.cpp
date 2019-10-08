@@ -713,7 +713,7 @@ void Camera::setFocusPeakEnable(bool en)
 {
 	cinst->setFloat("focusPeakingLevel", en ? focusPeakLevel : 0.0);
 	focusPeakEnabled = en;
-	vinst->setDisplayOptions(zebraEnabled, focusPeakEnabled);
+	//vinst->setDisplayOptions(zebraEnabled, focusPeakEnabled);
 }
 
 int Camera::getFocusPeakColor(){

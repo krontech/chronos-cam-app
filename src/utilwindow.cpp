@@ -112,11 +112,12 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 
 	if (camera->focusPeakEnabled)
 	{
-		if(camera->getFocusPeakThresholdLL() == FOCUS_PEAK_THRESH_HIGH)
+		UInt32 thresh = camera->getFocusPeakThresholdLL();
+		if(thresh == FOCUS_PEAK_THRESH_HIGH)
 			ui->radioFPSensHigh->setChecked(true);
-		else if(camera->getFocusPeakThresholdLL() == FOCUS_PEAK_THRESH_MED)
+		else if(thresh == FOCUS_PEAK_THRESH_MED)
 			ui->radioFPSensMed->setChecked(true);
-		else if(camera->getFocusPeakThresholdLL() == FOCUS_PEAK_THRESH_LOW)
+		else if(thresh == FOCUS_PEAK_THRESH_LOW)
 			ui->radioFPSensLow->setChecked(true);
 	}
 	else
@@ -470,7 +471,7 @@ void UtilWindow::on_cmdCloseApp_clicked()
 
 void UtilWindow::on_chkFPEnable_stateChanged(int arg1)
 {
-	camera->setFocusPeakEnable(ui->chkFPEnable->checkState());
+	if (!openingWindow) camera->setFocusPeakEnable(ui->chkFPEnable->checkState());
 }
 
 void UtilWindow::on_chkZebraEnable_stateChanged(int arg1)
