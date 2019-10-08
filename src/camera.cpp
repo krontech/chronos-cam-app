@@ -310,23 +310,22 @@ Int32 Camera::stopRecording(void)
 
 UInt32 Camera::setPlayMode(bool playMode)
 {
+	/* We can always go to live display */
+	if (!playMode) {
+		//bool videoFlip = (sensor->getSensorQuirks() & SENSOR_QUIRK_UPSIDE_DOWN) != 0;
+		bool videoFlip = false;
+		playbackMode = false;
+		vinst->liveDisplay(videoFlip);
+	}
+
+	/* Wait until we are finished recording before going to playback. */
 	if(recording)
 		return CAMERA_ALREADY_RECORDING;
 	if(!recordingData.valid)
 		return CAMERA_NO_RECORDING_PRESENT;
 
-	playbackMode = playMode;
-
-	if(playMode)
-	{
-		vinst->setPosition(0);
-	}
-	else
-	{
-		//bool videoFlip = (sensor->getSensorQuirks() & SENSOR_QUIRK_UPSIDE_DOWN) != 0;
-		bool videoFlip = false;
-		vinst->liveDisplay(videoFlip);
-	}
+	playbackMode = true;
+	vinst->setPosition(0);
 	return SUCCESS;
 }
 

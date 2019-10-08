@@ -169,8 +169,7 @@ void playbackWindow::videoEnded(VideoState state, QString err)
 
 		ui->verticalSlider->setHighlightRegion(markInFrame, markOutFrame);
 		if(autoRecordFlag) {
-			qDebug()<<"autoRecordFlag is true.  closing";
-			emit finishedSaving();
+			qDebug()<<"autoRecordFlag is true. closing";
 			delete this;
 		}
 	}
