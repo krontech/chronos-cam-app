@@ -640,21 +640,21 @@ bool Camera::getIsRecording(void)
 
 UInt32 Camera::setPlayMode(bool playMode)
 {
+	/* We can always go to live display */
+	if (!playMode) {
+		playbackMode = false;
+		vinst->liveDisplay();
+		return SUCCESS;
+	}
+
+	/* Wait until we are finished recording before going to playback. */
 	if(recording)
 		return CAMERA_ALREADY_RECORDING;
 	if(!recordingData.valid)
 		return CAMERA_NO_RECORDING_PRESENT;
 
-	playbackMode = playMode;
-
-	if(playMode)
-	{
-		vinst->setPosition(0);
-	}
-	else
-	{
-		vinst->liveDisplay();
-	}
+	playbackMode = true;
+	vinst->setPosition(0);
 	return SUCCESS;
 }
 
