@@ -48,11 +48,6 @@ CameraErrortype PySensor::init(void)
 	return SUCCESS;
 }
 
-CameraErrortype PySensor::setControl(Control *control_inst)
-{
-	cinst = control_inst;
-}
-
 FrameGeometry PySensor::getMaxGeometry(void)
 {
 	FrameGeometry size = {
@@ -65,11 +60,6 @@ FrameGeometry PySensor::getMaxGeometry(void)
 		.minFrameTime = PYSENSOR_MINFRAMETIME
 	};
 	return size;
-}
-
-void PySensor::setResolution(FrameGeometry *size)
-{
-	cinst->setResolution(size);
 }
 
 UInt32 PySensor::getMinFramePeriod(FrameGeometry *frameSize)
@@ -132,26 +122,6 @@ UInt32 PySensor::setFramePeriod(UInt32 period, FrameGeometry *size)
 UInt32 PySensor::getMaxIntegrationTime(UInt32 period, FrameGeometry *size)
 {
 	return period - 500;
-}
-
-/* setIntegrationTime
- *
- * Sets the integration time of the image sensor to a value as close as possible to requested
- *
- * intTime:	Desired integration time in clocks
- *
- * returns: Actual integration time that was set
- */
-UInt32 PySensor::setIntegrationTime(UInt32 intTime, FrameGeometry *size)
-{
-	//Set integration time to within limits
-	UInt32 maxIntTime = getMaxIntegrationTime(currentPeriod, size);
-	UInt32 minIntTime = getMinIntegrationTime(currentPeriod, size);
-	currentExposure = within(intTime, minIntTime, maxIntTime);
-
-	cinst->setInt("exposurePeriod", currentExposure);
-
-	return currentExposure;
 }
 
 /* getIntegrationTime

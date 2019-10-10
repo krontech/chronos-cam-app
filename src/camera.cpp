@@ -51,13 +51,6 @@ bool debugDbus = true;
 bool debugDbus = false;
 #endif
 
-#ifdef IMAGERSETTINGS_DBUS
-bool isDbus = true;
-#else
-bool isDbus = false;
-#endif
-
-
 Camera::Camera()
 {
 	QSettings appSettings;
@@ -83,39 +76,24 @@ Camera::~Camera()
 	pthread_join(recDataThreadID, NULL);
 }
 
-CameraErrortype Camera::init(Video * vinstInst, Control * cinstInst, PySensor * sensorInst, UserInterface * userInterface, UInt32 ramSizeVal, bool color)
+CameraErrortype Camera::init(Video * vinstInst, Control * cinstInst, PySensor * sensorInst, UserInterface * userInterface, bool color)
 {
 	CameraErrortype retVal;
-	UInt32 ramSizeGBSlot0, ramSizeGBSlot1;
 	QSettings appSettings;
-
 	CameraStatus cs;
-	CameraData cd;
-	VideoStatus st;
 
 	vinst = vinstInst;
 	cinst = cinstInst;
 	sensor = sensorInst;
 	ui = userInterface;
 
-
-	//Get the memory size
-	retVal = (CameraErrortype)getRamSizeGB(&ramSizeGBSlot0, &ramSizeGBSlot1);
-
-	if(retVal != SUCCESS)
-		return retVal;
-
-
 	//Read serial number in
 	retVal = (CameraErrortype)readSerialNumber(serialNumber);
 	if(retVal != SUCCESS)
 		return retVal;
 
-	ramSize = (ramSizeGBSlot0 + ramSizeGBSlot1)*1024/32*1024*1024;
 	isColor = true;//readIsColor();
 	int err;
-
-
 
 	retVal = cinst->status(&cs);
 	bool recording = !strcmp(cs.state, "idle");
@@ -126,68 +104,28 @@ CameraErrortype Camera::init(Video * vinstInst, Control * cinstInst, PySensor * 
 
 	err = pthread_create(&recDataThreadID, NULL, &recDataThread, this);
 
-	/* Load default recording from sensor limits. */
-	imagerSettings.geometry = sensor->getMaxGeometry();
-	imagerSettings.geometry.vDarkRows = 0;
-	imagerSettings.recRegionSizeFrames = getMaxRecordRegionSizeFrames(&imagerSettings.geometry);
-	imagerSettings.period = sensor->getMinFramePeriod(&imagerSettings.geometry);
-	imagerSettings.exposure = sensor->getMaxIntegrationTime(imagerSettings.period, &imagerSettings.geometry);
-	imagerSettings.disableRingBuffer = 0;
+	/* Load the current imager settings. */
+	cinst->getResolution(&imagerSettings.geometry);
+	cinst->getInt("currentGain", &imagerSettings.gain);
+	cinst->getInt("framePeriod", &imagerSettings.period);
+	cinst->getInt("exposurePeriod", &imagerSettings.exposure);
+	cinst->getInt("recMaxFrames", &imagerSettings.recRegionSizeFrames);
+	cinst->getInt("recPreBurst", &imagerSettings.prerecordFrames);
+	cinst->getInt("recSegments", &imagerSettings.segments);
+	/* Some stuff that doesn't quite fit... */
+	imagerSettings.segmentLengthFrames = imagerSettings.recRegionSizeFrames / imagerSettings.segments;
+	imagerSettings.disableRingBuffer = appSettings.value("camera/disableRingBuffer", 0).toInt();
 	imagerSettings.mode = RECORD_MODE_NORMAL;
-	imagerSettings.prerecordFrames = 1;
-	imagerSettings.segmentLengthFrames = imagerSettings.recRegionSizeFrames;
-	imagerSettings.segments = 1;
 
-	ImagerSettings_t settings;
-	if (isDbus)
-	{
-		cinst->getResolution(&settings.geometry);
-		settings.geometry.minFrameTime	= 0.001;
-		cinst->getInt("currentGain", &settings.gain);
-		cinst->getInt("framePeriod", &settings.period);
-		cinst->getInt("exposurePeriod", &settings.exposure);   // WAS:   = sensor->getMaxIntegrationTime(settings.period, &settings.geometry); //PYCHRONOS - this is needed but suboptimal
-		cinst->getInt("recMaxFrames", &settings.recRegionSizeFrames);
-		settings.disableRingBuffer      = appSettings.value("camera/disableRingBuffer", 0).toInt();
-		QString mode;
-		cinst->getString("recMode", &mode);
-		if (mode == "normal")
-			{ settings.mode = RECORD_MODE_NORMAL; }
-		else if (mode == "segmented")
-			{ settings.mode = RECORD_MODE_SEGMENTED; }
-		else if (mode == "burst")
-			{ settings.mode = RECORD_MODE_GATED_BURST; }
-		else
-			{ settings.mode = RECORD_MODE_NORMAL; }	// default
-		cinst->getInt("recPreBurst", &settings.prerecordFrames);
-		cinst->getInt("recSegments", &settings.segments);
-		UInt32 maxFrames;
-		cinst->getInt("cameraMaxFrames", &maxFrames);
-		settings.segmentLengthFrames    = maxFrames / settings.segments;
-		settings.temporary              = 0;
+	QString mode;
+	cinst->getString("recMode", &mode);
+	if (mode == "normal") {
+		imagerSettings.mode = RECORD_MODE_NORMAL;
+	} else if (mode == "segmented") {
+		imagerSettings.mode = RECORD_MODE_SEGMENTED;
+	} else if (mode == "burst") {
+		imagerSettings.mode = RECORD_MODE_GATED_BURST;
 	}
-	else
-	{
-		settings.geometry.hRes          = appSettings.value("camera/hRes", imagerSettings.geometry.hRes).toInt();
-		settings.geometry.vRes          = appSettings.value("camera/vRes", imagerSettings.geometry.vRes).toInt();
-		settings.geometry.hOffset       = appSettings.value("camera/hOffset", 0).toInt();
-		settings.geometry.vOffset       = appSettings.value("camera/vOffset", 0).toInt();
-		settings.geometry.vDarkRows     = 0;
-		settings.geometry.bitDepth		= imagerSettings.geometry.bitDepth;
-		settings.geometry.minFrameTime	= 0.001;
-		settings.gain                   = appSettings.value("camera/gain", 0).toInt();
-		settings.period                 = appSettings.value("camera/period", sensor->getMinFramePeriod(&settings.geometry)).toInt();
-		settings.exposure               = sensor->getMaxIntegrationTime(settings.period, &settings.geometry); //PYCHRONOS - this is needed but suboptimal
-		settings.recRegionSizeFrames    = appSettings.value("camera/recRegionSizeFrames", getMaxRecordRegionSizeFrames(&settings.geometry)).toInt();
-		settings.disableRingBuffer      = appSettings.value("camera/disableRingBuffer", 0).toInt();
-		settings.mode                   = (CameraRecordModeType)appSettings.value("camera/mode", RECORD_MODE_NORMAL).toInt();
-		settings.prerecordFrames        = appSettings.value("camera/prerecordFrames", 1).toInt();
-		settings.segmentLengthFrames    = appSettings.value("camera/segmentLengthFrames", settings.recRegionSizeFrames).toInt();
-		settings.segments               = appSettings.value("camera/segments", 1).toInt();
-		settings.temporary              = 0;
-	}
-
-	setImagerSettings(settings);
-
 
 	vinst->bitsPerPixel        = appSettings.value("recorder/bitsPerPixel", 0.7).toDouble();
 	vinst->maxBitrate          = appSettings.value("recorder/maxBitrate", 40.0).toDouble();
@@ -291,14 +229,16 @@ UInt32 Camera::getRecordLengthFrames(ImagerSettings_t settings)
 	}
 }
 
-UInt32 Camera::getFrameSizeWords(FrameGeometry *geometry)
-{
-	return ROUND_UP_MULT((geometry->size() + BYTES_PER_WORD - 1) / BYTES_PER_WORD, FRAME_ALIGN_WORDS);
-}
-
 UInt32 Camera::getMaxRecordRegionSizeFrames(FrameGeometry *geometry)
 {
-	return (ramSize - REC_REGION_START) / getFrameSizeWords(geometry);
+	/* FIXME: This breaks the API abstraction, but there is no parameter that gets this */
+	UInt32 ramSizeGB;
+	UInt32 ramSizeWords;
+	UInt32 frameSizeWords = ROUND_UP_MULT((geometry->size() + BYTES_PER_WORD - 1) / BYTES_PER_WORD, FRAME_ALIGN_WORDS);
+	cinst->getInt("cameraMemoryGB", &ramSizeGB);
+
+	ramSizeWords = ramSizeGB * ((1024 * 1024 * 1024) / BYTES_PER_WORD);
+	return (ramSizeWords - REC_REGION_START) / frameSizeWords;
 }
 
 void Camera::updateTriggerValues(ImagerSettings_t settings){
@@ -336,24 +276,9 @@ void Camera::setTriggerDelayValues(double ratio, double seconds, UInt32 frames){
 
 UInt32 Camera::setIntegrationTime(double intTime, FrameGeometry *fSize, Int32 flags)
 {
-	QSettings appSettings;
-	UInt32 validTime;
-	UInt32 defaultTime = sensor->getMaxIntegrationTime(sensor->getFramePeriod(), fSize);
-	if (flags & SETTING_FLAG_USESAVED) {
-		validTime = appSettings.value("camera/exposure", defaultTime).toInt();
-		qDebug("--- Using old settings --- Exposure time: %d (default: %d)", validTime, defaultTime);
-		cinst->setInt("exposurePeriod", validTime * 1e9);
-	}
-	else {
-		cinst->setInt("exposurePeriod", intTime * 1e9);
-		validTime = intTime; // * 1e9;
-	}
+	cinst->setInt("exposurePeriod", intTime * 1e9);
+	imagerSettings.exposure = intTime;
 
-	if (!(flags & SETTING_FLAG_TEMPORARY)) {
-		//qDebug("--- Saving settings --- Exposure time: %d", validTime);
-		appSettings.setValue("camera/exposure", validTime);
-		imagerSettings.exposure = validTime;
-	}
 	return SUCCESS;
 }
 
@@ -460,20 +385,6 @@ Int32 Camera::startRecording(void)
 	return SUCCESS;
 }
 
-Int32 Camera::setRecSequencerModeNormal()
-{
-	SeqPgmMemWord pgmWord;
-
-	if(recording)
-		return CAMERA_ALREADY_RECORDING;
-	if(playbackMode)
-		return CAMERA_IN_PLAYBACK_MODE;
-
-
-	//TODO add sequencing
-	return SUCCESS;
-}
-
 Int32 Camera::stopRecording(void)
 {
 	if(!recording)
@@ -526,11 +437,6 @@ void Camera::setBncDriveLevel(UInt32 level)
 	config.insert("source", QVariant("alwaysHigh"));
 
 	cinst->setProperty("ioMappingIo1", config);
-}
-
-Int32 Camera::autoColGainCorrection(void)
-{
-
 }
 
 #define COLOR_MATRIX_MAXVAL	((1 << SENSOR_DATA_WIDTH) * (1 << COLOR_MATRIX_INT_BITS))
@@ -602,53 +508,6 @@ UInt8 Camera::getWBIndex(){
 void Camera::setWBIndex(UInt8 index){
 	QSettings appsettings;
 	appsettings.setValue("camera/WBIndex", index);
-}
-
-
-void Camera::setFocusAid(bool enable)
-{
-	UInt32 startX, startY, cropX, cropY;
-
-	if(enable)
-	{
-		//Set crop window to native resolution of LCD or unchanged if we're scaling up
-		if(imagerSettings.geometry.hRes > 600 || imagerSettings.geometry.vRes > 480)
-		{
-			//Depending on aspect ratio, set the display window appropriately
-			if((imagerSettings.geometry.vRes * MAX_FRAME_SIZE_H) > (imagerSettings.geometry.hRes * MAX_FRAME_SIZE_V))	//If it's taller than the display aspect
-			{
-				cropY = 480;
-				cropX = cropY * imagerSettings.geometry.hRes / imagerSettings.geometry.vRes;
-				if(cropX & 1)	//If it's odd, round it up to be even
-					cropX++;
-				startX = (imagerSettings.geometry.hRes - cropX) / 2;
-				startY = (imagerSettings.geometry.vRes - cropY) / 2;
-
-			}
-			else
-			{
-				cropX = 600;
-				cropY = cropX * imagerSettings.geometry.vRes / imagerSettings.geometry.hRes;
-				if(cropY & 1)	//If it's odd, round it up to be even
-					cropY++;
-				startX = (imagerSettings.geometry.hRes - cropX) / 2;
-				startY = (imagerSettings.geometry.vRes - cropY) / 2;
-
-			}
-			qDebug() << "Setting startX" << startX << "startY" << startY << "cropX" << cropX << "cropY" << cropY;
-			vinst->setScaling(startX & 0xFFFF8, startY, cropX, cropY);	//StartX must be a multiple of 8
-		}
-	}
-	else
-	{
-		vinst->setScaling(0, 0, imagerSettings.geometry.hRes, imagerSettings.geometry.vRes);
-	}
-}
-
-bool Camera::getFocusAid()
-{
-	/* FIXME: Not implemented */
-	return false;
 }
 
 /* Nearest multiple rounding */

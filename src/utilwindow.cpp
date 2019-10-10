@@ -133,13 +133,14 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	ui->lineSerialNumber->setText(camera->getSerialNumber());
 
 	//Fill about label with camera info
-	UInt32 ramSizeSlot1, ramSizeSlot2;
-	char serialNumber[33];
+	UInt32 ramSizeGB;
+	QString serialNumber;
 	char release[128];
-	camera->getRamSizeGB(&ramSizeSlot1, &ramSizeSlot2);
-	camera->readSerialNumber(serialNumber);
 
-	aboutText.sprintf("Camera Model: Chronos 1.4, %s, %dGB\r\n", (camera->getIsColor() ? "Color" : "Monochrome"), ramSizeSlot1 + ramSizeSlot2);
+	camera->cinst->getInt("cameraMemoryGB", &ramSizeGB);
+	camera->cinst->getString("cameraSerial", &serialNumber);
+
+	aboutText.sprintf("Camera Model: Chronos 1.4, %s, %dGB\r\n", (camera->getIsColor() ? "Color" : "Monochrome"), ramSizeGB);
 	aboutText.append(QString("Serial Number: %1\r\n").arg(serialNumber));
 	aboutText.append(QString("\r\n"));
 	aboutText.append(QString("Release Version: %1\r\n").arg(readReleaseString(release, sizeof(release))));
@@ -405,8 +406,6 @@ void UtilWindow::on_cmdColumnGain_clicked()
 
 	//Turn on calibration light
 	camera->setBncDriveLevel((1 << 1));	//Turn on output drive
-
-	//retVal = camera->autoColGainCorrection();
 
 	if(SUCCESS != retVal)
 	{
@@ -1305,9 +1304,6 @@ Int32 UtilWindow::blackCalAllStdRes(void)
 	progress->show();
 
 	UInt32 progressCount = 0;
-
-	UInt32 lastHRes = -1;
-
 	bool cancelButton = false;
 
 	//do initial analog gain, in case gain is already 1.

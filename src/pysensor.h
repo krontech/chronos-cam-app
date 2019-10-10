@@ -99,11 +99,9 @@ public:
 	PySensor(Control *control);
 	~PySensor();
 	CameraErrortype init(void);
-	CameraErrortype setControl(Control *control_inst);
-
 	Control *cinst;
+
 	/* Frame Geometry Functions. */
-	void setResolution(FrameGeometry *frameSize);
 	FrameGeometry getMaxGeometry(void);
 	UInt32 getHResIncrement() { return PYSENSOR_HRES_INCREMENT; }
 	UInt32 getVResIncrement()  { return PYSENSOR_VRES_INCREMENT; }
@@ -122,7 +120,6 @@ public:
 	UInt32 getMaxIntegrationTime(UInt32 period, FrameGeometry *frameSize);
 	UInt32 getMinIntegrationTime(UInt32 period, FrameGeometry *frameSize) { return PYSENSOR_TIMING_CLOCK / 1000000; }  /* 1us */
 	UInt32 getIntegrationTime(void);
-	UInt32 setIntegrationTime(UInt32 intTime, FrameGeometry *frameSize);
 
 	UInt32 currentPeriod;		//moved to public for PyChronos
 	UInt32 currentExposure;		//moved to public for PyChronos

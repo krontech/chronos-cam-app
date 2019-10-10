@@ -78,7 +78,7 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	battCapacityPercent = 0;
 
 	userInterface->init();
-	retVal = camera->init(vinst, cinst, sensor, userInterface, 16*1024/32*1024*1024, true);
+	retVal = camera->init(vinst, cinst, sensor, userInterface, true);
 
 	if(retVal != SUCCESS)
 	{
@@ -117,7 +117,6 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	}
 
 	if (camera->get_autoRecord()) {
-		camera->setRecSequencerModeNormal();
 		camera->startRecording();
 	}
 	if (camera->get_autoSave()) autoSaveActive = true;
@@ -135,8 +134,6 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	//record the number of widgets that are open before any other windows can be opened
 	QWidgetList qwl = QApplication::topLevelWidgets();
 	windowsAlwaysOpen = qwl.count();
-
-	PySensor *ps = (PySensor *)sensor;
 
 	if (!QObject::connect(cinst, SIGNAL(apiSetFramePeriod(UInt32)), camera, SLOT(apiDoSetFramePeriod(UInt32)))) {
 		qDebug() << "Connect failed"; }
@@ -240,7 +237,6 @@ void CamMainWindow::on_cmdRec_clicked()
 				return;
 		}
 
-		camera->setRecSequencerModeNormal();
 		camera->startRecording();
 		if (camera->get_autoSave()) autoSaveActive = true;
 
@@ -279,7 +275,6 @@ void CamMainWindow::playFinishedSaving()
 	if (camera->get_autoSave()) autoSaveActive = true;
 	if (camera->get_autoRecord() && camera->autoRecord) {
 		delayms(100);//delay needed or else the record may not always automatically start
-		camera->setRecSequencerModeNormal();
 		camera->startRecording();
 		qDebug("--- started recording ---");
 	}
@@ -437,8 +432,6 @@ extern bool debugDbus;
 void CamMainWindow::on_MainWindowTimer()
 {
 	bool shutterButton = camera->ui->getShutterButton();
-	char buf[300];
-	Int32 len;
 	QSettings appSettings;
 
 
@@ -461,13 +454,11 @@ void CamMainWindow::on_MainWindowTimer()
 					reply = QMessageBox::question(this, "Unsaved video in RAM", "Start recording anyway and discard the unsaved video in RAM?", QMessageBox::Yes|QMessageBox::No);
 					if(QMessageBox::Yes == reply)
 					{
-						camera->setRecSequencerModeNormal();
 						camera->startRecording();
 					}
 				}
 				else
 				{
-					camera->setRecSequencerModeNormal();
 					camera->startRecording();
 					if (camera->get_autoSave()) autoSaveActive = true;
 				}

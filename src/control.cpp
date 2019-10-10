@@ -505,11 +505,6 @@ Control::~Control()
 
 void Control::notify(const QVariantMap &args)
 {
-	emit notified(parseNotification(args));
-}
-
-ControlStatus Control::parseNotification(const QVariantMap &args)
-{
 	qDebug() << "-------------------------------------";
 
 	for(auto e : args.keys())
@@ -673,16 +668,13 @@ int Control::mkfilename(char *path, save_mode_type save_mode)
 	return SUCCESS;
 }
 
-CameraErrortype Control::saveRecording(UInt32 sizeX, UInt32 sizeY, UInt32 start, UInt32 length, save_mode_type save_mode, double bitsPerPixel, UInt32 framerate, UInt32 maxBitrate)
+CameraErrortype Control::saveRecording(UInt32 start, UInt32 length, save_mode_type save_mode, UInt32 framerate, UInt32 maxBitrate)
 {
 	QDBusPendingReply<QVariantMap> reply;
 	QVariantMap map;
-	UInt64 estFileSize;
-	UInt32 realBitrate;
 	char path[1000];
 
 	/* Generate the desired filename, and check that we can write it. */
-	//if(camera->vinst->mkfilename(path, save_mode) == RECORD_FILE_EXISTS) return RECORD_FILE_EXISTS;
 	int ret = mkfilename(path, save_mode);
 	if(ret != SUCCESS) return (CameraErrortype)ret;
 
@@ -693,33 +685,23 @@ CameraErrortype Control::saveRecording(UInt32 sizeX, UInt32 sizeY, UInt32 start,
 	map.insert("length", QVariant(length));
 	switch(save_mode) {
 	case SAVE_MODE_H264:
-		realBitrate = min(bitsPerPixel * sizeX * sizeY * framerate, min(60000000, (UInt32)(maxBitrate * 1000000.0)));
-		estFileSize = realBitrate * (length / framerate) / 8; /* size = (bits/sec) * (seconds) / (8 bits/byte) */
 		map.insert("format", QVariant("h264"));
-		map.insert("bitrate", QVariant((uint)realBitrate));
+		map.insert("bitrate", QVariant((uint)maxBitrate));
 		map.insert("framerate", QVariant((uint)framerate));
 		break;
 	case SAVE_MODE_RAW16:
-		estFileSize = 16 * sizeX * sizeY * length / 8;
 		map.insert("format", QVariant("y16"));
 		break;
 	case SAVE_MODE_RAW12:
-		estFileSize = 12 * sizeX * sizeY * length / 8;
 		map.insert("format", QVariant("y12b"));
 		break;
 	case SAVE_MODE_DNG:
-		estFileSize = 16 * sizeX * sizeY * length / 8;
-		estFileSize += (4096 * length);
 		map.insert("format", QVariant("dng"));
 		break;
 	case SAVE_MODE_TIFF:
-		estFileSize = 24 * sizeX * sizeY * length / 8;
-		estFileSize += (4096 * length);
 		map.insert("format", QVariant("tiff"));
 		break;
 	case SAVE_MODE_TIFF_RAW:
-		estFileSize = 16 * sizeX * sizeY * length / 8;
-		estFileSize += (4096 * length);
 		map.insert("format", QVariant("tiffraw"));
 		break;
 	}

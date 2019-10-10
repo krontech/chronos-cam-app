@@ -87,14 +87,6 @@ UInt32 Camera::getFocusPeakThresholdLL(void)
 	return FOCUS_PEAK_API_LOW;
 }
 
-Int32 Camera::getRamSizeGB(UInt32 * stick0SizeGB, UInt32 * stick1SizeGB)
-{
-	int retVal;
-	retVal = cinst->getInt("cameraMemoryGB", stick0SizeGB);
-	*stick1SizeGB = 0;
-	return retVal;
-}
-
 //dest must be a char array that can handle SERIAL_NUMBER_MAX_LEN + 1 bytes
 Int32 Camera::readSerialNumber(char * dest)
 {

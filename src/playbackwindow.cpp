@@ -34,8 +34,6 @@
 #define USE_AUTONAME_FOR_SAVE ""
 #define MIN_FREE_SPACE 20000000
 
-extern bool isDbus;
-
 playbackWindow::playbackWindow(QWidget *parent, Camera * cameraInst, bool autosave) :
 	QWidget(parent),
 	ui(new Ui::playbackWindow)
@@ -230,20 +228,9 @@ void playbackWindow::on_cmdSave_clicked()
 	if(camera->vinst->getStatus(NULL) != VIDEO_STATE_FILESAVE)
 	{
 		save_mode_type format = getSaveFormat();
-		UInt32 hRes;
-		UInt32 vRes;
-		if (isDbus)
-		{
-			FrameGeometry frame;
-			camera->cinst->getResolution(&frame);
-			hRes = frame.hRes;
-			vRes = frame.vRes;
-		}
-		else
-		{
-			hRes = appSettings.value("camera/hRes", MAX_FRAME_SIZE_H).toInt();
-			vRes = appSettings.value("camera/vRes", MAX_FRAME_SIZE_V).toInt();
-	}
+		FrameGeometry frame;
+
+		camera->cinst->getResolution(&frame);
 
 		//If no directory set, complain to the user
 		if(strlen(camera->cinst->fileDirectory) == 0)
@@ -291,12 +278,12 @@ void playbackWindow::on_cmdSave_clicked()
 			}
 
 			// calculate estimated file size
-			estimatedSize = (hRes * vRes * numFrames);
+			estimatedSize = (frame.pixels() * numFrames);
 			estimatedSize = ((double)estimatedSize * bpp) / 8;
 			estimatedSize += fileOverhead;
 
 			qDebug("===================================");
-			qDebug("Resolution: %d x %d", hRes, vRes);
+			qDebug("Resolution: %d x %d", frame.hRes, frame.vRes);
 			qDebug("Bits/pixel: %f", bpp);
 			qDebug("Frames: %d", markOutFrame - markInFrame + 1);
 			qDebug("Free space: %llu", freeSpace);
@@ -343,8 +330,10 @@ void playbackWindow::on_cmdSave_clicked()
 		if (stat(camera->cinst->fileDirectory, &sb) == 0 && S_ISDIR(sb.st_mode) &&
 				stat(parentPath, &sbP) == 0 && sb.st_dev != sbP.st_dev)		//If location is directory and is a mount point (device ID of parent is different from device ID of path)
 		{
-			//ret = camera->vinst->startRecording((hRes + 15) & 0xFFFFFFF0, vRes, markInFrame - 1, markOutFrame - markInFrame + 1, format);
-			ret = camera->cinst->saveRecording((hRes + 15) & 0xFFFFFFF0, vRes, markInFrame - 1, markOutFrame - markInFrame + 1, format, camera->vinst->bitsPerPixel, camera->vinst->framerate, camera->vinst->maxBitrate);
+			UInt32 bppBitrate = camera->vinst->bitsPerPixel * frame.pixels() * camera->vinst->framerate;
+			UInt32 realBitrate = min(bppBitrate, min(60000000, (UInt32)(camera->vinst->maxBitrate * 1000000.0)));
+
+			ret = camera->cinst->saveRecording(markInFrame - 1, markOutFrame - markInFrame + 1, format, camera->vinst->framerate, realBitrate);
 			if (RECORD_FILE_EXISTS == ret) {
 				msg.setText("File already exists. Rename then try saving again.");
 				msg.exec();

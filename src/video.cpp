@@ -388,7 +388,6 @@ void Video::segment(const QVariantMap &args)
 Video::Video() : iface("ca.krontech.chronos.video", "/ca/krontech/chronos/video", QDBusConnection::systemBus())
 {
 	QDBusConnection conn = iface.connection();
-	int i;
 
 	pid = -1;
 	running = false;

@@ -61,9 +61,6 @@
 #define COL_GAIN_FRAC_BITS		12		// 2-point column gain fractional bits.
 #define COL_CURVE_FRAC_BITS		21		// 3-point column curvature factional bits.
 
-#define SETTING_FLAG_TEMPORARY  1
-#define SETTING_FLAG_USESAVED   2
-
 #define FREE_SPACE_MARGIN_MULTIPLIER 1.1    //Drive must have at least this factor more free space than the estimated file size to allow saving
 
 #define CAMERA_MAX_EXPOSURE_TARGET 3584
@@ -182,9 +179,8 @@ class Camera : public QObject {
 public:
 	Camera();
 	~Camera();
-	CameraErrortype init(Video * vinstInst, Control * cinstInst, PySensor * sensorInst, UserInterface * userInterface, UInt32 ramSizeVal, bool color);
+	CameraErrortype init(Video * vinstInst, Control * cinstInst, PySensor * sensorInst, UserInterface * userInterface, bool color);
 	Int32 startRecording(void);
-	Int32 setRecSequencerModeNormal();
 	Int32 stopRecording(void);
 	bool getIsRecording(void);
 	Video * vinst;
@@ -198,10 +194,6 @@ public:
 
 	UInt32 getRecordLengthFrames(ImagerSettings_t settings);
     CameraData cData;
-    SensorData sData;
-    SensorLimits sLimits;
-    SensorSettings sSettings;
-	CameraStatus cStatus;
 
 	unsigned short getTriggerDelayConstant();
 	void setTriggerDelayConstant(unsigned short value);
@@ -220,15 +212,12 @@ public:
 	UInt32 setImagerSettings(ImagerSettings_t settings);
 	UInt32 setIntegrationTime(double intTime, FrameGeometry *geometry, Int32 flags);
 	UInt32 setPlayMode(bool playMode);
-	Int32 autoColGainCorrection(void);
 	Int32 takeWhiteReferences(void);
 	bool focusPeakEnabled;
 
 	void setCCMatrix(const double *matrix);
 	void setWhiteBalance(const double *rgb);
 	int autoWhiteBalance(unsigned int x, unsigned int y);
-	void setFocusAid(bool enable);
-	bool getFocusAid();
 	int blackCalAllStdRes(bool factory = false);
 
 	void setBncDriveLevel(UInt32 level);
@@ -249,7 +238,6 @@ public:
 	void setSerialNumber(const char * sn) {strcpy(serialNumber, sn);}
 	bool getIsColor() {return isColor;}
 
-	UInt32 getFrameSizeWords(FrameGeometry *geometry);
 	UInt32 getMaxRecordRegionSizeFrames(FrameGeometry *geometry);
 
 	bool getRecording(void);
@@ -258,7 +246,6 @@ public:
 	void setFocusPeakThresholdLL(UInt32 thresh);
 	double convertFocusPeakThreshold(UInt32 thresh);
 	UInt32 getFocusPeakThresholdLL(void);
-	Int32 getRamSizeGB(UInt32 * stick0SizeGB, UInt32 * stick1SizeGB);
 	Int32 readSerialNumber(char * dest);
 	Int32 writeSerialNumber(char * src);
 	UInt16 getFPGAVersion(void);
@@ -355,7 +342,6 @@ private:
 	bool lastRecording;
 	QString lastState = "idle";
 	bool terminateRecDataThread;
-	UInt32 ramSize;
 	pthread_t recDataThreadID;
 	QTimer * loopTimer;
 	bool loopTimerEnabled = false;

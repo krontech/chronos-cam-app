@@ -134,11 +134,8 @@ public:
     CameraErrortype startRecord(void);
     CameraErrortype stopRecord(void);
     CameraErrortype getCalCapabilities(void);
-	ControlStatus parseNotification(const QVariantMap &args);
 	int mkfilename(char *path, save_mode_type save_mode);
-	CameraErrortype saveRecording(UInt32 sizeX, UInt32 sizeY, UInt32 start, UInt32 length, save_mode_type save_mode, double bitsPerPixel, UInt32 framerate, UInt32 maxBitrate);
-
-    CameraData cd;
+	CameraErrortype saveRecording(UInt32 start, UInt32 length, save_mode_type save_mode, UInt32 framerate, UInt32 maxBitrate);
 
 private:
     int pid;
@@ -178,10 +175,6 @@ signals:
 	void apiSetWbMatrix(QVariant wb);
 	void apiSetColorMatrix(QVariant wb);
 	void apiSetResolution(QVariant wb);
-
-	void notified(ControlStatus state);
-
-
 
     /* D-Bus signal handlers. */
 private slots:
