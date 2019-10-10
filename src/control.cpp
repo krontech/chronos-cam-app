@@ -4,7 +4,6 @@
 #include <unistd.h>
 #include <string>
 #include <QDebug>
-//#include <qjsonobject.h>
 #include <memory.h>
 #include <getopt.h>
 #include <string.h>

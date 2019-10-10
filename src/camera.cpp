@@ -35,7 +35,6 @@
 #include "defines.h"
 #include <QWSDisplay>
 #include "control.h"
-#include "exec.h"
 #include "camera.h"
 #include "pysensor.h"
 #include "cammainwindow.h"

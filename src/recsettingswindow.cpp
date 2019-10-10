@@ -22,7 +22,6 @@
 #include <QResource>
 #include <QDir>
 #include "camLineEdit.h"
-#include "exec.h"
 
 #include <QDebug>
 #include <cstdio>

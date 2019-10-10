@@ -95,16 +95,8 @@ SOURCES += main.cpp\
     colorwindow.cpp \
     colordoublespinbox.cpp \
     control.cpp \
-    exec.cpp \
     myinputpanel.cpp \
     pysensor.cpp \
-    qjson4/QJsonArray.cpp \
-    qjson4/QJsonDocument.cpp \
-    qjson4/QJsonObject.cpp \
-    qjson4/QJsonParseError.cpp \
-    qjson4/QJsonParser.cpp \
-    qjson4/QJsonValue.cpp \
-    qjson4/QJsonValueRef.cpp \
     errorStrings.cpp
 
 ## Generate version.cpp on every build
@@ -154,16 +146,8 @@ HEADERS  += mainwindow.h \
     colordoublespinbox.h \
     frameGeometry.h \
     control.h \
-    exec.h \
     myinputpanel.h \
     ui_myinputpanelform.h \
-    qjson4/QJsonArray.h \
-    qjson4/QJsonDocument.h \
-    qjson4/QJsonParseError.h \
-    qjson4/QJsonParser.h \
-    qjson4/QJsonRoot.h \
-    qjson4/QJsonValue.h \
-    qjson4/QJsonValueRef.h \
     pysensor.h
 
 FORMS    += mainwindow.ui \
