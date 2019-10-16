@@ -1210,7 +1210,7 @@ void UtilWindow::waitForIdle(void)
 			rounds++;
 		}
 	} while (waiting);
-	qd "## Waiting" << rounds*50 << "ms";
+	qDebug() << "## Waiting" << rounds*50 << "ms";
 }
 
 
@@ -1294,7 +1294,7 @@ Int32 UtilWindow::blackCalAllStdRes(void)
 	bool cancelButton = false;
 
 	//do initial analog gain, in case gain is already 1.
-	qd "### analog cal";
+	qDebug() << "### analog cal";
 	camera->cinst->startCalibration("analogCal");
 
 	UInt32 lastTime = timer.elapsed() / 1000;
@@ -1335,7 +1335,7 @@ Int32 UtilWindow::blackCalAllStdRes(void)
 			progressCount++;
 
 			waitForIdle();
-			qd "### set gain";
+			qDebug() << "### set gain";
 			camera->cinst->setInt("currentGain", gain);
 			qDebug() << "black cal at gain" << gain;
 			waitForIdle();
@@ -1346,7 +1346,7 @@ Int32 UtilWindow::blackCalAllStdRes(void)
 			}
 			else
 			{
-				qd "### black cal";
+				qDebug() << "### black cal";
 				camera->cinst->startCalibration("blackCal");
 			}
 
@@ -1360,14 +1360,14 @@ Int32 UtilWindow::blackCalAllStdRes(void)
 
 	//restore settings
 	waitForIdle();
-	qd "### set resolution";
+	qDebug() << "### set resolution";
 	camera->cinst->setResolution(&saveGeometry);
-	qd "### set exposure period";
+	qDebug() << "### set exposure period";
 	waitForIdle();
 	camera->cinst->setInt("exposurePeriod", keepIntegrationTime);
-	qd "### set frame period";
+	qDebug() << "### set frame period";
 	camera->cinst->setInt("framePeriod", keepFramePeriod);
-	qd "### set gain";
+	qDebug() << "### set gain";
 	camera->cinst->setInt("currentGain", keepCurrentGain);
 
 	//qDebug() << "###################### Black cal all resolutions took" << timer.elapsed()/1000 << "seconds";
