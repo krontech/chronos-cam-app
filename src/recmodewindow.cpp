@@ -38,6 +38,7 @@ recModeWindow::recModeWindow(QWidget *parent, Camera * cameraInst, ImagerSetting
         case RECORD_MODE_GATED_BURST:
             ui->radioGated->setChecked(true);
             ui->stackedWidget->setCurrentIndex(1);
+            ui->grpSegmented->setVisible(false);
         break;
 
         case RECORD_MODE_FPN:
@@ -47,18 +48,18 @@ recModeWindow::recModeWindow(QWidget *parent, Camera * cameraInst, ImagerSetting
     }
 
 	ui->spinRecLengthFrames->setMaximum(camera->getMaxRecordRegionSizeFrames(&is->geometry));
-    ui->spinRecLengthFrames->setValue(is->recRegionSizeFrames);
+	ui->spinRecLengthFrames->setValue(is->recRegionSizeFrames);
 
 	ui->spinRecLengthSeconds->setMaximum((double)(camera->getMaxRecordRegionSizeFrames(&is->geometry)) * ((double) is->period / SYSTEMCLOCK));
 	ui->spinRecLengthSeconds->setValue((double)is->period / SYSTEMCLOCK * is->recRegionSizeFrames);
 
-    ui->spinSegmentCount->setValue(is->segments);
+	ui->spinSegmentCount->setValue(is->segments);
 
 	ui->spinPrerecordFrames->setMaximum(camera->getMaxRecordRegionSizeFrames(&is->geometry) / 2);
 	ui->spinPrerecordSeconds->setMaximum(ui->spinPrerecordFrames->maximum() * (double)is->period / SYSTEMCLOCK);
 	ui->spinPrerecordSeconds->setMinimum((double)is->period / SYSTEMCLOCK);
 
-    ui->spinPrerecordFrames->setValue(is->prerecordFrames);
+	ui->spinPrerecordFrames->setValue(is->prerecordFrames);
 	ui->spinPrerecordSeconds->setValue(((double)is->period / SYSTEMCLOCK * is->prerecordFrames));
 
 

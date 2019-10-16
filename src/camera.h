@@ -19,6 +19,7 @@
 
 #include <pthread.h>
 #include <semaphore.h>
+#include <QProgressDialog>
 
 #include "errorCodes.h"
 #include "defines.h"
@@ -42,7 +43,7 @@
 #define SEGMENT_COUNT_MAX       (32*1024)   //Maximum number of record segments in segmented mode
 #define FPN_ADDRESS				CAL_REGION_START
 
-#define MAX_FRAME_SIZE_H		1952
+#define MAX_FRAME_SIZE_H		1920
 #define MAX_FRAME_SIZE_V		1080
 #define MAX_FRAME_SIZE          (MAX_FRAME_SIZE_H * MAX_FRAME_SIZE_V * 8 / 12)
 #define BITS_PER_PIXEL			12
@@ -152,6 +153,8 @@ typedef struct {
 	ImagerSettings_t is;
 	bool valid;
 	bool hasBeenSaved;
+	bool hasBeenViewed;
+	UInt32 ignoreSegments;
 } RecordSettings_t;
 
 typedef struct {
@@ -184,7 +187,7 @@ public:
 	Int32 stopRecording(void);
 	bool getIsRecording(void);
 	Video * vinst;
-    Control * cinst;
+	Control * cinst;
 	PySensor * sensor;
 	UserInterface * ui;
 
@@ -193,7 +196,7 @@ public:
 	UInt32 loadImagerSettings(ImagerSettings_t * settings);
 
 	UInt32 getRecordLengthFrames(ImagerSettings_t settings);
-    CameraData cData;
+	CameraData cData;
 
 	unsigned short getTriggerDelayConstant();
 	void setTriggerDelayConstant(unsigned short value);
@@ -209,6 +212,7 @@ public:
 	UInt32 liveLoopTime = 2000;	//in milliseconds
 
 	void getSensorInfo(Control *c);
+	bool readIsColor(void);
 	UInt32 setImagerSettings(ImagerSettings_t settings);
 	UInt32 setIntegrationTime(double intTime, FrameGeometry *geometry, Int32 flags);
 	UInt32 setPlayMode(bool playMode);
@@ -218,7 +222,9 @@ public:
 	void setCCMatrix(const double *matrix);
 	void setWhiteBalance(const double *rgb);
 	int autoWhiteBalance(unsigned int x, unsigned int y);
-	int blackCalAllStdRes(bool factory = false);
+	void setFocusAid(bool enable);
+	bool getFocusAid();
+	int blackCalAllStdRes(bool factory = false, QProgressDialog *dialog = NULL);
 
 	void setBncDriveLevel(UInt32 level);
 	void setTriggerDelayFrames(UInt32 delayFrames);

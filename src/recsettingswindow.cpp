@@ -45,8 +45,9 @@ RecSettingsWindow::RecSettingsWindow(QWidget *parent, Camera * cameraInst) :
 	ui(new Ui::RecSettingsWindow)
 {
 	char str[100];
+	UInt32 gain;
 
-		// as non-static data member initializers can't happen in the .h, making sure it's set correct here.
+	// as non-static data member initializers can't happen in the .h, making sure it's set correct here.
 	windowInitComplete = false;
 
 	ui->setupUi(this);
@@ -85,18 +86,29 @@ RecSettingsWindow::RecSettingsWindow(QWidget *parent, Camera * cameraInst) :
 	ui->spinHOffset->setValue(is->geometry.hOffset);
 	ui->spinVOffset->setValue(is->geometry.vOffset);
 
-	ui->comboGain->addItem("0dB (x1)");
-	ui->comboGain->addItem("6dB (x2)");
-	ui->comboGain->addItem("12dB (x4)");
-	ui->comboGain->addItem("18dB (x8)");
-	ui->comboGain->addItem("24dB (x16)");
-	ui->comboGain->setCurrentIndex(is->gain);
+	for (gain = camera->sensor->getMinGain(); gain <= camera->sensor->getMaxGain(); gain *= 2) {
+		QString gainText;
+		gainText.sprintf("%ddB (x%u)", int(6.0 * log2(gain)), gain);
+
+		ui->comboGain->addItem(gainText, QVariant(gain));
+	}
+	int gainIndex = ui->comboGain->findData(QVariant(is->gain));
+	if (gainIndex < 0) gainIndex = 0;
+	ui->comboGain->setCurrentIndex(gainIndex);
 
 	//Populate the common resolution combo box from the list of resolutions
 	QFile fp;
 	QString filename;
 	QByteArray line;
 	QString lineText;
+	int fps;
+	FrameGeometry frameSize = camera->sensor->getMaxGeometry();
+
+	/* List the sensor's native resolution first. */
+	frameSize.hOffset = frameSize.vOffset = frameSize.vDarkRows = 0;
+	fps = camera->sensor->getFramePeriodClock() / camera->sensor->getMinFramePeriod(&frameSize);
+	lineText.sprintf("%dx%d %d fps", frameSize.hRes, frameSize.vRes, fps);
+	ui->comboRes->addItem(lineText);
 
 	filename.append("camApp:resolutions");
 	QFileInfo resolutionsFile(filename);
@@ -119,18 +131,20 @@ RecSettingsWindow::RecSettingsWindow(QWidget *parent, Camera * cameraInst) :
 			break;
 		
 		//Get the resolution and compute the maximum frame rate to be appended after the resolution
-		sscanf(line.constData(), "%dx%d", &fSize.hRes, &fSize.vRes);
-		fSize.bitDepth = BITS_PER_PIXEL;
-		fSize.hOffset = fSize.vOffset = fSize.vDarkRows = 0;
+		sscanf(line.constData(), "%dx%d", &frameSize.hRes, &frameSize.vRes);
+		frameSize.hOffset = frameSize.vOffset = frameSize.vDarkRows = 0;
+		if (camera->sensor->isValidResolution(&frameSize)) {
+			int minPeriod = camera->sensor->getMinFramePeriod(&frameSize);
+			int fps = camera->sensor->getFramePeriodClock() / minPeriod;
+			qDebug("Common Res: %dx%d mPeriod=%d fps=%d", frameSize.hRes, frameSize.vRes, minPeriod, fps);
 
-		int fr =  camera->sensor->getIntegrationClock() / (double)camera->sensor->getMinFramePeriod(&fSize);
-
-		lineText.sprintf("%dx%d %d fps", fSize.hRes, fSize.vRes, fr);
-		
-		ui->comboRes->addItem(lineText);
-
-		if ((fSize.hRes == is->geometry.hRes) && (fSize.vRes == is->geometry.vRes)) {
-			ui->comboRes->setCurrentIndex(ui->comboRes->count() - 1);
+			lineText.sprintf("%dx%d %d fps", frameSize.hRes, frameSize.vRes, fps);
+			if (ui->comboRes->findText(lineText) < 0) {
+				ui->comboRes->addItem(lineText);
+				if ((frameSize.hRes == is->geometry.hRes) && (frameSize.vRes == is->geometry.vRes)) {
+					ui->comboRes->setCurrentIndex(ui->comboRes->count() - 1);
+				}
+			}
 		}
 	}
 	
@@ -180,7 +194,7 @@ RecSettingsWindow::RecSettingsWindow(QWidget *parent, Camera * cameraInst) :
 
 RecSettingsWindow::~RecSettingsWindow()
 {
-    delete is;
+	delete is;
 	delete ui;
 }
 
@@ -198,10 +212,16 @@ FrameGeometry RecSettingsWindow::getResolution(void)
 
 void RecSettingsWindow::on_cmdOK_clicked()
 {
-	is->gain = ui->comboGain->currentIndex();
+	bool videoFlip = (camera->sensor->getSensorQuirks() & SENSOR_QUIRK_UPSIDE_DOWN) != 0;
 	double keepMin = is->geometry.minFrameTime;
+
+	int gainIndex = ui->comboGain->currentIndex();
+	is->gain = camera->sensor->getMinGain();
 	is->geometry = getResolution();
 	is->geometry.minFrameTime = keepMin;
+	if (gainIndex >= 0) {
+		is->gain = ui->comboGain->itemData(gainIndex).toInt();
+	}
 
 	UInt32 period = camera->sensor->getActualFramePeriod(ui->linePeriod->siText(), &is->geometry);
 	UInt32 intTime = camera->sensor->getActualIntegrationTime(ui->lineExp->siText(), period, &is->geometry);
@@ -210,10 +230,12 @@ void RecSettingsWindow::on_cmdOK_clicked()
 	is->exposure = intTime;
 	is->temporary = 0;
 
+	camera->updateTriggerValues(*is);
 	camera->setImagerSettings(*is);
-	camera->vinst->liveDisplay(is->geometry.hRes, is->geometry.vRes);
+	camera->vinst->liveDisplay(videoFlip);
 
-
+	emit settingsChanged();
+	
 	close();
 }
 
@@ -235,7 +257,7 @@ void RecSettingsWindow::on_spinHRes_valueChanged(int arg1)
 
 void RecSettingsWindow::on_spinHRes_editingFinished()
 {
-	ui->spinHRes->setValue(round((UInt32)ui->spinHRes->value(), camera->sensor->getHResIncrement()));
+	ui->spinHRes->setValue(max(camera->sensor->getMinHRes(), round((UInt32)ui->spinHRes->value(), camera->sensor->getHResIncrement())));
 
 	updateFramePreview();
 	updateInfoText();
@@ -258,7 +280,7 @@ void RecSettingsWindow::on_spinVRes_valueChanged(int arg1)
 
 void RecSettingsWindow::on_spinVRes_editingFinished()
 {
-	ui->spinVRes->setValue(round((UInt32)ui->spinVRes->value(), camera->sensor->getVResIncrement()));
+	ui->spinVRes->setValue(max(camera->sensor->getMinVRes(), round((UInt32)ui->spinVRes->value(), camera->sensor->getVResIncrement())));
 
 	updateFramePreview();
 	updateInfoText();
@@ -419,8 +441,14 @@ void RecSettingsWindow::on_cmdExpMax_clicked()
 
 	//Format the entered value nicely
 	getSIText(str, exp, 10, DEF_SI_OPTS, 8);
-	qDebug() << exp;
 	ui->lineExp->setText(str);
+}
+
+void RecSettingsWindow::updateFramePreview()
+{
+	FrameGeometry fSize = getResolution();
+	ui->frameImage->setGeometry(QRect(fSize.hOffset/4, fSize.vOffset/4, fSize.hRes/4, fSize.vRes/4));
+	ui->frame->repaint();
 }
 
 void RecSettingsWindow::updateInfoText()
@@ -441,12 +469,6 @@ void RecSettingsWindow::updateInfoText()
 
 	sprintf(str, "Max rate for this resolution:\r\n%sfps\r\nMin Period: %ss", maxRateStr, minPeriodStr);
 	ui->lblInfo->setText(str);
-}
-
-void RecSettingsWindow::updateFramePreview()
-{
-	FrameGeometry fSize = getResolution();
-	ui->frameImage->setGeometry(QRect(fSize.hOffset/4, fSize.vOffset/4, fSize.hRes/4, fSize.vRes/4));
 }
 
 void RecSettingsWindow::setResFromText(char * str)
@@ -470,7 +492,6 @@ void RecSettingsWindow::setResFromText(char * str)
 
 void RecSettingsWindow::closeEvent(QCloseEvent *event)
 {
-	emit settingsChanged();
 	QEvent ev(QEvent::CloseSoftwareInputPanel);
 	QApplication::sendEvent((QObject *)qApp->inputContext(), &ev);
 	event->accept();
@@ -494,12 +515,12 @@ void RecSettingsWindow::on_cmdRecMode_clicked()
 
 	is->period = period;
 	is->exposure = intTime;
-    is->temporary = 0;
+	is->temporary = 0;
 
-    recModeWindow *w = new recModeWindow(NULL, camera, is);
-    //w->camera = camera;
-    w->setAttribute(Qt::WA_DeleteOnClose);
-    w->show();
+	recModeWindow *w = new recModeWindow(NULL, camera, is);
+	//w->camera = camera;
+	w->setAttribute(Qt::WA_DeleteOnClose);
+	w->show();
 }
 
 void RecSettingsWindow::on_cmdDelaySettings_clicked()

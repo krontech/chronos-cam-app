@@ -52,6 +52,11 @@ playbackWindow::playbackWindow(QWidget *parent, Camera * cameraInst, bool autosa
 	saveAbortedAutomatically = false;
 	
 	camera->vinst->getStatus(&vStatus);
+	
+	if(camera->vinst->getOverlayStatus())	{
+		camera->vinst->setOverlay("%.6h/%.6z Sg=%g/%i T=%.8Ss");
+	}
+
 	playFrame = 0;
 	playLoop = false;
 	totalFrames = vStatus.totalFrames;
@@ -92,7 +97,6 @@ playbackWindow::playbackWindow(QWidget *parent, Camera * cameraInst, bool autosa
 		strcpy(camera->cinst->filename, appSettings.value("recorder/filename", "").toString().toAscii());
 	}
 	
-	if(camera->vinst->getOverlayStatus())	camera->vinst->setOverlay("%.6h/%.6z Sg=%g/%i T=%.8Ss");
 }
 
 playbackWindow::~playbackWindow()
@@ -393,14 +397,6 @@ void playbackWindow::addDotsToString(QString* abc)
 	else if(periodsToAdd == 3) abc->append("...");
 }
 
-void playbackWindow::addPercentToString(QString* abc)
-{
-	UInt32 percent = 100 * (playFrame - markInFrame) / (markOutFrame - markInFrame);
-
-	abc->append(QString::number(percent));
-	abc->append("% ");
-	}
-
 void playbackWindow::on_cmdSaveSettings_clicked()
 {
 	saveSettingsWindow *w = new saveSettingsWindow(NULL, camera);
@@ -485,16 +481,13 @@ void playbackWindow::updateSWText(){
 	} else {
 		statusWindowText = QString(" Aborting Save ");
 	}
-	//addDotsToString(&statusWindowText);
-	addPercentToString(&statusWindowText);
+	addDotsToString(&statusWindowText);
 	sw->setText(statusWindowText);
 }
 
 //Periodically check if the play frame is updated
 void playbackWindow::updatePlayFrame()
 {
-	//return; //until this starts using API
-
 	VideoStatus st;
 	char playRateStr[100];
 	camera->vinst->getStatus(&st);
@@ -583,7 +576,7 @@ void playbackWindow::stopPlayLoop(void)
 
 void playbackWindow::on_cmdClose_clicked()
 {
-	camera->videoHasBeenReviewed = true;
+	camera->recordingData.hasBeenViewed = true;
 	camera->autoRecord = false;
 }
 

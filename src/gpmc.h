@@ -14,41 +14,39 @@
  *  You should have received a copy of the GNU General Public License       *
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.   *
  ****************************************************************************/
-#ifndef DEFINES_H
-#define DEFINES_H
+#ifndef GPMC_H
+#define GPMC_H
 
-#define FPN_FILENAME		"fpn"
+#include "errorCodes.h"
+#include "types.h"
+#include "gpmcRegs.h"
 
-#define IMAGE_SENSOR_SPI	"/dev/spidev3.0"
-#define	IMAGE_SENSOR_SPI_SPEED	500000
-#define	IMAGE_SENSOR_SPI_BITS	16
+#define GPMC_MAPPED_BASE	map_base
+#define	GPMC_RANGE_BASE		0x1000000
 
-//FPGA config
-#define FPGA_PROGRAMN_PATH		"/sys/class/gpio/gpio47/value"
-#define FPGA_INITN_PATH			"/sys/class/gpio/gpio45/value"
-#define FPGA_DONE_PATH			"/sys/class/gpio/gpio52/value"
-#define FPGA_SN_PATH			"/sys/class/gpio/gpio58/value"
-#define FPGA_HOLDN_PATH			"/sys/class/gpio/gpio53/value"
+class GPMC
+{
+public:
+	GPMC();
+	Int32 init();
+	void setTimeoutEnable(bool timeoutEnable);
+	UInt32 read32(UInt32 offset);
+	void write32(UInt32 offset, UInt32 data);
+	UInt16 read16(UInt32 offset);
+	void write16(UInt32 offset, UInt16 data);
+	UInt32 readRam32(UInt32 offset);
+	void writeRam32(UInt32 offset, UInt32 data);
+	UInt16 readRam16(UInt32 offset);
+	void writeRam16(UInt32 offset, UInt16 data);
+	UInt8 readRam8(UInt32 offset);
+	void writeRam8(UInt32 offset, UInt8 data);
 
+	UInt16 readPixel12(UInt32 pixel, UInt32 offset);
+	void readAcqMem(UInt32 * buf, UInt32 offsetWords, UInt32 length);
+	void writeAcqMem(UInt32 * buf, UInt32 offsetWords, UInt32 length);
 
-//IO
-#define IO1DAC_TIMER_BASE			0x48048000		//Timer6
-#define IO2DAC_TIMER_BASE			0x4804A000		//Timer7
-#define	IO_DAC_FS					6.6				//DAC threshold at full scale
-#define IO2IN_PATH					"/sys/class/gpio/gpio127/value"
+private:
+	UInt32 map_base, map_registers, map_ram;
+};
 
-#define RAM_SPD_I2C_BUS_FILE		"/dev/i2c-1"
-#define RAM_SPD_I2C_ADDRESS_STICK_0 0x50
-#define RAM_SPD_I2C_ADDRESS_STICK_1 0x51
-#define CAMERA_EEPROM_I2C_ADDR		0x54
-
-#define SERIAL_NUMBER_OFFSET	0
-#define SERIAL_NUMBER_MAX_LEN	32		//Maximum number of characters in serial number
-
-#define CAMERA_APP_VERSION		"0.4.0-alpha"
-#define ACCEPTABLE_FPGA_VERSION	3
-
-#define FLAG_TEMPORARY  1
-#define FLAG_USESAVED   2
-
-#endif // DEFINES_H
+#endif // GPMC_H

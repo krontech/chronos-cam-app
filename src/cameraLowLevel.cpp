@@ -61,6 +61,24 @@ void Camera::setFocusPeakColorLL(UInt8 color)
 		cinst->setString("focusPeakingColor", fpColors[color]);
 }
 
+/* Camera::readIsColor
+ *
+ * Returns weather the camera is color or mono, read from the hardware jumper
+ *
+ * returns: true for color, false for mono
+ **/
+
+bool Camera::readIsColor(void)
+{
+	QString cfa;
+	if (cinst->getString("sensorColorPattern", &cfa) == CAMERA_SUCCESS) {
+		return (cfa != "mono");
+	}
+	else {
+		return false;
+	}
+}
+
 void Camera::setFocusPeakThresholdLL(UInt32 thresh)
 {
 	double level;

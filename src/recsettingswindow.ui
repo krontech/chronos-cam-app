@@ -63,6 +63,9 @@
    <property name="styleSheet">
     <string notr="true"/>
    </property>
+   <property name="correctionMode">
+    <enum>QAbstractSpinBox::CorrectToNearestValue</enum>
+   </property>
   </widget>
   <widget class="CamSpinBox" name="spinVRes">
    <property name="geometry">
@@ -86,6 +89,9 @@
    </property>
    <property name="frame">
     <bool>true</bool>
+   </property>
+   <property name="correctionMode">
+    <enum>QAbstractSpinBox::CorrectToNearestValue</enum>
    </property>
   </widget>
   <widget class="QPushButton" name="cmdOK">
@@ -643,14 +649,14 @@ Delay</string>
  </widget>
  <customwidgets>
   <customwidget>
-   <class>CamLineEdit</class>
-   <extends>QLineEdit</extends>
-   <header>camLineEdit.h</header>
-  </customwidget>
-  <customwidget>
    <class>CamSpinBox</class>
    <extends>QSpinBox</extends>
    <header>camspinbox.h</header>
+  </customwidget>
+  <customwidget>
+   <class>CamLineEdit</class>
+   <extends>QLineEdit</extends>
+   <header>camLineEdit.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>

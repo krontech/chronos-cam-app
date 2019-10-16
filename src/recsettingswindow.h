@@ -80,8 +80,8 @@ private:
 	void setResFromText(char * str);
 	Ui::RecSettingsWindow *ui;
 	Camera * camera;
-    ImagerSettings_t * is;
-    bool windowInitComplete;
+	ImagerSettings_t * is;
+	bool windowInitComplete;
 
 	FrameGeometry getResolution(void);
 

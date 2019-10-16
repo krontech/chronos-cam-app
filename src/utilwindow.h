@@ -39,6 +39,8 @@ signals:
 private slots:
 	void on_cmdSWUpdate_clicked();
 
+	void on_cmdNetUpdate_clicked();
+
 	void onUtilWindowTimer();
 
 	void on_cmdSetClock_clicked();
@@ -86,6 +88,8 @@ private slots:
 
 	void on_chkDemoMode_stateChanged(int arg1);
 
+	void on_chkShippingMode_clicked();
+
 	void on_cmdDefaults_clicked();
 
 	void on_cmdRestoreSettings_clicked();
@@ -107,11 +111,8 @@ private slots:
 	void on_chkFanDisable_stateChanged(int arg1);
 
 	void on_cmdClose_2_clicked();
-	
 	void on_cmdClose_3_clicked();
-	
 	void on_cmdClose_4_clicked();
-
 	void on_cmdClose_5_clicked();
 
 	void on_tabWidget_currentChanged(int index);
@@ -133,7 +134,6 @@ private slots:
 	bool isNfsConnected(QString mount, QString address);
 	void on_cmdNetListConnections_clicked();
 	bool isReachable(QString address);
-	void showIpAddresses();
 
 
 

@@ -5,7 +5,7 @@ Requires=chronos-video.service chronos-fpga.service
 
 [Service]
 WorkingDirectory=/var/camera
-EnvironmentFile=/var/camera/chronos-gui.env
+EnvironmentFile=/etc/chronos-gui.conf
 ExecStart=/usr/bin/camApp -qws
 StandardOutput=journal+console
 StandardError=inherit

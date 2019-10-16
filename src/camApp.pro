@@ -40,8 +40,14 @@ LIBS += -lm -lpthread -lrt -static-libstdc++
 
 ## Some other stuff to install.
 datafiles.path = /opt/camera
-datafiles.files = $$files(data/*)
+datafiles.files = data/resolutions
+datafiles.files += data/shuttingDown.data
+datafiles.files += data/stylesheet.qss
 INSTALLS += datafiles
+
+conffiles.path = /etc
+conffiles.files = data/chronos-gui.conf
+INSTALLS += conffiles
 
 ## Tweaks for Debian builds.
 exists( $${QT_SYSROOT}/etc/debian_version ) {
@@ -60,6 +66,9 @@ exists( $${QT_SYSROOT}/etc/debian_version ) {
     system($$QMAKE_MKDIR -p $${OUT_PWD}/debian $${OUT_PWD}/debian/source)
     system($$QMAKE_COPY $$DEBFILES $${OUT_PWD}/debian)
     system($${_PRO_FILE_PWD_}/changelog.sh > $${OUT_PWD}/debian/changelog)
+
+    ## Sloppy workaround to ensure a clean build.
+    QMAKE_CLEAN += $$files($${OUT_PWD}/debian/*, false)
 }
 
 SOURCES += main.cpp\
@@ -81,6 +90,7 @@ SOURCES += main.cpp\
     camspinbox.cpp \
     camtextedit.cpp \
     camdoublespinbox.cpp \
+    pysensor.cpp \
     utilwindow.cpp \
     statuswindow.cpp \
     recmodewindow.cpp \
@@ -94,10 +104,10 @@ SOURCES += main.cpp\
     chronosVideoInterface.cpp \
     colorwindow.cpp \
     colordoublespinbox.cpp \
+    aptupdate.cpp \
+    errorStrings.cpp \
     control.cpp \
-    myinputpanel.cpp \
-    pysensor.cpp \
-    errorStrings.cpp
+    myinputpanel.cpp
 
 ## Generate version.cpp on every build
 versionTarget.target = version.cpp
@@ -130,6 +140,7 @@ HEADERS  += mainwindow.h \
     camtextedit.h \
     camdoublespinbox.h \
     errorCodes.h \
+    pysensor.h \
     utilwindow.h \
     statuswindow.h \
     i2c/i2c-dev.h \
@@ -145,10 +156,10 @@ HEADERS  += mainwindow.h \
     colorwindow.h \
     colordoublespinbox.h \
     frameGeometry.h \
-    control.h \
     myinputpanel.h \
     ui_myinputpanelform.h \
-    pysensor.h
+    aptupdate.h \
+    control.h
 
 FORMS    += mainwindow.ui \
     cammainwindow.ui \

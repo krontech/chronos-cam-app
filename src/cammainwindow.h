@@ -19,6 +19,7 @@
 
 #include <QDialog>
 #include <QObject>
+#include <QMessageBox>
 #include <QDebug>
 #include <QTimer>
 
@@ -38,8 +39,6 @@ public:
 	explicit CamMainWindow(QWidget *parent = 0);
 	short getWindowsAlwaysOpen();
 	~CamMainWindow();
-	void updateExpSliderLimits(void);
-
 
 public slots:
 	void updateCamMainWindowPosition();
@@ -88,28 +87,22 @@ private slots:
 private:
 	void updateRecordingState(bool recording);
 	void updateCurrentSettingsLabel(void);
+	void updateExpSliderLimits(void);
+	void updateBatteryData();
+	QMessageBox::StandardButton question(const QString &title, const QString &text, QMessageBox::StandardButtons = QMessageBox::Yes|QMessageBox::No);
+
+	QMessageBox *prompt;
 	Ui::CamMainWindow *ui;
 	StatusWindow * sw;
 	QTimer *timer;
 	bool lastShutterButton;
 	bool lastRecording;
-	int bmsFifoFD;
 	int windowsAlwaysOpen;
 
-	double battCapacityPercent;  //Battery data from ENEL4A.c
-	UInt8 battSOHPercent;
-	UInt32 battVoltage;
-	UInt32 battCurrent;
-	UInt32 battHiResCap;
-	UInt32 battHiResSOC;
-	double battVoltageCam;
-	double battCurrentCam;
+	double batteryPercent;
+	double batteryVoltage;
 	bool batteryPresent;
 	bool externalPower;
-	Int32 mbTemperature;
-	UInt8 flags;
-	UInt8 fanPWM;
-	bool battPresent;
 
 	bool autoSaveActive;
 };

@@ -36,6 +36,7 @@
 #include <sys/sendfile.h>
 #include <mntent.h>
 
+#include "aptupdate.h"
 #include "control.h"
 #include "util.h"
 #include "chronosControlInterface.h"
@@ -107,8 +108,9 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	ui->comboFPColor->addItem("Magenta");
 	ui->comboFPColor->addItem("Yellow");
 	ui->comboFPColor->addItem("White");
-	ui->comboFPColor->setCurrentIndex(camera->getFocusPeakColorLL() - 1);
+	ui->comboFPColor->setCurrentIndex(camera->getFocusPeakColor() - 1);
 	ui->chkZebraEnable->setChecked(camera->getZebraEnable());
+	ui->chkShippingMode->setChecked(camera->getShippingMode());
 
 	if (camera->focusPeakEnabled)
 	{
@@ -165,8 +167,6 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	ui->comboDisableUnsavedWarning->setCurrentIndex(camera->getUnsavedWarnEnable());
 	ui->comboAutoPowerMode->setCurrentIndex(camera->getAutoPowerMode());
 	ui->spinAutoSavePercent->setValue(camera->getAutoSavePercent());
-
-	showIpAddresses();
 
 	//populate fields from first line of Samba mount script
 	bool sambaFound = false;
@@ -240,33 +240,6 @@ UtilWindow::~UtilWindow()
 	delete ui;
 }
 
-void UtilWindow::showIpAddresses()
-{
-	QString ifconfig;
-
-	//get IP address
-	ifconfig = runCommand("ifconfig");
-	QString ifconfigPart = ifconfig.split("packets").value(0);
-	QString ipEthernetAddress = ifconfigPart.split("inet addr:").value(1).split(" ").value(0);
-	bool ethernetConnected = ifconfigPart.contains("RUNNING");
-
-	ifconfigPart = ifconfig.split("usb0").value(1);
-	ifconfigPart = ifconfigPart.split("packets").value(0);
-	QString ipUsbAddress = ifconfig.split("usb0").value(1).split("inet addr:").value(1).split(" ").value(0);
-	bool usbConnected = ifconfigPart.contains("RUNNING");
-
-	QString ipAddresses;
-	if (ethernetConnected)
-	{
-		ipAddresses.append(ipEthernetAddress + "\n");
-	}
-	if (usbConnected)
-	{
-		ipAddresses.append(ipUsbAddress);
-	}
-	ui->lblIpAddress->setText(ipAddresses);
-}
-
 void UtilWindow::on_cmdSWUpdate_clicked()
 {
 	int itr, retval;
@@ -292,6 +265,13 @@ void UtilWindow::on_cmdSWUpdate_clicked()
 	msg.setWindowFlags(Qt::WindowStaysOnTopHint);
 	//msg.setInformativeText("Update");
 	msg.exec();
+}
+
+void UtilWindow::on_cmdNetUpdate_clicked()
+{
+	AptUpdate *update = new AptUpdate(this);
+	update->exec();
+	delete update;
 }
 
 int UtilWindow::updateSoftware(char * updateLocation){
@@ -364,22 +344,34 @@ void UtilWindow::onUtilWindowTimer()
 
 	/* If on the storage tab, update the drive and network status. */
 	if (ui->tabWidget->currentWidget() == ui->tabStorage) {
-		char line[128];
-		QString mText = "";
-		FILE *fp = popen("df -h /media/*", "r");
-		if (!fp) return;
-		while (fgets(line, sizeof(line), fp) != NULL) {
-			mText.append(line);
-		}
-		pclose(fp);
+		struct stat st;
+
+		QString mText = runCommand("df -h | grep \'/media/\'");
 		ui->lblMountedDevices->setText(mText);
-	}
 
-	/* If on the network tab, update the network status. */
-	if (ui->tabWidget->currentWidget() == ui->tabNetwork) {
-		showIpAddresses();
-	}
+		/* Update the disk status text. */
+		QString diskText = "";
+		while (stat("/dev/sda", &st) == 0) {
+			if (!S_ISBLK(st.st_mode)) break;
+			diskText = runCommand("lsblk -i --output NAME,SIZE,FSTYPE,LABEL,VENDOR,MODEL /dev/sda");
+			break;
+		}
+		ui->lblStatusDisk->setText(diskText);
 
+		/* Update the SD card status text. */
+		QString sdText = "";
+		while (stat("/dev/mmcblk1", &st) == 0) {
+			if (!S_ISBLK(st.st_mode)) break;
+			sdText = runCommand("lsblk -i --output NAME,SIZE,FSTYPE,LABEL,VENDOR,MODEL /dev/mmcblk1");
+			break;
+		}
+		ui->lblStatusSD->setText(sdText);
+	}
+	/* If on the network tab, update the interface and network status. */
+	if (ui->tabWidget->currentWidget()  == ui->tabNetwork) {
+		QString netText = runCommand("ifconfig eth0");
+		ui->lblNetStatus->setText(netText);
+	}
 }
 
 void UtilWindow::on_cmdSetClock_clicked()
@@ -411,7 +403,7 @@ void UtilWindow::on_cmdColumnGain_clicked()
 	{
 		sw.hide();
 		QMessageBox msg;
-		sprintf(text, "Error during gain calibration, error %d", retVal);
+		sprintf(text, "Error during gain calibration, error %d: %s", retVal, errorCodeString(retVal));
 		msg.setText(text);
 		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
 		msg.exec();
@@ -429,35 +421,40 @@ void UtilWindow::on_cmdColumnGain_clicked()
 
 void UtilWindow::on_cmdBlackCalAll_clicked()
 {
-	StatusWindow sw;
+	QString title = QString("Factory Black Calibration");
+	QProgressDialog *progress;
 	Int32 retVal;
 	char text[100];
 
-	sw.setText("\n\n\n\n\n\n\nPerforming black cal on all standard resolutions. Please wait...");
-	sw.show();
+	progress = new QProgressDialog(this);
+	progress->setWindowTitle(title);
+	progress->setWindowModality(Qt::WindowModal);
+	progress->show();
+
 	QCoreApplication::processEvents();
 
 	//Turn off calibration light
 	camera->setBncDriveLevel(0);	//Turn off output drive
 
 	//Black cal all standard resolutions
-	retVal = blackCalAllStdRes();
+	retVal = camera->blackCalAllStdRes(true, progress);
+	delete progress;
 
 	if(SUCCESS != retVal)
 	{
-		sw.hide();
 		QMessageBox msg;
-		sprintf(text, "Error during black calibration, error %d", retVal);
+		sprintf(text, "Error during black calibration, error %d: %s", retVal, errorCodeString(retVal));
 		msg.setText(text);
+		msg.setWindowTitle(title);
 		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
 		msg.exec();
 	}
 	else
 	{
-		sw.hide();
 		QMessageBox msg;
 		sprintf(text, "Black cal of all standard resolutions was successful");
 		msg.setText(text);
+		msg.setWindowTitle(title);
 		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
 		msg.exec();
 	}
@@ -583,28 +580,7 @@ void UtilWindow::on_cmdClose_5_clicked()
 
 void UtilWindow::on_cmdWhiteRef_clicked()
 {
-	char text[100];
-	Int32 retVal;
-	//Turn on calibration light
-	camera->setBncDriveLevel((1 << 1));	//Turn on output drive
-
-	retVal = camera->takeWhiteReferences();
-
-	if(SUCCESS != retVal)
-	{
-		QMessageBox msg;
-		sprintf(text, "Error during white reference calibration, error %d", retVal);
-		msg.setText(text);
-		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
-		msg.exec();
-	}
-	else
-	{
-		QMessageBox msg;
-		msg.setText("Done!");
-		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
-		msg.exec();
-	}
+	/* Nothing to see here folks... */
 }
 
 void UtilWindow::on_cmdSetSN_clicked()
@@ -850,12 +826,13 @@ void UtilWindow::formatStorageDevice(const char *blkdev)
 	progress->setMaximum(4);
 	progress->setMinimumDuration(0);
 	progress->setWindowModality(Qt::WindowModal);
+	progress->show();
 
 	/* Unmount the block device and any of its partitions */
 	progress->setLabelText("Unmounting devices");
 	progress->setValue(0);
 	filepathlen = sprintf(filepath, "/dev/%s", blkdev);
-	sprintf(partpath, "/dev/%s%s", blkdev, isdigit(blkdev[filepathlen-1]) ? "p1" : "1");
+	sprintf(partpath, "/dev/%s%s", blkdev, isdigit(filepath[filepathlen-1]) ? "p1" : "1");
 	while (getmntent_r(mtab, &mnt, tempbuf, sizeof(tempbuf)) != NULL) {
 		if (strncmp(filepath, mnt.mnt_fsname, filepathlen) != 0) continue;
 		qDebug("Unmounting %s", mnt.mnt_dir);
@@ -945,6 +922,17 @@ void UtilWindow::on_chkAutoRecord_stateChanged(int arg1)
 void UtilWindow::on_chkDemoMode_stateChanged(int arg1)
 {
 	camera->set_demoMode(ui->chkDemoMode->isChecked());
+}
+
+void UtilWindow::on_chkShippingMode_clicked()
+{
+	bool state = ui->chkShippingMode->isChecked();
+
+	if(state == TRUE){
+		QMessageBox::information(this, "Shipping Mode Enabled","On the next restart, the AC adapter must be plugged in to turn the camera on.", QMessageBox::Ok);
+	}
+
+	camera->setShippingMode(state);
 }
 
 void UtilWindow::on_cmdDefaults_clicked()
@@ -1084,10 +1072,9 @@ void UtilWindow::on_cmdRestoreSettings_clicked()
 	sw.show();
 	QCoreApplication::processEvents();
 
-	sprintf(str, "tar -xf /media/sda1/user_settings.tar -C /Settings");
+	sprintf(str, "tar -xf /media/sda1/user_settings.tar -C /");
 
 	retVal = system(str);	//tar cal files
-
 	if(0 != retVal)
 	{
 		sw.hide();

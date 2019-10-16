@@ -25,6 +25,9 @@
 #include <string>
 #include <QtDBus/QtDBus>
 
+/* Bitmask of quirky sensor behavior for the UI to deal with. */
+#define SENSOR_QUIRK_UPSIDE_DOWN		0x00000001
+#define SENSOR_QUIRK_SLOW_OFFSET_CAL	0x00000002
 
 extern UInt32 sensorHIncrement;
 extern UInt32 sensorVIncrement;
@@ -35,8 +38,6 @@ extern UInt32 sensorVMin;
 extern UInt32 sensorVDark;
 extern UInt32 sensorBitDepth;
 extern double sensorMinFrameTime;
-
-
 
 #define PYSENSOR_HRES_INCREMENT		sensorHIncrement
 #define PYSENSOR_VRES_INCREMENT		sensorVIncrement
@@ -101,6 +102,8 @@ public:
 	CameraErrortype init(void);
 	Control *cinst;
 
+	UInt32 getSensorQuirks() { return 0; }
+
 	/* Frame Geometry Functions. */
 	FrameGeometry getMaxGeometry(void);
 	UInt32 getHResIncrement() { return PYSENSOR_HRES_INCREMENT; }
@@ -120,6 +123,15 @@ public:
 	UInt32 getMaxIntegrationTime(UInt32 period, FrameGeometry *frameSize);
 	UInt32 getMinIntegrationTime(UInt32 period, FrameGeometry *frameSize) { return PYSENSOR_TIMING_CLOCK / 1000000; }  /* 1us */
 	UInt32 getIntegrationTime(void);
+
+	/* Analog Gain Functions. */
+	/*
+	 * Min and max gain are reported as the linear values (eg: 1=0dB, 2=6dB and so on).
+	 * All sensors are expected to support a gain of 1 (eg: normal operation).
+	 * For now, the range of gains are only accessed in powers-of-two steps.
+	 */
+	UInt32 getMinGain() { return 1; }
+	UInt32 getMaxGain() { return 16; }
 
 	UInt32 currentPeriod;		//moved to public for PyChronos
 	UInt32 currentExposure;		//moved to public for PyChronos

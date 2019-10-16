@@ -24,6 +24,7 @@
 #include <QSettings>
 #include <QResource>
 #include <QDir>
+#include <QScreen>
 #include <QIODevice>
 #include <QApplication>
 
@@ -39,10 +40,7 @@
 #include "pysensor.h"
 #include "cammainwindow.h"
 
-
 void* recDataThread(void *arg);
-void recordEosCallback(void * arg);
-void recordErrorCallback(void * arg, const char * message);
 
 #ifdef DEBUG_DBUS
 bool debugDbus = true;
@@ -59,7 +57,9 @@ Camera::Camera()
 	playbackMode = false;
 	recording = false;
 	imgGain = 1.0;
-	recordingData.hasBeenSaved = true;		//Nothing in RAM at power up so there's nothing to lose
+	recordingData.ignoreSegments = 0;
+	recordingData.hasBeenSaved = true;
+	recordingData.hasBeenViewed = true;
 	unsavedWarnEnabled = getUnsavedWarnEnable();
 	autoSave = appSettings.value("camera/autoSave", 0).toBool();
 	autoRecord = appSettings.value("camera/autoRecord", 0).toBool();
@@ -85,13 +85,26 @@ CameraErrortype Camera::init(Video * vinstInst, Control * cinstInst, PySensor * 
 	cinst = cinstInst;
 	sensor = sensorInst;
 	ui = userInterface;
-
 	//Read serial number in
 	retVal = (CameraErrortype)readSerialNumber(serialNumber);
 	if(retVal != SUCCESS)
 		return retVal;
 
-	isColor = true;//readIsColor();
+	/* Color detection or override from env. */
+	const char *envColor = getenv("CAM_OVERRIDE_COLOR");
+	if (envColor) {
+		char *endp;
+		unsigned long uval = strtoul(envColor, &endp, 0);
+		if (*endp == '\0') isColor = (uval != 0);
+		else if (strcasecmp(envColor, "COLOR") == 0) isColor = true;
+		else if (strcasecmp(envColor, "TRUE") == 0) isColor = true;
+		else if (strcasecmp(envColor, "MONO") == 0) isColor = false;
+		else if (strcasecmp(envColor, "FALSE") == 0) isColor = false;
+		else isColor = true; //readIsColor();
+	}
+	else {
+		isColor = true; //readIsColor();
+	}
 	int err;
 
 	retVal = cinst->status(&cs);
@@ -277,7 +290,6 @@ UInt32 Camera::setIntegrationTime(double intTime, FrameGeometry *fSize, Int32 fl
 {
 	cinst->setInt("exposurePeriod", intTime * 1e9);
 	imagerSettings.exposure = intTime;
-
 	return SUCCESS;
 }
 
@@ -379,7 +391,8 @@ Int32 Camera::startRecording(void)
 	cinst->startRecording();
 
 	recording = true;
-	videoHasBeenReviewed = false;
+	recordingData.hasBeenViewed = false;
+	recordingData.ignoreSegments = 0;
 
 	return SUCCESS;
 }
@@ -415,7 +428,8 @@ UInt32 Camera::setPlayMode(bool playMode)
 	}
 	else
 	{
-		vinst->liveDisplay(imagerSettings.geometry.hRes, imagerSettings.geometry.vRes);
+		bool videoFlip = (sensor->getSensorQuirks() & SENSOR_QUIRK_UPSIDE_DOWN) != 0;
+		vinst->liveDisplay(videoFlip);
 	}
 	return SUCCESS;
 }
@@ -482,8 +496,6 @@ void Camera::setCCMatrix(const double *matrix)
 
 void Camera::setWhiteBalance(const double *rgb)
 {
-
-
 	double wrgb[3];
 	wrgb[0] = within(rgb[0] * imgGain, 0.0, 8.0);
 	wrgb[1] = within(rgb[1] * imgGain, 0.0, 8.0);
@@ -509,6 +521,53 @@ void Camera::setWBIndex(UInt8 index){
 	appsettings.setValue("camera/WBIndex", index);
 }
 
+
+void Camera::setFocusAid(bool enable)
+{
+	UInt32 startX, startY, cropX, cropY;
+
+	if(enable)
+	{
+		//Set crop window to native resolution of LCD or unchanged if we're scaling up
+		if(imagerSettings.geometry.hRes > 600 || imagerSettings.geometry.vRes > 480)
+		{
+			//Depending on aspect ratio, set the display window appropriately
+			if((imagerSettings.geometry.vRes * MAX_FRAME_SIZE_H) > (imagerSettings.geometry.hRes * MAX_FRAME_SIZE_V))	//If it's taller than the display aspect
+			{
+				cropY = 480;
+				cropX = cropY * imagerSettings.geometry.hRes / imagerSettings.geometry.vRes;
+				if(cropX & 1)	//If it's odd, round it up to be even
+					cropX++;
+				startX = (imagerSettings.geometry.hRes - cropX) / 2;
+				startY = (imagerSettings.geometry.vRes - cropY) / 2;
+
+			}
+			else
+			{
+				cropX = 600;
+				cropY = cropX * imagerSettings.geometry.vRes / imagerSettings.geometry.hRes;
+				if(cropY & 1)	//If it's odd, round it up to be even
+					cropY++;
+				startX = (imagerSettings.geometry.hRes - cropX) / 2;
+				startY = (imagerSettings.geometry.vRes - cropY) / 2;
+
+			}
+			qDebug() << "Setting startX" << startX << "startY" << startY << "cropX" << cropX << "cropY" << cropY;
+			vinst->setScaling(startX & 0xFFFF8, startY, cropX, cropY);	//StartX must be a multiple of 8
+		}
+	}
+	else
+	{
+		vinst->setScaling(0, 0, imagerSettings.geometry.hRes, imagerSettings.geometry.vRes);
+	}
+}
+
+bool Camera::getFocusAid()
+{
+	/* FIXME: Not implemented */
+	return false;
+}
+
 /* Nearest multiple rounding */
 static inline UInt32
 round(UInt32  x, UInt32 mult)
@@ -517,9 +576,163 @@ round(UInt32  x, UInt32 mult)
 	return (offset >= mult/2) ? x - offset + mult : x - offset;
 }
 
-
-Int32 Camera::takeWhiteReferences(void)
+Int32 Camera::blackCalAllStdRes(bool factory, QProgressDialog *dialog)
 {
+	int g;
+	ImagerSettings_t settings;
+	FrameGeometry	maxSize = sensor->getMaxGeometry();
+
+	//Populate the common resolution combo box from the list of resolutions
+	QFile fp;
+	UInt32 retVal = SUCCESS;
+	QStringList resolutions;
+	QString filename;
+	QString line;
+
+	filename.append("camApp:resolutions");
+	QFileInfo resolutionsFile(filename);
+	if (resolutionsFile.exists() && resolutionsFile.isFile()) {
+		fp.setFileName(filename);
+		fp.open(QIODevice::ReadOnly);
+		if(!fp.isOpen()) {
+			qDebug("Error: resolutions file couldn't be opened");
+			return CAMERA_FILE_ERROR;
+		}
+	}
+	else {
+		qDebug("Error: resolutions file isn't present");
+		return CAMERA_FILE_ERROR;
+	}
+
+	/* Read the resolutions file into a list. */
+	while (true) {
+		QString tmp = fp.readLine(30);
+		QStringList strlist;
+		FrameGeometry size;
+
+		/* Try to read another resolution from the file. */
+		if (tmp.isEmpty() || tmp.isNull()) break;
+		strlist = tmp.split('x');
+		if (strlist.count() < 2) break;
+
+		/* If it's a supported resolution, add it to the list. */
+		size.hRes = strlist[0].toInt(); //pixels
+		size.vRes = strlist[1].toInt(); //pixels
+		size.vDarkRows = 0;	//dark rows
+		size.bitDepth = maxSize.bitDepth;
+		size.hOffset = round((maxSize.hRes - size.hRes) / 2, sensor->getHResIncrement());
+		size.vOffset = round((maxSize.vRes - size.vRes) / 2, sensor->getVResIncrement());
+		if (sensor->isValidResolution(&size)) {
+			line.sprintf("%ux%u", size.hRes, size.vRes);
+			resolutions.append(line);
+		}
+	}
+	fp.close();
+
+	/* Ensure that the maximum sensor size is also included. */
+	line.sprintf("%ux%u", maxSize.hRes, maxSize.vRes);
+	if (!resolutions.contains(line)) {
+		resolutions.prepend(line);
+	}
+
+	/* If we have a progress dialog - figure out how many calibration steps to do. */
+	if (dialog) {
+		int maxcals = 0;
+
+		/* Count up the number of gain settings to calibrate for. */
+		for (g = sensor->getMinGain(); g <= sensor->getMaxGain(); g *= 2) {
+			 maxcals += resolutions.count();
+		}
+
+		dialog->setMaximum(maxcals);
+		dialog->setValue(0);
+		dialog->setAutoClose(false);
+		dialog->setAutoReset(false);
+	}
+
+	/* Disable the video port during calibration. */
+	vinst->pauseDisplay();
+
+	//For each gain
+	int progress = 0;
+	for(g = sensor->getMinGain(); g <= sensor->getMaxGain(); g *= 2)
+	{
+		QStringListIterator iter(resolutions);
+		while (iter.hasNext()) {
+			QString value = iter.next();
+			QStringList tmp = value.split('x');
+
+			// Split the resolution string on 'x' into horizontal and vertical sizes.
+			settings.geometry.hRes = tmp[0].toInt(); //pixels
+			settings.geometry.vRes = tmp[1].toInt(); //pixels
+			settings.geometry.vDarkRows = 0;	//dark rows
+			settings.geometry.bitDepth = maxSize.bitDepth;
+			settings.geometry.hOffset = round((maxSize.hRes - settings.geometry.hRes) / 2, sensor->getHResIncrement());
+			settings.geometry.vOffset = round((maxSize.vRes - settings.geometry.vRes) / 2, sensor->getVResIncrement());
+			settings.gain = g;
+			settings.recRegionSizeFrames = getMaxRecordRegionSizeFrames(&settings.geometry);
+			settings.period = sensor->getMinFramePeriod(&settings.geometry);
+			settings.exposure = sensor->getMaxIntegrationTime(settings.period, &settings.geometry);
+			settings.disableRingBuffer = 0;
+			settings.mode = RECORD_MODE_NORMAL;
+			settings.prerecordFrames = 1;
+			settings.segmentLengthFrames = imagerSettings.recRegionSizeFrames;
+			settings.segments = 1;
+			settings.temporary = 0;
+
+			/* Update the progress dialog. */
+			progress++;
+			if (dialog) {
+				QString label;
+				if (dialog->wasCanceled()) {
+					goto exit_calibration;
+				}
+				label.sprintf("Computing calibration for %ux%u at x%d gain",
+							  settings.geometry.hRes, settings.geometry.vRes, settings.gain);
+				dialog->setValue(progress);
+				dialog->setLabelText(label);
+				QCoreApplication::processEvents();
+			}
+
+			retVal = setImagerSettings(settings);
+			if (SUCCESS != retVal)
+				return retVal;
+
+			qDebug("Doing calibration for %ux%u...", settings.geometry.hRes, settings.geometry.vRes);
+			cinst->startCalibration({"analogCal", "blackCal"}, true);
+			bool calWaiting;
+			do {
+				QString state;
+				cinst->getString("state", &state);
+				calWaiting = state != "idle";
+
+				struct timespec t = {0, 50000000};
+				nanosleep(&t, NULL);
+
+			} while (calWaiting);
+
+			qDebug() << "Done.";
+		}
+	}
+exit_calibration:
+
+	fp.close();
+
+	memcpy(&settings.geometry, &maxSize, sizeof(maxSize));
+	settings.geometry.vDarkRows = 0; //Inactive dark rows on top
+	settings.gain = sensor->getMinGain();
+	settings.recRegionSizeFrames = getMaxRecordRegionSizeFrames(&settings.geometry);
+	settings.period = sensor->getMinFramePeriod(&settings.geometry);
+	settings.exposure = sensor->getMaxIntegrationTime(settings.period, &settings.geometry);
+
+	retVal = setImagerSettings(settings);
+	vinst->liveDisplay((sensor->getSensorQuirks() & SENSOR_QUIRK_UPSIDE_DOWN) != 0);
+	if(SUCCESS != retVal) {
+		qDebug("blackCalAllStdRes: Error during setImagerSettings %d", retVal);
+		return retVal;
+	}
+
+	return SUCCESS;
 }
 
 bool Camera::getButtonsOnLeft(void){
@@ -544,15 +757,10 @@ void Camera::setUpsideDownDisplay(bool en){
 	appSettings.setValue("camera/UpsideDownDisplay", en);
 }
 
-bool Camera::RotationArgumentIsSet(){
-	QString appArguments;
-	for(int argumentIndex = 0; argumentIndex < 5 ; argumentIndex++){
-		appArguments.append(QApplication::argv()[argumentIndex]);
-	}
-
-	if(appArguments.contains("display") && appArguments.contains("transformed:rot0"))
-		return true;
-	else	return false;
+bool Camera::RotationArgumentIsSet()
+{
+	QScreen *qscreen = QScreen::instance();
+	return qscreen->classId() == QScreen::TransformedClass;
 }
 
 
@@ -567,6 +775,7 @@ bool Camera::getFocusPeakEnable(void)
 	return (level > 0.1);
 
 }
+
 void Camera::setFocusPeakEnable(bool en)
 {
 	cinst->setFloat("focusPeakingLevel", en ? focusPeakLevel : 0.0);
@@ -892,7 +1101,6 @@ void Camera::apiDoSetColorMatrix(QVariant wb)
 
 void Camera::apiDoSetResolution(QVariant res)
 {
-	ImagerSettings_t is = getImagerSettings();
 	FrameGeometry *geometry = &this->imagerSettings.geometry;
 	QVariant qv = res;
 	if (qv.isValid()) {
@@ -905,7 +1113,6 @@ void Camera::apiDoSetResolution(QVariant res)
 		geometry->vOffset = dict["vOffset"].toInt();
 		geometry->vDarkRows = dict["vDarkRows"].toInt();
 		geometry->bitDepth = dict["bitDepth"].toInt();
-
 	}
 	else {
 
@@ -926,10 +1133,11 @@ void Camera::on_chkLiveLoop_stateChanged(int arg1)
 	}
 	else
 	{
+		bool videoFlip = (sensor->getSensorQuirks() & SENSOR_QUIRK_UPSIDE_DOWN) != 0;
 		//disable loop timer
 		loopTimer->stop();
 		delete loopTimer;
-		vinst->liveDisplay(imagerSettings.geometry.hRes, imagerSettings.geometry.vRes);
+		vinst->liveDisplay(videoFlip);
 		loopTimerEnabled = false;
 
 	}

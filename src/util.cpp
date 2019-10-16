@@ -15,6 +15,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.   *
  ****************************************************************************/
 #include "time.h"
+#include "util.h"
 #include "QDebug"
 #include <sys/stat.h>
 #include <QCoreApplication>

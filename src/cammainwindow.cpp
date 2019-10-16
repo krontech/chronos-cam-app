@@ -49,6 +49,7 @@ Video * vinst;
 Control * cinst;
 UserInterface * userInterface;
 bool focusAidEnabled = false;
+uint_fast8_t powerLoopCount = 0;
 
 CamMainWindow::CamMainWindow(QWidget *parent) :
 	QDialog(parent),
@@ -60,9 +61,10 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 
 	camera = new Camera();
 	vinst = new Video();
-    cinst = new Control();
+	cinst = new Control();
 
 	userInterface = new UserInterface();
+	prompt = NULL;
 
 	sensor = new PySensor(cinst);
 		//loop until control dBus is ready
@@ -75,7 +77,10 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	}
 	camera->getSensorInfo(cinst);
 
-	battCapacityPercent = 0;
+	batteryPercent = 0;
+	batteryVoltage = 0;
+	batteryPresent = false;
+	externalPower = false;
 
 	userInterface->init();
 	retVal = camera->init(vinst, cinst, sensor, userInterface, true);
@@ -92,13 +97,8 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	ui->cmdWB->setEnabled(camera->getIsColor());
 	ui->chkFocusAid->setChecked(camera->getFocusPeakEnable());
 
-	const char * myfifo = "/var/run/bmsFifo";
-
-	/* open, read, and display the message from the FIFO */
-	bmsFifoFD = ::open(myfifo, O_RDONLY|O_NONBLOCK);
-
 	sw = new StatusWindow;
-\
+
 	updateExpSliderLimits();
 	updateCurrentSettingsLabel();
 
@@ -126,10 +126,6 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	if(camera->UpsideDownDisplay && camera->RotationArgumentIsSet()){
 		camera->upsideDownTransform(2);//2 for upside down, 0 for normal
 	} else  camera->UpsideDownDisplay = false;//if the rotation argument has not been added, this should be set to false
-
-	if( (camera->ButtonsOnLeft) ^ (camera->UpsideDownDisplay) ){
-		camera->updateVideoPosition();
-	}
 
 	//record the number of widgets that are open before any other windows can be opened
 	QWidgetList qwl = QApplication::topLevelWidgets();
@@ -194,11 +190,23 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 CamMainWindow::~CamMainWindow()
 {
 	timer->stop();
-	::close(bmsFifoFD);
 	delete sw;
 
 	delete ui;
 	delete camera;
+}
+
+QMessageBox::StandardButton
+CamMainWindow::question(const QString &title, const QString &text, QMessageBox::StandardButtons buttons)
+{
+	QMessageBox::StandardButton reply;
+
+	prompt = new QMessageBox(QMessageBox::Question, title, text, buttons, this, Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint);
+	reply = (QMessageBox::StandardButton)prompt->exec();
+	delete prompt;
+	prompt = NULL;
+
+	return reply;
 }
 
 void CamMainWindow::on_cmdClose_clicked()
@@ -223,25 +231,19 @@ void CamMainWindow::on_cmdRec_clicked()
 	if(camera->getIsRecording())
 	{
 		camera->stopRecording();
-//		ui->cmdRec->setText("Record");
-//		ui->cmdPlay->setEnabled(true);
 	}
 	else
 	{
 		//If there is unsaved video in RAM, prompt to start record.  unsavedWarnEnabled values: 0=always, 1=if not reviewed, 2=never
-		if(false == camera->recordingData.hasBeenSaved && (0 != camera->unsavedWarnEnabled && (2 == camera->unsavedWarnEnabled || !camera->videoHasBeenReviewed)))
+		if(false == camera->recordingData.hasBeenSaved && (0 != camera->unsavedWarnEnabled && (2 == camera->unsavedWarnEnabled || !camera->recordingData.hasBeenViewed)))
 		{
-			QMessageBox::StandardButton reply;
-			reply = QMessageBox::question(this, "Unsaved video in RAM", "Start recording anyway and discard the unsaved video in RAM?", QMessageBox::Yes|QMessageBox::No);
-			if(QMessageBox::Yes != reply)
+			if(QMessageBox::Yes != question("Unsaved video in RAM", "Start recording anyway and discard the unsaved video in RAM?"))
 				return;
 		}
 
 		camera->startRecording();
 		if (camera->get_autoSave()) autoSaveActive = true;
 
-//		ui->cmdRec->setText("Stop");
-//		ui->cmdPlay->setEnabled(false);
 	}
 
 }
@@ -249,9 +251,7 @@ void CamMainWindow::on_cmdRec_clicked()
 void CamMainWindow::on_cmdPlay_clicked()
 {
 	if(camera->getIsRecording()) {
-		QMessageBox::StandardButton reply;
-		reply = QMessageBox::question(this, "Stop recording?", "This action will stop recording; is this okay?", QMessageBox::Yes|QMessageBox::No);
-		if(QMessageBox::Yes != reply)
+		if(QMessageBox::Yes != question("Stop recording?", "This action will stop recording; is this okay?"))
 			return;
 		autoSaveActive = false;
 		camera->stopRecording();
@@ -266,7 +266,6 @@ void CamMainWindow::createNewPlaybackWindow(){
 	//w->camera = camera;
 	w->setAttribute(Qt::WA_DeleteOnClose);
 	w->show();
-	//w->setGeometry(0, 0,w->width(), w->height());
 }
 
 void CamMainWindow::playFinishedSaving()
@@ -284,33 +283,22 @@ void CamMainWindow::playFinishedSaving()
 void CamMainWindow::on_cmdRecSettings_clicked()
 {
 	if(camera->getIsRecording()) {
-		QMessageBox::StandardButton reply;
-		reply = QMessageBox::question(this, "Stop recording?", "This action will stop recording; is this okay?", QMessageBox::Yes|QMessageBox::No);
-		if(QMessageBox::Yes != reply)
+		if(QMessageBox::Yes != question("Stop recording?", "This action will stop recording; is this okay?"))
 			return;
 		autoSaveActive = false;
 		camera->stopRecording();
 	}
 	RecSettingsWindow *w = new RecSettingsWindow(NULL, camera);
 	connect(w, SIGNAL(settingsChanged()),this, SLOT(recSettingsClosed()));
-	//w->camera = camera;
 	w->setAttribute(Qt::WA_DeleteOnClose);
 	w->show();
-
-	/*while(w->isHidden() == false)
-	  delayms(100);
-
-	  qDebug() << "deleting window";
-	  delete w;*/
 }
 
 
 void CamMainWindow::on_cmdFPNCal_clicked()//Black cal
 {
 	if(camera->getIsRecording()) {
-		QMessageBox::StandardButton reply;
-		reply = QMessageBox::question(this, "Stop recording?", "This action will stop recording and erase the video; is this okay?", QMessageBox::Yes|QMessageBox::No);
-		if(QMessageBox::Yes != reply) {
+		if(QMessageBox::Yes != question("Stop recording?", "This action will stop recording and erase the video; is this okay?")) {
 			return;
 		}
 
@@ -324,7 +312,9 @@ void CamMainWindow::on_cmdFPNCal_clicked()//Black cal
 		camera->cinst->getInt("totalFrames", &frames);
 		if (frames > 0) {
 			QMessageBox::StandardButton reply;
-			reply = QMessageBox::question(this, "Unsaved video in RAM", "Performing black calibration will erase the unsaved video in RAM. Continue?", QMessageBox::Yes|QMessageBox::No);
+			if(false == camera->recordingData.hasBeenSaved)	reply = question("Unsaved video in RAM", "Performing black calibration will erase the unsaved video in RAM. Continue?");
+			else											reply = question("Start black calibration?", "Will start black calibration. Continue?");
+
 			if(QMessageBox::Yes != reply) {
 				return;
 			}
@@ -335,7 +325,7 @@ void CamMainWindow::on_cmdFPNCal_clicked()//Black cal
 	sw->show();
 	QCoreApplication::processEvents();
 
-	cinst->startCalibration({"analogCal", "blackCal"}, true);
+	camera->cinst->startCalibration({"analogCal", "blackCal"}, true);
 
 	bool calWaiting;
 	do {
@@ -354,9 +344,7 @@ void CamMainWindow::on_cmdFPNCal_clicked()//Black cal
 void CamMainWindow::on_cmdWB_clicked()
 {
 	if(camera->getIsRecording()) {
-		QMessageBox::StandardButton reply;
-		reply = QMessageBox::question(this, "Stop recording?", "This action will stop recording and erase the video; is this okay?", QMessageBox::Yes|QMessageBox::No);
-		if(QMessageBox::Yes != reply)
+		if(QMessageBox::Yes != question("Stop recording?", "This action will stop recording and erase the video; is this okay?"))
 			return;
 		autoSaveActive = false;
 		camera->stopRecording();
@@ -375,9 +363,7 @@ void CamMainWindow::on_cmdWB_clicked()
 void CamMainWindow::on_cmdIOSettings_clicked()
 {
 	if(camera->getIsRecording()) {
-		QMessageBox::StandardButton reply;
-		reply = QMessageBox::question(this, "Stop recording?", "This action will stop recording and erase the video; is this okay?", QMessageBox::Yes|QMessageBox::No);
-		if(QMessageBox::Yes != reply)
+		if(QMessageBox::Yes != question("Stop recording?", "This action will stop recording and erase the video; is this okay?"))
 			return;
 		autoSaveActive = false;
 		camera->stopRecording();
@@ -393,27 +379,12 @@ void CamMainWindow::updateRecordingState(bool recording)
 	if(recording)
 	{
 		ui->cmdRec->setText("Stop");
-		//ui->cmdDebugWnd->setEnabled(false);
-		//ui->cmdRecSettings->setEnabled(false);
-		//ui->cmdPlay->setEnabled(false);
-		//ui->cmdFPNCal->setEnabled(false);
-		//ui->cmdWB->setEnabled(false);
-		//ui->cmdIOSettings->setEnabled(false);
-		//ui->cmdUtil->setEnabled(false);
-		////ui->cmdClose->setEnabled(false);
 
 	}
 	else	//Not recording
 	{
 		ui->cmdRec->setText("Record");
 		ui->cmdPlay->setEnabled(true);
-		//ui->cmdDebugWnd->setEnabled(true);
-		//ui->cmdRecSettings->setEnabled(true);
-		//ui->cmdFPNCal->setEnabled(true);
-		//ui->cmdWB->setEnabled(true);
-		//ui->cmdIOSettings->setEnabled(true);
-		//ui->cmdUtil->setEnabled(true);
-		////ui->cmdClose->setEnabled(true);
 
 		if(camera->get_autoSave() && autoSaveActive)
 		{
@@ -422,6 +393,10 @@ void CamMainWindow::updateRecordingState(bool recording)
 			//w->camera = camera;
 			w->setAttribute(Qt::WA_DeleteOnClose);
 			w->show();
+		}
+
+		if (prompt) {
+			prompt->done(QMessageBox::Escape);
 		}
 	}
 }
@@ -447,12 +422,10 @@ void CamMainWindow::on_MainWindowTimer()
 			if(qwl.count() <= windowsAlwaysOpen)				//Now that the numeric keypad has been added, there are four windows: cammainwindow, debug buttons window, and both keyboards
 			{
 				//If there is unsaved video in RAM, prompt to start record.  unsavedWarnEnabled values: 0=always, 1=if not reviewed, 2=never
-				if(false == camera->recordingData.hasBeenSaved && (0 != camera->unsavedWarnEnabled && (2 == camera->unsavedWarnEnabled || !camera->videoHasBeenReviewed)) && false == camera->get_autoSave())	//If there is unsaved video in RAM, prompt to start record
+				if(false == camera->recordingData.hasBeenSaved && (0 != camera->unsavedWarnEnabled && (2 == camera->unsavedWarnEnabled || !camera->recordingData.hasBeenViewed)) && false == camera->get_autoSave())	//If there is unsaved video in RAM, prompt to start record
 
 				{
-					QMessageBox::StandardButton reply;
-					reply = QMessageBox::question(this, "Unsaved video in RAM", "Start recording anyway and discard the unsaved video in RAM?", QMessageBox::Yes|QMessageBox::No);
-					if(QMessageBox::Yes == reply)
+					if(QMessageBox::Yes == question("Unsaved video in RAM", "Start recording anyway and discard the unsaved video in RAM?"))
 					{
 						camera->startRecording();
 					}
@@ -484,18 +457,13 @@ void CamMainWindow::on_MainWindowTimer()
 
 	lastShutterButton = shutterButton;
 
-	//If new data comes in from the BMS, get the battery SOC and updates the info label
-	//len = read(bmsFifoFD, buf, 300);
-
-	if (debugDbus) cnt = 35;	//fewer Dbus calls
-
-	if (!(cnt++ & 63))	//roughly once a second
-	{
-		camera->cinst->getFloat("batteryVoltage", &battVoltageCam);
-		camera->cinst->getFloat("batteryChargePercent", &battCapacityPercent);
-		camera->cinst->getBool("batteryPresent", &batteryPresent);
-		camera->cinst->getBool("externalPower", &externalPower);
+	//Request battery information from the PMIC every two seconds (16ms * 125 loops)
+	if(powerLoopCount == 125){
+		updateBatteryData();
+		powerLoopCount = 0;
 	}
+	powerLoopCount++;
+	updateCurrentSettingsLabel();
 
 	updateCurrentSettingsLabel();
 
@@ -515,7 +483,10 @@ void CamMainWindow::on_newVideoSegment(VideoStatus *st)
 {
 	/* Flag that we have unsaved video. */
 	qDebug("--- Sequencer --- Total recording size: %u", st->totalFrames);
-	if (st->totalFrames) {
+	if (camera->recordingData.ignoreSegments) {
+		camera->recordingData.ignoreSegments--;
+	}
+	else if (st->totalFrames) {
 		camera->recordingData.is = camera->getImagerSettings();
 		camera->recordingData.valid = true;
 		camera->recordingData.hasBeenSaved = false;
@@ -566,23 +537,31 @@ void CamMainWindow::updateExpSliderLimits()
 	ui->expSlider->setPageStep(camera->sensor->getIntegrationClock() / 1000000);
 }
 
+//Update the battery data.
+void CamMainWindow::updateBatteryData()
+{
+	QStringList names = {
+		"externalPower",
+		"batteryPresent",
+		"batteryVoltage",
+		"batteryChargePercent"
+	};
+	QVariantMap battData = cinst->getPropertyGroup(names);
+
+	if (!battData.isEmpty()) {
+		externalPower = battData["externalPower"].toBool();
+		batteryPresent = battData["batteryPresent"].toBool();
+		batteryVoltage = battData["batteryVoltage"].toDouble();
+		batteryPercent = battData["batteryChargePercent"].toDouble();
+	}
+}
+
 //Update the status textbox with the current settings
 void CamMainWindow::updateCurrentSettingsLabel()
 {
 	ImagerSettings_t is = camera->getImagerSettings();
-	double framePeriod;
-	double expPeriod;
-	if (debugDbus)
-	{
-		framePeriod = 0.00123456;
-		expPeriod = 0.00103456;
-	}
-	else
-	{
-		framePeriod = camera->sensor->getCurrentFramePeriodDouble();
-		expPeriod = camera->sensor->getCurrentExposureDouble();
-
-	}
+	double framePeriod = camera->sensor->getCurrentFramePeriodDouble();
+	double expPeriod = camera->sensor->getCurrentExposureDouble();
 	int shutterAngle = (expPeriod * 360.0) / framePeriod;
 
 	char str[300];
@@ -594,18 +573,9 @@ void CamMainWindow::updateCurrentSettingsLabel()
 	getSIText(expString, expPeriod, 4, DEF_SI_OPTS, 10);
 	shutterAngle = max(shutterAngle, 1); //to prevent 0 degrees from showing on the label if the current exposure is less than 1/360'th of the frame period.
 
-	double battPercent = (externalPower) ?	//If battery is charging
-						within(((double)battVoltageCam/1000.0 - 10.75) / (12.4 - 10.75) * 80, 0.0, 80.0) +
-							20 - 20*within(((double)battCurrentCam/1000.0 - 0.1) / (1.28 - 0.1), 0.0, 1.0) :	//Charging
-						within(((double)battVoltageCam/1000.0 - 9.75) / (11.8 - 9.75) * 100, 0.0, 100.0);		//Dicharging
-	//charge 10.75 - 12.4 is 0-80%
-
-	//pychronos:
-	battPercent = battCapacityPercent;
-
 	if(batteryPresent)	//If battery present
 	{
-		sprintf(battStr, "Batt %d%% %.2fV", (UInt32)battPercent,  (double)battVoltageCam);
+		sprintf(battStr, "Batt %d%% %.2fV", (UInt32)batteryPercent, batteryVoltage);
 	}
 	else
 	{
@@ -619,9 +589,7 @@ void CamMainWindow::updateCurrentSettingsLabel()
 void CamMainWindow::on_cmdUtil_clicked()
 {
 	if(camera->getIsRecording()) {
-		QMessageBox::StandardButton reply;
-		reply = QMessageBox::question(this, "Stop recording?", "This action will stop recording and erase the video; is this okay?", QMessageBox::Yes|QMessageBox::No);
-		if(QMessageBox::Yes != reply)
+		if(QMessageBox::Yes != question("Stop recording?", "This action will stop recording and erase the video; is this okay?"))
 			return;
 		autoSaveActive = false;
 		camera->stopRecording();

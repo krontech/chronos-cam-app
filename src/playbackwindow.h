@@ -74,11 +74,7 @@ private slots:
 	/* Video class signals */
 	void videoStarted(VideoState state);
 	void videoEnded(VideoState state, QString err);
-	
-	void addDotsToString(QString* abc);
-	void addPercentToString(QString* abc);
-	void updateSWText();
-	
+
 private:
 	Ui::playbackWindow *ui;
 	Camera * camera;
@@ -103,6 +99,9 @@ private:
 	short periodsToAdd = 0;
 	
 	save_mode_type getSaveFormat();
+
+	void addDotsToString(QString* abc);
+	void updateSWText();
 
 signals:
 	void finishedSaving();

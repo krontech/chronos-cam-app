@@ -166,12 +166,12 @@ void Video::loopPlayback(unsigned int start, unsigned int length, int rate)
 	}
 }
 
-void Video::setDisplayOptions(bool zebra, bool peaking)
+void Video::setDisplayOptions(bool zebra, FocusPeakColors fpColor)
 {
 	QVariantMap args;
 	QDBusPendingReply<QVariantMap> reply;
 	args.insert("zebra", QVariant(zebra));
-	args.insert("peaking", QVariant(peaking));
+	args.insert("peaking", QVariant(fpColor));
 
 	pthread_mutex_lock(&mutex);
 	reply = iface.configure(args);
@@ -199,16 +199,24 @@ void Video::setZebra(bool zebra)
 	}
 }
 
-void Video::liveDisplay(unsigned int hRes, unsigned int vRes)
+void Video::liveDisplay(bool flip)
 {
-    qDebug("###### trying liveDisplay");
 	QVariantMap args;
 	QDBusPendingReply<QVariantMap> reply;
-	args.insert("hres", QVariant(hRes));
-	args.insert("vres", QVariant(vRes));
+	args.insert("flip", QVariant(flip));
 
 	pthread_mutex_lock(&mutex);
 	reply = iface.livedisplay(args);
+	reply.waitForFinished();
+	pthread_mutex_unlock(&mutex);
+}
+
+void Video::pauseDisplay(void)
+{
+	QDBusPendingReply<QVariantMap> reply;
+
+	pthread_mutex_lock(&mutex);
+	reply = iface.pause();
 	reply.waitForFinished();
 	pthread_mutex_unlock(&mutex);
 }
