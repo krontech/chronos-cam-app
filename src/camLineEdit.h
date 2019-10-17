@@ -30,6 +30,9 @@ public:
 	void setHasUnits(bool value);
 	double siText();
 
+signals:
+	void editingStarted();
+
 protected:
 	virtual void focusInEvent(QFocusEvent *e);
 	virtual void focusOutEvent(QFocusEvent *e);

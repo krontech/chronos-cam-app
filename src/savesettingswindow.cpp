@@ -229,28 +229,15 @@ void saveSettingsWindow::refreshDriveList()
 	okToSaveLocation = false;//prevent saving a new value while drive list is being updated
 	ui->comboDrive->clear();
 
-	//ui->comboDrive->addItem("/");
-
-	//scan for Samba shares
-	QString drives = runCommand("mount -t cifs");
-	QStringList splitString = drives.split(" on ");
-
-	for (int i=1; i<splitString.length(); i++)
-	{
-		QString mountString = splitString.value(i).split(" ").value(0);
-		ui->comboDrive->addItem(mountString + " (Samba share)");
+	//Check for mounted network shares shares
+	if (path_is_mounted(SMB_STORAGE_MOUNT)) {
+		ui->comboDrive->addItem(QString(SMB_STORAGE_MOUNT) + " (Samba share)");
+	}
+	if (path_is_mounted(NFS_STORAGE_MOUNT)) {
+		ui->comboDrive->addItem(QString(NFS_STORAGE_MOUNT) + " (NFS share)");
 	}
 
-	//scan for NFS shares
-	drives = runCommand("mount -t nfs4");
-	splitString = drives.split(" on ");
-
-	for (int i=1; i<splitString.length(); i++)
-	{
-		QString mountString = splitString.value(i).split(" ").value(0);
-		ui->comboDrive->addItem(mountString + " (NFS share)");
-	}
-
+	//Check for mounted local disks.
 	while ((m = getmntent_r(mtab, &mnt, strings, sizeof(strings))))
 	{
 		struct statfs fs;

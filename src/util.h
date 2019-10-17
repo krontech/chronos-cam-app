@@ -34,7 +34,7 @@ bool checkAndCreateDir(const char * dir);
 
 int path_is_mounted(const char *path);
 
-QString runCommand(QString command);
+QString runCommand(QString command, int *status = NULL);
 
 
 #endif // UTIL_H

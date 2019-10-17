@@ -43,6 +43,7 @@ void CamLineEdit::mouseReleaseEvent(QMouseEvent *)
 {
 	QEvent event(QEvent::RequestSoftwareInputPanel);	//Call up the software input panel
 	qApp->sendEvent(this, &event);
+	emit editingStarted();
 }
 
 void CamLineEdit::selectText(){

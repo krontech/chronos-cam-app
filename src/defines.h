@@ -51,4 +51,8 @@
 #define FLAG_TEMPORARY  1
 #define FLAG_USESAVED   2
 
+// Network Storage Paths
+#define NFS_STORAGE_MOUNT	"/media/nfs"
+#define SMB_STORAGE_MOUNT	"/media/smb"
+
 #endif // DEFINES_H

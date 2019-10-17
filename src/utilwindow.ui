@@ -1059,153 +1059,63 @@ Software Updates</string>
       <string>Close</string>
      </property>
     </widget>
-    <widget class="QGroupBox" name="gbSSH">
+    <widget class="QGroupBox" name="gbSamba">
      <property name="geometry">
       <rect>
        <x>19</x>
        <y>9</y>
-       <width>441</width>
-       <height>121</height>
-      </rect>
-     </property>
-     <property name="title">
-      <string>SSH Access</string>
-     </property>
-     <widget class="CamLineEdit" name="lineSshPassword">
-      <property name="geometry">
-       <rect>
-        <x>130</x>
-        <y>30</y>
-        <width>171</width>
-        <height>31</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>16</pointsize>
-       </font>
-      </property>
-      <property name="echoMode">
-       <enum>QLineEdit::PasswordEchoOnEdit</enum>
-      </property>
-     </widget>
-     <widget class="QLabel" name="lblSshPassword">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>30</y>
-        <width>111</width>
-        <height>31</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <family>Sans Serif</family>
-        <pointsize>16</pointsize>
-       </font>
-      </property>
-      <property name="text">
-       <string>Password</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-      </property>
-     </widget>
-     <widget class="CamLineEdit" name="lineSshPort">
-      <property name="geometry">
-       <rect>
-        <x>130</x>
-        <y>70</y>
-        <width>171</width>
-        <height>31</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>16</pointsize>
-       </font>
-      </property>
-     </widget>
-     <widget class="QLabel" name="lblSshPort">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>70</y>
-        <width>111</width>
-        <height>41</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>16</pointsize>
-       </font>
-      </property>
-      <property name="text">
-       <string>Port</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="cmdSshApply">
-      <property name="geometry">
-       <rect>
-        <x>310</x>
-        <y>30</y>
-        <width>81</width>
-        <height>31</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Apply</string>
-      </property>
-     </widget>
-     <widget class="QCheckBox" name="chkSshEnable">
-      <property name="geometry">
-       <rect>
-        <x>310</x>
-        <y>70</y>
-        <width>121</width>
-        <height>31</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>16</pointsize>
-       </font>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">QCheckBox::indicator {
-     width: 30px;
-     height: 30px;
-}</string>
-      </property>
-      <property name="text">
-       <string>Enable</string>
-      </property>
-      <property name="tristate">
-       <bool>false</bool>
-      </property>
-     </widget>
-    </widget>
-    <widget class="QGroupBox" name="gbNetwork">
-     <property name="geometry">
-      <rect>
-       <x>20</x>
-       <y>140</y>
        <width>721</width>
        <height>151</height>
       </rect>
      </property>
      <property name="title">
-      <string>Network Storage</string>
+      <string>Windows/SMB Network Storage</string>
      </property>
-     <widget class="QLineEdit" name="lineNetUser">
+     <widget class="CamLineEdit" name="lineSmbAddress">
       <property name="geometry">
        <rect>
-        <x>100</x>
+        <x>120</x>
+        <y>30</y>
+        <width>201</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>16</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+     <widget class="QLabel" name="lblSmbAddress">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>30</y>
+        <width>111</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>16</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>Address</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+     </widget>
+     <widget class="CamLineEdit" name="lineSmbUser">
+      <property name="geometry">
+       <rect>
+        <x>120</x>
         <y>70</y>
-        <width>141</width>
+        <width>201</width>
         <height>31</height>
        </rect>
       </property>
@@ -1215,10 +1125,10 @@ Software Updates</string>
        </font>
       </property>
      </widget>
-     <widget class="QLabel" name="lblNetUser">
+     <widget class="QLabel" name="lblSmbUser">
       <property name="geometry">
        <rect>
-        <x>-20</x>
+        <x>0</x>
         <y>70</y>
         <width>111</width>
         <height>31</height>
@@ -1236,10 +1146,29 @@ Software Updates</string>
        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
       </property>
      </widget>
-     <widget class="QLabel" name="lblNetPassword">
+     <widget class="CamLineEdit" name="lineSmbPassword">
       <property name="geometry">
        <rect>
-        <x>-20</x>
+        <x>120</x>
+        <y>110</y>
+        <width>201</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>Standard Symbols L</family>
+        <pointsize>16</pointsize>
+       </font>
+      </property>
+      <property name="echoMode">
+       <enum>QLineEdit::Normal</enum>
+      </property>
+     </widget>
+     <widget class="QLabel" name="lblSmbPassword">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
         <y>110</y>
         <width>111</width>
         <height>31</height>
@@ -1258,23 +1187,114 @@ Software Updates</string>
        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
       </property>
      </widget>
-     <widget class="QLineEdit" name="lineNetPassword">
+     <widget class="CamLineEdit" name="lineSmbMount">
       <property name="geometry">
        <rect>
-        <x>100</x>
-        <y>110</y>
-        <width>141</width>
+        <x>450</x>
+        <y>30</y>
+        <width>251</width>
         <height>31</height>
        </rect>
       </property>
       <property name="font">
        <font>
-        <family>Standard Symbols L</family>
         <pointsize>16</pointsize>
        </font>
       </property>
+      <property name="text">
+       <string/>
+      </property>
      </widget>
-     <widget class="QLabel" name="lblNetAddress">
+     <widget class="QLabel" name="lblSmbMount">
+      <property name="geometry">
+       <rect>
+        <x>340</x>
+        <y>30</y>
+        <width>101</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>16</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>Mount</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="cmdSmbTest">
+      <property name="geometry">
+       <rect>
+        <x>560</x>
+        <y>90</y>
+        <width>71</width>
+        <height>51</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>16</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>Test</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="cmdSmbApply">
+      <property name="geometry">
+       <rect>
+        <x>640</x>
+        <y>90</y>
+        <width>71</width>
+        <height>51</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>16</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>Apply</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="cmdSmbListShares">
+      <property name="geometry">
+       <rect>
+        <x>460</x>
+        <y>90</y>
+        <width>91</width>
+        <height>51</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>16</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>List
+Shares</string>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QGroupBox" name="gbNfs">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>170</y>
+       <width>721</width>
+       <height>111</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string>NFS Network Storage</string>
+     </property>
+     <widget class="QLabel" name="lblNfsAddress">
       <property name="geometry">
        <rect>
         <x>-20</x>
@@ -1295,116 +1315,10 @@ Software Updates</string>
        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
       </property>
      </widget>
-     <widget class="QPushButton" name="cmdNetTest">
-      <property name="geometry">
-       <rect>
-        <x>250</x>
-        <y>80</y>
-        <width>81</width>
-        <height>51</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Test Samba
-Connection</string>
-      </property>
-     </widget>
-     <widget class="QLineEdit" name="lineNetAddress">
+     <widget class="CamLineEdit" name="lineNfsAddress">
       <property name="geometry">
        <rect>
         <x>100</x>
-        <y>30</y>
-        <width>141</width>
-        <height>31</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>16</pointsize>
-       </font>
-      </property>
-      <property name="text">
-       <string/>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="cmdSambaConnectPermanently">
-      <property name="geometry">
-       <rect>
-        <x>340</x>
-        <y>79</y>
-        <width>101</width>
-        <height>51</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Connect Samba
-Permanently</string>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_2">
-      <property name="geometry">
-       <rect>
-        <x>330</x>
-        <y>128</y>
-        <width>121</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>(single share only)</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="cmdNfsTest">
-      <property name="geometry">
-       <rect>
-        <x>510</x>
-        <y>80</y>
-        <width>88</width>
-        <height>51</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Test NFS
-Connection</string>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="cmdNfsConnectPermanently">
-      <property name="geometry">
-       <rect>
-        <x>607</x>
-        <y>80</y>
-        <width>101</width>
-        <height>51</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Connect NFS
-Permanently</string>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_3">
-      <property name="geometry">
-       <rect>
-        <x>597</x>
-        <y>130</y>
-        <width>121</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>(single share only)</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
-     <widget class="QLineEdit" name="lineMountFolder">
-      <property name="geometry">
-       <rect>
-        <x>508</x>
         <y>30</y>
         <width>201</width>
         <height>31</height>
@@ -1419,12 +1333,48 @@ Permanently</string>
        <string/>
       </property>
      </widget>
-     <widget class="QLabel" name="lblNetNfsMount">
+     <widget class="QPushButton" name="cmdNfsTest">
       <property name="geometry">
        <rect>
-        <x>370</x>
-        <y>30</y>
-        <width>151</width>
+        <x>560</x>
+        <y>40</y>
+        <width>71</width>
+        <height>51</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>16</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>Test</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="cmdNfsConnectPermanently">
+      <property name="geometry">
+       <rect>
+        <x>640</x>
+        <y>40</y>
+        <width>71</width>
+        <height>51</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>16</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>Apply</string>
+      </property>
+     </widget>
+     <widget class="CamLineEdit" name="lineNfsMount">
+      <property name="geometry">
+       <rect>
+        <x>100</x>
+        <y>70</y>
+        <width>201</width>
         <height>31</height>
        </rect>
       </property>
@@ -1434,75 +1384,38 @@ Permanently</string>
        </font>
       </property>
       <property name="text">
-       <string>Mount Folder</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
+       <string/>
       </property>
      </widget>
-     <widget class="QPushButton" name="cmdNetListConnections">
+     <widget class="QLabel" name="lblNfsMount">
       <property name="geometry">
        <rect>
-        <x>250</x>
-        <y>25</y>
-        <width>81</width>
-        <height>41</height>
+        <x>-40</x>
+        <y>70</y>
+        <width>131</width>
+        <height>31</height>
        </rect>
       </property>
       <property name="font">
        <font>
-        <pointsize>11</pointsize>
+        <pointsize>16</pointsize>
        </font>
       </property>
       <property name="text">
-       <string>List
-Connections</string>
+       <string>Mount</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
       </property>
      </widget>
-    </widget>
-    <widget class="QLabel" name="lblIpLabel">
-     <property name="geometry">
-      <rect>
-       <x>520</x>
-       <y>30</y>
-       <width>201</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Connected Camera IP Addresses:</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="lblIpAddress">
-     <property name="geometry">
-      <rect>
-       <x>530</x>
-       <y>50</y>
-       <width>161</width>
-       <height>51</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <pointsize>16</pointsize>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="text">
-      <string>TextLabel</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-     </property>
     </widget>
     <widget class="QGroupBox" name="gbNetStatus">
      <property name="geometry">
       <rect>
        <x>20</x>
-       <y>300</y>
+       <y>290</y>
        <width>580</width>
-       <height>131</height>
+       <height>141</height>
       </rect>
      </property>
      <property name="title">
@@ -2061,17 +1974,8 @@ Calibration Data
   <tabstop>cmdNetUpdate</tabstop>
   <tabstop>cmdNfsConnectPermanently</tabstop>
   <tabstop>cmdNfsTest</tabstop>
-  <tabstop>lineMountFolder</tabstop>
-  <tabstop>cmdSambaConnectPermanently</tabstop>
-  <tabstop>cmdNetTest</tabstop>
-  <tabstop>cmdNetListConnections</tabstop>
-  <tabstop>lineNetPassword</tabstop>
-  <tabstop>lineNetUser</tabstop>
-  <tabstop>lineNetAddress</tabstop>
-  <tabstop>chkSshEnable</tabstop>
-  <tabstop>cmdSshApply</tabstop>
-  <tabstop>lineSshPort</tabstop>
-  <tabstop>lineSshPassword</tabstop>
+  <tabstop>lineNfsMount</tabstop>
+  <tabstop>lineNfsAddress</tabstop>
  </tabstops>
  <resources/>
  <connections/>

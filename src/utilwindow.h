@@ -74,7 +74,6 @@ private slots:
 	void on_cmdRestoreCal_clicked();
 
 	void on_linePassword_textEdited(const QString &arg1);
-	void on_cmdNetTest_clicked();
 
 	void on_cmdEjectSD_clicked();
 	void on_cmdFormatSD_clicked();
@@ -123,20 +122,20 @@ private slots:
 	void on_spinLiveLoopTime_valueChanged(int arg1);
 	void waitForIdle(void);
 	Int32 blackCalAllStdRes(void);
+
+	/* Slots for Samba Storage Widgets */
+	void on_cmdSmbListShares_clicked();
+	void on_cmdSmbTest_clicked();
+	void on_cmdSmbApply_clicked();
+	void on_lineSmbPassword_editingFinished();
+	void on_lineSmbPassword_editingStarted();
 	QString buildSambaString();
-	void on_cmdSambaConnect_clicked();
-	void on_cmdSambaConnectPermanently_clicked();
-	bool isSmbConnected(QString user, QString address, QString folder);
-	QString buildNfsString();
-	void on_cmdNfsConnect_clicked();
-	void on_cmdNfsConnectPermanently_clicked();
+
+	/* Slots for NFS Storage Widgets */
 	void on_cmdNfsTest_clicked();
-	bool isNfsConnected(QString mount, QString address);
-	void on_cmdNetListConnections_clicked();
+	void on_cmdNfsApply_clicked();
 	bool isReachable(QString address);
-
-
-
+	QString buildNfsString();
 
 private:
 	Ui::UtilWindow *ui;
@@ -144,6 +143,7 @@ private:
 	QTimer * timer;
 	bool settingClock;
 	bool openingWindow;
+	bool lineSmbPassword_wasEdited;
 
 	void formatStorageDevice(const char *blkdev);
 	void statErrorMessage();

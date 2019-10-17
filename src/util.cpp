@@ -69,9 +69,11 @@ int path_is_mounted(const char *path)
 	return (stat(tmp, &parent) == 0) && (parent.st_dev != st.st_dev);
 }
 
-QString runCommand(QString command)
+QString runCommand(QString command, int *status)
 {
 	QString output = "";
+	int dummy;
+	if (status == NULL) status = &dummy;
 
 	FILE *fp = popen(command.toLocal8Bit().constData(), "r");
 	char line[200];
@@ -79,7 +81,7 @@ QString runCommand(QString command)
 	while (fgets(line, sizeof(line), fp) != NULL) {
 		output.append(line);
 	}
-	pclose(fp);
+	*status = pclose(fp);
 	return output;
 }
 
