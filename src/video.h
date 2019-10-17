@@ -12,8 +12,6 @@
 
 /******************************************************************************/
 
-void* frameThread(void *arg);
-
 struct VideoRecordArgs {
 	const char *filename;
 	unsigned long startFrame;

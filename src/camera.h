@@ -353,35 +353,13 @@ signals:
 	void receivedParameters();
 
 protected slots:
-	void apiDoSetFramePeriod(UInt32 period);
-	void apiDoSetCurrentIso(UInt32 iso);
-	void apiDoSetCurrentGain(UInt32 gain );
-	void apiDoSetPlaybackPosition(UInt32 frame);
-	void apiDoSetPlaybackStart(UInt32 frame);
-	void apiDoSetPlaybackLength(UInt32 frames);
-	void apiDoSetWbTemperature(UInt32 temp);
-	void apiDoSetRecMaxFrames(UInt32 frames);
-	void apiDoSetRecSegments(UInt32 seg);
-	void apiDoSetRecPreBurst(UInt32 frames);
-	void apiDoSetExposurePeriod(UInt32 period);
-
-	void apiDoSetExposurePercent(double percent);
-	void apiDoSetExposureNormalized(double norm);
-	void apiDoSetIoDelayTime(double delay);
-	void apiDoSetFrameRate(double rate);
-	void apiDoSetShutterAngle(double angle);
-
-	void apiDoSetExposureMode(QString mode);
-	void apiDoSetCameraTallyMode(QString mode);
-	void apiDoSetCameraDescription(QString desc);
-	void apiDoSetNetworkHostname(QString name);
-	void apiDoStateChanged(QString state);
-
-	void apiDoSetWbMatrix(QVariant wb);
-	void apiDoSetColorMatrix(QVariant color);
-	void apiDoSetResolution(QVariant res);
-
-	//void apiDoSetInt(QString param, UInt32 value);
+	/* Slots from the API on how to handle value changes. */
+	void api_framePeriod_valueChanged(const QVariant &value);
+	void api_exposurePeriod_valueChanged(const QVariant &value);
+	void api_state_valueChanged(const QVariant &value);
+	void api_wbMatrix_valueChanged(const QVariant &value);
+	void api_colorMatrix_valueChanged(const QVariant &value);
+	void api_resolution_valueChanged(const QVariant &value);
 
 	void onLoopTimer();
 

@@ -131,57 +131,8 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	QWidgetList qwl = QApplication::topLevelWidgets();
 	windowsAlwaysOpen = qwl.count();
 
-	if (!QObject::connect(cinst, SIGNAL(apiSetFramePeriod(UInt32)), camera, SLOT(apiDoSetFramePeriod(UInt32)))) {
-		qDebug() << "Connect failed"; }
-	if (!QObject::connect(cinst, SIGNAL(apiSetShutterAngle(double)), camera, SLOT(apiDoSetShutterAngle(double)))) {
-		qDebug() << "Connect failed"; }
-	if (!QObject::connect(cinst, SIGNAL(apiSetExposurePeriod(UInt32)), camera, SLOT(apiDoSetExposurePeriod(UInt32)))) {
-		qDebug() << "Connect failed"; }
-	if (!QObject::connect(cinst, SIGNAL(apiSetCurrentIso(UInt32)), camera, SLOT(apiDoSetCurrentIso(UInt32)))) {
-		qDebug() << "Connect failed"; }
-	if (!QObject::connect(cinst, SIGNAL(apiSetCurrentGain(UInt32)), camera, SLOT(apiDoSetCurrentGain(UInt32)))) {
-		qDebug() << "Connect failed"; }
-	if (!QObject::connect(cinst, SIGNAL(apiSetPlaybackPosition(UInt32)), camera, SLOT(apiDoSetPlaybackPosition(UInt32)))) {
-		qDebug() << "Connect failed"; }
-	if (!QObject::connect(cinst, SIGNAL(apiSetPlaybackStart(UInt32)), camera, SLOT(apiDoSetPlaybackStart(UInt32)))) {
-		qDebug() << "Connect failed"; }
-	if (!QObject::connect(cinst, SIGNAL(apiSetPlaybackLength(UInt32)), camera, SLOT(apiDoSetPlaybackLength(UInt32)))) {
-		qDebug() << "Connect failed"; }
-	if (!QObject::connect(cinst, SIGNAL(apiSetWbTemperature(UInt32)), camera, SLOT(apiDoSetWbTemperature(UInt32)))) {
-		qDebug() << "Connect failed"; }
-	if (!QObject::connect(cinst, SIGNAL(apiSetRecMaxFrames(UInt32)), camera, SLOT(apiDoSetRecMaxFrames(UInt32)))) {
-		qDebug() << "Connect failed"; }
-	if (!QObject::connect(cinst, SIGNAL(apiSetRecSegments(UInt32)), camera, SLOT(apiDoSetRecSegments(UInt32)))) {
-		qDebug() << "Connect failed"; }
-	if (!QObject::connect(cinst, SIGNAL(apiSetRecPreBurst(UInt32)), camera, SLOT(apiDoSetRecPreBurst(UInt32)))) {
-		qDebug() << "Connect failed"; }
-	if (!QObject::connect(cinst, SIGNAL(apiSetExposurePercent(double)), camera, SLOT(apiDoSetExposurePercent(double)))) {
-		qDebug() << "Connect failed"; }
-	if (!QObject::connect(cinst, SIGNAL(apiSetExposureNormalized(double)), camera, SLOT(apiDoSetExposureNormalized(double)))) {
-		qDebug() << "Connect failed"; }
-	if (!QObject::connect(cinst, SIGNAL(apiSetIoDelayTime(double)), camera, SLOT(apiDoSetIoDelayTime(double)))) {
-		qDebug() << "Connect failed"; }
-	if (!QObject::connect(cinst, SIGNAL(apiSetFrameRate(double)), camera, SLOT(apiDoSetFrameRate(double)))) {
-		qDebug() << "Connect failed"; }
-
-
-	if (!QObject::connect(cinst, SIGNAL(apiSetExposureMode(QString)), camera, SLOT(apiDoSetExposureMode(QString)))) {
-		qDebug() << "Connect failed"; }
-	if (!QObject::connect(cinst, SIGNAL(apiSetCameraTallyMode(QString)), camera, SLOT(apiDoSetCameraTallyMode(QString)))) {
-		qDebug() << "Connect failed"; }
-	if (!QObject::connect(cinst, SIGNAL(apiSetCameraDescription(QString)), camera, SLOT(apiDoSetCameraDescription(QString)))) {
-		qDebug() << "Connect failed"; }
-	if (!QObject::connect(cinst, SIGNAL(apiSetNetworkHostname(QString)), camera, SLOT(apiDoSetNetworkHostname(QString)))) {
-		qDebug() << "Connect failed"; }
-	if (!QObject::connect(cinst, SIGNAL(apiStateChanged(QString)), camera, SLOT(apiDoStateChanged(QString)))) {
-		qDebug() << "Connect failed"; }
-
-	if (!QObject::connect(cinst, SIGNAL(apiSetWbMatrix(QVariant)), camera, SLOT(apiDoSetWbMatrix(QVariant)))) {
-		qDebug() << "Connect failed"; }
-	if (!QObject::connect(cinst, SIGNAL(apiSetColorMatrix(QVariant)), camera, SLOT(apiDoSetColorMatrix(QVariant)))) {
-		qDebug() << "Connect failed"; }
-	if (!QObject::connect(cinst, SIGNAL(apiSetResolution(QVariant)), camera, SLOT(apiDoSetResolution(QVariant)))) {
-		qDebug() << "Connect failed"; }
+	cinst->listen("videoState", this, SLOT(on_videoState_valueChanged(const QVariant &)));
+	cinst->listen("exposurePeriod", this, SLOT(on_exposurePeriod_valueChanged(const QVariant &)));
 
 	cinst->getArray("wbMatrix", 3, (double *)&camera->whiteBalMatrix);
 	cinst->getArray("colorMatrix", 9, (double *)&camera->colorCalMatrix);
@@ -194,6 +145,16 @@ CamMainWindow::~CamMainWindow()
 
 	delete ui;
 	delete camera;
+}
+
+void CamMainWindow::on_videoState_valueChanged(const QVariant &value)
+{
+	qDebug() << "Receied new videoState => " << value.toString();
+}
+
+void CamMainWindow::on_exposurePeriod_valueChanged(const QVariant &value)
+{
+	updateParameters();
 }
 
 QMessageBox::StandardButton

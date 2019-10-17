@@ -14,14 +14,6 @@
 
 /******************************************************************************/
 
-void* frameThread(void *arg);
-
-typedef enum {
-	CONTROL_STATE_LIVEDISPLAY = 0,
-	CONTROL_STATE_PLAYBACK = 1,
-	CONTROL_STATE_FILESAVE = 2,
-} ControlStatus;
-
 #define FOCUS_PEAK_THRESH_LOW	35
 #define FOCUS_PEAK_THRESH_MED	25
 #define FOCUS_PEAK_THRESH_HIGH	15
@@ -77,8 +69,12 @@ struct SensorWhiteBalance {
     double blue;
 };
 
+class ControlNotify;
+
 class Control : public QObject {
     Q_OBJECT
+
+	friend class ControlParam;
 
 public:
 	/* Settings moved over from the VideoRecord class, into Video class, and then into Control */
@@ -137,47 +133,17 @@ public:
 	int mkfilename(char *path, save_mode_type save_mode);
 	CameraErrortype saveRecording(UInt32 start, UInt32 length, save_mode_type save_mode, UInt32 framerate, UInt32 maxBitrate);
 
+	void listen(QString name, QObject *receiver, const char *method);
+
 private:
-    int pid;
-    bool running;
     pthread_mutex_t mutex;
-
-	void checkpid(void);
-
+	QMultiHash<QString, ControlNotify *> params;
 	CaKrontechChronosControlInterface iface;
 
-signals:
-	void apiSetInt(QString param, UInt32 value);
-	void apiSetFramePeriod(UInt32 period);
-	void apiSetExposurePeriod(UInt32 period);
-	void apiSetCurrentIso(UInt32 iso);
-	void apiSetCurrentGain(UInt32 gain);
-	void apiSetPlaybackPosition(UInt32 frame);
-	void apiSetPlaybackStart(UInt32 frame);
-	void apiSetPlaybackLength(UInt32 frames);
-	void apiSetWbTemperature(UInt32 temp);
-	void apiSetRecMaxFrames(UInt32 frames);
-	void apiSetRecSegments(UInt32 seg);
-	void apiSetRecPreBurst(UInt32 frames);
+	void notifyParam(QString name, const QVariant &value);
 
-	void apiSetExposurePercent(double percent);
-	void apiSetExposureNormalized(double norm);
-	void apiSetIoDelayTime(double IoDelayTime);
-	void apiSetFrameRate(double rate);
-	void apiSetShutterAngle(double angle);
-
-	void apiSetExposureMode(QString mode);
-	void apiSetCameraTallyMode(QString mode);
-	void apiSetCameraDescription(QString desc);
-	void apiSetNetworkHostname(QString name);
-	void apiStateChanged(QString state);
-
-	void apiSetWbMatrix(QVariant wb);
-	void apiSetColorMatrix(QVariant wb);
-	void apiSetResolution(QVariant wb);
-
-    /* D-Bus signal handlers. */
 private slots:
+	/* D-Bus signal handler for parameter changes. */
 	void notify(const QVariantMap &args);
 
 };
@@ -197,6 +163,24 @@ CameraErrortype Control::getPropertyValue(QString parameter, T *value)
 	*value = qv.value<T>();
 	return SUCCESS;
 }
+
+/* Helper class to emit property changed signals */
+class ControlNotify : public QObject {
+	Q_OBJECT
+
+	friend class Control;
+
+public:
+	ControlNotify();
+	~ControlNotify();
+
+private:
+	QMultiHash<QString, ControlNotify *> *hash;
+	QString name;
+
+signals:
+	void valueChanged(const QVariant &value);
+};
 
 #endif // CONTROL_H
 

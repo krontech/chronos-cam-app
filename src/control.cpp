@@ -20,22 +20,6 @@
 #include "camera.h"
 #include "util.h"
 
-void catch_sigchild2(int sig) { /* nop */ }
-
-/* Check for the PID of the control daemon. */
-void Control::checkpid(void)
-{
-    FILE *fp = popen("pidof cam-control", "r");
-    char line[64];
-    if (fp == NULL) {
-        return;
-    }
-    if (fgets(line, sizeof(line), fp) != NULL) {
-        pid = strtol(line, NULL, 10);
-
-    }
-}
-
 UInt32 sensorHIncrement = 0;
 UInt32 sensorVIncrement = 0;
 UInt32 sensorHMax = 0;
@@ -468,9 +452,6 @@ Control::Control() : iface("ca.krontech.chronos.control", "/ca/krontech/chronos/
     QDBusConnection conn = iface.connection();
 	int i;
 
-    pid = -1;
-    running = false;
-
 	// Prepare the recording parameters
 	strcpy(filename, "");
 
@@ -489,10 +470,6 @@ Control::Control() : iface("ca.krontech.chronos.control", "/ca/krontech/chronos/
 	conn.connect("ca.krontech.chronos.control", "/ca/krontech/chronos/control", "ca.krontech.chronos.control",
 				 "notify", this, SLOT(notify(const QVariantMap&)));
 
-    /* Try to get the PID of the controller. */
-    checkpid();
-
-
     qDebug("####### Control DBUS initialized.");
 }
 
@@ -501,96 +478,10 @@ Control::~Control()
     pthread_mutex_destroy(&mutex);
 }
 
-
 void Control::notify(const QVariantMap &args)
 {
-	qDebug() << "-------------------------------------";
-
-	for(auto e : args.keys())
-	{
-		//qDebug() << e << "," << args.value(e);
-
-//bool
-		if (e == "exposurePercent") {
-			emit apiSetExposurePercent(args.value(e).toDouble()); }
-
-
-
-//int
-		else if (e == "framePeriod") {
-			int period = args.value(e).toInt();
-			emit apiSetFramePeriod(period);
-		}
-		else if (e == "exposurePeriod") {
-			int period = args.value(e).toInt();
-			emit apiSetExposurePeriod(period); }
-		else if (e == "currentIso") {
-			int iso = args.value(e).toInt();
-			emit apiSetCurrentIso(iso); }
-		else if (e == "currentGain") {
-			int gain = args.value(e).toInt();
-			emit apiSetCurrentGain(gain); }
-		else if (e == "playbackPosition") {
-			int frame = args.value(e).toInt();
-			emit apiSetPlaybackPosition(frame); }
-		else if (e == "playbackStart") {
-			int frame = args.value(e).toInt();
-			emit apiSetPlaybackStart(frame); }
-		else if (e == "playbackLength") {
-			int frames = args.value(e).toInt();
-			emit apiSetPlaybackLength(frames); }
-		else if (e == "wbTemperature") {
-			int temp = args.value(e).toInt();
-			emit apiSetWbTemperature(temp); }
-		else if (e == "recMaxFrames") {
-			int frames = args.value(e).toInt();
-			emit apiSetRecMaxFrames(frames); }
-		else if (e == "recSegments") {
-			int seg = args.value(e).toInt();
-			emit apiSetRecSegments(seg); }
-		else if (e == "recPreBurst") {
-			int frames = args.value(e).toInt();
-			emit apiSetRecPreBurst(frames); }
-
-//float
-		else if (e == "exposurePercent") {
-			emit apiSetExposurePercent(args.value(e).toDouble()); }
-		else if (e == "ExposureNormalized") {
-			emit apiSetExposureNormalized(args.value(e).toDouble()); }
-		else if (e == "ioDelayTime") {
-			emit apiSetIoDelayTime(args.value(e).toDouble()); }
-		else if (e == "frameRate") {
-			emit apiSetFrameRate(args.value(e).toDouble()); }
-		else if (e == "shutterAngle") {
-			emit apiSetShutterAngle(args.value(e).toDouble()); }
-
-//string
-		else if (e == "exposureMode") {
-			emit apiSetExposureMode(args.value(e).toString()); }
-		else if (e == "cameraTallyMode") {
-			emit apiSetCameraTallyMode(args.value(e).toString()); }
-		else if (e == "cameraDescription") {
-			emit apiSetCameraDescription(args.value(e).toString()); }
-		else if (e == "networkHostname") {
-			emit apiSetNetworkHostname(args.value(e).toString()); }
-		else if (e == "state") {
-			emit apiStateChanged(args.value(e).toString()); }
-
-//array
-		else if (e == "wbMatrix") {
-			emit apiSetWbMatrix(args.value(e));
-			}
-		else if (e == "colorMatrix") {
-			emit apiSetColorMatrix(args.value(e));
-			}
-
-//dict
-		else if (e == "ioMapping") {
-			qDebug() << args.value(e);}
-		else if (e == "resolution") {
-			emit apiSetResolution(args.value(e)); }
-
-		else qDebug() << "IGNORED:" << e << "," << args.value(e);
+	for (auto e : args.keys()) {
+		notifyParam(e, args.value(e));
 	}
 }
 
@@ -720,5 +611,44 @@ CameraErrortype Control::saveRecording(UInt32 start, UInt32 length, save_mode_ty
 	}
 	else {
 		return SUCCESS;
+	}
+}
+
+ControlNotify::ControlNotify()
+{
+	name = QString("");
+	hash = NULL;
+}
+
+ControlNotify::~ControlNotify()
+{
+	if (hash) {
+		hash->remove(name, this);
+	}
+}
+
+void Control::listen(QString name, QObject *receiver, const char *method)
+{
+	ControlNotify *cnotify = new ControlNotify();
+	if (cnotify) {
+		/* Link the parameter listener into the control class. */
+		cnotify->hash = &params;
+		cnotify->name = name;
+		params.insert(name, cnotify);
+		QObject::connect(cnotify, SIGNAL(valueChanged(const QVariant &)), receiver, method);
+
+		/* Setup garbage collection when the receiver is deleted. */
+		cnotify->setParent(receiver);
+	}
+}
+
+void Control::notifyParam(QString name, const QVariant &value)
+{
+	QHash<QString, ControlNotify *>::iterator iter = params.find(name);
+
+	/* For each listener, emit a valueChanged signal. */
+	while ((iter != params.end()) && (iter.key() == name)) {
+		emit iter.value()->valueChanged(value);
+		iter++;
 	}
 }

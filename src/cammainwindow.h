@@ -84,6 +84,9 @@ private slots:
 
 	void keyPressEvent(QKeyEvent *ev);
 
+	void on_videoState_valueChanged(const QVariant &value);
+	void on_exposurePeriod_valueChanged(const QVariant &value);
+
 private:
 	void updateRecordingState(bool recording);
 	void updateCurrentSettingsLabel(void);

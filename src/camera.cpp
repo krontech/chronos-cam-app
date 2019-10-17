@@ -159,6 +159,13 @@ CameraErrortype Camera::init(Video * vinstInst, Control * cinstInst, PySensor * 
 		if(!fileDirFoundOnUSB) strcpy(cinst->fileDirectory, "/media/mmcblk1p1");
 	}
 
+	/* Connect to any parameter updates that we care to receive. */
+	cinst->listen("framePeriod", this, SLOT(api_framePeriod_valueChanged(const QVariant &)));
+	cinst->listen("exposurePeriod", this, SLOT(api_exposurePeriod_valueChanged(const QVariant &)));
+	cinst->listen("state", this, SLOT(api_state_valueChanged(const QVariant &)));
+	cinst->listen("wbMatrix", this, SLOT(api_wbMatrix_valueChanged(const QVariant &)));
+	cinst->listen("colorMatrix", this, SLOT(api_colorMatrix_valueChanged(const QVariant &)));
+	cinst->listen("resolution", this, SLOT(api_resolution_valueChanged(const QVariant &)));
 
 	ui->setRecLEDFront(false);
 	ui->setRecLEDBack(false);
@@ -952,117 +959,19 @@ void* recDataThread(void *arg)
 	pthread_exit(NULL);
 }
 
-extern CamMainWindow *camMainWindow;
-
-
-
-void Camera::apiDoSetFramePeriod(UInt32 period)
+void Camera::api_framePeriod_valueChanged(const QVariant &value)
 {
-	sensor->setCurrentPeriod(period);
-	//qDebug() << "apiDoSetFramePeriod";
+	sensor->setCurrentPeriod(value.toInt());
 }
 
-void moveCamMainWindow();
-void Camera::apiDoSetExposurePeriod(UInt32 period)
+void Camera::api_exposurePeriod_valueChanged(const QVariant &value)
 {
-	camMainWindow->updateParameters();
-	//emit receivedParameters();  - can't get this signal to work
-	sensor->setCurrentExposure(period);
-	//qDebug() << "apiDoSetExposurePeriod";
+	sensor->setCurrentExposure(value.toInt());
 }
 
-void Camera::apiDoSetCurrentIso(UInt32 iso )
+void Camera::api_state_valueChanged(const QVariant &value)
 {
-	qDebug() << "apiDoSetCurrentIso";
-}
-
-void Camera::apiDoSetCurrentGain(UInt32 )
-{
-	qDebug() << "apiDoSetCurrentGain";
-}
-
-void Camera::apiDoSetPlaybackPosition(UInt32 frame)
-{
-	qDebug() << "apiDoSetPlaybackPosition";
-}
-
-void Camera::apiDoSetPlaybackStart(UInt32 frame)
-{
-	qDebug() << "apiDoSetPlaybackStart";
-}
-
-void Camera::apiDoSetPlaybackLength(UInt32 frames)
-{
-	qDebug() << "apiDoSetPlaybackLength";
-}
-
-void Camera::apiDoSetWbTemperature(UInt32 temp)
-{
-	qDebug() << "apiDoSetWbTemperature";
-}
-
-void Camera::apiDoSetRecMaxFrames(UInt32 frames)
-{
-	qDebug() << "apiDoSetRecMaxFrames";
-}
-
-void Camera::apiDoSetRecSegments(UInt32 seg)
-{
-	qDebug() << "apiDoSetRecSegments";
-}
-
-void Camera::apiDoSetRecPreBurst(UInt32 frames)
-{
-	qDebug() << "apiDoSetRecPreBurst";
-}
-
-void Camera::apiDoSetExposurePercent(double percent)
-{
-	qDebug() << "apiDoSetExposurePercent" << percent;
-}
-
-void Camera::apiDoSetExposureNormalized(double norm)
-{
-	qDebug() << "apiDoSetExposureNormalized";
-}
-
-void Camera::apiDoSetIoDelayTime(double delay)
-{
-	qDebug() << "apiDoSetIoDelayTime" << delay;
-}
-
-void Camera::apiDoSetFrameRate(double rate)
-{
-	qDebug() << "apiDoSetFrameRate";
-}
-
-void Camera::apiDoSetShutterAngle(double angle)
-{
-	qDebug() << "apiDoSetShutterAngle";
-}
-
-void Camera::apiDoSetExposureMode(QString mode)
-{
-	qDebug() << "apiDoSetExposureMode";
-}
-
-void Camera::apiDoSetCameraTallyMode(QString mode)
-{
-	qDebug() << "apiDoSetCameraTallyMode";
-}
-
-void Camera::apiDoSetCameraDescription(QString desc)
-{
-	qDebug() << "apiDoSetCameraDescription";
-}
-
-void Camera::apiDoSetNetworkHostname(QString name)
-{
-	qDebug() << "apiDoSetNetworkHostname";
-}
-
-void Camera::apiDoStateChanged(QString state)
-{
+	QString state = value.toString();
 	qDebug() << "new state:" << state;
 
 	if ((lastState == "idle") && (state == "recording"))
@@ -1077,7 +986,7 @@ void Camera::apiDoStateChanged(QString state)
 	lastState = state;
 }
 
-void Camera::apiDoSetWbMatrix(QVariant wb)
+void Camera::api_wbMatrix_valueChanged(const QVariant &wb)
 {
 	QDBusArgument dbusArgs = wb.value<QDBusArgument>();
 	dbusArgs.beginArray();
@@ -1088,7 +997,7 @@ void Camera::apiDoSetWbMatrix(QVariant wb)
 	dbusArgs.endArray();
 }
 
-void Camera::apiDoSetColorMatrix(QVariant wb)
+void Camera::api_colorMatrix_valueChanged(const QVariant &wb)
 {
 	QDBusArgument dbusArgs = wb.value<QDBusArgument>();
 	dbusArgs.beginArray();
@@ -1099,7 +1008,7 @@ void Camera::apiDoSetColorMatrix(QVariant wb)
 	dbusArgs.endArray();
 }
 
-void Camera::apiDoSetResolution(QVariant res)
+void Camera::api_resolution_valueChanged(const QVariant &res)
 {
 	FrameGeometry *geometry = &this->imagerSettings.geometry;
 	QVariant qv = res;

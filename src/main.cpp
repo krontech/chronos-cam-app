@@ -57,9 +57,6 @@ extern "C" {
 
 volatile sig_atomic_t done = 0;
 
-//need global for notification to update slider
-CamMainWindow *camMainWindow;
-
 void term(int signum)
 {
 	QSettings settings;
@@ -155,8 +152,6 @@ int main(int argc, char *argv[])
 //	fflush(stdout);
 	CamMainWindow w;
 	w.setWindowFlags(Qt::FramelessWindowHint);
-
-	camMainWindow = &w;
 
 	QSettings appSettings;
 	int displayPosition = (appSettings.value("camera/ButtonsOnLeft", false)).toBool() ? 0 : 600;
