@@ -58,31 +58,6 @@
 #define FLAG_SHIPPING_MODE     (1 << 5)
 #define FLAG_SHUTDOWN_REQUEST  (1 << 6)
 
-typedef enum CameraRecordModes
-{
-    RECORD_MODE_NORMAL = 0,
-    RECORD_MODE_SEGMENTED,
-    RECORD_MODE_GATED_BURST,
-    RECORD_MODE_FPN
-} CameraRecordModeType;
-
-typedef struct {
-	FrameGeometry geometry;		//Frame geometry.
-	UInt32 exposure;            //10ns increments
-	UInt32 period;              //Frame period in 10ns increments
-	UInt32 gain;
-	UInt32 recRegionSizeFrames; //Number of frames in the entire record region
-	CameraRecordModeType mode;  //Recording mode
-	UInt32 segments;            //Number of segments in segmented mode
-	UInt32 segmentLengthFrames; //Length of segment in segmented mode
-	UInt32 prerecordFrames;     //Number of frames to record before each burst in Gated Burst mode
-
-	struct {
-		unsigned temporary : 1; // set this to disable saving of state
-		unsigned disableRingBuffer : 1; //Set this to disable the ring buffer (record ends when at the end of memory rather than rolling over to the beginning)
-	};
-} ImagerSettings_t;
-
 typedef struct {
 	ImagerSettings_t is;
 	bool valid;
@@ -111,9 +86,7 @@ public:
 	Control * cinst;
 
 	RecordSettings_t recordingData;
-	ImagerSettings_t getImagerSettings() { return imagerSettings; }
 	SensorInfo_t     getSensorInfo() { return sensorInfo; }
-	UInt32 loadImagerSettings(ImagerSettings_t * settings);
 
 	UInt32 getRecordLengthFrames(ImagerSettings_t settings);
 
@@ -179,8 +152,7 @@ private:
 	bool recording;
 	bool playbackMode;
 
-	ImagerSettings_t imagerSettings;
-	SensorInfo_t	 sensorInfo;
+	SensorInfo_t sensorInfo;
 	bool isColor;
 
 	int focusPeakColorIndex;
@@ -267,7 +239,6 @@ protected slots:
 	void api_state_valueChanged(const QVariant &value);
 	void api_wbMatrix_valueChanged(const QVariant &value);
 	void api_colorMatrix_valueChanged(const QVariant &value);
-	void api_resolution_valueChanged(const QVariant &value);
 
 	void onLoopTimer();
 };

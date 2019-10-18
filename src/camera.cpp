@@ -93,29 +93,6 @@ CameraErrortype Camera::init(Video * vinstInst, Control * cinstInst)
 	retVal = cinst->status(&cs);
 	recording = !strcmp(cs.state, "idle");
 
-	/* Load the current imager settings. */
-	cinst->getResolution(&imagerSettings.geometry);
-	cinst->getInt("currentGain", &imagerSettings.gain);
-	cinst->getInt("framePeriod", &imagerSettings.period);
-	cinst->getInt("exposurePeriod", &imagerSettings.exposure);
-	cinst->getInt("recMaxFrames", &imagerSettings.recRegionSizeFrames);
-	cinst->getInt("recPreBurst", &imagerSettings.prerecordFrames);
-	cinst->getInt("recSegments", &imagerSettings.segments);
-	/* Some stuff that doesn't quite fit... */
-	imagerSettings.segmentLengthFrames = imagerSettings.recRegionSizeFrames / imagerSettings.segments;
-	imagerSettings.disableRingBuffer = appSettings.value("camera/disableRingBuffer", 0).toInt();
-	imagerSettings.mode = RECORD_MODE_NORMAL;
-
-	QString mode;
-	cinst->getString("recMode", &mode);
-	if (mode == "normal") {
-		imagerSettings.mode = RECORD_MODE_NORMAL;
-	} else if (mode == "segmented") {
-		imagerSettings.mode = RECORD_MODE_SEGMENTED;
-	} else if (mode == "burst") {
-		imagerSettings.mode = RECORD_MODE_GATED_BURST;
-	}
-
 	vinst->bitsPerPixel        = appSettings.value("recorder/bitsPerPixel", 0.7).toDouble();
 	vinst->maxBitrate          = appSettings.value("recorder/maxBitrate", 40.0).toDouble();
 	vinst->framerate           = appSettings.value("recorder/framerate", 60).toUInt();
@@ -140,7 +117,6 @@ CameraErrortype Camera::init(Video * vinstInst, Control * cinstInst)
 	cinst->listen("state", this, SLOT(api_state_valueChanged(const QVariant &)));
 	cinst->listen("wbMatrix", this, SLOT(api_wbMatrix_valueChanged(const QVariant &)));
 	cinst->listen("colorMatrix", this, SLOT(api_colorMatrix_valueChanged(const QVariant &)));
-	cinst->listen("resolution", this, SLOT(api_resolution_valueChanged(const QVariant &)));
 
 	//vinst->setDisplayOptions(getZebraEnable(), getFocusPeakEnable());
 	vinst->setDisplayPosition(ButtonsOnLeft ^ UpsideDownDisplay);
@@ -153,21 +129,6 @@ CameraErrortype Camera::init(Video * vinstInst, Control * cinstInst)
 	{
 		setFocusPeakColor(2);	//set to cyan, if starts out set to black
 	}
-	return SUCCESS;
-}
-
-
-UInt32 Camera::loadImagerSettings(ImagerSettings_t *settings)
-{
-	//retrieve imagersettings through API
-	cinst->getInt("exposurePeriod",&settings->exposure);
-	cinst->getInt("framePeriod",&settings->period);
-	double gainFloat;
-	cinst->getFloat("currentGain", &gainFloat);
-	UInt32 gain = (int)gainFloat;
-	UInt32 gainIndex = 0;
-	for (int i=gain; i > 1; i /= 2) gainIndex++;
-	settings->gain = gainIndex;
 	return SUCCESS;
 }
 
@@ -206,7 +167,6 @@ bool Camera::isValidResolution(FrameGeometry *size)
 UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 {
 	QString modes[] = {"normal", "segmented", "burst"};
-	QSettings appSettings;
 	QVariantMap values;
 	QVariantMap resolution;
 
@@ -229,12 +189,11 @@ UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 	values.insert("currentGain", QVariant(1 << settings.gain));
 	values.insert("exposurePeriod", QVariant(settings.exposure));
 	if (settings.mode > 3 ) qFatal("imagerSetting mode is FPN");
-	else values.insert("recMode", modes[imagerSettings.mode]);
+	else values.insert("recMode", modes[settings.mode]);
 	values.insert("recSegments", QVariant(settings.segments));
 	values.insert("recMaxFrames", QVariant(settings.recRegionSizeFrames));
 
 	CameraErrortype retVal = cinst->setPropertyGroup(values);
-	memcpy(&imagerSettings, &settings, sizeof(settings));
 
 	return retVal;
 }
@@ -296,7 +255,6 @@ void Camera::setTriggerDelayValues(double ratio, double seconds, UInt32 frames){
 UInt32 Camera::setIntegrationTime(double intTime, FrameGeometry *fSize, Int32 flags)
 {
 	cinst->setInt("exposurePeriod", intTime * 1e9);
-	imagerSettings.exposure = intTime;
 	return SUCCESS;
 }
 
@@ -321,56 +279,6 @@ Int32 Camera::startRecording(void)
 	geometry.minFrameTime  = 0.0002; //arbitrary here!
 
 	cinst->stopRecording();
-
-	// For testing individual API calls using the record button:
-
-	//double wbTest[3];
-	//double cmTest[9];
-	//double testArray[9] = {1,0,0,0,1,0,0,0,1};
-	//CameraStatus cs;
-	//UInt32 i;
-	//double d;
-	//bool b;
-
-	//UInt32 sizeGB;
-	//cinst->getInt("cameraMemoryGB", &sizeGB);
-	//cinst->getString("cameraDescription", &str);
-	//cinst->getString("state", &str);
-	//cinst->setResolution(&geometry);
-
-	//cinst->setArray("wbMatrix", 3, (double *)&testArray);
-	//cinst->setArray("colorMatrix", 9, (double *)&testArray);
-
-
-	//cinst->getResolution(&geometry);
-	//cinst->getString("cameraDescription", &str);
-	//cinst->getArray("wbMatrix", 3, (double *)&wbTest);
-	//cinst->getArray("colorMatrix", 9, (double *)&cmTest);
-	//cinst->getDict("resolution");
-	//cinst->getString("exposureMode", &str);
-	//cinst->getInt("exposureMode", &i);
-
-	//cinst->startRecording();
-	//cinst->getString("cameraApiVersion");
-	//cinst->setInt("exposurePeriod", 9876);
-	//cinst->setFloat("frameRate", 555);
-	//cinst->setString("cameraDescription", "this model");
-	//cinst->getString("cameraDescription", &str);
-	//cinst->setBool("overlayEnable", true);
-	//cinst->getInt("exposurePeriod", &i);
-	//cinst->getFloat("frameRate", &d);
-	//cinst->getString("cameraDescription", &str);
-	//cinst->getString("cameraDescription", &str);
-	//cinst->getBool("overlayEnable", &b);
-	//cinst->status();
-	//cinst->startAutoWhiteBalance();
-	//cinst->revertAutoWhiteBalance();
-
-	//cs = cinst->getStatus("one", "two");
-	//cinst->getCalCapabilities();
-	//cinst->calibrate();
-	//cinst->startRecord();
-	//cinst->stopRecord();
 
 	if(recording)
 		return CAMERA_ALREADY_RECORDING;
@@ -507,42 +415,7 @@ void Camera::setWBIndex(UInt8 index){
 
 void Camera::setFocusAid(bool enable)
 {
-	UInt32 startX, startY, cropX, cropY;
-
-	if(enable)
-	{
-		//Set crop window to native resolution of LCD or unchanged if we're scaling up
-		if(imagerSettings.geometry.hRes > 600 || imagerSettings.geometry.vRes > 480)
-		{
-			//Depending on aspect ratio, set the display window appropriately
-			if((imagerSettings.geometry.vRes * MAX_FRAME_SIZE_H) > (imagerSettings.geometry.hRes * MAX_FRAME_SIZE_V))	//If it's taller than the display aspect
-			{
-				cropY = 480;
-				cropX = cropY * imagerSettings.geometry.hRes / imagerSettings.geometry.vRes;
-				if(cropX & 1)	//If it's odd, round it up to be even
-					cropX++;
-				startX = (imagerSettings.geometry.hRes - cropX) / 2;
-				startY = (imagerSettings.geometry.vRes - cropY) / 2;
-
-			}
-			else
-			{
-				cropX = 600;
-				cropY = cropX * imagerSettings.geometry.vRes / imagerSettings.geometry.hRes;
-				if(cropY & 1)	//If it's odd, round it up to be even
-					cropY++;
-				startX = (imagerSettings.geometry.hRes - cropX) / 2;
-				startY = (imagerSettings.geometry.vRes - cropY) / 2;
-
-			}
-			qDebug() << "Setting startX" << startX << "startY" << startY << "cropX" << cropX << "cropY" << cropY;
-			vinst->setScaling(startX & 0xFFFF8, startY, cropX, cropY);	//StartX must be a multiple of 8
-		}
-	}
-	else
-	{
-		vinst->setScaling(0, 0, imagerSettings.geometry.hRes, imagerSettings.geometry.vRes);
-	}
+	/* FIXME: Not implemented */
 }
 
 bool Camera::getFocusAid()
@@ -665,7 +538,6 @@ Int32 Camera::blackCalAllStdRes(bool factory, QProgressDialog *dialog)
 			settings.prerecordFrames = 1;
 			settings.segmentLengthFrames = timing.cameraMaxFrames;
 			settings.segments = 1;
-			settings.temporary = 0;
 
 			/* Update the progress dialog. */
 			progress++;
@@ -943,27 +815,6 @@ void Camera::api_colorMatrix_valueChanged(const QVariant &wb)
 	}
 	dbusArgs.endArray();
 }
-
-void Camera::api_resolution_valueChanged(const QVariant &res)
-{
-	FrameGeometry *geometry = &this->imagerSettings.geometry;
-	QVariant qv = res;
-	if (qv.isValid()) {
-		QVariantMap dict;
-		qv.value<QDBusArgument>() >> dict;
-
-		geometry->hRes = dict["hRes"].toInt();
-		geometry->vRes = dict["vRes"].toInt();
-		geometry->hOffset = dict["hOffset"].toInt();
-		geometry->vOffset = dict["vOffset"].toInt();
-		geometry->vDarkRows = dict["vDarkRows"].toInt();
-		geometry->bitDepth = dict["bitDepth"].toInt();
-	}
-	else {
-
-	}
-}
-
 
 void Camera::on_chkLiveLoop_stateChanged(int arg1)
 {

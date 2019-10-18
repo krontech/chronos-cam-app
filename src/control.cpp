@@ -180,13 +180,7 @@ CameraErrortype Control::getResolution(FrameGeometry *geometry)
 	if (qv.isValid()) {
 		QVariantMap dict;
 		qv.value<QDBusArgument>() >> dict;
-
-		geometry->hRes = dict["hRes"].toInt();
-		geometry->vRes = dict["vRes"].toInt();
-		geometry->hOffset = dict["hOffset"].toInt();
-		geometry->vOffset = dict["vOffset"].toInt();
-		geometry->vDarkRows = dict["vDarkRows"].toInt();
-		geometry->bitDepth = dict["bitDepth"].toInt();
+		parseResolution(geometry, dict);
 
 		qDebug("Got resolution %dx%d offset %dx%d %d-bpp",
 			   geometry->hRes, geometry->vRes,
@@ -298,6 +292,70 @@ CameraErrortype Control::getSensorInfo(SensorInfo_t *info)
 
 	/* TODO: The timebase isn't exposed through the API, it only deals in nanoseconds. */
 	info->timingClock = 1000000000;
+	return SUCCESS;
+}
+
+void Control::parseResolution(FrameGeometry *geometry, const QVariantMap &map)
+{
+	geometry->hRes = map.value("hRes", 0).toInt();
+	geometry->vRes = map.value("vRes", 0).toInt();
+	geometry->hOffset = map.value("hOffset", 0).toInt();
+	geometry->vOffset = map.value("vOffset", 0).toInt();
+	geometry->vDarkRows = map.value("vDarkRows", 0).toInt();
+	geometry->bitDepth = map.value("bitDepth", 0).toInt();
+	geometry->minFrameTime = map.value("minFrameTime", 0).toDouble();
+}
+
+CameraErrortype Control::getImagerSettings(ImagerSettings_t *is)
+{
+	/* Load all the relevant sensor properties. */
+	QStringList names = {
+		"resolution",
+		"currentGain",
+		"framePeriod",
+		"exposurePeriod",
+		"recMaxFrames",
+		"recPreBurst",
+		"recSegments",
+		"recMode"
+	};
+	QVariantMap response = getPropertyGroup(names);
+	QVariantMap res;
+	QString mode;
+	QSettings appSettings;
+
+	if (response.isEmpty()) {
+		return CAMERA_API_CALL_FAIL;
+	}
+
+	/* Load the resolution configuration */
+	response["resolution"].value<QDBusArgument>() >> res;
+	parseResolution(&is->geometry, res);
+
+	/* Load the rest of the imager settings. */
+	is->gain = response.value("currentGain", 1).toUInt();
+	is->period = response.value("framePeriod", 1000000).toUInt();
+	is->exposure = response.value("exposurePeriod", 0).toUInt();
+	is->recRegionSizeFrames = response.value("recMaxFrames", 0).toUInt();
+	is->prerecordFrames = response.value("recPreBurst", 0).toUInt();
+	is->segments = response.value("recSegments", 1).toUInt();
+
+	/* Translate the recording mode */
+	mode = response.value("recMode", "normal").toString();
+	if (mode == "normal") {
+		is->mode = RECORD_MODE_NORMAL;
+	} else if (mode == "segmented") {
+		is->mode = RECORD_MODE_SEGMENTED;
+	} else if (mode == "burst") {
+		is->mode = RECORD_MODE_GATED_BURST;
+	} else {
+		is->mode = RECORD_MODE_NORMAL;
+	}
+
+	/* Some stuff that doesn't quite fit... */
+	is->segmentLengthFrames = is->recRegionSizeFrames / is->segments;
+	is->disableRingBuffer = appSettings.value("camera/disableRingBuffer", 0).toInt();
+
 	return SUCCESS;
 }
 

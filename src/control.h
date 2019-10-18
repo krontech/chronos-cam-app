@@ -26,6 +26,28 @@ struct CameraStatus {
 	char state[128];
 };
 
+typedef enum CameraRecordModes
+{
+	RECORD_MODE_NORMAL = 0,
+	RECORD_MODE_SEGMENTED,
+	RECORD_MODE_GATED_BURST,
+	RECORD_MODE_FPN
+} CameraRecordModeType;
+
+typedef struct {
+	FrameGeometry geometry;		//Frame geometry.
+	UInt32 exposure;            //10ns increments
+	UInt32 period;              //Frame period in 10ns increments
+	UInt32 gain;
+	UInt32 recRegionSizeFrames; //Number of frames in the entire record region
+	CameraRecordModeType mode;  //Recording mode
+	UInt32 segments;            //Number of segments in segmented mode
+	UInt32 segmentLengthFrames; //Length of segment in segmented mode
+	UInt32 prerecordFrames;     //Number of frames to record before each burst in Gated Burst mode
+
+	unsigned int disableRingBuffer; //Set this to disable the ring buffer (record ends when at the end of memory rather than rolling over to the beginning)
+} ImagerSettings_t;
+
 typedef struct {
 	FrameGeometry geometry;
 	UInt32 vIncrement;
@@ -81,7 +103,9 @@ public:
 	CameraErrortype setFloat(QString parameter, double value) { return setProperty(parameter, QVariant(value)); }
 	CameraErrortype setBool(QString parameter, bool value)	  { return setProperty(parameter, QVariant(value)); }
 
-	/* Helper function to get all the sensor constants */
+	/* Helper functions to get a bundle of settings together */
+	CameraErrortype getResolution(FrameGeometry *geometry);
+	CameraErrortype getImagerSettings(ImagerSettings_t *is);
 	CameraErrortype getSensorInfo(SensorInfo_t *info);
 
 	/* API Methods */
@@ -97,7 +121,6 @@ public:
 	CameraErrortype status(CameraStatus *cs);
 	CameraErrortype availableKeys(void);
 	CameraErrortype availableCalls(void);
-	CameraErrortype getResolution(FrameGeometry *geometry);
 	CameraErrortype getArray(QString parameter, UInt32 size, double *values);
 	CameraErrortype setArray(QString parameter, UInt32 size, const double *values);
 
@@ -121,6 +144,7 @@ private:
 	CaKrontechChronosControlInterface iface;
 
 	void notifyParam(QString name, const QVariant &value);
+	void parseResolution(FrameGeometry *geometry, const QVariantMap &map);
 
 private slots:
 	/* D-Bus signal handler for parameter changes. */

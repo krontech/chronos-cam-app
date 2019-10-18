@@ -437,7 +437,7 @@ void CamMainWindow::on_newVideoSegment(VideoStatus *st)
 		camera->recordingData.ignoreSegments--;
 	}
 	else if (st->totalFrames) {
-		camera->recordingData.is = camera->getImagerSettings();
+		camera->cinst->getImagerSettings(&camera->recordingData.is);
 		camera->recordingData.valid = true;
 		camera->recordingData.hasBeenSaved = false;
 	}
@@ -505,16 +505,13 @@ void CamMainWindow::updateBatteryData()
 //Update the status textbox with the current settings
 void CamMainWindow::updateCurrentSettingsLabel()
 {
-	ImagerSettings_t is = camera->getImagerSettings();
 	UInt32 clock = camera->getSensorInfo().timingClock;
-	UInt32 fPeriod;
-	UInt32 ePeriod;
+	ImagerSettings_t is;
 
-	camera->cinst->getInt("framePeriod", &fPeriod);
-	camera->cinst->getInt("exposurePeriod", &ePeriod);
+	camera->cinst->getImagerSettings(&is);
 
-	double framePeriod = (double)fPeriod / clock;
-	double expPeriod = (double)ePeriod / clock;
+	double framePeriod = (double)is.period / clock;
+	double expPeriod = (double)is.exposure / clock;
 	int shutterAngle = (expPeriod * 360.0) / framePeriod;
 
 	char str[300];

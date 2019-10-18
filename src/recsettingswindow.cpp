@@ -58,11 +58,8 @@ RecSettingsWindow::RecSettingsWindow(QWidget *parent, Camera * cameraInst) :
 	connect(ui->cmdCancel, SIGNAL(clicked()), this, SLOT(close()));
 
 	camera = cameraInst;
-	ImagerSettings_t isTemp = camera->getImagerSettings();          //Using new and memcpy because passing the address of a class variable was causing segfaults among others in the trigger delay window.
-	memcpy((void *)is, (void *)(&isTemp), sizeof(ImagerSettings_t));
-
 	sensor = camera->getSensorInfo();
-	camera->loadImagerSettings(is);	//get settings from API
+	camera->cinst->getImagerSettings(is);
 
 	ui->spinHRes->setSingleStep(sensor.hIncrement);
 	ui->spinHRes->setMinimum(sensor.hMinimum);
@@ -238,7 +235,6 @@ void RecSettingsWindow::on_cmdOK_clicked()
 			   is->geometry.hRes, is->geometry.vRes,
 			   is->geometry.hOffset, is->geometry.vOffset);
 	}
-	is->temporary = 0;
 
 	camera->updateTriggerValues(*is);
 	camera->setImagerSettings(*is);
@@ -523,7 +519,6 @@ void RecSettingsWindow::on_cmdRecMode_clicked()
 	is->gain = ui->comboGain->currentIndex();
 	is->period = ui->linePeriod->siText() * sensor.timingClock;
 	is->exposure = ui->lineExp->siText() * sensor.timingClock;
-	is->temporary = 0;
 
 	recModeWindow *w = new recModeWindow(NULL, camera, is);
 	//w->camera = camera;
