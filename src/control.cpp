@@ -27,7 +27,7 @@ static CameraStatus *parseCameraStatus(const QVariantMap &args, CameraStatus *cs
 	return cs;
 }
 
-QVariant Control::getProperty(QString parameter)
+QVariant Control::getProperty(QString parameter, const QVariant &defval)
 {
 	QStringList args(parameter);
 	QDBusPendingReply<QVariantMap> reply;
@@ -41,7 +41,7 @@ QVariant Control::getProperty(QString parameter)
 	if (reply.isError()) {
 		QDBusError err = reply.error();
 		qDebug() << "Failed to get parameter: " + err.name() + " - " + err.message();
-		return QVariant();
+		return defval;
 	}
 
 	map = reply.value();
@@ -50,7 +50,7 @@ QVariant Control::getProperty(QString parameter)
 		map["error"].value<QDBusArgument>() >> errdict;
 
 		qDebug() << "Failed to get parameter: " + errdict[parameter].toString();
-		return QVariant();
+		return defval;
 	}
 
 	return map[parameter];
@@ -237,7 +237,7 @@ CameraErrortype Control::getArray(QString parameter, UInt32 size, double *values
 	}
 }
 
-CameraErrortype Control::setArray(QString parameter, UInt32 size, double *values)
+CameraErrortype Control::setArray(QString parameter, UInt32 size, const double *values)
 {
 	int id = qMetaTypeId<double>();
 	QVariant qv;

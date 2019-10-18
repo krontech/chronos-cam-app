@@ -63,7 +63,7 @@ public:
     ~Control();
 
 	/* Get and set functions */
-	QVariant getProperty(QString parameter);
+	QVariant getProperty(QString parameter, const QVariant & defval = QVariant());
 	QVariantMap getPropertyGroup(QStringList paramters);
 	CameraErrortype setProperty(QString parameter, QVariant value);
 	CameraErrortype setPropertyGroup(QVariantMap values);
@@ -99,7 +99,7 @@ public:
 	CameraErrortype availableCalls(void);
 	CameraErrortype getResolution(FrameGeometry *geometry);
 	CameraErrortype getArray(QString parameter, UInt32 size, double *values);
-	CameraErrortype setArray(QString parameter, UInt32 size, double *values);
+	CameraErrortype setArray(QString parameter, UInt32 size, const double *values);
 
 	CameraStatus getStatus(const char * lastState, const char * error);
 	CameraErrortype setResolution(FrameGeometry *geometry);
