@@ -37,7 +37,6 @@
 #include <QWSDisplay>
 #include "control.h"
 #include "camera.h"
-#include "pysensor.h"
 #include "cammainwindow.h"
 
 void* recDataThread(void *arg);
@@ -75,7 +74,7 @@ Camera::~Camera()
 	pthread_join(recDataThreadID, NULL);
 }
 
-CameraErrortype Camera::init(Video * vinstInst, Control * cinstInst, PySensor * sensorInst, UserInterface * userInterface, bool color)
+CameraErrortype Camera::init(Video * vinstInst, Control * cinstInst, UserInterface * userInterface, bool color)
 {
 	CameraErrortype retVal;
 	QSettings appSettings;
@@ -83,12 +82,14 @@ CameraErrortype Camera::init(Video * vinstInst, Control * cinstInst, PySensor * 
 
 	vinst = vinstInst;
 	cinst = cinstInst;
-	sensor = sensorInst;
 	ui = userInterface;
 	//Read serial number in
 	retVal = (CameraErrortype)readSerialNumber(serialNumber);
 	if(retVal != SUCCESS)
 		return retVal;
+
+	/* Load the sensor information */
+	cinst->getSensorInfo(&sensorInfo);
 
 	/* Color detection or override from env. */
 	const char *envColor = getenv("CAM_OVERRIDE_COLOR");
@@ -100,10 +101,10 @@ CameraErrortype Camera::init(Video * vinstInst, Control * cinstInst, PySensor * 
 		else if (strcasecmp(envColor, "TRUE") == 0) isColor = true;
 		else if (strcasecmp(envColor, "MONO") == 0) isColor = false;
 		else if (strcasecmp(envColor, "FALSE") == 0) isColor = false;
-		else isColor = true; //readIsColor();
+		else isColor = sensorInfo.cfaPattern != "mono";
 	}
 	else {
-		isColor = true; //readIsColor();
+		isColor = sensorInfo.cfaPattern != "mono";
 	}
 	int err;
 
@@ -160,8 +161,6 @@ CameraErrortype Camera::init(Video * vinstInst, Control * cinstInst, PySensor * 
 	}
 
 	/* Connect to any parameter updates that we care to receive. */
-	cinst->listen("framePeriod", this, SLOT(api_framePeriod_valueChanged(const QVariant &)));
-	cinst->listen("exposurePeriod", this, SLOT(api_exposurePeriod_valueChanged(const QVariant &)));
 	cinst->listen("state", this, SLOT(api_state_valueChanged(const QVariant &)));
 	cinst->listen("wbMatrix", this, SLOT(api_wbMatrix_valueChanged(const QVariant &)));
 	cinst->listen("colorMatrix", this, SLOT(api_colorMatrix_valueChanged(const QVariant &)));
@@ -199,6 +198,37 @@ UInt32 Camera::loadImagerSettings(ImagerSettings_t *settings)
 	return SUCCESS;
 }
 
+/* Frame size validation function. */
+bool Camera::isValidResolution(FrameGeometry *size)
+{
+	/* Enforce resolution limits. */
+	if ((size->hRes < sensorInfo.hMinimum) || (size->hRes + size->hOffset > sensorInfo.geometry.hRes)) {
+		return false;
+	}
+	if ((size->vRes < sensorInfo.vMinimum) || (size->vRes + size->vOffset > sensorInfo.geometry.vRes)) {
+		return false;
+	}
+	if (size->vDarkRows > sensorInfo.geometry.vDarkRows) {
+		return false;
+	}
+	if (size->bitDepth != sensorInfo.geometry.bitDepth) {
+		return false;
+	}
+
+	/* Enforce minimum pixel increments. */
+	if ((size->hRes % sensorInfo.hIncrement) || (size->hOffset % sensorInfo.hIncrement)) {
+		return false;
+	}
+	if ((size->vRes % sensorInfo.vIncrement) || (size->vOffset % sensorInfo.vIncrement)) {
+		return false;
+	}
+	if (size->vDarkRows % sensorInfo.vIncrement) {
+		return false;
+	}
+
+	/* Otherwise, the resultion and offset are valid. */
+	return true;
+}
 
 UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 {
@@ -207,13 +237,11 @@ UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 	QVariantMap values;
 	QVariantMap resolution;
 
-	if(!sensor->isValidResolution(&settings.geometry) ||
+	if(!isValidResolution(&settings.geometry) ||
 		settings.recRegionSizeFrames < RECORD_LENGTH_MIN ||
 		settings.segments > settings.recRegionSizeFrames) {
 		return CAMERA_INVALID_IMAGER_SETTINGS;
 	}
-
-	QString str;
 
 	resolution.insert("hRes", QVariant(settings.geometry.hRes));
 	resolution.insert("vRes", QVariant(settings.geometry.vRes));
@@ -250,14 +278,13 @@ UInt32 Camera::getRecordLengthFrames(ImagerSettings_t settings)
 
 UInt32 Camera::getMaxRecordRegionSizeFrames(FrameGeometry *geometry)
 {
-	/* FIXME: This breaks the API abstraction, but there is no parameter that gets this */
-	UInt32 ramSizeGB;
-	UInt32 ramSizeWords;
-	UInt32 frameSizeWords = ROUND_UP_MULT((geometry->size() + BYTES_PER_WORD - 1) / BYTES_PER_WORD, FRAME_ALIGN_WORDS);
-	cinst->getInt("cameraMemoryGB", &ramSizeGB);
+	FrameTiming timing;
 
-	ramSizeWords = ramSizeGB * ((1024 * 1024 * 1024) / BYTES_PER_WORD);
-	return (ramSizeWords - REC_REGION_START) / frameSizeWords;
+	if (cinst->getTiming(geometry, &timing) != SUCCESS) {
+		qDebug("Failed to get recording region size.");
+		return 0;
+	}
+	return timing.cameraMaxFrames;
 }
 
 void Camera::updateTriggerValues(ImagerSettings_t settings){
@@ -303,20 +330,6 @@ UInt32 Camera::setIntegrationTime(double intTime, FrameGeometry *fSize, Int32 fl
 void Camera::updateVideoPosition()
 {
 	vinst->setDisplayPosition(ButtonsOnLeft ^ UpsideDownDisplay);
-}
-
-
-void Camera::getSensorInfo(Control *c)
-{
-	c->getInt("sensorHIncrement", &sensorHIncrement);
-	c->getInt("sensorVIncrement", &sensorVIncrement);
-	c->getInt("sensorHMax", &sensorHMax);
-	c->getInt("sensorVMax", &sensorVMax);
-	c->getInt("sensorHMin", &sensorHMin);
-	c->getInt("sensorVMin", &sensorVMin);
-	c->getInt("sensorVDark", &sensorVDark);
-	c->getInt("sensorBitDepth", &sensorBitDepth);
-
 }
 
 Int32 Camera::startRecording(void)
@@ -435,7 +448,8 @@ UInt32 Camera::setPlayMode(bool playMode)
 	}
 	else
 	{
-		bool videoFlip = (sensor->getSensorQuirks() & SENSOR_QUIRK_UPSIDE_DOWN) != 0;
+		//bool videoFlip = (sensor->getSensorQuirks() & SENSOR_QUIRK_UPSIDE_DOWN) != 0;
+		bool videoFlip = false;
 		vinst->liveDisplay(videoFlip);
 	}
 	return SUCCESS;
@@ -587,7 +601,8 @@ Int32 Camera::blackCalAllStdRes(bool factory, QProgressDialog *dialog)
 {
 	int g;
 	ImagerSettings_t settings;
-	FrameGeometry	maxSize = sensor->getMaxGeometry();
+	FrameGeometry maxSize = sensorInfo.geometry;
+	FrameTiming timing;
 
 	//Populate the common resolution combo box from the list of resolutions
 	QFile fp;
@@ -627,9 +642,9 @@ Int32 Camera::blackCalAllStdRes(bool factory, QProgressDialog *dialog)
 		size.vRes = strlist[1].toInt(); //pixels
 		size.vDarkRows = 0;	//dark rows
 		size.bitDepth = maxSize.bitDepth;
-		size.hOffset = round((maxSize.hRes - size.hRes) / 2, sensor->getHResIncrement());
-		size.vOffset = round((maxSize.vRes - size.vRes) / 2, sensor->getVResIncrement());
-		if (sensor->isValidResolution(&size)) {
+		size.hOffset = round((maxSize.hRes - size.hRes) / 2, sensorInfo.hIncrement);
+		size.vOffset = round((maxSize.vRes - size.vRes) / 2, sensorInfo.vIncrement);
+		if (isValidResolution(&size)) {
 			line.sprintf("%ux%u", size.hRes, size.vRes);
 			resolutions.append(line);
 		}
@@ -647,7 +662,7 @@ Int32 Camera::blackCalAllStdRes(bool factory, QProgressDialog *dialog)
 		int maxcals = 0;
 
 		/* Count up the number of gain settings to calibrate for. */
-		for (g = sensor->getMinGain(); g <= sensor->getMaxGain(); g *= 2) {
+		for (g = sensorInfo.minGain; g <= sensorInfo.maxGain; g *= 2) {
 			 maxcals += resolutions.count();
 		}
 
@@ -662,7 +677,7 @@ Int32 Camera::blackCalAllStdRes(bool factory, QProgressDialog *dialog)
 
 	//For each gain
 	int progress = 0;
-	for(g = sensor->getMinGain(); g <= sensor->getMaxGain(); g *= 2)
+	for(g = sensorInfo.minGain; g <= sensorInfo.maxGain; g *= 2)
 	{
 		QStringListIterator iter(resolutions);
 		while (iter.hasNext()) {
@@ -674,16 +689,19 @@ Int32 Camera::blackCalAllStdRes(bool factory, QProgressDialog *dialog)
 			settings.geometry.vRes = tmp[1].toInt(); //pixels
 			settings.geometry.vDarkRows = 0;	//dark rows
 			settings.geometry.bitDepth = maxSize.bitDepth;
-			settings.geometry.hOffset = round((maxSize.hRes - settings.geometry.hRes) / 2, sensor->getHResIncrement());
-			settings.geometry.vOffset = round((maxSize.vRes - settings.geometry.vRes) / 2, sensor->getVResIncrement());
+			settings.geometry.hOffset = round((maxSize.hRes - settings.geometry.hRes) / 2, sensorInfo.hIncrement);
+			settings.geometry.vOffset = round((maxSize.vRes - settings.geometry.vRes) / 2, sensorInfo.vIncrement);
+
+			// Get the resolution timing limits.
+			cinst->getTiming(&settings.geometry, &timing);
 			settings.gain = g;
-			settings.recRegionSizeFrames = getMaxRecordRegionSizeFrames(&settings.geometry);
-			settings.period = sensor->getMinFramePeriod(&settings.geometry);
-			settings.exposure = sensor->getMaxIntegrationTime(settings.period, &settings.geometry);
+			settings.recRegionSizeFrames = timing.cameraMaxFrames;
+			settings.period = timing.minFramePeriod;
+			settings.exposure = timing.exposureMax;
 			settings.disableRingBuffer = 0;
 			settings.mode = RECORD_MODE_NORMAL;
 			settings.prerecordFrames = 1;
-			settings.segmentLengthFrames = imagerSettings.recRegionSizeFrames;
+			settings.segmentLengthFrames = timing.cameraMaxFrames;
 			settings.segments = 1;
 			settings.temporary = 0;
 
@@ -725,15 +743,16 @@ exit_calibration:
 
 	fp.close();
 
+	cinst->getTiming(&maxSize, &timing);
 	memcpy(&settings.geometry, &maxSize, sizeof(maxSize));
 	settings.geometry.vDarkRows = 0; //Inactive dark rows on top
-	settings.gain = sensor->getMinGain();
-	settings.recRegionSizeFrames = getMaxRecordRegionSizeFrames(&settings.geometry);
-	settings.period = sensor->getMinFramePeriod(&settings.geometry);
-	settings.exposure = sensor->getMaxIntegrationTime(settings.period, &settings.geometry);
+	settings.gain = sensorInfo.minGain;
+	settings.recRegionSizeFrames = timing.cameraMaxFrames;
+	settings.period = timing.minFramePeriod;
+	settings.exposure = timing.exposureMax;
 
 	retVal = setImagerSettings(settings);
-	vinst->liveDisplay((sensor->getSensorQuirks() & SENSOR_QUIRK_UPSIDE_DOWN) != 0);
+	vinst->liveDisplay(false);
 	if(SUCCESS != retVal) {
 		qDebug("blackCalAllStdRes: Error during setImagerSettings %d", retVal);
 		return retVal;
@@ -959,16 +978,6 @@ void* recDataThread(void *arg)
 	pthread_exit(NULL);
 }
 
-void Camera::api_framePeriod_valueChanged(const QVariant &value)
-{
-	sensor->setCurrentPeriod(value.toInt());
-}
-
-void Camera::api_exposurePeriod_valueChanged(const QVariant &value)
-{
-	sensor->setCurrentExposure(value.toInt());
-}
-
 void Camera::api_state_valueChanged(const QVariant &value)
 {
 	QString state = value.toString();
@@ -1042,7 +1051,8 @@ void Camera::on_chkLiveLoop_stateChanged(int arg1)
 	}
 	else
 	{
-		bool videoFlip = (sensor->getSensorQuirks() & SENSOR_QUIRK_UPSIDE_DOWN) != 0;
+		//bool videoFlip = (sensor->getSensorQuirks() & SENSOR_QUIRK_UPSIDE_DOWN) != 0;
+		bool videoFlip = false;
 		//disable loop timer
 		loopTimer->stop();
 		delete loopTimer;

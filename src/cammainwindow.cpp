@@ -34,16 +34,12 @@
 #include "util.h"
 #include "whitebalancedialog.h"
 
-#include "pysensor.h"
-
-
 extern "C" {
 #include "siText.h"
 }
 
 #define DEF_SI_OPTS	SI_DELIM_SPACE | SI_SPACE_BEFORE_PREFIX
 
-PySensor * sensor;
 Camera * camera;
 Video * vinst;
 Control * cinst;
@@ -66,8 +62,7 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	userInterface = new UserInterface();
 	prompt = NULL;
 
-	sensor = new PySensor(cinst);
-		//loop until control dBus is ready
+	//loop until control dBus is ready
 	UInt32 mem;
 	while (cinst->getInt("cameraMemoryGB", &mem))
 	{
@@ -75,7 +70,6 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 		struct timespec t = {1, 0};
 		nanosleep(&t, NULL);
 	}
-	camera->getSensorInfo(cinst);
 
 	batteryPercent = 0;
 	batteryVoltage = 0;
@@ -83,7 +77,7 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	externalPower = false;
 
 	userInterface->init();
-	retVal = camera->init(vinst, cinst, sensor, userInterface, true);
+	retVal = camera->init(vinst, cinst, userInterface, true);
 
 	if(retVal != SUCCESS)
 	{
@@ -154,7 +148,14 @@ void CamMainWindow::on_videoState_valueChanged(const QVariant &value)
 
 void CamMainWindow::on_exposurePeriod_valueChanged(const QVariant &value)
 {
-	updateParameters();
+	/*
+	 * TODO: We don't really need to update the limits if it was just the
+	 * the exposure that changed. We should, however, update the limits
+	 * if either exposureMin, exposureMax or framePeriod were changed.
+	 *
+	 * Maybe do ui->expSlider->setValue(value.toInt()); instead?
+	 */
+	updateExpSliderLimits();
 }
 
 QMessageBox::StandardButton
@@ -461,7 +462,8 @@ void CamMainWindow::on_chkFocusAid_clicked(bool focusAidEnabled)
 
 void CamMainWindow::on_expSlider_valueChanged(int exposure)
 {
-	camera->setIntegrationTime((double)exposure / camera->sensor->getIntegrationClock(), NULL, 0);
+	UInt32 expClock = camera->getSensorInfo().timingClock;
+	camera->setIntegrationTime((double)exposure / expClock, NULL, 0);
 	updateCurrentSettingsLabel();
 }
 
@@ -471,31 +473,26 @@ void CamMainWindow::recSettingsClosed()
 	updateCurrentSettingsLabel();
 }
 
-void CamMainWindow::updateParameters()
-{
-	updateExpSliderLimits();
-}
-
 //Update the exposure slider limits and step size.
 void CamMainWindow::updateExpSliderLimits()
 {
-	UInt32 period;
-	cinst->getInt("framePeriod", &period);
-	camera->sensor->setCurrentPeriod(period);
-	cinst->getInt("exposurePeriod", &period);
-	camera->sensor->setCurrentExposure(period);
+	UInt32 clock = camera->getSensorInfo().timingClock;
+	UInt32 expCurrent;
+	UInt32 expMin;
+	UInt32 expMax;
 
-	FrameGeometry fSize = camera->getImagerSettings().geometry;
-	UInt32 fPeriod = camera->sensor->getFramePeriod();
-	UInt32 exposure = camera->sensor->getIntegrationTime();
+	cinst->getInt("framePeriod", &expSliderFramePeriod);
+	cinst->getInt("exposurePeriod", &expCurrent);
+	cinst->getInt("exposureMin", &expMin);
+	cinst->getInt("exposureMax", &expMax);
 
-	ui->expSlider->setMinimum(camera->sensor->getMinIntegrationTime(fPeriod, &fSize));
-	ui->expSlider->setMaximum(camera->sensor->getMaxIntegrationTime(fPeriod, &fSize));
-	ui->expSlider->setValue(exposure);
+	ui->expSlider->setMinimum(expMin);
+	ui->expSlider->setMaximum(expMax);
+	ui->expSlider->setValue(expCurrent);
 
 	/* Do fine stepping in 1us increments */
-	ui->expSlider->setSingleStep(camera->sensor->getIntegrationClock() / 1000000);
-	ui->expSlider->setPageStep(camera->sensor->getIntegrationClock() / 1000000);
+	ui->expSlider->setSingleStep(clock / 1000000);
+	ui->expSlider->setPageStep(clock / 1000000);
 }
 
 //Update the battery data.
@@ -521,8 +518,15 @@ void CamMainWindow::updateBatteryData()
 void CamMainWindow::updateCurrentSettingsLabel()
 {
 	ImagerSettings_t is = camera->getImagerSettings();
-	double framePeriod = camera->sensor->getCurrentFramePeriodDouble();
-	double expPeriod = camera->sensor->getCurrentExposureDouble();
+	UInt32 clock = camera->getSensorInfo().timingClock;
+	UInt32 fPeriod;
+	UInt32 ePeriod;
+
+	camera->cinst->getInt("framePeriod", &fPeriod);
+	camera->cinst->getInt("exposurePeriod", &ePeriod);
+
+	double framePeriod = (double)fPeriod / clock;
+	double expPeriod = (double)ePeriod / clock;
 	int shutterAngle = (expPeriod * 360.0) / framePeriod;
 
 	char str[300];
@@ -560,7 +564,6 @@ void CamMainWindow::on_cmdUtil_clicked()
 	w->setAttribute(Qt::WA_DeleteOnClose);
 	w->show();
 	connect(w, SIGNAL(moveCamMainWindow()), this, SLOT(updateCamMainWindowPosition()));
-	connect(w, SIGNAL(receivedParameters()), this, SLOT(updateParameters()));
 	connect(w, SIGNAL(destroyed()), this, SLOT(UtilWindow_closed()));
 }
 
@@ -590,7 +593,6 @@ void CamMainWindow::on_cmdBkGndButton_clicked()
 	ui->lblCurrent->setVisible(true);
 	ui->lblExp->setVisible(true);
 }
-
 
 void CamMainWindow::on_cmdDPCButton_clicked()
 {
@@ -645,10 +647,10 @@ static int expSliderLog(unsigned int angle, int delta)
 
 void CamMainWindow::keyPressEvent(QKeyEvent *ev)
 {
-	double framePeriod = camera->sensor->getCurrentFramePeriodDouble();
-	UInt32 expPeriod = camera->sensor->getIntegrationTime();
+	UInt32 expPeriod = ui->expSlider->value();
 	UInt32 nextPeriod = expPeriod;
-	int expAngle = (expPeriod * 360) / (framePeriod * camera->sensor->getIntegrationClock());
+	UInt32 framePeriod = expSliderFramePeriod;
+	int expAngle = (expPeriod * 360) / framePeriod;
 
 	qDebug() << "framePeriod =" << framePeriod << " expPeriod =" << expPeriod;
 
@@ -656,7 +658,7 @@ void CamMainWindow::keyPressEvent(QKeyEvent *ev)
 	/* Up/Down moves the slider logarithmically */
 	case Qt::Key_Up:
 		if (expAngle > 0) {
-			nextPeriod = (framePeriod * expSliderLog(expAngle, 1) * camera->sensor->getIntegrationClock()) / 360;
+			nextPeriod = (framePeriod * expSliderLog(expAngle, 1)) / 360;
 		}
 		if (nextPeriod < (expPeriod + ui->expSlider->singleStep())) {
 			nextPeriod = expPeriod + ui->expSlider->singleStep();
@@ -666,7 +668,7 @@ void CamMainWindow::keyPressEvent(QKeyEvent *ev)
 
 	case Qt::Key_Down:
 		if (expAngle > 0) {
-			nextPeriod = (framePeriod * expSliderLog(expAngle, -1) * camera->sensor->getIntegrationClock()) / 360;
+			nextPeriod = (framePeriod * expSliderLog(expAngle, -1)) / 360;
 		}
 		if (nextPeriod > (expPeriod - ui->expSlider->singleStep())) {
 			nextPeriod = expPeriod - ui->expSlider->singleStep();

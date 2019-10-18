@@ -26,42 +26,19 @@ struct CameraStatus {
 	char state[128];
 };
 
-struct CameraData {
-    char apiVersion[128];
-    char model[128];
-    char description[128];
-    char serial[128];
-};
-
-struct SensorData {
-    char name[128];
-    char pixelFormat[128];
-    UInt32 hMax;
-    UInt32 hMin;
-    UInt32 hIncrement;
-    UInt32 vMax;
-    UInt32 vMin;
-    UInt32 vIncrement;
-    double pixelRate;
-};
-
-struct SensorSettings {
-    double exposure;
-    double framePeriod;
-    double frameRate;
-    UInt32 vDarkRows;
-    UInt32 bitDepth;
-    UInt32 vRes;
-    UInt32 hOffset;
-    UInt32 hRes;
-    UInt32 vOffset;
-
-};
-
-struct SensorLimits {
-    double maxPeriod;
-    double minPeriod;
-};
+typedef struct {
+	FrameGeometry geometry;
+	UInt32 vIncrement;
+	UInt32 hIncrement;
+	UInt32 vMinimum;
+	UInt32 hMinimum;
+	UInt32 minGain;
+	UInt32 maxGain;
+	UInt32 iso;
+	QString cfaPattern;
+	QString name;
+	UInt32 timingClock;
+} SensorInfo_t;
 
 struct SensorWhiteBalance {
     double red;
@@ -103,6 +80,9 @@ public:
 	CameraErrortype setString(QString parameter, QString str) { return setProperty(parameter, QVariant(str));   }
 	CameraErrortype setFloat(QString parameter, double value) { return setProperty(parameter, QVariant(value)); }
 	CameraErrortype setBool(QString parameter, bool value)	  { return setProperty(parameter, QVariant(value)); }
+
+	/* Helper function to get all the sensor constants */
+	CameraErrortype getSensorInfo(SensorInfo_t *info);
 
 	/* API Methods */
 	CameraErrortype startRecording(void);

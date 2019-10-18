@@ -26,7 +26,6 @@
 
 #include "video.h"
 #include "control.h"
-#include "pysensor.h"
 #include "userInterface.h"
 #include "string.h"
 #include "types.h"
@@ -145,7 +144,6 @@ typedef struct {
 	};
 } ImagerSettings_t;
 
-
 typedef struct {
 	ImagerSettings_t is;
 	bool valid;
@@ -179,21 +177,20 @@ class Camera : public QObject {
 public:
 	Camera();
 	~Camera();
-	CameraErrortype init(Video * vinstInst, Control * cinstInst, PySensor * sensorInst, UserInterface * userInterface, bool color);
+	CameraErrortype init(Video * vinstInst, Control * cinstInst, UserInterface * userInterface, bool color);
 	Int32 startRecording(void);
 	Int32 stopRecording(void);
 	bool getIsRecording(void);
 	Video * vinst;
 	Control * cinst;
-	PySensor * sensor;
 	UserInterface * ui;
 
 	RecordSettings_t recordingData;
 	ImagerSettings_t getImagerSettings() { return imagerSettings; }
+	SensorInfo_t     getSensorInfo() { return sensorInfo; }
 	UInt32 loadImagerSettings(ImagerSettings_t * settings);
 
 	UInt32 getRecordLengthFrames(ImagerSettings_t settings);
-	CameraData cData;
 
 	unsigned short getTriggerDelayConstant();
 	void setTriggerDelayConstant(unsigned short value);
@@ -208,10 +205,9 @@ public:
 	bool liveLoopActive;
 	UInt32 liveLoopTime = 2000;	//in milliseconds
 
-	void getSensorInfo(Control *c);
-	bool readIsColor(void);
 	UInt32 setImagerSettings(ImagerSettings_t settings);
 	UInt32 setIntegrationTime(double intTime, FrameGeometry *geometry, Int32 flags);
+	bool isValidResolution(FrameGeometry *geometry);
 	UInt32 setPlayMode(bool playMode);
 	Int32 takeWhiteReferences(void);
 	bool focusPeakEnabled;
@@ -263,6 +259,7 @@ private:
 	bool playbackMode;
 
 	ImagerSettings_t imagerSettings;
+	SensorInfo_t	 sensorInfo;
 	bool isColor;
 
 	double imgGain;
@@ -349,13 +346,8 @@ private:
 	QTimer * loopTimer;
 	bool loopTimerEnabled = false;
 
-signals:
-	void receivedParameters();
-
 protected slots:
 	/* Slots from the API on how to handle value changes. */
-	void api_framePeriod_valueChanged(const QVariant &value);
-	void api_exposurePeriod_valueChanged(const QVariant &value);
 	void api_state_valueChanged(const QVariant &value);
 	void api_wbMatrix_valueChanged(const QVariant &value);
 	void api_colorMatrix_valueChanged(const QVariant &value);

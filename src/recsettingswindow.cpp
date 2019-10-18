@@ -58,27 +58,27 @@ RecSettingsWindow::RecSettingsWindow(QWidget *parent, Camera * cameraInst) :
 	connect(ui->cmdCancel, SIGNAL(clicked()), this, SLOT(close()));
 
 	camera = cameraInst;
-	FrameGeometry maxSize = camera->sensor->getMaxGeometry();
 	ImagerSettings_t isTemp = camera->getImagerSettings();          //Using new and memcpy because passing the address of a class variable was causing segfaults among others in the trigger delay window.
 	memcpy((void *)is, (void *)(&isTemp), sizeof(ImagerSettings_t));
 
+	sensor = camera->getSensorInfo();
 	camera->loadImagerSettings(is);	//get settings from API
 
-	ui->spinHRes->setSingleStep(camera->sensor->getHResIncrement());
-	ui->spinHRes->setMinimum(camera->sensor->getMinHRes());
-	ui->spinHRes->setMaximum(maxSize.hRes);
+	ui->spinHRes->setSingleStep(sensor.hIncrement);
+	ui->spinHRes->setMinimum(sensor.hMinimum);
+	ui->spinHRes->setMaximum(sensor.geometry.hRes);
 
-	ui->spinVRes->setSingleStep(camera->sensor->getVResIncrement());
-	ui->spinVRes->setMinimum(camera->sensor->getMinVRes());
-	ui->spinVRes->setMaximum(maxSize.vRes);
+	ui->spinVRes->setSingleStep(sensor.vIncrement);
+	ui->spinVRes->setMinimum(sensor.vMinimum);
+	ui->spinVRes->setMaximum(sensor.geometry.vRes);
 
-	ui->spinHOffset->setSingleStep(camera->sensor->getHResIncrement());
+	ui->spinHOffset->setSingleStep(sensor.hIncrement);
 	ui->spinHOffset->setMinimum(0);
-	ui->spinHOffset->setMaximum(maxSize.hRes - is->geometry.hOffset);
+	ui->spinHOffset->setMaximum(sensor.geometry.hRes - is->geometry.hOffset);
 
-	ui->spinVOffset->setSingleStep(camera->sensor->getVResIncrement());
+	ui->spinVOffset->setSingleStep(sensor.vIncrement);
 	ui->spinVOffset->setMinimum(0);
-	ui->spinVOffset->setMaximum(maxSize.vRes - is->geometry.vRes);
+	ui->spinVOffset->setMaximum(sensor.geometry.vRes - is->geometry.vRes);
 	
 	ui->spinHRes->setValue(is->geometry.hRes);
 	ui->spinVRes->setValue(is->geometry.vRes);
@@ -86,7 +86,7 @@ RecSettingsWindow::RecSettingsWindow(QWidget *parent, Camera * cameraInst) :
 	ui->spinHOffset->setValue(is->geometry.hOffset);
 	ui->spinVOffset->setValue(is->geometry.vOffset);
 
-	for (gain = camera->sensor->getMinGain(); gain <= camera->sensor->getMaxGain(); gain *= 2) {
+	for (gain = sensor.minGain; gain <= sensor.maxGain; gain *= 2) {
 		QString gainText;
 		gainText.sprintf("%ddB (x%u)", int(6.0 * log2(gain)), gain);
 
@@ -102,11 +102,13 @@ RecSettingsWindow::RecSettingsWindow(QWidget *parent, Camera * cameraInst) :
 	QByteArray line;
 	QString lineText;
 	int fps;
-	FrameGeometry frameSize = camera->sensor->getMaxGeometry();
+	FrameGeometry frameSize = sensor.geometry;
+	FrameTiming timing;
 
 	/* List the sensor's native resolution first. */
 	frameSize.hOffset = frameSize.vOffset = frameSize.vDarkRows = 0;
-	fps = camera->sensor->getFramePeriodClock() / camera->sensor->getMinFramePeriod(&frameSize);
+	camera->cinst->getTiming(&frameSize, &timing);
+	fps = (double)sensor.timingClock / timing.minFramePeriod;
 	lineText.sprintf("%dx%d %d fps", frameSize.hRes, frameSize.vRes, fps);
 	ui->comboRes->addItem(lineText);
 
@@ -125,7 +127,6 @@ RecSettingsWindow::RecSettingsWindow(QWidget *parent, Camera * cameraInst) :
 
 	while(true) {
 		line = fp.readLine(30);
-		FrameGeometry fSize;
 
 		if (line.isEmpty() || line.isNull())
 			break;
@@ -133,10 +134,9 @@ RecSettingsWindow::RecSettingsWindow(QWidget *parent, Camera * cameraInst) :
 		//Get the resolution and compute the maximum frame rate to be appended after the resolution
 		sscanf(line.constData(), "%dx%d", &frameSize.hRes, &frameSize.vRes);
 		frameSize.hOffset = frameSize.vOffset = frameSize.vDarkRows = 0;
-		if (camera->sensor->isValidResolution(&frameSize)) {
-			int minPeriod = camera->sensor->getMinFramePeriod(&frameSize);
-			int fps = camera->sensor->getFramePeriodClock() / minPeriod;
-			qDebug("Common Res: %dx%d mPeriod=%d fps=%d", frameSize.hRes, frameSize.vRes, minPeriod, fps);
+		if (camera->cinst->getTiming(&frameSize, &timing) == SUCCESS) {
+			int fps = sensor.timingClock / timing.minFramePeriod;
+			qDebug("Common Res: %dx%d mPeriod=%d fps=%d", frameSize.hRes, frameSize.vRes, timing.minFramePeriod, fps);
 
 			lineText.sprintf("%dx%d %d fps", frameSize.hRes, frameSize.vRes, fps);
 			if (ui->comboRes->findText(lineText) < 0) {
@@ -152,8 +152,8 @@ RecSettingsWindow::RecSettingsWindow(QWidget *parent, Camera * cameraInst) :
 	
 
 	//If the current image position is in the center, check the centered checkbox
-	if(	is->geometry.hOffset == round((maxSize.hRes - is->geometry.hRes) / 2, camera->sensor->getHResIncrement()) &&
-		is->geometry.vOffset == round((maxSize.vRes - is->geometry.vRes) / 2, camera->sensor->getVResIncrement()))
+	if(	is->geometry.hOffset == round((sensor.geometry.hRes - is->geometry.hRes) / 2, sensor.hIncrement) &&
+		is->geometry.vOffset == round((sensor.geometry.vRes - is->geometry.vRes) / 2, sensor.vIncrement))
 	{
 		ui->chkCenter->setChecked(true);
 		ui->spinHOffset->setEnabled(false);
@@ -166,22 +166,24 @@ RecSettingsWindow::RecSettingsWindow(QWidget *parent, Camera * cameraInst) :
 		ui->spinVOffset->setEnabled(true);
 	}
 
+	/* Get the current exposure and frame period */
+	UInt32 fPeriod;
+	UInt32 ePeriod;
+	camera->cinst->getInt("framePeriod", &fPeriod);
+	camera->cinst->getInt("exposurePeriod", &ePeriod);
 
 	//Set the frame period
-	double framePeriod = (double)is->period / camera->sensor->getIntegrationClock();
-	getSIText(str, framePeriod, 10, DEF_SI_OPTS, 8);
+	getSIText(str, (double)fPeriod / sensor.timingClock, 10, DEF_SI_OPTS, 8);
 	ui->linePeriod->setText(str);
 	ui->linePeriod->setHasUnits(true);
 
 	//Set the frame rate
-	double frameRate = 1.0 / framePeriod;
-	getSIText(str, frameRate, ceil(log10(framePeriod*camera->sensor->getIntegrationClock())+1), DEF_SI_OPTS, 1000);
+	getSIText(str, (double)sensor.timingClock / fPeriod, 10, DEF_SI_OPTS, 1000);
 	ui->lineRate->setText(str);
 	ui->lineRate->setHasUnits(true);
 
 	//Set the exposure
-	double exposure = camera->sensor->getCurrentExposureDouble();
-	getSIText(str, exposure, 10, DEF_SI_OPTS, 8);
+	getSIText(str, (double)ePeriod / sensor.timingClock, 10, DEF_SI_OPTS, 8);
 	ui->lineExp->setText(str);
 	ui->lineExp->setHasUnits(true);
 
@@ -207,27 +209,35 @@ FrameGeometry RecSettingsWindow::getResolution(void)
 	size.vOffset = ui->spinVOffset->value();
 	size.vDarkRows = 0;
 	size.bitDepth = BITS_PER_PIXEL;
+	size.minFrameTime = 0;
 	return size;
 }
 
 void RecSettingsWindow::on_cmdOK_clicked()
 {
-	bool videoFlip = (camera->sensor->getSensorQuirks() & SENSOR_QUIRK_UPSIDE_DOWN) != 0;
-	double keepMin = is->geometry.minFrameTime;
-
+	FrameTiming timing;
+	//bool videoFlip = (camera->sensor->getSensorQuirks() & SENSOR_QUIRK_UPSIDE_DOWN) != 0;
+	bool videoFlip = false;
 	int gainIndex = ui->comboGain->currentIndex();
-	is->gain = camera->sensor->getMinGain();
+
+	is->gain = sensor.minGain;
 	is->geometry = getResolution();
-	is->geometry.minFrameTime = keepMin;
 	if (gainIndex >= 0) {
 		is->gain = ui->comboGain->itemData(gainIndex).toInt();
 	}
 
-	UInt32 period = camera->sensor->getActualFramePeriod(ui->linePeriod->siText(), &is->geometry);
-	UInt32 intTime = camera->sensor->getActualIntegrationTime(ui->lineExp->siText(), period, &is->geometry);
-
-	is->period = period;
-	is->exposure = intTime;
+	/* Sanity check the requested frame and exposure timing */
+	if (camera->cinst->getTiming(&is->geometry, &timing) == SUCCESS) {
+		is->exposure = within(is->exposure, timing.exposureMin, timing.exposureMax);
+		is->period = max(is->period, timing.minFramePeriod);
+		is->geometry.minFrameTime = (double)is->period / sensor.timingClock;
+	}
+	else {
+		/* The API reported that this timing is not possible... bad times await. */
+		qDebug("Invalid resolution and timing: %dx%d offset %dx%d",
+			   is->geometry.hRes, is->geometry.vRes,
+			   is->geometry.hOffset, is->geometry.vOffset);
+	}
 	is->temporary = 0;
 
 	camera->updateTriggerValues(*is);
@@ -257,7 +267,7 @@ void RecSettingsWindow::on_spinHRes_valueChanged(int arg1)
 
 void RecSettingsWindow::on_spinHRes_editingFinished()
 {
-	ui->spinHRes->setValue(max(camera->sensor->getMinHRes(), round((UInt32)ui->spinHRes->value(), camera->sensor->getHResIncrement())));
+	ui->spinHRes->setValue(max(sensor.hMinimum, round((UInt32)ui->spinHRes->value(), sensor.hIncrement)));
 
 	updateFramePreview();
 	updateInfoText();
@@ -280,7 +290,7 @@ void RecSettingsWindow::on_spinVRes_valueChanged(int arg1)
 
 void RecSettingsWindow::on_spinVRes_editingFinished()
 {
-	ui->spinVRes->setValue(max(camera->sensor->getMinVRes(), round((UInt32)ui->spinVRes->value(), camera->sensor->getVResIncrement())));
+	ui->spinVRes->setValue(max(sensor.vMinimum, round((UInt32)ui->spinVRes->value(), sensor.vIncrement)));
 
 	updateFramePreview();
 	updateInfoText();
@@ -294,7 +304,7 @@ void RecSettingsWindow::on_spinHOffset_valueChanged(int arg1)
 
 void RecSettingsWindow::on_spinHOffset_editingFinished()
 {
-	ui->spinHOffset->setValue(round((UInt32)ui->spinHOffset->value(), camera->sensor->getHResIncrement()));
+	ui->spinHOffset->setValue(round((UInt32)ui->spinHOffset->value(), sensor.hIncrement));
 
 	updateFramePreview();
 	updateInfoText();
@@ -308,7 +318,7 @@ void RecSettingsWindow::on_spinVOffset_valueChanged(int arg1)
 
 void RecSettingsWindow::on_spinVOffset_editingFinished()
 {
-	ui->spinVOffset->setValue(round((UInt32)ui->spinVOffset->value(), camera->sensor->getVResIncrement()));
+	ui->spinVOffset->setValue(round((UInt32)ui->spinVOffset->value(), sensor.vIncrement));
 
 	updateFramePreview();
 	updateInfoText();
@@ -316,14 +326,13 @@ void RecSettingsWindow::on_spinVOffset_editingFinished()
 
 void RecSettingsWindow::updateOffsetLimits()
 {
-	FrameGeometry maxSize = camera->sensor->getMaxGeometry();
-	ui->spinHOffset->setMaximum(maxSize.hRes - ui->spinHRes->value());
-	ui->spinVOffset->setMaximum(maxSize.vRes - ui->spinVRes->value());
+	ui->spinHOffset->setMaximum(sensor.geometry.hRes - ui->spinHRes->value());
+	ui->spinVOffset->setMaximum(sensor.geometry.vRes - ui->spinVRes->value());
 
 	if(ui->chkCenter->checkState())
 	{
-		ui->spinHOffset->setValue(round((maxSize.hRes - ui->spinHRes->value()) / 2, camera->sensor->getHResIncrement()));
-		ui->spinVOffset->setValue(round((maxSize.vRes - ui->spinVRes->value()) / 2, camera->sensor->getVResIncrement()));
+		ui->spinHOffset->setValue(round((sensor.geometry.hRes - ui->spinHRes->value()) / 2, sensor.hIncrement));
+		ui->spinVOffset->setValue(round((sensor.geometry.vRes - ui->spinVRes->value()) / 2, sensor.vIncrement));
 	}
 }
 
@@ -331,116 +340,120 @@ void RecSettingsWindow::on_chkCenter_toggled(bool checked)
 {
 	if(checked)
 	{
-		FrameGeometry maxSize = camera->sensor->getMaxGeometry();
-		ui->spinHOffset->setValue(round((maxSize.hRes - ui->spinHRes->value()) / 2, camera->sensor->getHResIncrement()));
-		ui->spinVOffset->setValue(round((maxSize.vRes - ui->spinVRes->value()) / 2, camera->sensor->getVResIncrement()));
+		ui->spinHOffset->setValue(round((sensor.geometry.hRes - ui->spinHRes->value()) / 2, sensor.hIncrement));
+		ui->spinVOffset->setValue(round((sensor.geometry.vRes - ui->spinVRes->value()) / 2, sensor.vIncrement));
 	}
 
 	ui->spinHOffset->setEnabled(!checked);
 	ui->spinVOffset->setEnabled(!checked);
 }
 
+void RecSettingsWindow::clampExposure(FrameTiming *timing, UInt32 fPeriod)
+{
+	UInt32 expPeriod = ui->lineExp->siText() * sensor.timingClock;
+	char str[100];
+
+	if (expPeriod > fPeriod) expPeriod = fPeriod;
+	if (expPeriod > timing->exposureMax) expPeriod = timing->exposureMax;
+	if (expPeriod < timing->exposureMin) expPeriod = timing->exposureMin;
+	getSIText(str, (double)expPeriod / sensor.timingClock, 10, DEF_SI_OPTS, 8);
+	ui->lineExp->setText(str);
+}
 
 void RecSettingsWindow::on_cmdMax_clicked()
 {
 	FrameGeometry fSize = getResolution();
-	UInt32 period = camera->sensor->getMinFramePeriod(&fSize);
+	FrameTiming timing;
 	char str[100];
 
-	getSIText(str, (double)period / camera->sensor->getFramePeriodClock(), 10, DEF_SI_OPTS, 8);
+	camera->cinst->getTiming(&fSize, &timing);
+	getSIText(str, (double)timing.minFramePeriod / sensor.timingClock, 10, DEF_SI_OPTS, 8);
 	ui->linePeriod->setText(str);
 
-	double frameRate = (double)camera->sensor->getFramePeriodClock() / period;
-	getSIText(str, frameRate, ceil(log10(period)+1), DEF_SI_OPTS, 1000);
-
+	getSIText(str, (double)sensor.timingClock / timing.minFramePeriod, ceil(log10(timing.minFramePeriod)+1), DEF_SI_OPTS, 1000);
 	ui->lineRate->setText(str);
 
 	//Make sure exposure is within limits
-	UInt32 intTime = camera->sensor->getActualIntegrationTime(ui->lineExp->siText(), period, &fSize);
-
-	//Format the entered value nicely
-	getSIText(str, (double)intTime / camera->sensor->getIntegrationClock(), 10, DEF_SI_OPTS, 8);
-	ui->lineExp->setText(str);
-
+	clampExposure(&timing, timing.minFramePeriod);
 }
 
 void RecSettingsWindow::on_linePeriod_returnPressed()
 {
-	char str[100];
 	FrameGeometry fSize = getResolution();
-	UInt32 period = camera->sensor->getActualFramePeriod(ui->linePeriod->siText(), &fSize);
+	FrameTiming timing;
+	char str[100];
+	double frameTime = ui->linePeriod->siText();
+	UInt32 framePeriod;
+
+	/* Sanitize the frame time. */
+	fSize.minFrameTime = frameTime;
+	camera->cinst->getTiming(&fSize, &timing);
+	framePeriod = max(frameTime * sensor.timingClock, timing.minFramePeriod);
 
 	//format the entered value nicely
-	getSIText(str, (double)period / camera->sensor->getFramePeriodClock(), 10, DEF_SI_OPTS, 8);
+	getSIText(str, (double)framePeriod / sensor.timingClock, 10, DEF_SI_OPTS, 8);
 	ui->linePeriod->setText(str);
 
 	//Set the frame rate
-	double frameRate = (double)camera->sensor->getFramePeriodClock() / period;
-	getSIText(str, frameRate, ceil(log10(period)+1), DEF_SI_OPTS, 1000);
-
+	getSIText(str, (double)sensor.timingClock / framePeriod, ceil(log10(framePeriod)+1), DEF_SI_OPTS, 1000);
 	ui->lineRate->setText(str);
 
 	//Make sure exposure is within limits
-	UInt32 intTime = camera->sensor->getActualIntegrationTime(ui->lineExp->siText(), period, &fSize);
-
-	//Format the entered value nicely
-	getSIText(str, (double)intTime / camera->sensor->getIntegrationClock(), 10, DEF_SI_OPTS, 8);
-	ui->lineExp->setText(str);
+	clampExposure(&timing, framePeriod);
 }
 
 void RecSettingsWindow::on_lineRate_returnPressed()
 {
-	FrameGeometry frameSize = getResolution();
-	UInt32 period;
+	FrameGeometry fSize = getResolution();
+	FrameTiming timing;
 	double frameRate = ui->lineRate->siText();
+	UInt32 framePeriod;
 	char str[100];
 
 	if(0.0 == frameRate)
 		return;
 
-	period = camera->sensor->getActualFramePeriod(1.0 / frameRate, &frameSize);
+	/* Sanitize the frame time. */
+	fSize.minFrameTime = 1.0 / frameRate;
+	camera->cinst->getTiming(&fSize, &timing);
+	framePeriod = max(sensor.timingClock / frameRate, timing.minFramePeriod);
 
 	//Set the frame period box
-	getSIText(str, (double)period / camera->sensor->getFramePeriodClock(), 10, DEF_SI_OPTS, 8);
+	getSIText(str, (double)framePeriod / sensor.timingClock, 10, DEF_SI_OPTS, 8);
 	ui->linePeriod->setText(str);
 
 	//Refill the frame rate box with the nicely formatted value
-	frameRate = (double)camera->sensor->getFramePeriodClock() / period;
-	getSIText(str, frameRate, ceil(log10(period)+1), DEF_SI_OPTS, 1000);
-
+	getSIText(str, (double)sensor.timingClock / framePeriod, ceil(log10(framePeriod)+1), DEF_SI_OPTS, 1000);
 	ui->lineRate->setText(str);
 
 	//Make sure exposure is within limits
-	double target = ui->lineExp->siText();
-	UInt32 intTime = camera->sensor->getActualIntegrationTime(target, period, &frameSize);
-
-	//Format the entered value nicely
-	getSIText(str, (double)intTime / camera->sensor->getIntegrationClock(), 10, DEF_SI_OPTS, 8);
-	ui->lineExp->setText(str);
+	clampExposure(&timing, framePeriod);
 }
 
 void RecSettingsWindow::on_lineExp_returnPressed()
 {
 	FrameGeometry frameSize = getResolution();
-	UInt32 period = camera->sensor->getActualFramePeriod(ui->linePeriod->siText(), &frameSize);
-	UInt32 intTime = camera->sensor->getActualIntegrationTime(ui->lineExp->siText(), period, &frameSize);
-	char str[100];
+	FrameTiming timing;
 
-	//Format the entered value nicely
-	getSIText(str, (double)intTime / camera->sensor->getIntegrationClock(), 10, DEF_SI_OPTS, 8);
-	ui->lineExp->setText(str);
+	frameSize.minFrameTime = ui->linePeriod->siText();
+	camera->cinst->getTiming(&frameSize, &timing);
+	clampExposure(&timing, ui->linePeriod->siText() * sensor.timingClock);
 }
 
 void RecSettingsWindow::on_cmdExpMax_clicked()
 {
 	FrameGeometry frameSize = getResolution();
-	UInt32 period = camera->sensor->getActualFramePeriod(ui->linePeriod->siText(), &frameSize);
-	UInt32 intTime = camera->sensor->getMaxIntegrationTime(period, &frameSize);
-	double exp = (double)intTime / camera->sensor->getIntegrationClock();
+	FrameTiming timing;
+	UInt32 fPeriod = ui->linePeriod->siText() * sensor.timingClock;
+	UInt32 expPeriod = fPeriod;
 	char str[100];
 
-	//Format the entered value nicely
-	getSIText(str, exp, 10, DEF_SI_OPTS, 8);
+	frameSize.minFrameTime = ui->linePeriod->siText();
+	camera->cinst->getTiming(&frameSize, &timing);
+
+	if (expPeriod > timing.exposureMax) expPeriod = timing.exposureMax;
+	if (expPeriod < timing.exposureMin) expPeriod = timing.exposureMin;
+	getSIText(str, (double)expPeriod / sensor.timingClock, 10, DEF_SI_OPTS, 8);
 	ui->lineExp->setText(str);
 }
 
@@ -454,18 +467,17 @@ void RecSettingsWindow::updateFramePreview()
 void RecSettingsWindow::updateInfoText()
 {
 	FrameGeometry frameSize = getResolution();
+	FrameTiming timing;
 	char str[300];
 	char maxRateStr[30];
 	char minPeriodStr[30];
 	char maxExposureStr[30];
 
-	UInt32 fclocks = camera->sensor->getMinFramePeriod(&frameSize);
-	double fperiod = (double)fclocks / camera->sensor->getFramePeriodClock();
-	UInt32 expclocks = camera->sensor->getMaxIntegrationTime(fclocks, &frameSize);
+	camera->cinst->getTiming(&frameSize, &timing);
 
-	getSIText(minPeriodStr, fperiod, 10, DEF_SI_OPTS, 8);
-	getSIText(maxRateStr, 1.0/fperiod, ceil(log10(fclocks)+1), DEF_SI_OPTS, 1000);
-	getSIText(maxExposureStr, (double)expclocks / camera->sensor->getIntegrationClock(), 10, DEF_SI_OPTS, 8);
+	getSIText(minPeriodStr, (double)timing.minFramePeriod / sensor.timingClock, 10, DEF_SI_OPTS, 8);
+	getSIText(maxRateStr, (double)sensor.timingClock / timing.minFramePeriod, ceil(log10(timing.minFramePeriod)+1), DEF_SI_OPTS, 1000);
+	getSIText(maxExposureStr, (double)timing.exposureMax / sensor.timingClock, 10, DEF_SI_OPTS, 8);
 
 	sprintf(str, "Max rate for this resolution:\r\n%sfps\r\nMin Period: %ss", maxRateStr, minPeriodStr);
 	ui->lblInfo->setText(str);
@@ -473,16 +485,16 @@ void RecSettingsWindow::updateInfoText()
 
 void RecSettingsWindow::setResFromText(char * str)
 {
-	FrameGeometry maxSize = camera->sensor->getMaxGeometry();
+	SensorInfo_t si = camera->getSensorInfo();
 	FrameGeometry frameSize;
 
 	sscanf(str, "%dx%d", &frameSize.hRes, &frameSize.vRes);
-	frameSize.hOffset = round((maxSize.hRes - frameSize.hRes) / 2, camera->sensor->getHResIncrement());
-	frameSize.vOffset = round((maxSize.vRes - frameSize.vRes) / 2, camera->sensor->getVResIncrement());
+	frameSize.hOffset = round((si.geometry.hRes - frameSize.hRes) / 2, si.hIncrement);
+	frameSize.vOffset = round((si.geometry.vRes - frameSize.vRes) / 2, si.vIncrement);
 	frameSize.vDarkRows = 0;
 	frameSize.bitDepth = BITS_PER_PIXEL;
 
-	if(camera->sensor->isValidResolution(&frameSize)) {
+	if(camera->isValidResolution(&frameSize)) {
 		ui->spinHRes->setValue(frameSize.hRes);
 		ui->spinVRes->setValue(frameSize.vRes);
 		on_cmdMax_clicked();
@@ -509,12 +521,8 @@ void RecSettingsWindow::on_cmdRecMode_clicked()
 {
 	is->geometry = getResolution();
 	is->gain = ui->comboGain->currentIndex();
-
-	UInt32 period = camera->sensor->getActualFramePeriod(ui->linePeriod->siText(), &is->geometry);
-	UInt32 intTime = camera->sensor->getActualIntegrationTime(ui->lineExp->siText(), period, &is->geometry);
-
-	is->period = period;
-	is->exposure = intTime;
+	is->period = ui->linePeriod->siText() * sensor.timingClock;
+	is->exposure = ui->lineExp->siText() * sensor.timingClock;
 	is->temporary = 0;
 
 	recModeWindow *w = new recModeWindow(NULL, camera, is);

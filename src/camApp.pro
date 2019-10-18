@@ -90,7 +90,6 @@ SOURCES += main.cpp\
     camspinbox.cpp \
     camtextedit.cpp \
     camdoublespinbox.cpp \
-    pysensor.cpp \
     utilwindow.cpp \
     statuswindow.cpp \
     recmodewindow.cpp \
@@ -140,7 +139,6 @@ HEADERS  += mainwindow.h \
     camtextedit.h \
     camdoublespinbox.h \
     errorCodes.h \
-    pysensor.h \
     utilwindow.h \
     statuswindow.h \
     i2c/i2c-dev.h \

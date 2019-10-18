@@ -42,7 +42,6 @@ public:
 
 public slots:
 	void updateCamMainWindowPosition();
-	void updateParameters();
 
 private slots:
 	void on_cmdClose_clicked();
@@ -108,6 +107,8 @@ private:
 	bool externalPower;
 
 	bool autoSaveActive;
+
+	UInt32 expSliderFramePeriod;
 };
 
 #endif // CAMMAINWINDOW_H

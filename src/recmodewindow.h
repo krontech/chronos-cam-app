@@ -46,6 +46,8 @@ private:
     Camera * camera;
     ImagerSettings_t * is;
     Ui::recModeWindow *ui;
+	SensorInfo_t sensor;
+
     void updateSegmentSizeText(UInt32 segmentCount);
 };
 

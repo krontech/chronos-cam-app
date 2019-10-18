@@ -20,16 +20,6 @@
 #include "camera.h"
 #include "util.h"
 
-UInt32 sensorHIncrement = 0;
-UInt32 sensorVIncrement = 0;
-UInt32 sensorHMax = 0;
-UInt32 sensorVMax = 0;
-UInt32 sensorHMin = 0;
-UInt32 sensorVMin = 0;
-UInt32 sensorVDark = 0;
-UInt32 sensorBitDepth = 0;
-double sensorMinFrameTime = 0.001;
-
 static CameraStatus *parseCameraStatus(const QVariantMap &args, CameraStatus *cs)
 {
 	strcpy(cs->state, args["state"].toString().toAscii());
@@ -101,7 +91,7 @@ CameraErrortype Control::setProperty(QString parameter, QVariant value)
 
 	if (reply.isError()) {
 		QDBusError err = reply.error();
-		qDebug() << "Failed to set parameter: " + err.name() + " - " + err.message();
+		qDebug() << "Failed to set parameter " + parameter + ": " + err.name() + " - " + err.message();
 		return CAMERA_API_CALL_FAIL;
 	}
 
@@ -110,7 +100,7 @@ CameraErrortype Control::setProperty(QString parameter, QVariant value)
 		QVariantMap errdict;
 		map["error"].value<QDBusArgument>() >> errdict;
 
-		qDebug() << "Failed to set parameter: " + errdict[parameter].toString();
+		qDebug() << "Failed to set parameter " + parameter + ": " + errdict[parameter].toString();
 		return CAMERA_API_CALL_FAIL;
 	}
 
@@ -261,6 +251,54 @@ CameraErrortype Control::setArray(QString parameter, UInt32 size, double *values
 
 	qv.setValue<QDBusArgument>(list);
 	return setProperty(parameter, qv);
+}
+
+CameraErrortype Control::getSensorInfo(SensorInfo_t *info)
+{
+	/* Load all the relevant sensor properties. */
+	QStringList names = {
+		"sensorName",
+		"sensorColorPattern",
+		"sensorBitDepth",
+		"sensorPixelRate",
+		"sensorIso",
+		"sensorMaxGain",
+		"sensorVMax",
+		"sensorVMin",
+		"sensorVIncrement",
+		"sensorHMax",
+		"sensorHMin",
+		"sensorHIncrement",
+		"sensorVDark"
+	};
+	QVariantMap response = getPropertyGroup(names);
+	if (response.isEmpty()) {
+		return CAMERA_API_CALL_FAIL;
+	}
+
+	/* Extract the maximum geometry. */
+	info->geometry.hRes = response["sensorHMax"].toUInt();
+	info->geometry.vRes = response["sensorVMax"].toUInt();
+	info->geometry.hOffset = 0;
+	info->geometry.vOffset = 0;
+	info->geometry.vDarkRows = response["sensorVDark"].toUInt();
+	info->geometry.bitDepth = response["sensorBitDepth"].toUInt();
+	info->geometry.minFrameTime = 0; /* TODO: ??? */
+
+	/* Extract the other parameters.*/
+	info->vIncrement = response["sensorVIncrement"].toUInt();
+	info->hIncrement = response["sensorHIncrement"].toUInt();
+	info->vMinimum = response["sensorVMin"].toUInt();
+	info->hMinimum = response["sensorHMin"].toUInt();
+	info->minGain = 1; /* TODO: ??? */
+	info->maxGain = response["sensorMaxGain"].toUInt();
+	info->iso = response["sensorIso"].toUInt();
+	info->cfaPattern = response["sensorColorPattern"].toString();
+	info->name = response["sensorName"].toString();
+
+	/* TODO: The timebase isn't exposed through the API, it only deals in nanoseconds. */
+	info->timingClock = 1000000000;
+	return SUCCESS;
 }
 
 CameraErrortype Control::startRecording(void)

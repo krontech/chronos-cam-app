@@ -77,10 +77,12 @@ private:
 	void updateOffsetLimits();
 	void updateFramePreview();
 	void updateInfoText();
+	void clampExposure(FrameTiming *timing, UInt32 fPeriod);
 	void setResFromText(char * str);
 	Ui::RecSettingsWindow *ui;
 	Camera * camera;
 	ImagerSettings_t * is;
+	SensorInfo_t sensor;
 	bool windowInitComplete;
 
 	FrameGeometry getResolution(void);
