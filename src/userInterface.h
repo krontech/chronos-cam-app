@@ -21,14 +21,7 @@
 #include <poll.h>
 #include "errorCodes.h"
 #include "types.h"
-/*
-typedef enum
-{
-	UI_ERROR_NONE = 0,
-	UI_FILE_ERROR,
-	UI_THREAD_ERROR
-} UIErrortype;
-*/
+
 void *encoderThread(void *arg);
 
 class UserInterface {
@@ -37,13 +30,11 @@ public:
 	~UserInterface();
 
 	bool getShutterButton();
-	void setRecLEDBack(bool on);
-	void setRecLEDFront(bool on);
 private:
 	bool encAVal, encALast;
 	bool encBVal, encBLast;
 	bool encSwVal, encSwLast;
-	Int32 encAgpioFD, encBgpioFD, encSwgpioFD, shSwgpioFD, recLedFrontFD, recLedBackFD;
+	Int32 encAgpioFD, encBgpioFD, encSwgpioFD, shSwgpioFD;
 	pthread_t encThreadID;
 	bool getGpioValue(int fd);
 	bool getEncoderSwitch();

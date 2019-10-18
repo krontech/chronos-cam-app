@@ -83,11 +83,11 @@ private slots:
 
 	void keyPressEvent(QKeyEvent *ev);
 
+	void on_state_valueChanged(const QVariant &value);
 	void on_videoState_valueChanged(const QVariant &value);
 	void on_exposurePeriod_valueChanged(const QVariant &value);
 
 private:
-	void updateRecordingState(bool recording);
 	void updateCurrentSettingsLabel(void);
 	void updateExpSliderLimits(void);
 	void updateBatteryData();
@@ -95,10 +95,11 @@ private:
 
 	QMessageBox *prompt;
 	Ui::CamMainWindow *ui;
+	UserInterface * interface;
 	StatusWindow * sw;
 	QTimer *timer;
+	bool recording;
 	bool lastShutterButton;
-	bool lastRecording;
 	int windowsAlwaysOpen;
 
 	double batteryPercent;

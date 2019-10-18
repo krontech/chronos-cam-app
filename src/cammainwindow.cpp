@@ -21,7 +21,6 @@
 #include <unistd.h>
 #include <QSettings>
 
-#include "cameraRegisters.h"
 #include "userInterface.h"
 #include "mainwindow.h"
 #include "playbackwindow.h"
@@ -43,8 +42,6 @@ extern "C" {
 Camera * camera;
 Video * vinst;
 Control * cinst;
-UserInterface * userInterface;
-bool focusAidEnabled = false;
 uint_fast8_t powerLoopCount = 0;
 
 CamMainWindow::CamMainWindow(QWidget *parent) :
@@ -59,7 +56,7 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	vinst = new Video();
 	cinst = new Control();
 
-	userInterface = new UserInterface();
+	interface = new UserInterface();
 	prompt = NULL;
 
 	//loop until control dBus is ready
@@ -76,8 +73,8 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	batteryPresent = false;
 	externalPower = false;
 
-	userInterface->init();
-	retVal = camera->init(vinst, cinst, userInterface, true);
+	interface->init();
+	retVal = camera->init(vinst, cinst);
 
 	if(retVal != SUCCESS)
 	{
@@ -96,8 +93,8 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	updateExpSliderLimits();
 	updateCurrentSettingsLabel();
 
-	lastShutterButton = camera->ui->getShutterButton();
-	lastRecording = camera->getIsRecording();
+	lastShutterButton = interface->getShutterButton();
+	recording = (camera->cinst->getProperty("state", "unknown").toString() == "recording");
 	timer = new QTimer(this);
 	connect(timer, SIGNAL(timeout()), this, SLOT(on_MainWindowTimer()));
 	timer->start(16);
@@ -125,6 +122,7 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	QWidgetList qwl = QApplication::topLevelWidgets();
 	windowsAlwaysOpen = qwl.count();
 
+	cinst->listen("state", this, SLOT(on_state_valueChanged(const QVariant &)));
 	cinst->listen("videoState", this, SLOT(on_videoState_valueChanged(const QVariant &)));
 	cinst->listen("exposurePeriod", this, SLOT(on_exposurePeriod_valueChanged(const QVariant &)));
 
@@ -190,7 +188,7 @@ void CamMainWindow::on_cmdDebugWnd_clicked()
 
 void CamMainWindow::on_cmdRec_clicked()
 {
-	if(camera->getIsRecording())
+	if(recording)
 	{
 		camera->stopRecording();
 	}
@@ -212,7 +210,7 @@ void CamMainWindow::on_cmdRec_clicked()
 
 void CamMainWindow::on_cmdPlay_clicked()
 {
-	if(camera->getIsRecording()) {
+	if(recording) {
 		if(QMessageBox::Yes != question("Stop recording?", "This action will stop recording; is this okay?"))
 			return;
 		autoSaveActive = false;
@@ -244,7 +242,7 @@ void CamMainWindow::playFinishedSaving()
 
 void CamMainWindow::on_cmdRecSettings_clicked()
 {
-	if(camera->getIsRecording()) {
+	if(recording) {
 		if(QMessageBox::Yes != question("Stop recording?", "This action will stop recording; is this okay?"))
 			return;
 		autoSaveActive = false;
@@ -259,7 +257,7 @@ void CamMainWindow::on_cmdRecSettings_clicked()
 
 void CamMainWindow::on_cmdFPNCal_clicked()//Black cal
 {
-	if(camera->getIsRecording()) {
+	if(recording) {
 		if(QMessageBox::Yes != question("Stop recording?", "This action will stop recording and erase the video; is this okay?")) {
 			return;
 		}
@@ -305,7 +303,7 @@ void CamMainWindow::on_cmdFPNCal_clicked()//Black cal
 
 void CamMainWindow::on_cmdWB_clicked()
 {
-	if(camera->getIsRecording()) {
+	if(recording) {
 		if(QMessageBox::Yes != question("Stop recording?", "This action will stop recording and erase the video; is this okay?"))
 			return;
 		autoSaveActive = false;
@@ -324,7 +322,7 @@ void CamMainWindow::on_cmdWB_clicked()
 
 void CamMainWindow::on_cmdIOSettings_clicked()
 {
-	if(camera->getIsRecording()) {
+	if(recording) {
 		if(QMessageBox::Yes != question("Stop recording?", "This action will stop recording and erase the video; is this okay?"))
 			return;
 		autoSaveActive = false;
@@ -336,15 +334,22 @@ void CamMainWindow::on_cmdIOSettings_clicked()
 	w->show();
 }
 
-void CamMainWindow::updateRecordingState(bool recording)
+void CamMainWindow::on_state_valueChanged(const QVariant &value)
 {
-	if(recording)
-	{
+	QString state = value.toString();
+	qDebug() << "CamMainWindow state changed to" << state;
+	if(!recording) {
+		/* Check if recording has started. */
+		if (state != "recording") return;
+		recording = true;
 		ui->cmdRec->setText("Stop");
-
 	}
-	else	//Not recording
-	{
+	else {
+		/* Check if recording has ended. */
+		if (state != "idle") return;
+		recording = false;
+
+		/* Recording has ended */
 		ui->cmdRec->setText("Record");
 		ui->cmdPlay->setEnabled(true);
 
@@ -363,18 +368,18 @@ void CamMainWindow::updateRecordingState(bool recording)
 	}
 }
 
+
 int cnt = 0; //temporary timer until pcUtil broadcasts power
-extern bool debugDbus;
 
 void CamMainWindow::on_MainWindowTimer()
 {
-	bool shutterButton = camera->ui->getShutterButton();
+	bool shutterButton = interface->getShutterButton();
 	QSettings appSettings;
 
 
 	if(shutterButton && !lastShutterButton)
 	{
-		if(camera->getIsRecording())
+		if(recording)
 		{
 			camera->stopRecording();
 		}
@@ -401,22 +406,6 @@ void CamMainWindow::on_MainWindowTimer()
 		}
 	}
 
-	bool recording = camera->getIsRecording();
-
-	if(recording != lastRecording)
-	{
-		if(recording)
-		{
-			qDebug() << "### RECORDING:";
-		}
-		else
-		{
-			qDebug() << "### NOT RECORDING:";
-		}
-		updateRecordingState(recording);
-		lastRecording = recording;
-	}
-
 	lastShutterButton = shutterButton;
 
 	//Request battery information from the PMIC every two seconds (16ms * 125 loops)
@@ -426,7 +415,6 @@ void CamMainWindow::on_MainWindowTimer()
 	}
 	powerLoopCount++;
 	updateCurrentSettingsLabel();
-
 	updateCurrentSettingsLabel();
 
 	if (appSettings.value("debug/hideDebug", true).toBool()) {
@@ -553,7 +541,7 @@ void CamMainWindow::updateCurrentSettingsLabel()
 
 void CamMainWindow::on_cmdUtil_clicked()
 {
-	if(camera->getIsRecording()) {
+	if(recording) {
 		if(QMessageBox::Yes != question("Stop recording?", "This action will stop recording and erase the video; is this okay?"))
 			return;
 		autoSaveActive = false;

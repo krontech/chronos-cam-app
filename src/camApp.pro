@@ -121,7 +121,6 @@ HEADERS  += mainwindow.h \
     camera.h \
     defines.h \
     types.h \
-    cameraRegisters.h \
     video.h \
     cammainwindow.h \
     myinputpanelcontext.h \

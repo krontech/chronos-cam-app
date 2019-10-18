@@ -30,7 +30,6 @@
 #include <sys/mman.h>
 
 #include "defines.h"
-#include "cameraRegisters.h"
 #include "camera.h"
 
 #include "video.h"

@@ -1,6 +1,5 @@
 
 #include "camera.h"
-#include "cameraRegisters.h"
 #include "colorwindow.h"
 #include "ui_colorwindow.h"
 

@@ -1,5 +1,3 @@
-#define IMAGERSETTINGS_DBUS //eliminates QSettings for recording parameters
-//#define DEBUG_DBUS //eliminates recurring Dbus calls
 /****************************************************************************
  *  Copyright (C) 2013-2017 Kron Technologies Inc <http://www.krontech.ca>. *
  *                                                                          *
@@ -30,7 +28,6 @@
 
 #include "font.h"
 #include "camera.h"
-#include "cameraRegisters.h"
 #include "util.h"
 #include "types.h"
 #include "defines.h"
@@ -39,23 +36,12 @@
 #include "camera.h"
 #include "cammainwindow.h"
 
-void* recDataThread(void *arg);
-
-#ifdef DEBUG_DBUS
-bool debugDbus = true;
-#else
-bool debugDbus = false;
-#endif
-
 Camera::Camera()
 {
 	QSettings appSettings;
 
-	terminateRecDataThread = false;
-	lastRecording = false;
 	playbackMode = false;
 	recording = false;
-	imgGain = 1.0;
 	recordingData.ignoreSegments = 0;
 	recordingData.hasBeenSaved = true;
 	recordingData.hasBeenViewed = true;
@@ -65,16 +51,13 @@ Camera::Camera()
 	ButtonsOnLeft = getButtonsOnLeft();
 	UpsideDownDisplay = getUpsideDownDisplay();
 	strcpy(serialNumber, "Not_Set");
-
 }
 
 Camera::~Camera()
 {
-	terminateRecDataThread = true;
-	pthread_join(recDataThreadID, NULL);
 }
 
-CameraErrortype Camera::init(Video * vinstInst, Control * cinstInst, UserInterface * userInterface, bool color)
+CameraErrortype Camera::init(Video * vinstInst, Control * cinstInst)
 {
 	CameraErrortype retVal;
 	QSettings appSettings;
@@ -82,7 +65,6 @@ CameraErrortype Camera::init(Video * vinstInst, Control * cinstInst, UserInterfa
 
 	vinst = vinstInst;
 	cinst = cinstInst;
-	ui = userInterface;
 	//Read serial number in
 	retVal = (CameraErrortype)readSerialNumber(serialNumber);
 	if(retVal != SUCCESS)
@@ -109,13 +91,7 @@ CameraErrortype Camera::init(Video * vinstInst, Control * cinstInst, UserInterfa
 	int err;
 
 	retVal = cinst->status(&cs);
-	bool recording = !strcmp(cs.state, "idle");
-
-	//taken from below:
-	printf("Starting rec data thread\n");
-	terminateRecDataThread = false;
-
-	err = pthread_create(&recDataThreadID, NULL, &recDataThread, this);
+	recording = !strcmp(cs.state, "idle");
 
 	/* Load the current imager settings. */
 	cinst->getResolution(&imagerSettings.geometry);
@@ -165,9 +141,6 @@ CameraErrortype Camera::init(Video * vinstInst, Control * cinstInst, UserInterfa
 	cinst->listen("wbMatrix", this, SLOT(api_wbMatrix_valueChanged(const QVariant &)));
 	cinst->listen("colorMatrix", this, SLOT(api_colorMatrix_valueChanged(const QVariant &)));
 	cinst->listen("resolution", this, SLOT(api_resolution_valueChanged(const QVariant &)));
-
-	ui->setRecLEDFront(false);
-	ui->setRecLEDBack(false);
 
 	//vinst->setDisplayOptions(getZebraEnable(), getFocusPeakEnable());
 	vinst->setDisplayPosition(ButtonsOnLeft ^ UpsideDownDisplay);
@@ -428,11 +401,6 @@ Int32 Camera::stopRecording(void)
 	return SUCCESS;
 }
 
-bool Camera::getIsRecording(void)
-{
-	return recording;
-}
-
 UInt32 Camera::setPlayMode(bool playMode)
 {
 	if(recording)
@@ -517,14 +485,8 @@ void Camera::setCCMatrix(const double *matrix)
 
 void Camera::setWhiteBalance(const double *rgb)
 {
-	double wrgb[3];
-	wrgb[0] = within(rgb[0] * imgGain, 0.0, 8.0);
-	wrgb[1] = within(rgb[1] * imgGain, 0.0, 8.0);
-	wrgb[2] = within(rgb[2] * imgGain, 0.0, 8.0);
-
-	fprintf(stderr, "Setting WB Matrix: %06f %06f %06f\n", wrgb[0], wrgb[1], wrgb[2]);
-
-	cinst->setArray("wbMatrix", 3, (double *)&wrgb);
+	qDebug("Setting WB Matrix: %06f %06f %06f", rgb[0], rgb[1], rgb[2]);
+	cinst->setArray("wbMatrix", 3, rgb);
 }
 
 Int32 Camera::autoWhiteBalance(UInt32 x, UInt32 y)
@@ -950,48 +912,13 @@ bool Camera::get_demoMode() {
 	return appSettings.value("camera/demoMode", false).toBool();
 }
 
-void* recDataThread(void *arg)
-{
-	Camera * cInst = (Camera *)arg;
-	int ms = 100;
-	struct timespec ts = { ms / 1000, (ms % 1000) * 1000 * 1000 };
-	bool recording;
-
-	//DEBUG!
-
-	while(!debugDbus && !cInst->terminateRecDataThread) {
-		//On the falling edge of recording, call the user callback
-		recording = cInst->getRecording();
-		if(!recording && (cInst->lastRecording || cInst->recording))	//Take care of situtation where recording goes low->high-low between two interrutps by checking the cInst->recording flag
-		{
-			recording = false;
-			cInst->ui->setRecLEDFront(false);
-			cInst->ui->setRecLEDBack(false);
-			cInst->recording = false;
-
-		}
-		cInst->lastRecording = recording;
-
-		nanosleep(&ts, NULL);
-	}
-
-	pthread_exit(NULL);
-}
-
 void Camera::api_state_valueChanged(const QVariant &value)
 {
 	QString state = value.toString();
-	qDebug() << "new state:" << state;
 
-	if ((lastState == "idle") && (state == "recording"))
-	{
-		qDebug() << "### API recording";
-		recording = true;
-	}
-	if ((lastState == "recording") && (state == "idle"))
-	{
-		qDebug() << "### API stop recording";
-	}
+	qDebug() << "state change:" << lastState << "=>" << state;
+
+	recording = (state == "recording");
 	lastState = state;
 }
 

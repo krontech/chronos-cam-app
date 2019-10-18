@@ -30,17 +30,8 @@
 #include "string.h"
 #include "types.h"
 
-#define RECORD_DATA_LENGTH		2048		//Number of record data entries for the record sequencer data
-#define MAX_FRAME_WORDS			0x19000
-#define CAL_REGION_START		0x0
-#define CAL_REGION_FRAMES		3
-#define LIVE_REGION_START		(CAL_REGION_START + MAX_FRAME_WORDS * CAL_REGION_FRAMES)
-#define LIVE_REGION_FRAMES		3
-#define REC_REGION_START		(LIVE_REGION_START + MAX_FRAME_WORDS * LIVE_REGION_FRAMES)
-#define FRAME_ALIGN_WORDS		64			//Align to 256 byte boundaries (8 32-byte words)
 #define RECORD_LENGTH_MIN       1           //Minimum number of frames in the record region
 #define SEGMENT_COUNT_MAX       (32*1024)   //Maximum number of record segments in segmented mode
-#define FPN_ADDRESS				CAL_REGION_START
 
 #define MAX_FRAME_SIZE_H		1920
 #define MAX_FRAME_SIZE_V		1080
@@ -48,22 +39,12 @@
 #define BITS_PER_PIXEL			12
 #define BYTES_PER_WORD			32
 
-#define MAX_LIVE_FRAMERATE      60
-#define MAX_RECORD_FRAMERATE    230
-
 #define FPN_AVERAGE_FRAMES		16	//Number of frames to average to get FPN correction data
 
 #define SENSOR_DATA_WIDTH		12
 #define COLOR_MATRIX_INT_BITS	3
 
-#define IMAGE_GAIN_FUDGE_FACTOR 1.0		//Multiplier to make sure clipped ADC value actually clips image
-#define COL_OFFSET_FOOTROOM		32		// Train ADC to not-quite zero to give footroom for noise.
-#define COL_GAIN_FRAC_BITS		12		// 2-point column gain fractional bits.
-#define COL_CURVE_FRAC_BITS		21		// 3-point column curvature factional bits.
-
 #define FREE_SPACE_MARGIN_MULTIPLIER 1.1    //Drive must have at least this factor more free space than the estimated file size to allow saving
-
-#define CAMERA_MAX_EXPOSURE_TARGET 3584
 
 #define TRIGGERDELAY_TIME_RATIO 0
 #define TRIGGERDELAY_SECONDS 1
@@ -77,24 +58,6 @@
 #define FLAG_SHIPPING_MODE     (1 << 5)
 #define FLAG_SHUTDOWN_REQUEST  (1 << 6)
 
-/*
-typedef enum CameraErrortype
-{
-	CAMERA_ERROR_NONE = 0,
-	CAMERA_THREAD_ERROR,
-	CAMERA_ALREADY_RECORDING,
-	CAMERA_NOT_RECORDING,
-	CAMERA_NO_RECORDING_PRESENT,
-	CAMERA_IN_PLAYBACK_MODE,
-	CAMERA_ERROR_SENSOR,
-	CAMERA_INVALID_IMAGER_SETTINGS,
-	CAMERA_FILE_NOT_FOUND,
-	CAMERA_FILE_ERROR,
-	CAMERA_ERROR_IO,
-	CAMERA_INVALID_SETTINGS
-} CameraErrortype;
-*/
-
 typedef enum CameraRecordModes
 {
     RECORD_MODE_NORMAL = 0,
@@ -102,30 +65,6 @@ typedef enum CameraRecordModes
     RECORD_MODE_GATED_BURST,
     RECORD_MODE_FPN
 } CameraRecordModeType;
-
-typedef union SeqPrmMemWord_t
-{
-	struct settings_t
-	{
-	unsigned termRecTrig	: 1;
-	unsigned termRecMem		: 1;
-	unsigned termRecBlkEnd	: 1;
-	unsigned termBlkFull	: 1;
-	unsigned termBlkLow		: 1;
-	unsigned termBlkHigh	: 1;
-	unsigned termBlkFalling	: 1;
-	unsigned termBlkRising	: 1;
-	unsigned next			: 4;
-	unsigned blkSize		: 32;
-	unsigned pad			: 20;
-	} __attribute__ ((__packed__)) settings;
-
-	struct data_t
-	{
-		UInt32 low;
-		UInt32 high;
-	} data;
-} SeqPgmMemWord;
 
 typedef struct {
 	FrameGeometry geometry;		//Frame geometry.
@@ -153,18 +92,6 @@ typedef struct {
 } RecordSettings_t;
 
 typedef struct {
-	UInt32 discardCount;
-	UInt32 inputXRes;
-	UInt32 inputYRes;
-	UInt32 outputXRes;
-	UInt32 outputYRes;
-	UInt32 xScale;
-	UInt32 yScale;
-	UInt32 leftOffset;
-	UInt32 topFracOffset;
-} ScalerSettings_t;
-
-typedef struct {
 	const char *name;
 	double matrix[9];
 } ColorMatrix_t;
@@ -177,13 +104,11 @@ class Camera : public QObject {
 public:
 	Camera();
 	~Camera();
-	CameraErrortype init(Video * vinstInst, Control * cinstInst, UserInterface * userInterface, bool color);
+	CameraErrortype init(Video * vinstInst, Control * cinstInst);
 	Int32 startRecording(void);
 	Int32 stopRecording(void);
-	bool getIsRecording(void);
 	Video * vinst;
 	Control * cinst;
-	UserInterface * ui;
 
 	RecordSettings_t recordingData;
 	ImagerSettings_t getImagerSettings() { return imagerSettings; }
@@ -209,7 +134,6 @@ public:
 	UInt32 setIntegrationTime(double intTime, FrameGeometry *geometry, Int32 flags);
 	bool isValidResolution(FrameGeometry *geometry);
 	UInt32 setPlayMode(bool playMode);
-	Int32 takeWhiteReferences(void);
 	bool focusPeakEnabled;
 
 	void setCCMatrix(const double *matrix);
@@ -239,7 +163,6 @@ public:
 
 	UInt32 getMaxRecordRegionSizeFrames(FrameGeometry *geometry);
 
-	bool getRecording(void);
 	UInt8 getFocusPeakColorLL(void);
 	void setFocusPeakColorLL(UInt8 color);
 	void setFocusPeakThresholdLL(UInt32 thresh);
@@ -253,16 +176,13 @@ public:
 	bool UpsideDownDisplay;
 
 private:
-	friend void* recDataThread(void *arg);
-
-	volatile bool recording;
+	bool recording;
 	bool playbackMode;
 
 	ImagerSettings_t imagerSettings;
 	SensorInfo_t	 sensorInfo;
 	bool isColor;
 
-	double imgGain;
 	int focusPeakColorIndex;
 	bool zebraEnabled;
 	bool fanDisabled;
@@ -337,12 +257,8 @@ public:
 	bool getShippingMode(void);
 	void setShippingMode(int newSetting);
 
-
 private:
-	bool lastRecording;
 	QString lastState = "idle";
-	bool terminateRecDataThread;
-	pthread_t recDataThreadID;
 	QTimer * loopTimer;
 	bool loopTimerEnabled = false;
 
@@ -354,7 +270,6 @@ protected slots:
 	void api_resolution_valueChanged(const QVariant &value);
 
 	void onLoopTimer();
-
 };
 
 #endif // CAMERA_H

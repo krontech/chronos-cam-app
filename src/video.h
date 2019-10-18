@@ -12,14 +12,6 @@
 
 /******************************************************************************/
 
-struct VideoRecordArgs {
-	const char *filename;
-	unsigned long startFrame;
-	unsigned long numFrames;
-	unsigned long bitrate;	/* Target bitrate for compressed formats. */
-	unsigned int bpp;		/* Bits-per-pixel for raw formats. */
-};
-
 typedef enum {
 	SAVE_MODE_H264 = 0,
 	SAVE_MODE_RAW16,

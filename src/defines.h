@@ -17,26 +17,6 @@
 #ifndef DEFINES_H
 #define DEFINES_H
 
-#define FPN_FILENAME		"fpn"
-
-#define IMAGE_SENSOR_SPI	"/dev/spidev3.0"
-#define	IMAGE_SENSOR_SPI_SPEED	500000
-#define	IMAGE_SENSOR_SPI_BITS	16
-
-//FPGA config
-#define FPGA_PROGRAMN_PATH		"/sys/class/gpio/gpio47/value"
-#define FPGA_INITN_PATH			"/sys/class/gpio/gpio45/value"
-#define FPGA_DONE_PATH			"/sys/class/gpio/gpio52/value"
-#define FPGA_SN_PATH			"/sys/class/gpio/gpio58/value"
-#define FPGA_HOLDN_PATH			"/sys/class/gpio/gpio53/value"
-
-
-//IO
-#define IO1DAC_TIMER_BASE			0x48048000		//Timer6
-#define IO2DAC_TIMER_BASE			0x4804A000		//Timer7
-#define	IO_DAC_FS					6.6				//DAC threshold at full scale
-#define IO2IN_PATH					"/sys/class/gpio/gpio127/value"
-
 #define RAM_SPD_I2C_BUS_FILE		"/dev/i2c-1"
 #define RAM_SPD_I2C_ADDRESS_STICK_0 0x50
 #define RAM_SPD_I2C_ADDRESS_STICK_1 0x51
@@ -47,9 +27,6 @@
 
 #define CAMERA_APP_VERSION		"0.4.0-alpha"
 #define ACCEPTABLE_FPGA_VERSION	3
-
-#define FLAG_TEMPORARY  1
-#define FLAG_USESAVED   2
 
 // Network Storage Paths
 #define NFS_STORAGE_MOUNT	"/media/nfs"

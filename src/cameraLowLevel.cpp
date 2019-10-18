@@ -22,18 +22,10 @@
 
 #include "camera.h"
 #include "util.h"
-#include "cameraRegisters.h"
 extern "C" {
 }
 #include "defines.h"
 
-
-bool Camera::getRecording(void)
-{
-	QString state;
-	cinst->getString("state", &state);
-	return (state == "recording");
-}
 
 UInt8 Camera::getFocusPeakColorLL(void)
 {

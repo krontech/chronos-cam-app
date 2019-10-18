@@ -36,10 +36,8 @@ Int32 UserInterface::init(void)
 	encBgpioFD = open("/sys/class/gpio/gpio26/value", O_RDONLY|O_NONBLOCK);
 	encSwgpioFD = open("/sys/class/gpio/gpio27/value", O_RDONLY);
 	shSwgpioFD = open("/sys/class/gpio/gpio66/value", O_RDONLY);
-	recLedFrontFD = open("/sys/class/gpio/gpio41/value", O_WRONLY);
-	recLedBackFD = open("/sys/class/gpio/gpio25/value", O_WRONLY);
 
-	if (-1 == encAgpioFD || -1 == encBgpioFD || -1 == encSwgpioFD || -1 == shSwgpioFD || -1 == recLedFrontFD || -1 == recLedBackFD)
+	if (-1 == encAgpioFD || -1 == encBgpioFD || -1 == encSwgpioFD || -1 == shSwgpioFD)
 		return UI_FILE_ERROR;
 
 	printf("Starting encoder threads\n");
@@ -88,18 +86,6 @@ bool UserInterface::getShutterButton()
 	read(shSwgpioFD, buf, sizeof(buf));
 
 	return ('1' == buf[0]) ? false : true;
-}
-
-void UserInterface::setRecLEDBack(bool on)
-{
-	lseek(recLedBackFD, 0, SEEK_SET);
-	write(recLedBackFD, on ? "1" : "0", 1);
-}
-
-void UserInterface::setRecLEDFront(bool on)
-{
-	lseek(recLedFrontFD, 0, SEEK_SET);
-	write(recLedFrontFD, on ? "1" : "0", 1);
 }
 
 bool UserInterface::getEncoderSwitch()
