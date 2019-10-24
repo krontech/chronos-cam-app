@@ -97,6 +97,7 @@ private:
 	int windowsAlwaysOpen;
 
 	bool autoSaveActive;
+	int autoSavePending;
 };
 
 #endif // CAMMAINWINDOW_H

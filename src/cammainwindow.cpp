@@ -129,9 +129,6 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 		camera->setRecSequencerModeNormal();
 		camera->startRecording();
 	}
-	if (camera->get_autoSave()) autoSaveActive = true;
-	else                        autoSaveActive = false;
-
 
 	if(camera->UpsideDownDisplay && camera->RotationArgumentIsSet()){
 		camera->upsideDownTransform(2);//2 for upside down, 0 for normal
@@ -140,6 +137,8 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	//record the number of widgets that are open before any other windows can be opened
 	QWidgetList qwl = QApplication::topLevelWidgets();
 	windowsAlwaysOpen = qwl.count();
+	autoSaveActive = camera->get_autoSave();
+	autoSavePending = 0;
 }
 
 CamMainWindow::~CamMainWindow()
@@ -318,6 +317,7 @@ void CamMainWindow::updateRecordingState(bool recording)
 	if(recording)
 	{
 		ui->cmdRec->setText("Stop");
+		autoSavePending = 0;
 
 	}
 	else	//Not recording
@@ -325,13 +325,8 @@ void CamMainWindow::updateRecordingState(bool recording)
 		ui->cmdRec->setText("Record");
 		ui->cmdPlay->setEnabled(true);
 
-		if(camera->get_autoSave() && autoSaveActive)
-		{
-			playbackWindow *w = new playbackWindow(NULL, camera, true);
-			if(camera->get_autoRecord()) connect(w, SIGNAL(finishedSaving()),this, SLOT(playFinishedSaving()));
-			//w->camera = camera;
-			w->setAttribute(Qt::WA_DeleteOnClose);
-			w->show();
+		if(camera->get_autoSave() && autoSaveActive) {
+			autoSavePending = 1;
 		}
 
 		if (prompt) {
@@ -378,10 +373,21 @@ void CamMainWindow::on_MainWindowTimer()
 
 	bool recording = camera->getIsRecording();
 
-	if(recording != lastRecording)
-	{
+	if (recording != lastRecording) {
 		updateRecordingState(recording);
 		lastRecording = recording;
+	}
+	// Otherwise, start auto save after a small delay to allow segment data to arrive.
+	else if (autoSavePending > 1) {
+		autoSavePending--;
+	}
+	else if (autoSavePending != 0) {
+		autoSavePending = 0;
+		playbackWindow *w = new playbackWindow(NULL, camera, true);
+		if(camera->get_autoRecord()) connect(w, SIGNAL(finishedSaving()),this, SLOT(playFinishedSaving()));
+		//w->camera = camera;
+		w->setAttribute(Qt::WA_DeleteOnClose);
+		w->show();
 	}
 
 	lastShutterButton = shutterButton;
