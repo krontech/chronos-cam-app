@@ -740,6 +740,12 @@ void Control::listen(QString name, QObject *receiver, const char *method)
 
 void Control::notifyParam(QString name, const QVariant &value)
 {
+	/* block exposurePeriod if there is a pending one */
+	if (name == "exposurePeriod")
+	{
+		if (exposurePending) exposurePending = false;
+		//return; //don't send
+	}
 	QHash<QString, ControlNotify *>::iterator iter = params.find(name);
 
 	/* For each listener, emit a valueChanged signal. */

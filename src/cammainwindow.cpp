@@ -153,7 +153,9 @@ void CamMainWindow::on_exposurePeriod_valueChanged(const QVariant &value)
 	 *
 	 * Maybe do ui->expSlider->setValue(value.toInt()); instead?
 	 */
-	updateExpSliderLimits();
+	cinst->exposurePending = false;
+	camera->cinst->getImagerSettings(&is);
+	//updateExpSliderLimits();
 }
 
 QMessageBox::StandardButton
@@ -417,6 +419,9 @@ void CamMainWindow::on_MainWindowTimer()
 	updateCurrentSettingsLabel();
 	updateCurrentSettingsLabel();
 
+	// handle exposure slider asynchronously
+	exposureHandler();
+
 	if (appSettings.value("debug/hideDebug", true).toBool()) {
 		ui->cmdDebugWnd->setVisible(false);
 		ui->cmdClose->setVisible(false);
@@ -448,11 +453,33 @@ void CamMainWindow::on_chkFocusAid_clicked(bool focusAidEnabled)
 	camera->setFocusPeakEnable(focusAidEnabled);
 }
 
+static int c;
+
 void CamMainWindow::on_expSlider_valueChanged(int exposure)
 {
-	UInt32 expClock = camera->getSensorInfo().timingClock;
-	camera->setIntegrationTime((double)exposure / expClock, NULL, 0);
-	updateCurrentSettingsLabel();
+	//UInt32 expClock = camera->getSensorInfo().timingClock;
+	//camera->setIntegrationTime((double)exposure / expClock, NULL, 0);
+	newExposure = exposure;
+	sliderExposure = exposure;
+	c++;
+	qDebug() << "slider" << c;
+	//updateCurrentSettingsLabel();
+}
+
+void CamMainWindow::exposureHandler(void)
+{
+	//return;
+	if ((newExposure != -1) && !cinst->exposurePending)
+	{
+		//newExposure = -1;
+		//return;
+
+		UInt32 expClock = camera->getSensorInfo().timingClock;
+		camera->setIntegrationTime((double)newExposure / expClock, NULL, 0);
+		cinst->exposurePending = true;
+		newExposure = -1;
+		qDebug() << "eH!";
+	}
 }
 
 void CamMainWindow::recSettingsClosed()
@@ -506,12 +533,13 @@ void CamMainWindow::updateBatteryData()
 void CamMainWindow::updateCurrentSettingsLabel()
 {
 	UInt32 clock = camera->getSensorInfo().timingClock;
-	ImagerSettings_t is;
+	//ImagerSettings_t is;
 
 	camera->cinst->getImagerSettings(&is);
 
 	double framePeriod = (double)is.period / clock;
-	double expPeriod = (double)is.exposure / clock;
+	//double expPeriod = (double)is.exposure / clock;
+	double expPeriod = (double)sliderExposure / clock;
 	int shutterAngle = (expPeriod * 360.0) / framePeriod;
 
 	char str[300];
