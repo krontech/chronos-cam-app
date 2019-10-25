@@ -88,7 +88,6 @@ CameraErrortype Camera::init(Video * vinstInst, Control * cinstInst)
 	else {
 		isColor = sensorInfo.cfaPattern != "mono";
 	}
-	int err;
 
 	retVal = cinst->status(&cs);
 	recording = !strcmp(cs.state, "idle");
@@ -192,20 +191,11 @@ UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 	else values.insert("recMode", modes[settings.mode]);
 	values.insert("recSegments", QVariant(settings.segments));
 	values.insert("recMaxFrames", QVariant(settings.recRegionSizeFrames));
+	values.insert("recTrigDelay", QVariant(settings.recTrigDelay));
 
 	CameraErrortype retVal = cinst->setPropertyGroup(values);
 
 	return retVal;
-}
-
-UInt32 Camera::getRecordLengthFrames(ImagerSettings_t settings)
-{
-	if ((settings.mode == RECORD_MODE_NORMAL) || (settings.mode == RECORD_MODE_GATED_BURST)) {
-		return settings.recRegionSizeFrames;
-	}
-	else {
-		return (settings.recRegionSizeFrames / settings.segments);
-	}
 }
 
 UInt32 Camera::getMaxRecordRegionSizeFrames(FrameGeometry *geometry)
@@ -217,39 +207,6 @@ UInt32 Camera::getMaxRecordRegionSizeFrames(FrameGeometry *geometry)
 		return 0;
 	}
 	return timing.cameraMaxFrames;
-}
-
-void Camera::updateTriggerValues(ImagerSettings_t settings){
-	UInt32 recLengthFrames = getRecordLengthFrames(settings);
-	if(getTriggerDelayConstant() == TRIGGERDELAY_TIME_RATIO){
-		triggerPostFrames  = triggerTimeRatio * recLengthFrames;
-		triggerPostSeconds = triggerPostFrames * ((double)settings.period / 100000000);
-	}
-	if(getTriggerDelayConstant() == TRIGGERDELAY_SECONDS){
-		triggerTimeRatio  = recLengthFrames / ((double)settings.period / 100000000);
-		triggerPostFrames = triggerPostSeconds / ((double)settings.period / 100000000);
-	}
-	if(getTriggerDelayConstant() == TRIGGERDELAY_FRAMES){
-		triggerTimeRatio   = (double)triggerPostFrames / recLengthFrames;
-		triggerPostSeconds = triggerPostFrames * ((double)settings.period / 100000000);
-	}
-}
-
-unsigned short Camera::getTriggerDelayConstant(){
-	 QSettings appSettings;
-	//return appSettings.value("camera/triggerDelayConstant", TRIGGERDELAY_PRERECORDSECONDS).toUInt();
-	return TRIGGERDELAY_TIME_RATIO;//With comboBox removed, always use this choice instead.
-}
-
-void Camera::setTriggerDelayConstant(unsigned short value){
-	 QSettings appSettings;
-	 appSettings.setValue("camera/triggerDelayConstant", value);
-}
-
-void Camera::setTriggerDelayValues(double ratio, double seconds, UInt32 frames){
-	triggerTimeRatio = ratio;
-	 triggerPostSeconds = seconds;
-	 triggerPostFrames = frames;
 }
 
 UInt32 Camera::setIntegrationTime(double intTime, FrameGeometry *fSize, Int32 flags)
@@ -329,12 +286,6 @@ UInt32 Camera::setPlayMode(bool playMode)
 		vinst->liveDisplay(videoFlip);
 	}
 	return SUCCESS;
-}
-
-
-void Camera::setTriggerDelayFrames(UInt32 delayFrames)
-{
-	qDebug("FIXME! setTriggerDelayFrames is not implemented!");
 }
 
 void Camera::setBncDriveLevel(UInt32 level)

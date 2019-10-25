@@ -40,6 +40,7 @@ typedef struct {
 	UInt32 period;              //Frame period in 10ns increments
 	UInt32 gain;
 	UInt32 recRegionSizeFrames; //Number of frames in the entire record region
+	UInt32 recTrigDelay;        //Number of frames to delay the trigger event by.
 	CameraRecordModeType mode;  //Recording mode
 	UInt32 segments;            //Number of segments in segmented mode
 	UInt32 segmentLengthFrames; //Length of segment in segmented mode

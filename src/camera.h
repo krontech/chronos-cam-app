@@ -88,18 +88,6 @@ public:
 	RecordSettings_t recordingData;
 	SensorInfo_t     getSensorInfo() { return sensorInfo; }
 
-	UInt32 getRecordLengthFrames(ImagerSettings_t settings);
-
-	unsigned short getTriggerDelayConstant();
-	void setTriggerDelayConstant(unsigned short value);
-	void setTriggerDelayValues(double ratio, double seconds, UInt32 frames);
-	void updateTriggerValues(ImagerSettings_t settings);
-	unsigned short triggerDelayConstant;
-	double triggerTimeRatio;
-	double triggerPostSeconds;
-	UInt32 triggerPostFrames;
-	double maxPostFramesRatio;
-
 	bool liveLoopActive;
 	UInt32 liveLoopTime = 2000;	//in milliseconds
 
@@ -117,7 +105,6 @@ public:
 	int blackCalAllStdRes(bool factory = false, QProgressDialog *dialog = NULL);
 
 	void setBncDriveLevel(UInt32 level);
-	void setTriggerDelayFrames(UInt32 delayFrames);
 
 	bool getFocusPeakEnable(void);
 	void setFocusPeakEnable(bool en);
