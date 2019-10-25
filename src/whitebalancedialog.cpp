@@ -213,6 +213,9 @@ void whiteBalanceDialog::applyWhiteBalance(void)
 
 	if(appSettings.value("whiteBalance/customR", 0.0).toDouble() == 0.0)
 		ui->comboWB->addItem("Custom"); //Only add "Custom" if the values have not already been set
+	appSettings.setValue("whiteBalance/currentR", RED);
+	appSettings.setValue("whiteBalance/currentG", GREEN);
+	appSettings.setValue("whiteBalance/currentB", BLUE);
 	appSettings.setValue("whiteBalance/customR", RED);
 	appSettings.setValue("whiteBalance/customG", GREEN);
 	appSettings.setValue("whiteBalance/customB", BLUE);
