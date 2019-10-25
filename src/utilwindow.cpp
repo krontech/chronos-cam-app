@@ -181,6 +181,8 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	ui->lineNfsAddress->setText(appSettings.value("network/nfsAddress", "").toString());
 	ui->lineNfsMount->setText(appSettings.value("network/nfsMount", "").toString());
 
+	checkStaticIp();
+
 	if(camera->RotationArgumentIsSet())
 		ui->chkUpsideDownDisplay->setChecked(camera->getUpsideDownDisplay());
 	else //If the argument was not added, set the control to invisible because it would be useless anyway
@@ -1653,3 +1655,148 @@ bool UtilWindow::isReachable(QString address)
 	runCommand("ping -c1 " + address, &status);
 	return (status == 0);
 }
+
+bool UtilWindow::checkStaticIp(void)
+{
+	QFile file("/etc/network/interfaces");
+	if (file.open(QIODevice::ReadOnly))
+	{
+		QTextStream in(&file);
+		QString lines = in.readAll();
+
+		qDebug() << lines;
+
+		QString eth0 = lines.split("eth0").value(2);
+
+		if (eth0.length())
+		{
+			//there is a static IP
+			QString staticIp = eth0.split("address ").value(1).split("\n").value(0);
+			qDebug() << staticIp;
+			ui->lineStaticIpAddress->setText(staticIp);
+			ipIsStatic = true;
+		}
+		else
+		{
+			ipIsStatic = false;
+		}
+		file.close();
+	}
+	return ipIsStatic;
+}
+
+void UtilWindow::on_cmdStaticIp_clicked(void)
+{
+
+	QString ipAddress = ui->lineStaticIpAddress->text();
+	bool dhcp = false;
+
+	//check if blank, to use DHCP
+	if (ipAddress.length() == 0)
+	{
+		if (!ipIsStatic)
+		{
+			restartNetwork("");
+			return;		//already using DHCP
+		}
+		dhcp = true;
+		ui->lblNetStatus->setText("Already using DHCP.");
+	}
+	else
+	{
+		//check if IP address looks valid
+		QStringList splitIp = ipAddress.split(".");
+		bool validIp = (splitIp.length() == 4);
+		if (validIp)
+		{
+			for (int i=0; i<4; i++)
+			{
+				bool ok;
+				int num = splitIp.value(i).toInt(&ok);
+				if (ok)
+				{
+					if ((num < 0) || (num > 255))
+					{
+						validIp = false;
+						break;
+					}
+				}
+				else
+				{
+					validIp = false;
+					break;
+				}
+			}
+		}
+		if (!validIp)
+		{
+			QMessageBox msg;
+			msg.setText("Invalid IP address!");
+			msg.setInformativeText(ipAddress);
+			msg.setWindowFlags(Qt::WindowStaysOnTopHint);
+			msg.exec();
+			return;
+		}
+	}
+
+	QFile file("/etc/network/interfaces");
+
+	if (file.open(QIODevice::WriteOnly))
+	{
+		QTextStream out(&file);
+		QString outLines = "## Loopback interface\n\tauto lo\n\tiface lo inet loopback\n\n";
+		outLines.append("## Ethernet/RNDIS gadget\nauto usb0\n\tiface usb0 inet static\n");
+		outLines.append("\taddress 192.168.12.1\n\tnetmask 255.255.255.0\n\tdns-nameservers 8.8.8.8\n");
+
+		if (dhcp)
+		{
+			ipIsStatic = false;
+		}
+		else
+		{
+			outLines.append("\n## Ethernet port\nauto eth0\niface eth0 inet static\n\taddress ");
+			outLines.append(ipAddress);
+			outLines.append("\n\tnetmask 255.255.255.0\n\tgateway 192.168.1.1\n\tdns-nameservers 8.8.8.8\n");
+			ipIsStatic = true;
+		}
+		out << outLines;
+		file.close();
+		if (dhcp)
+		{
+			ui->lblNetStatus->setText("Using dynamic IP address");
+		}
+		else
+		{
+			ui->lblNetStatus->setText("Static IP address set to " + ipAddress);
+		}
+		restartNetwork(ipAddress);
+	}
+}
+
+void UtilWindow::restartNetwork(QString newIpAddress)
+{
+	int count = 0;
+	do
+	{
+		count++;
+		QString output, output1, output2, output3;
+		output = runCommand("ifconfig");
+		QString ipAddress = output.split("inet addr:").value(1).split(" ").value(0);
+		if (ipAddress == newIpAddress)
+		{
+			//successful restart
+			return;
+		}
+		output1 = runCommand("ip address delete " + ipAddress + "/32 dev eth0 2>&1");
+		output2= runCommand("ifdown eth0  2>&1");
+		output3= runCommand("ifup eth0 2>&1");
+		if(!output2.length() && !output3.length())
+		{
+			//successful IP change
+			return;
+		}
+
+
+	} while (count < 4);
+}
+

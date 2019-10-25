@@ -123,6 +123,10 @@ private slots:
 	void waitForIdle(void);
 	Int32 blackCalAllStdRes(void);
 
+	void on_cmdStaticIp_clicked(void);
+	bool checkStaticIp(void);
+	void restartNetwork(QString newIpAddress);
+
 	/* Slots for Samba Storage Widgets */
 	void on_cmdSmbListShares_clicked();
 	void on_cmdSmbTest_clicked();
@@ -137,6 +141,8 @@ private slots:
 	bool isReachable(QString address);
 	QString buildNfsString();
 
+
+
 private:
 	Ui::UtilWindow *ui;
 	Camera * camera;
@@ -144,6 +150,7 @@ private:
 	bool settingClock;
 	bool openingWindow;
 	bool lineSmbPassword_wasEdited;
+	bool ipIsStatic = false;
 
 	void formatStorageDevice(const char *blkdev);
 	void statErrorMessage();
