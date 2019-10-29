@@ -317,7 +317,8 @@ CameraErrortype Control::getImagerSettings(ImagerSettings_t *is)
 		"recMaxFrames",
 		"recPreBurst",
 		"recSegments",
-		"recMode"
+		"recMode",
+		"recTrigDelay"
 	};
 	QVariantMap response = getPropertyGroup(names);
 	QVariantMap res;
@@ -337,6 +338,7 @@ CameraErrortype Control::getImagerSettings(ImagerSettings_t *is)
 	is->period = response.value("framePeriod", 1000000).toUInt();
 	is->exposure = response.value("exposurePeriod", 0).toUInt();
 	is->recRegionSizeFrames = response.value("recMaxFrames", 0).toUInt();
+	is->recTrigDelay = response.value("recTrigDelay", 0).toUInt();
 	is->prerecordFrames = response.value("recPreBurst", 0).toUInt();
 	is->segments = response.value("recSegments", 1).toUInt();
 

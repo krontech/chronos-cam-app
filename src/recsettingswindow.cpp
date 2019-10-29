@@ -217,6 +217,8 @@ void RecSettingsWindow::on_cmdOK_clicked()
 	bool videoFlip = false;
 	int gainIndex = ui->comboGain->currentIndex();
 
+	is->period = ui->linePeriod->siText() * sensor.timingClock;
+	is->exposure = ui->lineExp->siText() * sensor.timingClock;
 	is->gain = sensor.minGain;
 	is->geometry = getResolution();
 	if (gainIndex >= 0) {
@@ -236,7 +238,6 @@ void RecSettingsWindow::on_cmdOK_clicked()
 			   is->geometry.hOffset, is->geometry.vOffset);
 	}
 
-	camera->updateTriggerValues(*is);
 	camera->setImagerSettings(*is);
 	camera->vinst->liveDisplay(videoFlip);
 
@@ -521,25 +522,28 @@ void RecSettingsWindow::on_cmdRecMode_clicked()
 	is->exposure = ui->lineExp->siText() * sensor.timingClock;
 
 	recModeWindow *w = new recModeWindow(NULL, camera, is);
-	//w->camera = camera;
 	w->setAttribute(Qt::WA_DeleteOnClose);
 	w->show();
 }
 
 void RecSettingsWindow::on_cmdDelaySettings_clicked()
 {
-    if(is->mode == RECORD_MODE_GATED_BURST)
-    {
-        QMessageBox msg;
-        msg.setText("Record mode is set to Gated Burst. This mode has no adjustable trigger settings.");
-        msg.exec();
-        return;
+	is->geometry = getResolution();
+	is->gain = ui->comboGain->currentIndex();
+	is->period = ui->linePeriod->siText() * sensor.timingClock;
+	is->exposure = ui->lineExp->siText() * sensor.timingClock;
+
+	if(is->mode == RECORD_MODE_GATED_BURST)
+	{
+		QMessageBox msg;
+		msg.setText("Record mode is set to Gated Burst. This mode has no adjustable trigger settings.");
+		msg.exec();
+		return;
     }
     else
-    {
-		triggerDelayWindow *w = new triggerDelayWindow(NULL, camera, is, ui->linePeriod->siText());
-        //w->camera = camera;
-        w->setAttribute(Qt::WA_DeleteOnClose);
-        w->show();
-    }
+	{
+		triggerDelayWindow *w = new triggerDelayWindow(NULL, camera, is);
+		w->setAttribute(Qt::WA_DeleteOnClose);
+		w->show();
+	}
 }

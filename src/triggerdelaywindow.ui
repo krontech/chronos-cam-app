@@ -643,67 +643,6 @@ Pre-rec Time</string>
 Defaults</string>
    </property>
   </widget>
-  <widget class="QComboBox" name="comboKeepConstant">
-   <property name="geometry">
-    <rect>
-     <x>506</x>
-     <y>410</y>
-     <width>85</width>
-     <height>51</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>15</pointsize>
-     <weight>75</weight>
-     <italic>true</italic>
-     <bold>true</bold>
-    </font>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QComboBox QAbstractItemView::item {
-  padding: 10px;
-  margin: 5px;
-}</string>
-   </property>
-   <item>
-    <property name="text">
-     <string>Pre-record and pre-trigger seconds</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>Post-trigger seconds</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>Post-trigger frames</string>
-    </property>
-   </item>
-  </widget>
-  <widget class="QLabel" name="lblRes_21">
-   <property name="geometry">
-    <rect>
-     <x>505</x>
-     <y>355</y>
-     <width>45</width>
-     <height>51</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>16</pointsize>
-    </font>
-   </property>
-   <property name="text">
-    <string>Keep this constant when changing
-resolution or framerate:</string>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-   </property>
-  </widget>
  </widget>
  <customwidgets>
   <customwidget>
@@ -725,7 +664,6 @@ resolution or framerate:</string>
  <tabstops>
   <tabstop>cmdCancel</tabstop>
   <tabstop>cmdOK</tabstop>
-  <tabstop>comboKeepConstant</tabstop>
   <tabstop>cmdResetToDefaults</tabstop>
   <tabstop>cmdMorePreRecTime</tabstop>
   <tabstop>spinPostFrames</tabstop>
