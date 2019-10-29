@@ -217,6 +217,8 @@ void RecSettingsWindow::on_cmdOK_clicked()
 	bool videoFlip = false;
 	int gainIndex = ui->comboGain->currentIndex();
 
+	is->period = ui->linePeriod->siText() * sensor.timingClock;
+	is->exposure = ui->lineExp->siText() * sensor.timingClock;
 	is->gain = sensor.minGain;
 	is->geometry = getResolution();
 	if (gainIndex >= 0) {
