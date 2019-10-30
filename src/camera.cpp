@@ -606,8 +606,11 @@ void Camera::setFocusPeakColor(int value){
 
 bool Camera::getZebraEnable(void)
 {
-	QSettings appSettings;
-	return appSettings.value("camera/zebra", true).toBool();
+	//QSettings appSettings;
+	//return appSettings.value("camera/zebra", true).toBool();
+	double zebra;
+	cinst->getFloat("zebraLevel", &zebra);
+	return zebra > 0.0;
 }
 
 void Camera::setZebraEnable(bool en)
@@ -615,7 +618,8 @@ void Camera::setZebraEnable(bool en)
 	QSettings appSettings;
 	zebraEnabled = en;
 	appSettings.setValue("camera/zebra", en);
-	vinst->setZebra(zebraEnabled);
+	//vinst->setZebra(zebraEnabled);
+	cinst->setFloat("zebraLevel", en ? 0.05 : 0.0);
 }
 
 bool Camera::getFanDisable(void)
