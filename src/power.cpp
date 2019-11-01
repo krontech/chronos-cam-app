@@ -110,8 +110,6 @@ void Power::on_socket_readyRead()
 	if (len >= sizeof(buf)) len = sizeof(buf)-1;
 	buf[len] = '\0';
 
-	qDebug() << "PMIC Socket:" << buf;
-
 	/* Handle the data that was read. */
 	if(powercmp(buf, "pwrmode0") == 0){
 		appSettings.setValue("camera/autoPowerMode", AUTO_POWER_DISABLED);
