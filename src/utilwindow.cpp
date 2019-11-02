@@ -1043,11 +1043,15 @@ void UtilWindow::on_cmdDefaults_clicked()
 	if(QMessageBox::Yes != reply2)
 		return;
 
-    if (fork() == 0) {
+	pid_t pid = fork();
+	if (pid == 0) {
+		const char *script = "/etc/init.d/camera";
 		setsid();
-		kill(getppid(), SIGTERM);
-		system("/etc/init.d/camera start");
-		exit(0);
+		execl(script, script, "start", NULL);
+	}
+	else if (pid > 0) {
+		/* Terminate the application. */
+		QApplication::quit();
 	}
 }
 
@@ -1195,11 +1199,15 @@ void UtilWindow::on_cmdRestoreSettings_clicked()
 	if(QMessageBox::Yes != reply)
 		return;
 
-	if (fork() == 0) {
+	pid_t pid = fork();
+	if (pid == 0) {
+		const char *script = "/etc/init.d/camera";
 		setsid();
-		kill(getppid(), SIGTERM);
-		system("/etc/init.d/camera start");
-		exit(0);
+		execl(script, script, "start", NULL);
+	}
+	else if (pid > 0) {
+		/* Terminate the application. */
+		QApplication::quit();
 	}
 }
 
