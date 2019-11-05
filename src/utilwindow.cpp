@@ -1395,9 +1395,14 @@ void UtilWindow::on_cmdSmbApply_clicked()
 
 void UtilWindow::on_cmdSmbTest_clicked()
 {
+	QMessageBox prompt(QMessageBox::Information,
+						"SMB Connection Status", "Attempting to connect...",
+						QMessageBox::Ok, this, Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint);
+	prompt.show();
+
 	if (path_is_mounted(SMB_STORAGE_MOUNT))
 	{
-		QString mountPoint = "/media/smb";
+		QString mountPoint = SMB_STORAGE_MOUNT;
 		QString mountFile = mountPoint + "/testfile";
 
 		QFile file(mountFile);
@@ -1412,24 +1417,28 @@ void UtilWindow::on_cmdSmbTest_clicked()
 			if (sambaOK)
 			{
 				QString text = "SMB share " + ui->lineSmbUser->text() + " on " + ui->lineSmbAddress->text() + " is connected.";
-				ui->lblNetStatus->setText(text);
+				prompt.setText(text);
+				prompt.exec();
 			}
 			else
 			{
 				QString text = "SMB share " + ui->lineSmbUser->text() + " on " + ui->lineSmbAddress->text() + " write failed.";
-				ui->lblNetStatus->setText(text);
+				prompt.setText(text);
+				prompt.exec();
 			}
 		}
 		else
 		{
 			QString text = "SMB share " + ui->lineSmbUser->text() + " open failed!";
-			ui->lblNetStatus->setText(text);
+			prompt.setText(text);
+			prompt.exec();
 		}
 	}
 	else
 	{
 		QString text = "SMB share " + ui->lineSmbUser->text() + " on " + ui->lineSmbAddress->text() + " is not connected!";
-		ui->lblNetStatus->setText(text);
+		prompt.setText(text);
+		prompt.exec();
 	}
 }
 
@@ -1468,13 +1477,18 @@ void UtilWindow::on_cmdNfsApply_clicked()
 	}
 	else
 	{
-		prompt.setText("Connection succesful");
+		prompt.setText("Connection successful");
 	}
 	prompt.exec();
 }
 
 void UtilWindow::on_cmdNfsTest_clicked()
 {
+	QMessageBox prompt(QMessageBox::Information,
+						"NFS Connection Status", "Attempting to connect...",
+						QMessageBox::Ok, this, Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint);
+	prompt.show();
+
 	if (path_is_mounted(NFS_STORAGE_MOUNT)) {
 		QString mountFile = QString(NFS_STORAGE_MOUNT) + "/testfile";
 		QFile file(mountFile);
@@ -1488,24 +1502,28 @@ void UtilWindow::on_cmdNfsTest_clicked()
 			if (nfsOK)
 			{
 				QString text = "NFS share " + ui->lineNfsMount->text() + " on " + ui->lineNfsAddress->text() + " is connected.";
-				ui->lblNetStatus->setText(text);
+				prompt.setText(text);
+				prompt.exec();
 			}
 			else
 			{
 				QString text = "NFS share " + ui->lineNfsMount->text() + " on " + ui->lineNfsAddress->text() + " write failed.";
-				ui->lblNetStatus->setText(text);
+				prompt.setText(text);
+				prompt.exec();
 			}
 		}
 		else
 		{
 			QString text = "NFS share " + ui->lineNfsMount->text() + " on " + ui->lineNfsAddress->text() +" open failed!";
-			ui->lblNetStatus->setText(text);
+			prompt.setText(text);
+			prompt.exec();
 		}
 	}
 	else
 	{
 		QString text = "NFS share " + ui->lineNfsMount->text() + " on " + ui->lineNfsAddress->text() + " is not connected!";
-		ui->lblNetStatus->setText(text);
+		prompt.setText(text);
+		prompt.exec();
 	}
 }
 
