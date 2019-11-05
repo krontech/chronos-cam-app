@@ -29,7 +29,7 @@
     <enum>QTabWidget::East</enum>
    </property>
    <property name="currentIndex">
-    <number>0</number>
+    <number>2</number>
    </property>
    <widget class="QWidget" name="tabMain">
     <attribute name="title">
@@ -1351,7 +1351,7 @@ Shares</string>
        <string>Test</string>
       </property>
      </widget>
-     <widget class="QPushButton" name="cmdNfsConnectPermanently">
+     <widget class="QPushButton" name="cmdNfsApply">
       <property name="geometry">
        <rect>
         <x>380</x>
@@ -2022,7 +2022,7 @@ Calibration Data
   <tabstop>dateTimeEdit</tabstop>
   <tabstop>cmdClose_5</tabstop>
   <tabstop>cmdNetUpdate</tabstop>
-  <tabstop>cmdNfsConnectPermanently</tabstop>
+  <tabstop>cmdNfsApply</tabstop>
   <tabstop>cmdNfsTest</tabstop>
   <tabstop>lineNfsMount</tabstop>
   <tabstop>lineNfsAddress</tabstop>

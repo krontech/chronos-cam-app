@@ -505,17 +505,6 @@ void saveSettingsWindow::setControlEnable(bool en){
 void saveSettingsWindow::on_comboDrive_currentIndexChanged(const QString &arg1)
 {
 	if(okToSaveLocation) saveFileDirectory();
-
-	//gray out Safely Remove button if it is a share
-	if (ui->comboDrive->currentText().startsWith("/mnt/"))
-	{
-		ui->cmdUMount->setEnabled(false);
-	}
-	else
-	{
-		ui->cmdUMount->setEnabled(true);
-	}
-
 }
 
 void saveSettingsWindow::on_chkEnableOverlay_toggled(bool checked)

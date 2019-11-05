@@ -122,12 +122,21 @@ CameraErrortype Camera::init(Video * vinstInst, Control * cinstInst)
 	usleep(2000000); //needed temporarily with current pychronos
 	cinst->doReset(); //also needed temporarily
 
-	/* Try to mount the network share */
-	if (appSettings.value("network/smbAddress", "").toString() != "/" &&
+	/* Try to mount the SMB share */
+	if (appSettings.value("network/smbAddress", "").toString() != "" &&
 		appSettings.value("network/smbMount", "").toString() != "" &&
 		appSettings.value("network/smbUser", "").toString() != "")
 	{
 		QString mountString = buildSambaString();
+		mountString.append(" 2>&1");
+		QString returnString = runCommand(mountString.toLatin1());
+	}
+
+	/* Try to mount the NFS share */
+	if (appSettings.value("network/nfsAddress", "").toString() != "" &&
+		appSettings.value("network/smbMount", "").toString() != "")
+	{
+		QString mountString = buildNfsString();
 		mountString.append(" 2>&1");
 		QString returnString = runCommand(mountString.toLatin1());
 	}

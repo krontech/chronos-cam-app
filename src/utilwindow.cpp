@@ -1433,17 +1433,6 @@ void UtilWindow::on_cmdSmbTest_clicked()
 	}
 }
 
-QString UtilWindow::buildNfsString()
-{
-	QSettings appSettings;
-	QString mountString = "mount ";
-	mountString.append(appSettings.value("network/nfsAddress", "").toString());
-	mountString.append(":" + appSettings.value("network/nfsMount", "").toString());
-	mountString.append(" ");
-	mountString.append(NFS_STORAGE_MOUNT);
-	return mountString;
-}
-
 void UtilWindow::on_cmdNfsApply_clicked()
 {
 	QSettings appSettings;
@@ -1451,7 +1440,7 @@ void UtilWindow::on_cmdNfsApply_clicked()
 						"NFS Connection Status", "Attempting to connect...",
 						QMessageBox::Ok, this, Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint);
 
-	/* Store the updated samba settings. */
+	/* Store the updated NFS settings. */
 	appSettings.setValue("network/nfsAddress", ui->lineNfsAddress->text());
 	appSettings.setValue("network/nfsMount", ui->lineNfsMount->text());
 

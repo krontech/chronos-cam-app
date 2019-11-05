@@ -117,5 +117,16 @@ QString buildSambaString()
 	return mountString;
 }
 
+QString buildNfsString()
+{
+	QSettings appSettings;
+	QString mountString = "mount ";
+	mountString.append(appSettings.value("network/nfsAddress", "").toString());
+	mountString.append(":" + appSettings.value("network/nfsMount", "").toString());
+	mountString.append(" ");
+	mountString.append(NFS_STORAGE_MOUNT);
+	return mountString;
+}
+
 
 
