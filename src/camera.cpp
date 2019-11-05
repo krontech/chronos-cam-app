@@ -122,6 +122,16 @@ CameraErrortype Camera::init(Video * vinstInst, Control * cinstInst)
 	usleep(2000000); //needed temporarily with current pychronos
 	cinst->doReset(); //also needed temporarily
 
+	/* Try to mount the network share */
+	if (appSettings.value("network/smbAddress", "").toString() != "/" &&
+		appSettings.value("network/smbMount", "").toString() != "" &&
+		appSettings.value("network/smbUser", "").toString() != "")
+	{
+		QString mountString = buildSambaString();
+		mountString.append(" 2>&1");
+		QString returnString = runCommand(mountString.toLatin1());
+	}
+
 	printf("Video init done\n");
 	int fpColor = getFocusPeakColor();
 	if (fpColor == 0)
@@ -606,8 +616,6 @@ void Camera::setFocusPeakColor(int value){
 
 bool Camera::getZebraEnable(void)
 {
-	//QSettings appSettings;
-	//return appSettings.value("camera/zebra", true).toBool();
 	double zebra;
 	cinst->getFloat("zebraLevel", &zebra);
 	return zebra > 0.0;
@@ -615,10 +623,7 @@ bool Camera::getZebraEnable(void)
 
 void Camera::setZebraEnable(bool en)
 {
-	QSettings appSettings;
 	zebraEnabled = en;
-	appSettings.setValue("camera/zebra", en);
-	//vinst->setZebra(zebraEnabled);
 	cinst->setFloat("zebraLevel", en ? 0.05 : 0.0);
 }
 
@@ -701,8 +706,6 @@ void Camera::setShippingMode(int newSetting){
 	appSettings.setValue("camera/shippingMode", newSetting);
 	cinst->setBool("shippingMode", newSetting);
 }
-
-
 
 void Camera::set_autoSave(bool state) {
 	QSettings appSettings;

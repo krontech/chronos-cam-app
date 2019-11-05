@@ -16,10 +16,12 @@
  ****************************************************************************/
 #include "time.h"
 #include "util.h"
+#include "defines.h"
 #include "QDebug"
 #include <sys/stat.h>
 #include <QCoreApplication>
 #include <QTime>
+#include <QSettings>
 
 void delayms(int ms)
 {
@@ -84,5 +86,36 @@ QString runCommand(QString command, int *status)
 	*status = pclose(fp);
 	return output;
 }
+
+QString removeFirstAndLastSlash(QString string)
+{
+	if (string.right(1) == "/")
+	{
+		string.chop(1);
+	}
+	if (string.left(1) == "/")
+	{
+		string.remove(0, 1);
+	}
+	return string;
+}
+
+QString buildSambaString()
+{
+	QSettings appSettings;
+	QString mountString = "mount -t cifs -o ";
+	QString mountShare = "//" + appSettings.value("network/smbAddress", "").toString() + "/";
+
+	mountShare.append(removeFirstAndLastSlash(appSettings.value("network/smbMount", "").toString()));
+
+	mountString.append("user=" + appSettings.value("network/smbUser", "").toString());
+	mountString.append(",password=" + appSettings.value("network/smbPassword", "").toString());
+	mountString.append(",noserverino ");
+	mountString.append(mountShare + " " + SMB_STORAGE_MOUNT);
+
+	qDebug() << "Preparing samba mount:" << mountString;
+	return mountString;
+}
+
 
 

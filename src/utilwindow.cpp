@@ -64,19 +64,6 @@ static char *readReleaseString(char *buf, size_t len)
 	return buf;
 }
 
-QString removeFirstAndLastSlash(QString string)
-{
-	if (string.right(1) == "/")
-	{
-		string.chop(1);
-	}
-	if (string.left(1) == "/")
-	{
-		string.remove(0, 1);
-	}
-	return string;
-}
-
 UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	QWidget(parent),
 	ui(new Ui::UtilWindow)
@@ -173,7 +160,8 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	ui->lineSmbAddress->setText(appSettings.value("network/smbAddress", "").toString());
 	ui->lineSmbMount->setText(appSettings.value("network/smbMount", "").toString());
 	/* Place a dummy password until set by the user. */
-	ui->lineSmbPassword->setText("********");
+	//ui->lineSmbPassword->setText("********");
+	ui->lineSmbPassword->setText(appSettings.value("network/smbPassword", "").toString());
 	ui->lineSmbPassword->setEchoMode(QLineEdit::PasswordEchoOnEdit);
 	lineSmbPassword_wasEdited = false;
 
@@ -1344,23 +1332,6 @@ Int32 UtilWindow::blackCalAllStdRes(void)
 	}
 }
 
-QString UtilWindow::buildSambaString()
-{
-	QSettings appSettings;
-	QString mountString = "mount -t cifs -o ";
-	QString mountShare = "//" + appSettings.value("network/smbAddress", "").toString() + "/";
-
-	mountShare.append(removeFirstAndLastSlash(appSettings.value("network/smbMount", "").toString()));
-
-	mountString.append("user=" + appSettings.value("network/smbUser", "").toString());
-	mountString.append(",password=" + appSettings.value("network/smbPassword", "").toString());
-	mountString.append(",noserverino ");
-	mountString.append(mountShare + " " + SMB_STORAGE_MOUNT);
-
-	qDebug() << "Preparing samba mount:" << mountString;
-	return mountString;
-}
-
 void UtilWindow::on_lineSmbPassword_editingStarted()
 {
 	ui->lineSmbPassword->setText("");
@@ -1374,6 +1345,7 @@ void UtilWindow::on_lineSmbPassword_editingFinished()
 void UtilWindow::on_cmdSmbListShares_clicked()
 {
 	/* TODO: Implement Me! */
+	//on_cmdNetListConnections_clicked();
 }
 
 void UtilWindow::on_cmdSmbApply_clicked()
@@ -1416,7 +1388,7 @@ void UtilWindow::on_cmdSmbApply_clicked()
 	}
 	else
 	{
-		prompt.setText("Connection succesful");
+		prompt.setText("Connection successful");
 	}
 	prompt.exec();
 }
@@ -1444,7 +1416,7 @@ void UtilWindow::on_cmdSmbTest_clicked()
 			}
 			else
 			{
-				QString text = "SMB share " + ui->lineSmbUser->text() + " on " + ui->lineSmbAddress->text() + " write Failed.";
+				QString text = "SMB share " + ui->lineSmbUser->text() + " on " + ui->lineSmbAddress->text() + " write failed.";
 				ui->lblNetStatus->setText(text);
 			}
 		}
@@ -1582,15 +1554,15 @@ void UtilWindow::on_cmdNetListConnections_clicked()
 		mountedShares.append(addrString + ":" + mountString + " (mounted NFS share)");
 	}
 
-	if (!isReachable(ui->lineNetAddress->text()))
+	if (!isReachable(ui->lineSmbAddress->text()))
 	{
-		ui->lblNetStatus->setText(ui->lineNetAddress->text() + " is not reachable!");
+		ui->lblNetStatus->setText(ui->lineSmbAddress->text() + " is not reachable!");
 		return;
 	}
 
 	//scan for all available NFS shares not already mounted
 	QStringList mountList;
-	QString mounts = runCommand("showmount -e " + ui->lineNetAddress->text());
+	QString mounts = runCommand("showmount -e " + ui->lineSmbAddress->text());
 	if (mounts != "")
 	{
 		splitString = mounts.split("\n");
@@ -1604,7 +1576,7 @@ void UtilWindow::on_cmdNetListConnections_clicked()
 			{
 				mountString.append("/");	//add "/" if not there
 			}
-			QString addressString = ui->lineNetAddress->text();
+			QString addressString = ui->lineSmbAddress->text();
 			QString shareString = addressString + ":" + mountString;
 			//now check if it is already in the list
 			bool inList = false;

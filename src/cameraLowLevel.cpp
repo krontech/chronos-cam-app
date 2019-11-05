@@ -76,7 +76,7 @@ UInt32 Camera::getFocusPeakThresholdLL(void)
 	cinst->getFloat("focusPeakingLevel", &thresh);
 	if (thresh >= FOCUS_PEAK_API_HIGH) return FOCUS_PEAK_THRESH_HIGH;
 	if (thresh >= FOCUS_PEAK_API_MED) return FOCUS_PEAK_THRESH_MED;
-	return FOCUS_PEAK_API_LOW;
+	return FOCUS_PEAK_THRESH_LOW;
 }
 
 //dest must be a char array that can handle SERIAL_NUMBER_MAX_LEN + 1 bytes

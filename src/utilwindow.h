@@ -133,7 +133,6 @@ private slots:
 	void on_cmdSmbApply_clicked();
 	void on_lineSmbPassword_editingFinished();
 	void on_lineSmbPassword_editingStarted();
-	QString buildSambaString();
 
 	/* Slots for NFS Storage Widgets */
 	void on_cmdNfsTest_clicked();
