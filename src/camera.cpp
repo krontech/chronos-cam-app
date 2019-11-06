@@ -127,9 +127,12 @@ CameraErrortype Camera::init(Video * vinstInst, Control * cinstInst)
 		appSettings.value("network/smbMount", "").toString() != "" &&
 		appSettings.value("network/smbUser", "").toString() != "")
 	{
-		QString mountString = buildSambaString();
-		mountString.append(" 2>&1");
-		QString returnString = runCommand(mountString.toLatin1());
+		if (isReachable(appSettings.value("network/smbAddress", "").toString()))
+		{
+			QString mountString = buildSambaString();
+			mountString.append(" 2>&1");
+			QString returnString = runCommand(mountString.toLatin1());
+		}
 	}
 
 	/* Try to mount the NFS share */
