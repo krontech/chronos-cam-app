@@ -136,9 +136,12 @@ CameraErrortype Camera::init(Video * vinstInst, Control * cinstInst)
 	if (appSettings.value("network/nfsAddress", "").toString() != "" &&
 		appSettings.value("network/smbMount", "").toString() != "")
 	{
-		QString mountString = buildNfsString();
-		mountString.append(" 2>&1");
-		QString returnString = runCommand(mountString.toLatin1());
+		if (isReachable(appSettings.value("network/nfsAddress", "").toString()))
+		{
+			QString mountString = buildNfsString();
+			mountString.append(" 2>&1");
+			QString returnString = runCommand(mountString.toLatin1());
+		}
 	}
 
 	printf("Video init done\n");

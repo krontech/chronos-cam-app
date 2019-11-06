@@ -128,5 +128,14 @@ QString buildNfsString()
 	return mountString;
 }
 
+bool isReachable(QString address)
+{
+	int status;
+	if (address == "") return false;
+
+	runCommand("ping -c1 " + address, &status);
+	return (status == 0);
+}
+
 
 

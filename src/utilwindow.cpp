@@ -1626,15 +1626,6 @@ void UtilWindow::on_cmdNetListConnections_clicked()
 }
 #endif
 
-bool UtilWindow::isReachable(QString address)
-{
-	int status;
-	if (address == "") return false;
-
-	runCommand("ping -c1 " + address, &status);
-	return (status == 0);
-}
-
 bool UtilWindow::checkStaticIp(void)
 {
 	QFile file("/etc/network/interfaces");

@@ -37,5 +37,6 @@ int path_is_mounted(const char *path);
 QString runCommand(QString command, int *status = NULL);
 QString buildSambaString();
 QString buildNfsString();
+bool isReachable(QString address);
 
 #endif // UTIL_H
