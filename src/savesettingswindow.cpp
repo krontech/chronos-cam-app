@@ -454,9 +454,14 @@ void saveSettingsWindow::on_lineFoldername_textEdited(const QString &arg1)
 		ui->lineFoldername->setText(path);
 	}
 
-
 	QSettings settings;
-	strcpy(camera->cinst->fileFolder, ui->lineFoldername->text().toStdString().c_str());
+	//add a slash at the end if not there
+	QString folderName = ui->lineFoldername->text();
+	if (!folderName.endsWith("/"))
+	{
+		folderName.append("/");
+	}
+	strcpy(camera->cinst->fileFolder, folderName.toStdString().c_str());
 	settings.setValue("recorder/fileFolder", camera->cinst->fileFolder);
 }
 

@@ -29,7 +29,7 @@
     <enum>QTabWidget::East</enum>
    </property>
    <property name="currentIndex">
-    <number>2</number>
+    <number>0</number>
    </property>
    <widget class="QWidget" name="tabMain">
     <attribute name="title">
@@ -1964,14 +1964,14 @@ Calibration Data
  </widget>
  <customwidgets>
   <customwidget>
-   <class>CamLineEdit</class>
-   <extends>QLineEdit</extends>
-   <header>camLineEdit.h</header>
-  </customwidget>
-  <customwidget>
    <class>CamSpinBox</class>
    <extends>QSpinBox</extends>
    <header>camspinbox.h</header>
+  </customwidget>
+  <customwidget>
+   <class>CamLineEdit</class>
+   <extends>QLineEdit</extends>
+   <header>camLineEdit.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>

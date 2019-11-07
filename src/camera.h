@@ -88,7 +88,7 @@ public:
 	RecordSettings_t recordingData;
 	SensorInfo_t     getSensorInfo() { return sensorInfo; }
 
-	bool liveLoopActive;
+	bool liveLoopActive = false;
 	UInt32 liveLoopTime = 2000;	//in milliseconds
 
 	UInt32 setImagerSettings(ImagerSettings_t settings);

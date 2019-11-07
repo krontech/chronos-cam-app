@@ -591,9 +591,7 @@ int Control::mkfilename(char *path, save_mode_type save_mode)
 	if(strlen(fileDirectory) == 0)
 		return RECORD_NO_DIRECTORY_SET;
 
-	strcpy(path, fileDirectory);
-	strcat(path, "/");		//add a slash, in case there wasn't one
-	strcat(path, fileFolder);
+	strcpy(path, fileFolder);
 	if(strlen(filename) == 0)
 	{
 		//Fill timeinfo structure with the current time
@@ -603,7 +601,7 @@ int Control::mkfilename(char *path, save_mode_type save_mode)
 		time (&rawtime);
 		timeinfo = localtime (&rawtime);
 
-		sprintf(fname, "/vid_%04d-%02d-%02d_%02d-%02d-%02d",
+		sprintf(fname, "vid_%04d-%02d-%02d_%02d-%02d-%02d",
 					timeinfo->tm_year + 1900,
 					timeinfo->tm_mon + 1,
 					timeinfo->tm_mday,
@@ -616,20 +614,6 @@ int Control::mkfilename(char *path, save_mode_type save_mode)
 	{
 		strcat(path, "/");
 		strcat(path, filename);
-	}
-
-	switch(save_mode) {
-	case SAVE_MODE_H264:
-		strcat(path, ".mp4");
-		break;
-	case SAVE_MODE_RAW16:
-	case SAVE_MODE_RAW12:
-		strcat(path, ".raw");
-		break;
-	case SAVE_MODE_DNG:
-	case SAVE_MODE_TIFF:
-	case SAVE_MODE_TIFF_RAW:
-		break;
 	}
 
 	//If the folder does not exist
@@ -671,6 +655,8 @@ CameraErrortype Control::saveRecording(UInt32 start, UInt32 length, save_mode_ty
 	qDebug() << "==== filename:" << path;
 	map.insert("start", QVariant(start));
 	map.insert("length", QVariant(length));
+	QString device = QString(fileDirectory).split("media/").value(1);
+	map.insert("device", QVariant(device));
 	switch(save_mode) {
 	case SAVE_MODE_H264:
 		map.insert("format", QVariant("h264"));
