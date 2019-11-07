@@ -457,7 +457,7 @@ void saveSettingsWindow::on_lineFoldername_textEdited(const QString &arg1)
 	QSettings settings;
 	//add a slash at the end if not there
 	QString folderName = ui->lineFoldername->text();
-	if (!folderName.endsWith("/"))
+	if (!folderName.endsWith("/")  && (folderName != ""))
 	{
 		folderName.append("/");
 	}

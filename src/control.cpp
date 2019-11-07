@@ -612,7 +612,6 @@ int Control::mkfilename(char *path, save_mode_type save_mode)
 	}
 	else
 	{
-		strcat(path, "/");
 		strcat(path, filename);
 	}
 
