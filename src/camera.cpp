@@ -210,7 +210,7 @@ UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 
 	values.insert("resolution", QVariant(resolution));
 	values.insert("framePeriod", QVariant(settings.period));
-	values.insert("currentGain", QVariant(1 << settings.gain));
+	values.insert("currentGain", QVariant(settings.gain));
 	values.insert("exposurePeriod", QVariant(settings.exposure));
 	if (settings.mode > 3 ) qFatal("imagerSetting mode is FPN");
 	else values.insert("recMode", modes[settings.mode]);
