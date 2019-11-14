@@ -1,7 +1,7 @@
 [Unit]
 Description=User interface for the Chronos Camera
-After=chronos-video.service chronos-fpga.service
-Requires=chronos-video.service chronos-fpga.service
+After=chronos-video.service chronos-control.service
+Requires=chronos-video.service chronos-control.service
 
 [Service]
 WorkingDirectory=/var/camera
