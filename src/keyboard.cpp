@@ -198,7 +198,7 @@ void keyboard::setUppercase(){
 	ui->B->setText("B");
 	ui->N->setText("N");
 	ui->M->setText("M");
-	ui->slash->setText("/");
+	ui->slash->setText("\\");
 	ui->num0->setText("_");
 	ui->num1->setText("!");
 	ui->num2->setText("@");

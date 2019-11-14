@@ -231,7 +231,7 @@ void saveSettingsWindow::refreshDriveList()
 
 	//Check for mounted network shares shares
 	if (path_is_mounted(SMB_STORAGE_MOUNT)) {
-		ui->comboDrive->addItem(QString(SMB_STORAGE_MOUNT) + " (Samba share)");
+		ui->comboDrive->addItem(QString(SMB_STORAGE_MOUNT) + " (SMB share)");
 	}
 	if (path_is_mounted(NFS_STORAGE_MOUNT)) {
 		ui->comboDrive->addItem(QString(NFS_STORAGE_MOUNT) + " (NFS share)");

@@ -1369,6 +1369,14 @@ void UtilWindow::on_cmdSmbApply_clicked()
 	checkAndCreateDir(SMB_STORAGE_MOUNT);
 	prompt.show();
 
+	/* If any of the fields are blank, disconnect SMB share */
+	if (!ui->lineSmbUser->text().length() || !ui->lineSmbAddress->text().length() || !ui->lineSmbMount->text().length())
+	{
+		prompt.setText("SMB share disconnected.");
+		prompt.exec();
+		return;
+	}
+
 	/* Try to determine server reachability */
 	QCoreApplication::processEvents();
 	if (!isReachable(ui->lineSmbAddress->text()))
@@ -1457,6 +1465,14 @@ void UtilWindow::on_cmdNfsApply_clicked()
 	umount2(NFS_STORAGE_MOUNT, MNT_DETACH);
 	checkAndCreateDir(NFS_STORAGE_MOUNT);
 	prompt.show();
+
+	/* If any of the fields are blank, disconnect NFS share */
+	if (!ui->lineNfsAddress->text().length() || !ui->lineNfsMount->text().length())
+	{
+		prompt.setText("NFS share disconnected.");
+		prompt.exec();
+		return;
+	}
 
 	/* Try to determine server reachability */
 	QCoreApplication::processEvents();
