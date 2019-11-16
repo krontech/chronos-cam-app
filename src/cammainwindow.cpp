@@ -461,28 +461,20 @@ static int c;
 
 void CamMainWindow::on_expSlider_valueChanged(int exposure)
 {
-	//UInt32 expClock = camera->getSensorInfo().timingClock;
-	//camera->setIntegrationTime((double)exposure / expClock, NULL, 0);
 	newExposure = exposure;
 	sliderExposure = exposure;
 	c++;
 	qDebug() << "slider" << c;
-	//updateCurrentSettingsLabel();
 }
 
 void CamMainWindow::exposureHandler(void)
 {
-	//return;
 	if ((newExposure != -1) && !cinst->exposurePending)
 	{
-		//newExposure = -1;
-		//return;
-
 		UInt32 expClock = camera->getSensorInfo().timingClock;
 		camera->setIntegrationTime((double)newExposure / expClock, NULL, 0);
 		cinst->exposurePending = true;
 		newExposure = -1;
-		qDebug() << "eH!";
 	}
 }
 

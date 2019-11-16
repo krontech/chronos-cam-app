@@ -733,6 +733,16 @@ void Control::notifyParam(QString name, const QVariant &value)
 		if (exposurePending) exposurePending = false;
 		//return; //don't send
 	}
+
+	/* reset asynchronous exposure slider flag when pychronos finishes initialization */
+	if (name == "state")
+	{
+		if (value.toString() == "idle")
+		{
+			exposurePending = false;
+		}
+	}
+
 	QHash<QString, ControlNotify *>::iterator iter = params.find(name);
 
 	/* For each listener, emit a valueChanged signal. */

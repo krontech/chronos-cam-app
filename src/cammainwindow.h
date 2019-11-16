@@ -116,7 +116,7 @@ private:
 	ImagerSettings_t is;
 
 	/* For handling exposure slider asynchronously */
-	UInt32 newExposure = -1;
+	Int32 newExposure = -1;
 	UInt32 sliderExposure = 0;
 };
 
