@@ -223,7 +223,7 @@ CameraErrortype LUX2100::initSensor()
 	initDAC();
 
 #if LUX2100_BINNING_MODE
-	colorBinning = false;
+	colorBinning = true;
 	initLUX2100();
 #else
 	initLUX8M();
@@ -816,12 +816,14 @@ void LUX2100::offsetCorrectionIteration(FrameGeometry *geometry, int *offsets, U
 		UInt16 dev = adcStdDev[col];
 		if (iter == 0) {
 			offsets[col] = -(avg - dev - 32) * 3;
+			qDebug() << "ADC training iter 0 offset: " << offsets[col];
 		} else {
 			//offsets[col] = offsets[col] - (avg - dev - 32) / 2;
 			//HACK Pushing the offset a little lower to make up for the lack of iterations.
 			offsets[col] = offsets[col] - (avg - dev - 64) / 2;
 		}
 		offsets[col] = within(offsets[col], -1023, 1023);
+
 		setADCOffset(col, offsets[col]);
 	}
 
@@ -888,7 +890,7 @@ void LUX2100::adcOffsetTraining(FrameGeometry *size, UInt32 address, UInt32 numF
 
 Int32 LUX2100::loadADCOffsetsFromFile(FrameGeometry *size)
 {
-	Int16 offsets[LUX2100_HRES_INCREMENT];
+	Int16 offsets[LUX2100_HRES_INCREMENT];	
 
 	QString filename;
 
@@ -921,6 +923,7 @@ Int32 LUX2100::loadADCOffsetsFromFile(FrameGeometry *size)
 	//Write the values into the sensor
 	char debugstr[8*LUX2100_HRES_INCREMENT];
 	int debuglen = 0;
+
 	for(int col = 0; col < LUX2100_HRES_INCREMENT; col++) {
 		debuglen += sprintf(debugstr + debuglen, " %+4d", offsets[col]);
 		setADCOffset(col, offsets[col]);

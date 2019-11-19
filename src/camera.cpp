@@ -1704,18 +1704,15 @@ Int32 Camera::autoGainCalibration(unsigned int iterations)
 void Camera::loadColGainFromFile(void)
 {
 	QString filename;
-	UInt32 numChannels = sensor->getHResIncrement();
-	double gainCorrection[numChannels];
-	double curveCorrection[numChannels];
+	int gainCorrection[imagerSettings.geometry.hRes];
 
 	/* Prepare a sensible default gain. */
-	for (int col = 0; col < numChannels; col++) {
+	for (int col = 0; col < imagerSettings.geometry.hRes; col++) {
 		gainCorrection[col] = 1.0;
-		curveCorrection[col] = 0.0;
 	}
 
-	/* Load gain correction. */
-	filename.sprintf("cal:colGain_G%d.bin", imagerSettings.gain);
+	/* Load gain correction that was generated externally on PC via python scripts. */
+	filename.sprintf("cal:lux2100colGain_G%d.bin", imagerSettings.gain);
 	QFileInfo colGainFile(filename);
 	if (!colGainFile.exists() || !colGainFile.isFile()) {
 		/* Fall back to legacy 2-point gain files. */
@@ -1735,8 +1732,9 @@ void Camera::loadColGainFromFile(void)
 		}
 		fp.close();
 	}
+
 	for (int col = 0; col < imagerSettings.geometry.hRes; col++) {
-		gpmc->write16(COL_GAIN_MEM_START_ADDR + (2 * col), (int)(gainCorrection[col % numChannels] * (1 << COL_GAIN_FRAC_BITS)));
+		gpmc->write16(COL_GAIN_MEM_START_ADDR + (2 * col), (int)(gainCorrection[col]));
 	}
 
 #if USE_3POINT_CAL
@@ -2629,6 +2627,7 @@ Int32 Camera::blackCalAllStdRes(bool factory, QProgressDialog *dialog)
 			return retVal;
 
 		/* Perform gain calibraton. */
+
 		retVal = autoGainCalibration();
 		if (SUCCESS != retVal)
 			return retVal;
