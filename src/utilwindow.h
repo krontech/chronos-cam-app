@@ -138,8 +138,6 @@ private slots:
 	void on_cmdNfsTest_clicked();
 	void on_cmdNfsApply_clicked();
 
-
-
 private:
 	Ui::UtilWindow *ui;
 	Camera * camera;

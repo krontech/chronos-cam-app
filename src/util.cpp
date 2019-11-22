@@ -22,6 +22,8 @@
 #include <QCoreApplication>
 #include <QTime>
 #include <QSettings>
+#include <QString>
+#include <QStringList>
 
 void delayms(int ms)
 {
@@ -137,5 +139,37 @@ bool isReachable(QString address)
 	return (status == 0);
 }
 
+/* check if a remote PC is exporting a folder to this camera */
+bool isExportingNfs(QString camIpAddress)
+{
+	QSettings appSettings;
 
-
+	QString showString = "showmount -e ";
+	showString.append(appSettings.value("network/nfsAddress", "").toString());
+	QString mounts = runCommand(showString);
+	if (mounts != "")
+	{
+		QStringList splitString = mounts.split("\n");
+		if (splitString.value(0).contains("Export list for"))
+		{
+			for (int i = 1; i < splitString.length() - 1; i++)
+			{
+				QStringList shareList = splitString.value(i).simplified().split(" ");
+				QString mountString = shareList.value(0);		//should typically be "/mnt/nfs"
+				if (mountString == appSettings.value("network/nfsMount", "").toString())
+				{
+					QStringList splitIps = shareList.value(1).split(",");			//should be splitting something like "192.168.1.215/24,192.168.1.214/24"
+					for (int j=0; j<shareList.length(); j++)
+					{
+						qDebug() << splitIps.value(j);
+						if (camIpAddress == splitIps.value(j).split("/").value(0))
+						{
+							return true;
+						}
+					}
+				}
+			}
+		}
+	}
+	return false;
+}

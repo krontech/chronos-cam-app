@@ -38,5 +38,6 @@ QString runCommand(QString command, int *status = NULL);
 QString buildSambaString();
 QString buildNfsString();
 bool isReachable(QString address);
+bool isExportingNfs(QString camIpAddress);
 
 #endif // UTIL_H

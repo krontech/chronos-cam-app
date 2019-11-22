@@ -141,9 +141,19 @@ CameraErrortype Camera::init(Video * vinstInst, Control * cinstInst)
 	{
 		if (isReachable(appSettings.value("network/nfsAddress", "").toString()))
 		{
-			QString mountString = buildNfsString();
-			mountString.append(" 2>&1");
-			QString returnString = runCommand(mountString.toLatin1());
+			QString output = runCommand("ifconfig");
+			QStringList ipAddressList = output.split("inet addr:");
+			for (int i = 1; i<ipAddressList.length(); i++)
+			{
+				QString ipAddress = ipAddressList.value(i).split(" ").value(0);
+				if (isExportingNfs(ipAddress))
+				{
+					QString mountString = buildNfsString();
+					mountString.append(" 2>&1");
+					QString returnString = runCommand(mountString.toLatin1());
+					break;
+				}
+			}
 		}
 	}
 
