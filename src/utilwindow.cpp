@@ -143,8 +143,6 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	ui->cmdSetSN->setVisible(false);
 	ui->lineSerialNumber->setVisible(false);
 	ui->chkShowDebugControls->setVisible(false);
-	ui->spinLiveLoopTime->setVisible(camera->liveLoopActive);
-	ui->chkLiveLoop->setVisible(camera->liveLoopActive);
 
 
 	ui->chkAutoSave->setChecked(camera->get_autoSave());
@@ -176,8 +174,6 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	else //If the argument was not added, set the control to invisible because it would be useless anyway
 		ui->chkUpsideDownDisplay->setVisible(false);
 
-	ui->chkLiveLoop->setChecked(camera->liveLoopActive);
-	ui->spinLiveLoopTime->setValue(camera->liveLoopTime);
 	openingWindow = false;
 
 	//ui->chkShowDebugControls->setChecked(!(appSettings.value("debug/hideDebug", true).toBool()));
@@ -488,13 +484,6 @@ void UtilWindow::on_cmdClose_clicked()
 
 	if(UpsideDownDisplayChanged ^ ButtonsOnLeftChanged) camera->updateVideoPosition();
 
-	camera->liveLoopActive = ui->chkLiveLoop->isChecked();
-	if (camera->liveLoopTime != ui->spinLiveLoopTime->value())
-	{
-		camera->on_spinLiveLoopTime_valueChanged(ui->spinLiveLoopTime->value());
-	}
-	camera->liveLoopTime = ui->spinLiveLoopTime->value();
-
 	close();
 /*
 	if((camera->ButtonsOnLeft !=	 ui->chkUiOnLeft->isChecked()) ||
@@ -704,9 +693,6 @@ void UtilWindow::on_linePassword_textEdited(const QString &arg1)
 		ui->cmdSetSN->setVisible(true);
 		ui->lineSerialNumber->setVisible(true);
 		ui->chkShowDebugControls->setVisible(true);
-		ui->spinLiveLoopTime->setVisible(true);
-		ui->chkLiveLoop->setVisible(true);
-
 	}
 }
 
@@ -1109,7 +1095,7 @@ void UtilWindow::on_chkLiveLoop_stateChanged(int arg1)
 {
 	if (!openingWindow)
 	{
-		camera->on_chkLiveLoop_stateChanged(arg1);
+//		camera->on_chkLiveLoop_stateChanged(arg1);
 	}
 }
 

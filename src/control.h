@@ -31,6 +31,7 @@ typedef enum CameraRecordModes
 	RECORD_MODE_NORMAL = 0,
 	RECORD_MODE_SEGMENTED,
 	RECORD_MODE_GATED_BURST,
+	RECORD_MODE_LIVE,
 	RECORD_MODE_FPN
 } CameraRecordModeType;
 

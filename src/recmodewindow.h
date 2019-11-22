@@ -24,7 +24,9 @@ private slots:
 
     void on_radioNormal_clicked();
 
-    void on_radioGated_clicked();
+	void on_radioGated_clicked();
+
+	void on_radioLive_clicked();
 
     void on_radioSegmented_clicked();
 

@@ -799,29 +799,24 @@ void Camera::api_colorMatrix_valueChanged(const QVariant &wb)
 	dbusArgs.endArray();
 }
 
-void Camera::on_chkLiveLoop_stateChanged(int arg1)
+void Camera::startLiveLoop()
 {
-	if (arg1)
-	{
-		//enable loop timer
-		loopTimer = new QTimer(this);
-		connect(loopTimer, SIGNAL(timeout()), this, SLOT(onLoopTimer()));
-		loopTimer->start(2000);
-		loopTimerEnabled = true;
+	//enable loop timer
+	loopTimer = new QTimer(this);
+	connect(loopTimer, SIGNAL(timeout()), this, SLOT(onLoopTimer()));
+	loopTimer->start(2000);
+	loopTimerEnabled = true;
+}
 
-	}
-	else
-	{
-		//bool videoFlip = (sensor->getSensorQuirks() & SENSOR_QUIRK_UPSIDE_DOWN) != 0;
-		bool videoFlip = false;
-		//disable loop timer
-		loopTimer->stop();
-		delete loopTimer;
-		vinst->liveDisplay(videoFlip);
-		loopTimerEnabled = false;
-
-	}
-
+void Camera::stopLiveLoop()
+{
+	//bool videoFlip = (sensor->getSensorQuirks() & SENSOR_QUIRK_UPSIDE_DOWN) != 0;
+	bool videoFlip = false;
+	//disable loop timer
+	loopTimer->stop();
+	delete loopTimer;
+	vinst->liveDisplay(videoFlip);
+	loopTimerEnabled = false;
 }
 
 

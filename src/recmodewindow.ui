@@ -57,7 +57,7 @@
     <rect>
      <x>10</x>
      <y>10</y>
-     <width>571</width>
+     <width>501</width>
      <height>461</height>
     </rect>
    </property>
@@ -68,7 +68,7 @@
     <enum>QFrame::Raised</enum>
    </property>
    <property name="currentIndex">
-    <number>0</number>
+    <number>2</number>
    </property>
    <widget class="QWidget" name="normalPage">
     <widget class="QPushButton" name="cmdMax">
@@ -92,7 +92,7 @@
     <widget class="QLabel" name="lblNormal">
      <property name="geometry">
       <rect>
-       <x>10</x>
+       <x>-10</x>
        <y>0</y>
        <width>551</width>
        <height>31</height>
@@ -337,7 +337,7 @@ QSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}<
       <rect>
        <x>10</x>
        <y>0</y>
-       <width>551</width>
+       <width>491</width>
        <height>41</height>
       </rect>
      </property>
@@ -501,14 +501,95 @@ QSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}<
      </widget>
     </widget>
    </widget>
+   <widget class="QWidget" name="livePage">
+    <widget class="QLabel" name="lblSegmented_3">
+     <property name="geometry">
+      <rect>
+       <x>-10</x>
+       <y>0</y>
+       <width>551</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>A short burst of video is recorded, and played back in slow motion</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignHCenter|Qt::AlignTop</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lblRes_9">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>27</y>
+       <width>291</width>
+       <height>30</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>16</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>Playback Loop Length (seconds)</string>
+     </property>
+    </widget>
+    <widget class="CamDoubleSpinBox" name="spinLoopLengthSeconds">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>60</y>
+       <width>241</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>16</pointsize>
+       <weight>75</weight>
+       <italic>true</italic>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QDoubleSpinBox { border: 3px outset grey;padding-right: 40px;}  
+
+QDoubleSpinBox::up-button { subcontrol-position: right; right: 40px; width: 40px; height: 35px;}
+
+QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}</string>
+     </property>
+     <property name="decimals">
+      <number>3</number>
+     </property>
+     <property name="minimum">
+      <double>0.300000000000000</double>
+     </property>
+     <property name="maximum">
+      <double>5.000000000000000</double>
+     </property>
+     <property name="singleStep">
+      <double>0.100000000000000</double>
+     </property>
+     <property name="value">
+      <double>2.000000000000000</double>
+     </property>
+    </widget>
+   </widget>
   </widget>
   <widget class="QGroupBox" name="groupBox">
    <property name="geometry">
     <rect>
-     <x>590</x>
+     <x>540</x>
      <y>10</y>
-     <width>181</width>
-     <height>171</height>
+     <width>231</width>
+     <height>221</height>
     </rect>
    </property>
    <property name="title">
@@ -562,10 +643,10 @@ QSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}<
 }</string>
     </property>
     <property name="text">
-     <string>&amp;Gated Burst</string>
+     <string>Gated Burst</string>
     </property>
     <property name="checked">
-     <bool>true</bool>
+     <bool>false</bool>
     </property>
    </widget>
    <widget class="QRadioButton" name="radioSegmented">
@@ -595,6 +676,33 @@ QSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}<
      <bool>false</bool>
     </property>
    </widget>
+   <widget class="QRadioButton" name="radioLive">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>170</y>
+      <width>201</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>16</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QRadioButton::indicator {
+     width: 40px;
+     height: 40px;
+}</string>
+    </property>
+    <property name="text">
+     <string>Live Slow Motion</string>
+    </property>
+    <property name="checked">
+     <bool>true</bool>
+    </property>
+   </widget>
   </widget>
   <widget class="QCheckBox" name="chkDisableRing">
    <property name="enabled">
@@ -603,7 +711,7 @@ QSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}<
    <property name="geometry">
     <rect>
      <x>590</x>
-     <y>190</y>
+     <y>260</y>
      <width>181</width>
      <height>41</height>
     </rect>
@@ -621,14 +729,14 @@ QSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}<
  </widget>
  <customwidgets>
   <customwidget>
-   <class>CamDoubleSpinBox</class>
-   <extends>QDoubleSpinBox</extends>
-   <header>camdoublespinbox.h</header>
-  </customwidget>
-  <customwidget>
    <class>CamSpinBox</class>
    <extends>QSpinBox</extends>
    <header>camspinbox.h</header>
+  </customwidget>
+  <customwidget>
+   <class>CamDoubleSpinBox</class>
+   <extends>QDoubleSpinBox</extends>
+   <header>camdoublespinbox.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>

@@ -134,6 +134,9 @@ public:
 	UInt16 getFPGASubVersion(void);
 	bool ButtonsOnLeft;
 	bool UpsideDownDisplay;
+	void startLiveLoop();
+	void stopLiveLoop();
+
 
 private:
 	bool recording;
@@ -185,6 +188,9 @@ public:
 	int autoSavePercent;
 	bool autoSavePercentEnabled;
 	bool shippingMode;
+	bool liveSlowMotion = false;
+	bool loopTimerEnabled = false;
+
 
 	void set_autoSave(bool state);
 	bool get_autoSave();
@@ -207,7 +213,6 @@ public:
 	int getFocusPeakColor();
 	void setFocusPeakColor(int value);
 
-	void on_chkLiveLoop_stateChanged(int arg1);
 	void on_spinLiveLoopTime_valueChanged(int arg1);
 	int getAutoSavePercent(void);
 	void setAutoSavePercent(int newSetting);
@@ -219,7 +224,6 @@ public:
 private:
 	QString lastState = "idle";
 	QTimer * loopTimer;
-	bool loopTimerEnabled = false;
 
 protected slots:
 	/* Slots from the API on how to handle value changes. */

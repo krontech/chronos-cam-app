@@ -29,7 +29,7 @@
     <enum>QTabWidget::East</enum>
    </property>
    <property name="currentIndex">
-    <number>2</number>
+    <number>0</number>
    </property>
    <widget class="QWidget" name="tabMain">
     <attribute name="title">
@@ -456,85 +456,6 @@ Display</string>
      </property>
      <property name="text">
       <string>Demo Mode</string>
-     </property>
-    </widget>
-    <widget class="QCheckBox" name="chkLiveLoop">
-     <property name="geometry">
-      <rect>
-       <x>290</x>
-       <y>410</y>
-       <width>181</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <pointsize>16</pointsize>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QCheckBox::indicator {
-     width: 40px;
-     height: 40px;
-}</string>
-     </property>
-     <property name="text">
-      <string>Live Loop (ms)</string>
-     </property>
-     <property name="tristate">
-      <bool>false</bool>
-     </property>
-    </widget>
-    <widget class="CamSpinBox" name="spinLiveLoopTime">
-     <property name="geometry">
-      <rect>
-       <x>480</x>
-       <y>412</y>
-       <width>151</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="baseSize">
-      <size>
-       <width>0</width>
-       <height>0</height>
-      </size>
-     </property>
-     <property name="font">
-      <font>
-       <pointsize>16</pointsize>
-       <weight>75</weight>
-       <italic>true</italic>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QSpinBox { border: 3px outset grey;padding-right: 40px;}  
-
-QSpinBox::up-button { subcontrol-position: right; right: 40px; width: 40px; height: 35px;}
-
-QSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}</string>
-     </property>
-     <property name="suffix">
-      <string/>
-     </property>
-     <property name="minimum">
-      <number>250</number>
-     </property>
-     <property name="maximum">
-      <number>10000</number>
-     </property>
-     <property name="singleStep">
-      <number>10</number>
-     </property>
-     <property name="value">
-      <number>2000</number>
      </property>
     </widget>
     <widget class="QComboBox" name="comboAutoPowerMode">
@@ -2000,8 +1921,6 @@ Calibration Data
   <tabstop>cmdRestoreSettings</tabstop>
   <tabstop>cmdBackupSettings</tabstop>
   <tabstop>cmdClose</tabstop>
-  <tabstop>spinLiveLoopTime</tabstop>
-  <tabstop>chkLiveLoop</tabstop>
   <tabstop>chkFanDisable</tabstop>
   <tabstop>chkUpsideDownDisplay</tabstop>
   <tabstop>chkUiOnLeft</tabstop>

@@ -33,13 +33,19 @@ recModeWindow::recModeWindow(QWidget *parent, Camera * cameraInst, ImagerSetting
             ui->lblNormal->setText("Records frames in a segmented buffer, one buffer per trigger");
         break;
 
-        case RECORD_MODE_GATED_BURST:
-            ui->radioGated->setChecked(true);
-            ui->stackedWidget->setCurrentIndex(1);
-            ui->grpSegmented->setVisible(false);
-        break;
+		case RECORD_MODE_GATED_BURST:
+			ui->radioGated->setChecked(true);
+			ui->stackedWidget->setCurrentIndex(1);
+			ui->grpSegmented->setVisible(false);
+		break;
 
-        case RECORD_MODE_FPN:
+		case RECORD_MODE_LIVE:
+			ui->radioLive->setChecked(true);
+			ui->stackedWidget->setCurrentIndex(2);
+			ui->grpSegmented->setVisible(false);
+		break;
+
+		case RECORD_MODE_FPN:
         default:
             /* Internal recording modes only. */
         break;
@@ -69,12 +75,15 @@ recModeWindow::recModeWindow(QWidget *parent, Camera * cameraInst, ImagerSetting
 
 recModeWindow::~recModeWindow()
 {
+	camera->liveSlowMotion = ui->radioLive->isChecked();
     delete ui;
 }
 
 void recModeWindow::on_cmdOK_clicked()
 {
     //is->disableRingBuffer = ui->chkDisableRing->isChecked();
+
+	camera->liveSlowMotion = false;
 
     if(ui->radioNormal->isChecked())
     {
@@ -91,11 +100,17 @@ void recModeWindow::on_cmdOK_clicked()
         is->segments = ui->spinSegmentCount->value();
         is->segmentLengthFrames = is->recRegionSizeFrames / is->segments;
     }
-    else if(ui->radioGated->isChecked())
-    {
-        is->mode = RECORD_MODE_GATED_BURST;
-        is->prerecordFrames = ui->spinPrerecordFrames->value();
-    }
+	else if(ui->radioGated->isChecked())
+	{
+		is->mode = RECORD_MODE_GATED_BURST;
+		is->prerecordFrames = ui->spinPrerecordFrames->value();
+	}
+	else if(ui->radioLive->isChecked())
+	{
+		is->mode = RECORD_MODE_LIVE;
+		camera->liveLoopTime = ui->spinLoopLengthSeconds->value() * 1000;
+		camera->liveSlowMotion = true;
+	}
 
     close();
 }
@@ -122,6 +137,11 @@ void recModeWindow::on_radioSegmented_clicked()
 void recModeWindow::on_radioGated_clicked()
 {
     ui->stackedWidget->setCurrentIndex(1);
+}
+
+void recModeWindow::on_radioLive_clicked()
+{
+	ui->stackedWidget->setCurrentIndex(2);
 }
 
 void recModeWindow::on_cmdMax_clicked()

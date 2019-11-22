@@ -385,28 +385,42 @@ void CamMainWindow::on_MainWindowTimer()
 
 	if(shutterButton && !lastShutterButton)
 	{
-		if(recording)
+		if (camera->liveSlowMotion)
 		{
-			camera->stopRecording();
+			if (camera->loopTimerEnabled)
+			{
+				camera->stopLiveLoop();
+			}
+			else
+			{
+				camera->startLiveLoop();
+			}
 		}
 		else
 		{
-			QWidgetList qwl = QApplication::topLevelWidgets();	//Hack to stop you from starting record when another window is open. Need to get modal dialogs working for proper fix
-			if(qwl.count() <= windowsAlwaysOpen)				//Now that the numeric keypad has been added, there are four windows: cammainwindow, debug buttons window, and both keyboards
+			if(recording)
 			{
-				//If there is unsaved video in RAM, prompt to start record.  unsavedWarnEnabled values: 0=always, 1=if not reviewed, 2=never
-				if(false == camera->recordingData.hasBeenSaved && (0 != camera->unsavedWarnEnabled && (2 == camera->unsavedWarnEnabled || !camera->recordingData.hasBeenViewed)) && false == camera->get_autoSave())	//If there is unsaved video in RAM, prompt to start record
-
+				camera->stopRecording();
+			}
+			else
+			{
+				QWidgetList qwl = QApplication::topLevelWidgets();	//Hack to stop you from starting record when another window is open. Need to get modal dialogs working for proper fix
+				if(qwl.count() <= windowsAlwaysOpen)				//Now that the numeric keypad has been added, there are four windows: cammainwindow, debug buttons window, and both keyboards
 				{
-					if(QMessageBox::Yes == question("Unsaved video in RAM", "Start recording anyway and discard the unsaved video in RAM?"))
+					//If there is unsaved video in RAM, prompt to start record.  unsavedWarnEnabled values: 0=always, 1=if not reviewed, 2=never
+					if(false == camera->recordingData.hasBeenSaved && (0 != camera->unsavedWarnEnabled && (2 == camera->unsavedWarnEnabled || !camera->recordingData.hasBeenViewed)) && false == camera->get_autoSave())	//If there is unsaved video in RAM, prompt to start record
+
+					{
+						if(QMessageBox::Yes == question("Unsaved video in RAM", "Start recording anyway and discard the unsaved video in RAM?"))
+						{
+							camera->startRecording();
+						}
+					}
+					else
 					{
 						camera->startRecording();
+						if (camera->get_autoSave()) autoSaveActive = true;
 					}
-				}
-				else
-				{
-					camera->startRecording();
-					if (camera->get_autoSave()) autoSaveActive = true;
 				}
 			}
 		}
