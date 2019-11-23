@@ -119,7 +119,7 @@ private slots:
 	int updateSoftware(char *updateLocation);
 
 	void on_chkLiveLoop_stateChanged(int arg1);
-	void on_spinLiveLoopTime_valueChanged(int arg1);
+	void on_spinLiveLoopTime_valueChanged(double arg1);
 	void waitForIdle(void);
 	Int32 blackCalAllStdRes(void);
 

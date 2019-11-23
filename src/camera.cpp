@@ -98,6 +98,8 @@ CameraErrortype Camera::init(Video * vinstInst, Control * cinstInst)
 	strcpy(cinst->filename,      appSettings.value("recorder/filename", "").toString().toAscii());
 	strcpy(cinst->fileDirectory, appSettings.value("recorder/fileDirectory", "").toString().toAscii());
 	strcpy(cinst->fileFolder,    appSettings.value("recorder/fileFolder", "").toString().toAscii());
+	liveLoopTime               = appSettings.value("recorder/liveLoopTime", 2.0).toDouble();
+	liveLoopRecordTime         = appSettings.value("recorder/liveLoopRecordTime", 0.15).toDouble();
 	if(strlen(cinst->fileDirectory) == 0){
 		/* Set the default file path, or fall back to the MMC card. */
 		int i;
@@ -801,10 +803,13 @@ void Camera::api_colorMatrix_valueChanged(const QVariant &wb)
 
 void Camera::startLiveLoop()
 {
+	// start live loop cycle
+	onLoopTimer();
+
 	//enable loop timer
 	loopTimer = new QTimer(this);
 	connect(loopTimer, SIGNAL(timeout()), this, SLOT(onLoopTimer()));
-	loopTimer->start(2000);
+	loopTimer->start(liveLoopTime * 1000);
 	loopTimerEnabled = true;
 }
 
@@ -826,32 +831,14 @@ void Camera::onLoopTimer()
 	qDebug() << "loop timer";
 
 	cinst->startRecording();
-
-	struct timespec t = {0, 150000000};
-	nanosleep(&t, NULL);
-
+	delayms(liveLoopRecordTime * 500);
 	cinst->stopRecording();
 
 	//play back snippet
 	vinst->loopPlayback(1, 400, 30);
 }
 
-void Camera::on_spinLiveLoopTime_valueChanged(int arg1)
+void Camera::on_spinLiveLoopTime_valueChanged(double arg1)
 {
-	if (arg1 < 250) //minimum time
-	{
-		return;
-	}
 
-	if (loopTimerEnabled)
-	{
-		//disable loop timer
-		loopTimer->stop();
-		delete loopTimer;
-
-		//re-enable loop timer
-		loopTimer = new QTimer(this);
-		connect(loopTimer, SIGNAL(timeout()), this, SLOT(onLoopTimer()));
-		loopTimer->start(arg1);
-	}
 }

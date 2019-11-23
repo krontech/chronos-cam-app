@@ -44,6 +44,11 @@ private slots:
 
     void on_spinPrerecordSeconds_editingFinished();
 
+	void on_spinLoopLengthSeconds_valueChanged();
+
+	void showLoopInformation();
+
+
 private:
     Camera * camera;
     ImagerSettings_t * is;
@@ -51,6 +56,9 @@ private:
 	SensorInfo_t sensor;
 
     void updateSegmentSizeText(UInt32 segmentCount);
+	double calcRecordTime();
+	UInt32 calcRecordFrames();
+	double calcSlowFactor();
 };
 
 #endif // RECMODEWINDOW_H

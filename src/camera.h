@@ -88,9 +88,6 @@ public:
 	RecordSettings_t recordingData;
 	SensorInfo_t     getSensorInfo() { return sensorInfo; }
 
-	bool liveLoopActive = false;
-	UInt32 liveLoopTime = 2000;	//in milliseconds
-
 	UInt32 setImagerSettings(ImagerSettings_t settings);
 	UInt32 setIntegrationTime(double intTime, FrameGeometry *geometry, Int32 flags);
 	bool isValidResolution(FrameGeometry *geometry);
@@ -136,6 +133,9 @@ public:
 	bool UpsideDownDisplay;
 	void startLiveLoop();
 	void stopLiveLoop();
+	bool liveLoopActive = false;
+	double liveLoopTime = 2.0;	//in seconds
+
 
 
 private:
@@ -190,7 +190,7 @@ public:
 	bool shippingMode;
 	bool liveSlowMotion = false;
 	bool loopTimerEnabled = false;
-
+	double liveLoopRecordTime;
 
 	void set_autoSave(bool state);
 	bool get_autoSave();
@@ -213,7 +213,7 @@ public:
 	int getFocusPeakColor();
 	void setFocusPeakColor(int value);
 
-	void on_spinLiveLoopTime_valueChanged(int arg1);
+	void on_spinLiveLoopTime_valueChanged(double arg1);
 	int getAutoSavePercent(void);
 	void setAutoSavePercent(int newSetting);
 	bool getAutoSavePercentEnabled(void);

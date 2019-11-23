@@ -17,6 +17,8 @@ recModeWindow::recModeWindow(QWidget *parent, Camera * cameraInst, ImagerSetting
     ui->chkDisableRing->setChecked(is->disableRingBuffer);
 	ui->chkDisableRing->setVisible(false);
 
+	showLoopInformation();
+
     switch(is->mode)
     {
         case RECORD_MODE_NORMAL:
@@ -70,6 +72,7 @@ recModeWindow::recModeWindow(QWidget *parent, Camera * cameraInst, ImagerSetting
 
 	ui->lblSegmentSize->setText("Segment size:\n" + QString::number(ui->spinRecLengthFrames->value() / ui->spinSegmentCount->value() * ((double) is->period / sensor.timingClock)) + " s\n(" + QString::number(ui->spinRecLengthFrames->value() / ui->spinSegmentCount->value()) + " frames)");
 
+	ui->spinLoopLengthSeconds->setValue(camera->liveLoopTime);
 
 }
 
@@ -81,6 +84,7 @@ recModeWindow::~recModeWindow()
 
 void recModeWindow::on_cmdOK_clicked()
 {
+	QSettings appSettings;
     //is->disableRingBuffer = ui->chkDisableRing->isChecked();
 
 	camera->liveSlowMotion = false;
@@ -108,9 +112,12 @@ void recModeWindow::on_cmdOK_clicked()
 	else if(ui->radioLive->isChecked())
 	{
 		is->mode = RECORD_MODE_LIVE;
-		camera->liveLoopTime = ui->spinLoopLengthSeconds->value() * 1000;
+		camera->liveLoopTime = ui->spinLoopLengthSeconds->value();
 		camera->liveSlowMotion = true;
 	}
+
+	appSettings.setValue("recorder/liveLoopTime", camera->liveLoopTime);
+	appSettings.setValue("recorder/liveLoopRecordTime", camera->liveLoopRecordTime);
 
     close();
 }
@@ -220,4 +227,48 @@ void recModeWindow::on_spinPrerecordSeconds_editingFinished()
 {
 	ui->spinPrerecordFrames->setValue(ui->spinPrerecordSeconds->value() / ((double) is->period / sensor.timingClock));
 	ui->spinPrerecordSeconds->setValue((double)ui->spinPrerecordFrames->value() * ((double) is->period / sensor.timingClock));
+}
+
+void recModeWindow::on_spinLoopLengthSeconds_valueChanged()
+{
+	showLoopInformation();
+}
+
+void recModeWindow::showLoopInformation()
+{
+	double recordTime = calcRecordTime();
+	camera->liveLoopRecordTime = recordTime;
+	ui->lblRecordTime->setText(QString::number((int)(recordTime * 1000)) + " ms");
+	ui->lblRecordFrames->setText(QString::number(calcRecordFrames()));
+	ui->lblSlowFactor->setText(QString::number(calcSlowFactor(),'f', 3));
+}
+
+double recModeWindow::calcRecordTime()
+{
+	UInt32 playFps = 60;
+	double frameRate;
+	camera->cinst->getFloat("frameRate", &frameRate);
+	double recordTime = ui->spinLoopLengthSeconds->value() * playFps / frameRate;
+	qDebug() << recordTime;
+	return recordTime;
+}
+
+UInt32 recModeWindow::calcRecordFrames()
+{
+	UInt32 playFps = 60;
+	double framePeriod;
+	camera->cinst->getFloat("framePeriod", &framePeriod);
+	framePeriod /= 1e9;
+	UInt32 recordFrames = ui->spinLoopLengthSeconds->value() * playFps;
+	qDebug() << recordFrames;
+	return recordFrames;
+}
+
+double recModeWindow::calcSlowFactor()
+{
+	UInt32 playFps = 60;
+	double frameRate;
+	camera->cinst->getFloat("frameRate", &frameRate);
+	double slowFactor = frameRate / playFps;
+	return slowFactor;
 }

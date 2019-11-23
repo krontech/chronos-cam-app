@@ -1099,7 +1099,7 @@ void UtilWindow::on_chkLiveLoop_stateChanged(int arg1)
 	}
 }
 
-void UtilWindow::on_spinLiveLoopTime_valueChanged(int arg1)
+void UtilWindow::on_spinLiveLoopTime_valueChanged(double arg1)
 {
 	if (!openingWindow)
 	{

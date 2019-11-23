@@ -538,7 +538,7 @@ QSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}<
       </font>
      </property>
      <property name="text">
-      <string>Playback Loop Length (seconds)</string>
+      <string>Playback Loop Time (seconds)</string>
      </property>
     </widget>
     <widget class="CamDoubleSpinBox" name="spinLoopLengthSeconds">
@@ -579,6 +579,114 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
      </property>
      <property name="value">
       <double>2.000000000000000</double>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lblRes_10">
+     <property name="geometry">
+      <rect>
+       <x>40</x>
+       <y>120</y>
+       <width>171</width>
+       <height>30</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>16</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>Recording Time:</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lblRes_11">
+     <property name="geometry">
+      <rect>
+       <x>40</x>
+       <y>150</y>
+       <width>171</width>
+       <height>30</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>16</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>Recording Frames:</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lblRecordTime">
+     <property name="geometry">
+      <rect>
+       <x>200</x>
+       <y>120</y>
+       <width>101</width>
+       <height>30</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>16</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>33 ms</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lblRecordFrames">
+     <property name="geometry">
+      <rect>
+       <x>200</x>
+       <y>150</y>
+       <width>101</width>
+       <height>30</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>16</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>78</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lblRes_12">
+     <property name="geometry">
+      <rect>
+       <x>40</x>
+       <y>180</y>
+       <width>171</width>
+       <height>30</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>16</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>Slowdown Factor:</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lblSlowFactor">
+     <property name="geometry">
+      <rect>
+       <x>200</x>
+       <y>180</y>
+       <width>101</width>
+       <height>30</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>16</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>6.667</string>
      </property>
     </widget>
    </widget>
