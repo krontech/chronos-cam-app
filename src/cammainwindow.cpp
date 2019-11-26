@@ -245,15 +245,31 @@ void CamMainWindow::playFinishedSaving()
 	}
 }
 
+bool CamMainWindow::okToStopLive()
+{
+	qDebug() << "LTE:" << camera->loopTimerEnabled;
+	if(camera->loopTimerEnabled)
+	{
+		if(QMessageBox::Yes == question("Stop live slow motion?", "This action will stop live slow motion; is this okay?"))
+		{
+			camera->stopLiveLoop();
+			return false;
+		}
+	}
+	return true;
+}
 
 void CamMainWindow::on_cmdRecSettings_clicked()
 {
+	if (!okToStopLive()) return;
+
 	if(recording) {
 		if(QMessageBox::Yes != question("Stop recording?", "This action will stop recording; is this okay?"))
 			return;
 		autoSaveActive = false;
 		camera->stopRecording();
 	}
+
 	RecSettingsWindow *w = new RecSettingsWindow(NULL, camera);
 	connect(w, SIGNAL(settingsChanged()),this, SLOT(recSettingsClosed()));
 	w->setAttribute(Qt::WA_DeleteOnClose);
@@ -263,6 +279,8 @@ void CamMainWindow::on_cmdRecSettings_clicked()
 
 void CamMainWindow::on_cmdFPNCal_clicked()//Black cal
 {
+	if (!okToStopLive()) return;
+
 	if(recording) {
 		if(QMessageBox::Yes != question("Stop recording?", "This action will stop recording and erase the video; is this okay?")) {
 			return;
@@ -309,6 +327,8 @@ void CamMainWindow::on_cmdFPNCal_clicked()//Black cal
 
 void CamMainWindow::on_cmdWB_clicked()
 {
+	if (!okToStopLive()) return;
+
 	if(recording) {
 		if(QMessageBox::Yes != question("Stop recording?", "This action will stop recording and erase the video; is this okay?"))
 			return;
@@ -328,6 +348,8 @@ void CamMainWindow::on_cmdWB_clicked()
 
 void CamMainWindow::on_cmdIOSettings_clicked()
 {
+	if (!okToStopLive()) return;
+
 	if(recording) {
 		if(QMessageBox::Yes != question("Stop recording?", "This action will stop recording and erase the video; is this okay?"))
 			return;
@@ -449,6 +471,24 @@ void CamMainWindow::on_MainWindowTimer()
 		ui->cmdDebugWnd->setVisible(true);
 		ui->cmdClose->setVisible(true);
 		ui->cmdDPCButton->setVisible(true);
+	}
+
+	// hide Play button if in Live Slow Motion mode, to show the timer label under it
+	if (camera->liveSlowMotion && camera->loopTimerEnabled)
+	{
+		ui->cmdPlay->setVisible(false);
+
+		struct timespec now;
+		clock_gettime(CLOCK_MONOTONIC, &now);
+		double loopCurrentTime = now.tv_sec + now.tv_nsec / 1e9;
+		double timeRemaining = camera->liveLoopTime - loopCurrentTime + camera->loopStart - camera->liveLoopRecordTime;
+		//if ((timeRemaining < 0.0) || camera->liveLoopRecording) timeRemaining = 0.0;
+		//if (camera->liveLoopRecording) timeRemaining = 666.0;
+		ui->lblLiveTimer->setText(QString::number(timeRemaining, 'f', 2));
+	}
+	else
+	{
+		ui->cmdPlay->setVisible(true);
 	}
 }
 
@@ -576,6 +616,8 @@ void CamMainWindow::updateCurrentSettingsLabel()
 
 void CamMainWindow::on_cmdUtil_clicked()
 {
+	if (!okToStopLive()) return;
+
 	if(recording) {
 		if(QMessageBox::Yes != question("Stop recording?", "This action will stop recording and erase the video; is this okay?"))
 			return;

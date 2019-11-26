@@ -830,12 +830,18 @@ void Camera::onLoopTimer()
 	//record snippet
 	qDebug() << "loop timer";
 
+	liveLoopRecording = true;
 	cinst->startRecording();
-	delayms(liveLoopRecordTime * 500);
+	delayms(liveLoopRecordTime * 1000);
 	cinst->stopRecording();
+	liveLoopRecording = false;
 
 	//play back snippet
-	vinst->loopPlayback(1, 400, 30);
+	vinst->loopPlayback(1, 400, 60);
+
+	struct timespec now;
+	clock_gettime(CLOCK_MONOTONIC, &now);
+	loopStart = now.tv_sec + now.tv_nsec / 1e9;
 }
 
 void Camera::on_spinLiveLoopTime_valueChanged(double arg1)

@@ -471,9 +471,32 @@ border-color: black;</string>
 Aid</string>
    </property>
   </widget>
+  <widget class="QLabel" name="lblLiveTimer">
+   <property name="geometry">
+    <rect>
+     <x>97</x>
+     <y>262</y>
+     <width>91</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>20</pointsize>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">color: rgb(255, 255, 255)</string>
+   </property>
+   <property name="text">
+    <string>999.99</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignRight|Qt::AlignTop|Qt::AlignTrailing</set>
+   </property>
+  </widget>
   <zorder>cmdBkGndButton</zorder>
   <zorder>cmdRec</zorder>
-  <zorder>cmdPlay</zorder>
   <zorder>cmdRecSettings</zorder>
   <zorder>cmdFPNCal</zorder>
   <zorder>cmdWB</zorder>
@@ -487,6 +510,8 @@ Aid</string>
   <zorder>cmdDPCButton</zorder>
   <zorder>cmdFocusBackground</zorder>
   <zorder>chkFocusAid</zorder>
+  <zorder>lblLiveTimer</zorder>
+  <zorder>cmdPlay</zorder>
  </widget>
  <resources/>
  <connections/>

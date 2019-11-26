@@ -93,6 +93,7 @@ private:
 	void updateCurrentSettingsLabel(void);
 	void updateExpSliderLimits(void);
 	void updateBatteryData();
+	bool okToStopLive();
 	QMessageBox::StandardButton question(const QString &title, const QString &text, QMessageBox::StandardButtons = QMessageBox::Yes|QMessageBox::No);
 
 	QMessageBox *prompt;

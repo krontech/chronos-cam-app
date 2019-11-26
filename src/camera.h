@@ -191,6 +191,9 @@ public:
 	bool liveSlowMotion = false;
 	bool loopTimerEnabled = false;
 	double liveLoopRecordTime;
+	double loopStart;
+	bool liveLoopRecording = false;
+	QTimer * loopTimer;
 
 	void set_autoSave(bool state);
 	bool get_autoSave();
@@ -223,7 +226,6 @@ public:
 
 private:
 	QString lastState = "idle";
-	QTimer * loopTimer;
 
 protected slots:
 	/* Slots from the API on how to handle value changes. */
