@@ -74,6 +74,22 @@ recModeWindow::recModeWindow(QWidget *parent, Camera * cameraInst, ImagerSetting
 
 	ui->spinLoopLengthSeconds->setValue(camera->liveLoopTime);
 
+	for (int fps = 15;  fps <= 60; fps *= 2)
+	{
+		ui->comboPlaybackRate->addItem(QString::number(fps));
+	}
+
+	QSettings appSettings;
+	camera->playbackFps = appSettings.value("camera/playbackFps", "60").toInt();
+
+	int index = 2;
+	int fps = 60;
+	while (camera->playbackFps < fps)
+	{
+		index--;
+		fps /= 2;
+	}
+	ui->comboPlaybackRate->setCurrentIndex(index);
 }
 
 recModeWindow::~recModeWindow()
@@ -118,6 +134,10 @@ void recModeWindow::on_cmdOK_clicked()
 
 	appSettings.setValue("recorder/liveLoopTime", camera->liveLoopTime);
 	appSettings.setValue("recorder/liveLoopRecordTime", camera->liveLoopRecordTime);
+	int index = ui->comboPlaybackRate->currentIndex();
+	camera->playbackFps = 15 * (1 << index);
+	appSettings.setValue("recorder/liveLoopPlaybackFps", camera->playbackFps);
+
 
     close();
 }
@@ -245,7 +265,7 @@ void recModeWindow::showLoopInformation()
 
 double recModeWindow::calcRecordTime()
 {
-	UInt32 playFps = 60;
+	UInt32 playFps = camera->playbackFps;
 	double frameRate;
 	camera->cinst->getFloat("frameRate", &frameRate);
 	double recordTime = ui->spinLoopLengthSeconds->value() * playFps / frameRate;
@@ -255,7 +275,7 @@ double recModeWindow::calcRecordTime()
 
 UInt32 recModeWindow::calcRecordFrames()
 {
-	UInt32 playFps = 60;
+	UInt32 playFps = camera->playbackFps;
 	double framePeriod;
 	camera->cinst->getFloat("framePeriod", &framePeriod);
 	framePeriod /= 1e9;
@@ -266,9 +286,15 @@ UInt32 recModeWindow::calcRecordFrames()
 
 double recModeWindow::calcSlowFactor()
 {
-	UInt32 playFps = 60;
+	UInt32 playFps = camera->playbackFps;
 	double frameRate;
 	camera->cinst->getFloat("frameRate", &frameRate);
 	double slowFactor = frameRate / playFps;
 	return slowFactor;
+}
+
+void recModeWindow::on_comboPlaybackRate_currentIndexChanged(int index)
+{
+	camera->playbackFps = 15 * (1 << ui->comboPlaybackRate->currentIndex());
+	showLoopInformation();
 }

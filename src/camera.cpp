@@ -837,7 +837,7 @@ void Camera::onLoopTimer()
 	liveLoopRecording = false;
 
 	//play back snippet
-	vinst->loopPlayback(1, 400, 60);
+	vinst->loopPlayback(1, liveLoopTime * 60, playbackFps);
 
 	struct timespec now;
 	clock_gettime(CLOCK_MONOTONIC, &now);

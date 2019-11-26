@@ -193,6 +193,7 @@ public:
 	double liveLoopRecordTime;
 	double loopStart;
 	bool liveLoopRecording = false;
+	int playbackFps = 60;
 	QTimer * loopTimer;
 
 	void set_autoSave(bool state);

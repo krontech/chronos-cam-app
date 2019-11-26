@@ -57,7 +57,7 @@
     <rect>
      <x>10</x>
      <y>10</y>
-     <width>501</width>
+     <width>531</width>
      <height>461</height>
     </rect>
    </property>
@@ -335,9 +335,9 @@ QSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}<
     <widget class="QLabel" name="lblSegmented_2">
      <property name="geometry">
       <rect>
-       <x>10</x>
+       <x>-10</x>
        <y>0</y>
-       <width>491</width>
+       <width>531</width>
        <height>41</height>
       </rect>
      </property>
@@ -517,7 +517,7 @@ QSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}<
       </font>
      </property>
      <property name="text">
-      <string>A short burst of video is recorded, and played back in slow motion</string>
+      <string>A short burst of video is recorded, and played back in slow motion, continuously</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignHCenter|Qt::AlignTop</set>
@@ -696,7 +696,7 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
      <property name="geometry">
       <rect>
        <x>20</x>
-       <y>230</y>
+       <y>340</y>
        <width>261</width>
        <height>41</height>
       </rect>
@@ -723,7 +723,7 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
      <property name="geometry">
       <rect>
        <x>20</x>
-       <y>280</y>
+       <y>390</y>
        <width>261</width>
        <height>41</height>
       </rect>
@@ -741,6 +741,42 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
      </property>
      <property name="text">
       <string>Vertical Flip</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lblRes_13">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>230</y>
+       <width>291</width>
+       <height>30</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>16</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>Playback rate (fps)</string>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="comboPlaybackRate">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>263</y>
+       <width>161</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>16</pointsize>
+       <weight>75</weight>
+       <italic>true</italic>
+       <bold>true</bold>
+      </font>
      </property>
     </widget>
    </widget>

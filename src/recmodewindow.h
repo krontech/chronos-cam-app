@@ -48,6 +48,8 @@ private slots:
 
 	void showLoopInformation();
 
+	void on_comboPlaybackRate_currentIndexChanged(int index);
+
 
 private:
     Camera * camera;
