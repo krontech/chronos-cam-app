@@ -59,6 +59,16 @@ recModeWindow::recModeWindow(QWidget *parent, Camera * cameraInst, ImagerSetting
         break;
     }
 
+	if (camera->liveOneShot)
+	{
+		ui->radioOneShot->setChecked(true);
+	}
+	else
+	{
+		ui->radioContinuous->setChecked(true);
+	}
+
+
 	ui->spinRecLengthFrames->setMaximum(camera->getMaxRecordRegionSizeFrames(&is->geometry));
 	ui->spinRecLengthFrames->setValue(is->recRegionSizeFrames);
 
@@ -100,8 +110,7 @@ recModeWindow::recModeWindow(QWidget *parent, Camera * cameraInst, ImagerSetting
 
 recModeWindow::~recModeWindow()
 {
-	camera->liveSlowMotion = ui->radioLive->isChecked();
-    delete ui;
+   delete ui;
 }
 
 void recModeWindow::on_cmdOK_clicked()
@@ -124,7 +133,7 @@ void recModeWindow::on_cmdOK_clicked()
         is->mode = RECORD_MODE_SEGMENTED;
         is->recRegionSizeFrames = ui->spinRecLengthFrames->value();
         is->segments = ui->spinSegmentCount->value();
-        is->segmentLengthFrames = is->recRegionSizeFrames / is->segments;
+		is->segmentLengthFrames = is->recRegionSizeFrames / is->segments;
     }
 	else if(ui->radioGated->isChecked())
 	{
@@ -136,6 +145,7 @@ void recModeWindow::on_cmdOK_clicked()
 		is->mode = RECORD_MODE_LIVE;
 		camera->liveLoopTime = ui->spinLoopLengthSeconds->value();
 		camera->liveSlowMotion = true;
+		camera->liveOneShot = ui->radioOneShot->isChecked();
 	}
 
 	appSettings.setValue("recorder/liveLoopTime", camera->liveLoopTime);
@@ -144,6 +154,7 @@ void recModeWindow::on_cmdOK_clicked()
 	camera->playbackFps = 15 * (1 << index);
 	appSettings.setValue("recorder/liveLoopPlaybackFps", camera->playbackFps);
 	appSettings.setValue("recorder/liveMode", camera->liveSlowMotion);
+	appSettings.setValue("recorder/liveOneShot", camera->liveOneShot);
 
 
     close();

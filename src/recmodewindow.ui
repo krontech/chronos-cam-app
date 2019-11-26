@@ -696,7 +696,7 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
      <property name="geometry">
       <rect>
        <x>20</x>
-       <y>340</y>
+       <y>250</y>
        <width>261</width>
        <height>41</height>
       </rect>
@@ -723,7 +723,7 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
      <property name="geometry">
       <rect>
        <x>20</x>
-       <y>390</y>
+       <y>300</y>
        <width>261</width>
        <height>41</height>
       </rect>
@@ -746,8 +746,8 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
     <widget class="QLabel" name="lblRes_13">
      <property name="geometry">
       <rect>
-       <x>20</x>
-       <y>230</y>
+       <x>310</x>
+       <y>27</y>
        <width>291</width>
        <height>30</height>
       </rect>
@@ -764,8 +764,8 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
     <widget class="QComboBox" name="comboPlaybackRate">
      <property name="geometry">
       <rect>
-       <x>20</x>
-       <y>263</y>
+       <x>310</x>
+       <y>60</y>
        <width>161</width>
        <height>41</height>
       </rect>
@@ -778,6 +778,73 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
        <bold>true</bold>
       </font>
      </property>
+    </widget>
+    <widget class="QGroupBox" name="groupBox_2">
+     <property name="geometry">
+      <rect>
+       <x>310</x>
+       <y>230</y>
+       <width>181</width>
+       <height>121</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string>Loop Mode</string>
+     </property>
+     <widget class="QRadioButton" name="radioContinuous">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>20</y>
+        <width>161</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>16</pointsize>
+       </font>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QRadioButton::indicator {
+     width: 40px;
+     height: 40px;
+}</string>
+      </property>
+      <property name="text">
+       <string>Continuous</string>
+      </property>
+      <property name="checked">
+       <bool>false</bool>
+      </property>
+     </widget>
+     <widget class="QRadioButton" name="radioOneShot">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>70</y>
+        <width>161</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>16</pointsize>
+       </font>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QRadioButton::indicator {
+     width: 40px;
+     height: 40px;
+}</string>
+      </property>
+      <property name="text">
+       <string>One shot</string>
+      </property>
+      <property name="checked">
+       <bool>false</bool>
+      </property>
+     </widget>
     </widget>
    </widget>
   </widget>

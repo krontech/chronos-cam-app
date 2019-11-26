@@ -101,7 +101,8 @@ CameraErrortype Camera::init(Video * vinstInst, Control * cinstInst)
 	liveLoopTime               = appSettings.value("recorder/liveLoopTime", 2.0).toDouble();
 	liveLoopRecordTime         = appSettings.value("recorder/liveLoopRecordTime", 0.15).toDouble();
 	playbackFps                = appSettings.value("recorder/liveLoopPlaybackFps", "60").toInt();
-	liveSlowMotion             = appSettings.value("recorder/liveMode", "60").toBool();
+	liveSlowMotion             = appSettings.value("recorder/liveMode", false).toBool();
+	liveOneShot                = appSettings.value("recorder/liveOneshot", false).toBool();
 
 	if(strlen(cinst->fileDirectory) == 0){
 		/* Set the default file path, or fall back to the MMC card. */
@@ -806,8 +807,11 @@ void Camera::api_colorMatrix_valueChanged(const QVariant &wb)
 
 void Camera::startLiveLoop()
 {
-	// start live loop cycle
+	// start live loop cycle, record at least once
+	bool keepOneShot = liveOneShot;
+	liveOneShot = false;
 	onLoopTimer();
+	liveOneShot = keepOneShot;
 
 	//enable loop timer
 	loopTimer = new QTimer(this);
@@ -833,13 +837,16 @@ void Camera::onLoopTimer()
 	//record snippet
 	qDebug() << "loop timer";
 
-	liveLoopRecording = true;
-	cinst->startRecording();
+	if (!liveOneShot)
+	{
+		liveLoopRecording = true;
+		cinst->startRecording();
 
-	delayms(liveLoopRecordTime * 1000);
+		delayms(liveLoopRecordTime * 1000);
 
-	cinst->stopRecording();
-	liveLoopRecording = false;
+		cinst->stopRecording();
+		liveLoopRecording = false;
+	}
 
 	//play back snippet
 	vinst->loopPlayback(1, liveLoopTime * 60, playbackFps);

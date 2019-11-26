@@ -482,8 +482,12 @@ void CamMainWindow::on_MainWindowTimer()
 		clock_gettime(CLOCK_MONOTONIC, &now);
 		double loopCurrentTime = now.tv_sec + now.tv_nsec / 1e9;
 		double timeRemaining = camera->liveLoopTime - loopCurrentTime + camera->loopStart - camera->liveLoopRecordTime;
-		//if ((timeRemaining < 0.0) || camera->liveLoopRecording) timeRemaining = 0.0;
-		//if (camera->liveLoopRecording) timeRemaining = 666.0;
+		if (camera->liveOneShot)
+		{
+			//longer loop display; there is no recording
+			timeRemaining += camera->liveLoopRecordTime;
+		}
+		if ((timeRemaining < 0.1) || camera->liveLoopRecording) timeRemaining = 0.0;
 		ui->lblLiveTimer->setText(QString::number(timeRemaining, 'f', 2));
 	}
 	else

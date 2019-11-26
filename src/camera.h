@@ -189,6 +189,7 @@ public:
 	bool autoSavePercentEnabled;
 	bool shippingMode;
 	bool liveSlowMotion = false;
+	bool liveOneShot = false;
 	bool loopTimerEnabled = false;
 	double liveLoopRecordTime;
 	double loopStart;
