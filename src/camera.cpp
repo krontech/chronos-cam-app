@@ -100,6 +100,9 @@ CameraErrortype Camera::init(Video * vinstInst, Control * cinstInst)
 	strcpy(cinst->fileFolder,    appSettings.value("recorder/fileFolder", "").toString().toAscii());
 	liveLoopTime               = appSettings.value("recorder/liveLoopTime", 2.0).toDouble();
 	liveLoopRecordTime         = appSettings.value("recorder/liveLoopRecordTime", 0.15).toDouble();
+	playbackFps                = appSettings.value("recorder/liveLoopPlaybackFps", "60").toInt();
+	liveSlowMotion             = appSettings.value("recorder/liveMode", "60").toBool();
+
 	if(strlen(cinst->fileDirectory) == 0){
 		/* Set the default file path, or fall back to the MMC card. */
 		int i;
@@ -832,7 +835,9 @@ void Camera::onLoopTimer()
 
 	liveLoopRecording = true;
 	cinst->startRecording();
+
 	delayms(liveLoopRecordTime * 1000);
+
 	cinst->stopRecording();
 	liveLoopRecording = false;
 

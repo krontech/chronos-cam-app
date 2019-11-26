@@ -475,7 +475,7 @@ Aid</string>
    <property name="geometry">
     <rect>
      <x>97</x>
-     <y>262</y>
+     <y>260</y>
      <width>91</width>
      <height>41</height>
     </rect>
@@ -495,6 +495,34 @@ Aid</string>
     <set>Qt::AlignRight|Qt::AlignTop|Qt::AlignTrailing</set>
    </property>
   </widget>
+  <widget class="QLabel" name="lblLiveRec">
+   <property name="geometry">
+    <rect>
+     <x>100</x>
+     <y>263</y>
+     <width>91</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>20</pointsize>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">color: rgb(255,0,0)
+</string>
+   </property>
+   <property name="text">
+    <string>REC</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignHCenter|Qt::AlignTop</set>
+   </property>
+  </widget>
+  <zorder>lblLiveRec</zorder>
   <zorder>cmdBkGndButton</zorder>
   <zorder>cmdRec</zorder>
   <zorder>cmdRecSettings</zorder>

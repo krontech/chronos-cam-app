@@ -6,6 +6,7 @@ recModeWindow::recModeWindow(QWidget *parent, Camera * cameraInst, ImagerSetting
     QWidget(parent),
     ui(new Ui::recModeWindow)
 {
+	windowOpening = true;
     ui->setupUi(this);
     this->setWindowFlags(Qt::Dialog /*| Qt::WindowStaysOnTopHint*/ | Qt::FramelessWindowHint);
     this->move(0,0);
@@ -18,6 +19,11 @@ recModeWindow::recModeWindow(QWidget *parent, Camera * cameraInst, ImagerSetting
 	ui->chkDisableRing->setVisible(false);
 
 	showLoopInformation();
+
+	if (camera->liveSlowMotion)
+	{
+		is->mode = RECORD_MODE_LIVE;
+	}
 
     switch(is->mode)
     {
@@ -79,17 +85,17 @@ recModeWindow::recModeWindow(QWidget *parent, Camera * cameraInst, ImagerSetting
 		ui->comboPlaybackRate->addItem(QString::number(fps));
 	}
 
-	QSettings appSettings;
-	camera->playbackFps = appSettings.value("camera/playbackFps", "60").toInt();
 
-	int index = 2;
-	int fps = 60;
-	while (camera->playbackFps < fps)
+	int index = 0;
+	int fps = 15;
+	while (camera->playbackFps > fps)
 	{
-		index--;
-		fps /= 2;
+		index++;
+		fps *= 2;
 	}
 	ui->comboPlaybackRate->setCurrentIndex(index);
+
+	windowOpening = false;
 }
 
 recModeWindow::~recModeWindow()
@@ -137,6 +143,7 @@ void recModeWindow::on_cmdOK_clicked()
 	int index = ui->comboPlaybackRate->currentIndex();
 	camera->playbackFps = 15 * (1 << index);
 	appSettings.setValue("recorder/liveLoopPlaybackFps", camera->playbackFps);
+	appSettings.setValue("recorder/liveMode", camera->liveSlowMotion);
 
 
     close();
@@ -295,6 +302,7 @@ double recModeWindow::calcSlowFactor()
 
 void recModeWindow::on_comboPlaybackRate_currentIndexChanged(int index)
 {
+	if (!windowOpening)
 	camera->playbackFps = 15 * (1 << ui->comboPlaybackRate->currentIndex());
 	showLoopInformation();
 }

@@ -61,6 +61,7 @@ private:
 	double calcRecordTime();
 	UInt32 calcRecordFrames();
 	double calcSlowFactor();
+	bool windowOpening = false;
 };
 
 #endif // RECMODEWINDOW_H
