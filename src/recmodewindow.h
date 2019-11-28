@@ -50,6 +50,7 @@ private slots:
 
 	void on_comboPlaybackRate_currentIndexChanged(int index);
 
+	void on_comboDigitalGain_currentIndexChanged(int index);
 
 private:
     Camera * camera;

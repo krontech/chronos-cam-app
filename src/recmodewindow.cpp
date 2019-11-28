@@ -105,7 +105,7 @@ recModeWindow::recModeWindow(QWidget *parent, Camera * cameraInst, ImagerSetting
 	ui->comboDigitalGain->addItem("None");
 
 	int gainDb = 0;
-	for (int gain = 1; gain <= 16; gain *= 2, gainDb += 6)
+	for (int gain = 1; gain <= 32; gain *= 2, gainDb += 6)
 	{
 		ui->comboDigitalGain->addItem(QString::number(gainDb) + "dB (x" +
 				QString::number(gain) + ")");
@@ -162,33 +162,48 @@ void recModeWindow::on_cmdOK_clicked()
 	appSettings.setValue("recorder/liveLoopPlaybackFps", camera->playbackFps);
 	appSettings.setValue("recorder/liveMode", camera->liveSlowMotion);
 	appSettings.setValue("recorder/liveOneShot", camera->liveOneShot);
-	appSettings.setValue("recorder/liveGainIndex", ui->comboDigitalGain->currentIndex());
-
-    close();
+	appSettings.setValue("recorder/liveGainIndex", camera->liveGainIndex);
 
 	//now apply digital gain, if any
 
-	if (ui->comboDigitalGain->currentIndex())
+	if (camera->liveGainIndex)
 	{
 		double wbTungsten[3] = {1.02, 1.0, 1.91};
 		double wb[3];
 		double matrix[9];
 
-		double gainFactor = sqrt(1 << ui->comboDigitalGain->currentIndex() - 1);
-
-		for (int i = 0; i < 9; i++)
+		if (camera->liveGainIndex <= 5)
 		{
-			matrix[i] = camera->ccmPresets[0].matrix[i] * gainFactor;
+			double gainFactor = sqrt(1 << camera->liveGainIndex - 1);
+			for (int i = 0; i < 9; i++)
+			{
+				matrix[i] = camera->ccmPresets[0].matrix[i] * gainFactor;
+			}
+			for (int i = 0; i < 3; i++)
+			{
+				wb[i] = wbTungsten[i] * gainFactor;
+			}
 		}
-
-		for (int i = 0; i < 3; i++)
+		else
 		{
-			wb[i] = wbTungsten[i] * gainFactor;
+			//special case for 30dB (x32) - apply final 2x gain in white balance only
+			double gainFactor = sqrt(1 << camera->liveGainIndex - 2);
+			for (int i = 0; i < 9; i++)
+			{
+				matrix[i] = camera->ccmPresets[0].matrix[i] * gainFactor;
+			}
+			for (int i = 0; i < 3; i++)
+			{
+				wb[i] = 2 * wbTungsten[i] * gainFactor;
+			}
+
 		}
 
 		camera->cinst->setArray("wbColor", 3, (double *)&wb);
 		camera->setCCMatrix((double *)&matrix);
 	}
+
+	close();
 }
 
 void recModeWindow::on_cmdCancel_clicked()
@@ -347,5 +362,13 @@ void recModeWindow::on_comboPlaybackRate_currentIndexChanged(int index)
 	{
 		camera->playbackFps = 15 * (1 << ui->comboPlaybackRate->currentIndex());
 		showLoopInformation();
+	}
+}
+
+void recModeWindow::on_comboDigitalGain_currentIndexChanged(int index)
+{
+	if (!windowOpening)
+	{
+		camera->liveGainIndex = index;
 	}
 }
