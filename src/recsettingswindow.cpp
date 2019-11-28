@@ -520,6 +520,7 @@ void RecSettingsWindow::on_cmdRecMode_clicked()
 	is->gain = ui->comboGain->currentIndex();
 	is->period = ui->linePeriod->siText() * sensor.timingClock;
 	is->exposure = ui->lineExp->siText() * sensor.timingClock;
+	camera->liveFramePeriod = is->period / 1e9;		//this is needed for calculations that have not yet been sent to the API
 
 	recModeWindow *w = new recModeWindow(NULL, camera, is);
 	w->setAttribute(Qt::WA_DeleteOnClose);

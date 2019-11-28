@@ -622,7 +622,7 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
       <rect>
        <x>200</x>
        <y>120</y>
-       <width>101</width>
+       <width>171</width>
        <height>30</height>
       </rect>
      </property>
@@ -640,7 +640,7 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
       <rect>
        <x>200</x>
        <y>150</y>
-       <width>101</width>
+       <width>211</width>
        <height>30</height>
       </rect>
      </property>
@@ -676,7 +676,7 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
       <rect>
        <x>200</x>
        <y>180</y>
-       <width>101</width>
+       <width>171</width>
        <height>30</height>
       </rect>
      </property>
@@ -758,7 +758,7 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
       </font>
      </property>
      <property name="text">
-      <string>Playback rate (fps)</string>
+      <string>Playback Rate (fps)</string>
      </property>
     </widget>
     <widget class="QComboBox" name="comboPlaybackRate">
@@ -839,7 +839,7 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
 }</string>
       </property>
       <property name="text">
-       <string>One shot</string>
+       <string>One Shot</string>
       </property>
       <property name="checked">
        <bool>false</bool>
@@ -989,6 +989,42 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
    </property>
    <property name="text">
     <string>Disable ring buffer</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="lblRes_14">
+   <property name="geometry">
+    <rect>
+     <x>30</x>
+     <y>377</y>
+     <width>291</width>
+     <height>30</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>16</pointsize>
+    </font>
+   </property>
+   <property name="text">
+    <string>Digital Gain</string>
+   </property>
+  </widget>
+  <widget class="QComboBox" name="comboDigitalGain">
+   <property name="geometry">
+    <rect>
+     <x>30</x>
+     <y>410</y>
+     <width>161</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>16</pointsize>
+     <weight>75</weight>
+     <italic>true</italic>
+     <bold>true</bold>
+    </font>
    </property>
   </widget>
  </widget>

@@ -84,8 +84,6 @@ recModeWindow::recModeWindow(QWidget *parent, Camera * cameraInst, ImagerSetting
 	ui->spinPrerecordFrames->setValue(is->prerecordFrames);
 	ui->spinPrerecordSeconds->setValue(((double)is->period / sensor.timingClock * is->prerecordFrames));
 
-
-
 	ui->lblSegmentSize->setText("Segment size:\n" + QString::number(ui->spinRecLengthFrames->value() / ui->spinSegmentCount->value() * ((double) is->period / sensor.timingClock)) + " s\n(" + QString::number(ui->spinRecLengthFrames->value() / ui->spinSegmentCount->value()) + " frames)");
 
 	ui->spinLoopLengthSeconds->setValue(camera->liveLoopTime);
@@ -95,7 +93,6 @@ recModeWindow::recModeWindow(QWidget *parent, Camera * cameraInst, ImagerSetting
 		ui->comboPlaybackRate->addItem(QString::number(fps));
 	}
 
-
 	int index = 0;
 	int fps = 15;
 	while (camera->playbackFps > fps)
@@ -104,6 +101,16 @@ recModeWindow::recModeWindow(QWidget *parent, Camera * cameraInst, ImagerSetting
 		fps *= 2;
 	}
 	ui->comboPlaybackRate->setCurrentIndex(index);
+
+	ui->comboDigitalGain->addItem("None");
+
+	int gainDb = 0;
+	for (int gain = 1; gain <= 16; gain *= 2, gainDb += 6)
+	{
+		ui->comboDigitalGain->addItem(QString::number(gainDb) + "dB (x" +
+				QString::number(gain) + ")");
+	}
+	ui->comboDigitalGain->setCurrentIndex(camera->liveGainIndex);
 
 	windowOpening = false;
 }
@@ -155,9 +162,33 @@ void recModeWindow::on_cmdOK_clicked()
 	appSettings.setValue("recorder/liveLoopPlaybackFps", camera->playbackFps);
 	appSettings.setValue("recorder/liveMode", camera->liveSlowMotion);
 	appSettings.setValue("recorder/liveOneShot", camera->liveOneShot);
-
+	appSettings.setValue("recorder/liveGainIndex", ui->comboDigitalGain->currentIndex());
 
     close();
+
+	//now apply digital gain, if any
+
+	if (ui->comboDigitalGain->currentIndex())
+	{
+		double wbTungsten[3] = {1.02, 1.0, 1.91};
+		double wb[3];
+		double matrix[9];
+
+		double gainFactor = sqrt(1 << ui->comboDigitalGain->currentIndex() - 1);
+
+		for (int i = 0; i < 9; i++)
+		{
+			matrix[i] = camera->ccmPresets[0].matrix[i] * gainFactor;
+		}
+
+		for (int i = 0; i < 3; i++)
+		{
+			wb[i] = wbTungsten[i] * gainFactor;
+		}
+
+		camera->cinst->setArray("wbColor", 3, (double *)&wb);
+		camera->setCCMatrix((double *)&matrix);
+	}
 }
 
 void recModeWindow::on_cmdCancel_clicked()
@@ -277,7 +308,8 @@ void recModeWindow::showLoopInformation()
 	double recordTime = calcRecordTime();
 	camera->liveLoopRecordTime = recordTime;
 	ui->lblRecordTime->setText(QString::number((int)(recordTime * 1000)) + " ms");
-	ui->lblRecordFrames->setText(QString::number(calcRecordFrames()));
+	ui->lblRecordFrames->setText(QString::number(calcRecordFrames())
+			+ " @ " + QString::number(1 / camera->liveFramePeriod, 'f', 0) + " fps");
 	ui->lblSlowFactor->setText(QString::number(calcSlowFactor(),'f', 3));
 }
 
@@ -285,7 +317,8 @@ double recModeWindow::calcRecordTime()
 {
 	UInt32 playFps = camera->playbackFps;
 	double frameRate;
-	camera->cinst->getFloat("frameRate", &frameRate);
+	//camera->cinst->getFloat("frameRate", &frameRate);
+	frameRate = 1.0 / camera->liveFramePeriod;
 	double recordTime = ui->spinLoopLengthSeconds->value() * playFps / frameRate;
 	qDebug() << recordTime;
 	return recordTime;
@@ -294,11 +327,7 @@ double recModeWindow::calcRecordTime()
 UInt32 recModeWindow::calcRecordFrames()
 {
 	UInt32 playFps = camera->playbackFps;
-	double framePeriod;
-	camera->cinst->getFloat("framePeriod", &framePeriod);
-	framePeriod /= 1e9;
 	UInt32 recordFrames = ui->spinLoopLengthSeconds->value() * playFps;
-	qDebug() << recordFrames;
 	return recordFrames;
 }
 
@@ -306,7 +335,8 @@ double recModeWindow::calcSlowFactor()
 {
 	UInt32 playFps = camera->playbackFps;
 	double frameRate;
-	camera->cinst->getFloat("frameRate", &frameRate);
+	//camera->cinst->getFloat("frameRate", &frameRate);
+	frameRate = 1.0 / camera->liveFramePeriod;
 	double slowFactor = frameRate / playFps;
 	return slowFactor;
 }
@@ -314,6 +344,8 @@ double recModeWindow::calcSlowFactor()
 void recModeWindow::on_comboPlaybackRate_currentIndexChanged(int index)
 {
 	if (!windowOpening)
-	camera->playbackFps = 15 * (1 << ui->comboPlaybackRate->currentIndex());
-	showLoopInformation();
+	{
+		camera->playbackFps = 15 * (1 << ui->comboPlaybackRate->currentIndex());
+		showLoopInformation();
+	}
 }

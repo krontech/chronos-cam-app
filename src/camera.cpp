@@ -103,6 +103,7 @@ CameraErrortype Camera::init(Video * vinstInst, Control * cinstInst)
 	playbackFps                = appSettings.value("recorder/liveLoopPlaybackFps", "60").toInt();
 	liveSlowMotion             = appSettings.value("recorder/liveMode", false).toBool();
 	liveOneShot                = appSettings.value("recorder/liveOneshot", false).toBool();
+	liveGainIndex              = appSettings.value("recorder/liveGainIndex", 0).toInt();
 
 	if(strlen(cinst->fileDirectory) == 0){
 		/* Set the default file path, or fall back to the MMC card. */
