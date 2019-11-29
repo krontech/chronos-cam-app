@@ -88,6 +88,8 @@ private slots:
 	void on_exposurePeriod_valueChanged(const QVariant &value);
 
 	void exposureHandler(void);
+	void buttonsEnabled(bool en);
+
 
 private:
 	void updateCurrentSettingsLabel(void);

@@ -842,8 +842,8 @@ void Camera::onLoopTimer()
 	{
 		liveLoopRecording = true;
 		cinst->startRecording();
-
-		delayms(liveLoopRecordTime * 1000);
+		QCoreApplication::processEvents();
+		delayms(liveLoopRecordTime * 1000);		//maybe this should be rewritten to use a timer
 
 		cinst->stopRecording();
 		liveLoopRecording = false;

@@ -194,24 +194,40 @@ void CamMainWindow::on_cmdDebugWnd_clicked()
 
 void CamMainWindow::on_cmdRec_clicked()
 {
-	if(recording)
+	if (camera->liveSlowMotion)
 	{
-		camera->stopRecording();
+		if (camera->loopTimerEnabled)
+		{
+			ui->cmdRec->setText("Record");
+			camera->stopLiveLoop();
+		}
+		else
+		{
+			ui->cmdRec->setText("End Loop");
+			camera->startLiveLoop();
+		}
 	}
 	else
 	{
-		//If there is unsaved video in RAM, prompt to start record.  unsavedWarnEnabled values: 0=always, 1=if not reviewed, 2=never
-		if(false == camera->recordingData.hasBeenSaved && (0 != camera->unsavedWarnEnabled && (2 == camera->unsavedWarnEnabled || !camera->recordingData.hasBeenViewed)))
+
+		if(recording)
 		{
-			if(QMessageBox::Yes != question("Unsaved video in RAM", "Start recording anyway and discard the unsaved video in RAM?"))
-				return;
+			camera->stopRecording();
 		}
+		else
+		{
+			//If there is unsaved video in RAM, prompt to start record.  unsavedWarnEnabled values: 0=always, 1=if not reviewed, 2=never
+			if(false == camera->recordingData.hasBeenSaved && (0 != camera->unsavedWarnEnabled && (2 == camera->unsavedWarnEnabled || !camera->recordingData.hasBeenViewed)))
+			{
+				if(QMessageBox::Yes != question("Unsaved video in RAM", "Start recording anyway and discard the unsaved video in RAM?"))
+					return;
+			}
 
-		camera->startRecording();
-		if (camera->get_autoSave()) autoSaveActive = true;
+			camera->startRecording();
+			if (camera->get_autoSave()) autoSaveActive = true;
 
+		}
 	}
-
 }
 
 void CamMainWindow::on_cmdPlay_clicked()
@@ -370,7 +386,10 @@ void CamMainWindow::on_state_valueChanged(const QVariant &value)
 		/* Check if recording has started. */
 		if (state != "recording") return;
 		recording = true;
-		ui->cmdRec->setText("Stop");
+		if (!camera->loopTimerEnabled)
+		{
+			ui->cmdRec->setText("Stop");
+		}
 	}
 	else {
 		/* Check if recording has ended. */
@@ -378,7 +397,15 @@ void CamMainWindow::on_state_valueChanged(const QVariant &value)
 		recording = false;
 
 		/* Recording has ended */
-		ui->cmdRec->setText("Record");
+		if (camera->loopTimerEnabled)
+		{
+		buttonsEnabled(true);
+			ui->cmdRec->setText("End Loop");
+		}
+		else
+		{
+			ui->cmdRec->setText("Record");
+		}
 		ui->cmdPlay->setEnabled(true);
 
 		if(camera->get_autoSave() && autoSaveActive)
@@ -407,27 +434,31 @@ void CamMainWindow::on_MainWindowTimer()
 
 	if(shutterButton && !lastShutterButton)
 	{
-		if (camera->liveSlowMotion)
+		QWidgetList qwl = QApplication::topLevelWidgets();	//Hack to stop you from starting record when another window is open. Need to get modal dialogs working for proper fix
+		if(qwl.count() <= windowsAlwaysOpen)				//Now that the numeric keypad has been added, there are four windows: cammainwindow, debug buttons window, and both keyboards
 		{
-			if (camera->loopTimerEnabled)
+			if (camera->liveSlowMotion)
 			{
-				camera->stopLiveLoop();
+				if (camera->loopTimerEnabled)
+				{
+					ui->cmdRec->setText("Record");
+					camera->stopLiveLoop();
+				}
+				else
+				{
+					buttonsEnabled(false);
+					ui->cmdRec->setText("End Loop");
+					camera->startLiveLoop();
+
+				}
 			}
 			else
 			{
-				camera->startLiveLoop();
-			}
-		}
-		else
-		{
-			if(recording)
-			{
-				camera->stopRecording();
-			}
-			else
-			{
-				QWidgetList qwl = QApplication::topLevelWidgets();	//Hack to stop you from starting record when another window is open. Need to get modal dialogs working for proper fix
-				if(qwl.count() <= windowsAlwaysOpen)				//Now that the numeric keypad has been added, there are four windows: cammainwindow, debug buttons window, and both keyboards
+				if(recording)
+				{
+					camera->stopRecording();
+				}
+				else
 				{
 					//If there is unsaved video in RAM, prompt to start record.  unsavedWarnEnabled values: 0=always, 1=if not reviewed, 2=never
 					if(false == camera->recordingData.hasBeenSaved && (0 != camera->unsavedWarnEnabled && (2 == camera->unsavedWarnEnabled || !camera->recordingData.hasBeenViewed)) && false == camera->get_autoSave())	//If there is unsaved video in RAM, prompt to start record
@@ -474,6 +505,7 @@ void CamMainWindow::on_MainWindowTimer()
 	}
 
 	// hide Play button if in Live Slow Motion mode, to show the timer label under it
+	// also gray out all buttons
 	if (camera->liveSlowMotion && camera->loopTimerEnabled)
 	{
 		ui->cmdPlay->setVisible(false);
@@ -487,12 +519,17 @@ void CamMainWindow::on_MainWindowTimer()
 			//longer loop display; there is no recording
 			timeRemaining += camera->liveLoopRecordTime;
 		}
-		if ((timeRemaining < 0.1) || camera->liveLoopRecording) timeRemaining = 0.0;
+		if ((timeRemaining < 0.1) || camera->liveLoopRecording) timeRemaining = 0.0;  //prevents clock freezing at "0.05"
 		ui->lblLiveTimer->setText(QString::number(timeRemaining, 'f', 2));
+
+		buttonsEnabled(false);
+
+		ui->cmdRec->setText("End Loop");
 	}
 	else
 	{
 		ui->cmdPlay->setVisible(true);
+		buttonsEnabled(true);
 	}
 }
 
@@ -754,4 +791,15 @@ void CamMainWindow::keyPressEvent(QKeyEvent *ev)
 		ui->expSlider->setValue(expPeriod - ui->expSlider->singleStep());
 		break;
 	}
+}
+
+void CamMainWindow::buttonsEnabled(bool en)
+{
+	ui->cmdUtil->setEnabled(en);
+	ui->chkFocusAid->setEnabled(en);
+	ui->cmdFPNCal->setEnabled(en);
+	ui->cmdWB->setEnabled(en);
+	ui->cmdIOSettings->setEnabled(en);
+	ui->cmdRecSettings->setEnabled(en);
+	QCoreApplication::processEvents();
 }
