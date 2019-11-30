@@ -808,17 +808,17 @@ void Camera::api_colorMatrix_valueChanged(const QVariant &wb)
 
 void Camera::startLiveLoop()
 {
-	// start live loop cycle, record at least once
-	bool keepOneShot = liveOneShot;
-	liveOneShot = false;
-	onLoopTimer();
-	liveOneShot = keepOneShot;
-
 	//enable loop timer
 	loopTimer = new QTimer(this);
 	connect(loopTimer, SIGNAL(timeout()), this, SLOT(onLoopTimer()));
 	loopTimer->start(liveLoopTime * 1000);
 	loopTimerEnabled = true;
+
+	// start live loop cycle, record at least once
+	bool keepOneShot = liveOneShot;
+	liveOneShot = false;
+	onLoopTimer();
+	liveOneShot = keepOneShot;
 }
 
 void Camera::stopLiveLoop()
