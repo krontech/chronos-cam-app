@@ -689,60 +689,6 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
       <string>6.667</string>
      </property>
     </widget>
-    <widget class="QCheckBox" name="chkHorizontalFlip">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>20</x>
-       <y>250</y>
-       <width>261</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <pointsize>16</pointsize>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QCheckBox::indicator {
-     width: 40px;
-     height: 40px;
-}</string>
-     </property>
-     <property name="text">
-      <string>Horizontal Flip</string>
-     </property>
-    </widget>
-    <widget class="QCheckBox" name="chkHorizontalFlip_2">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>20</x>
-       <y>300</y>
-       <width>261</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <pointsize>16</pointsize>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QCheckBox::indicator {
-     width: 40px;
-     height: 40px;
-}</string>
-     </property>
-     <property name="text">
-      <string>Vertical Flip</string>
-     </property>
-    </widget>
     <widget class="QLabel" name="lblRes_13">
      <property name="geometry">
       <rect>
@@ -782,14 +728,14 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
     <widget class="QGroupBox" name="groupBox_2">
      <property name="geometry">
       <rect>
-       <x>310</x>
+       <x>20</x>
        <y>230</y>
        <width>181</width>
        <height>121</height>
       </rect>
      </property>
      <property name="title">
-      <string>Loop Mode</string>
+      <string>Loop Record Mode</string>
      </property>
      <widget class="QRadioButton" name="radioContinuous">
       <property name="geometry">
@@ -994,9 +940,9 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
   <widget class="QLabel" name="lblRes_14">
    <property name="geometry">
     <rect>
-     <x>30</x>
-     <y>377</y>
-     <width>291</width>
+     <x>320</x>
+     <y>250</y>
+     <width>181</width>
      <height>30</height>
     </rect>
    </property>
@@ -1012,8 +958,8 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
   <widget class="QComboBox" name="comboDigitalGain">
    <property name="geometry">
     <rect>
-     <x>30</x>
-     <y>410</y>
+     <x>320</x>
+     <y>283</y>
      <width>161</width>
      <height>41</height>
     </rect>
