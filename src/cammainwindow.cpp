@@ -129,9 +129,8 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	cinst->getArray("wbMatrix", 3, (double *)&camera->whiteBalMatrix);
 	cinst->getArray("colorMatrix", 9, (double *)&camera->colorCalMatrix);
 
-	/* a camApp fix for pychronos not initializing properly */
-	camera->setFocusPeakEnable(false);
-
+	/* Go into live display after initialization */
+	camera->setPlayMode(false);
 }
 
 CamMainWindow::~CamMainWindow()
