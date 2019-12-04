@@ -214,6 +214,18 @@ Finally, we build the application by navigating to `Build -> Build Project "camA
 or clicking on the hammer icon in the bottom left corner. When complete
 the application will be output as `build-camApp-Camera-Debug/camApp`
 
+# Debian Packages
+
+To build a Debian packages whenever building the camApp project, we must first install
+the the debuild packages:
+```
+    sudo apt-get install devscripts build-essential lintian
+```
+
+Then add a custom build step to execute the makedebs.sh script from your build directory.
+
+![QT Creator Debian Packages](/doc/images/qtcreator_makedebs.png)
+
 # ![debug-icon](/doc/images/debug_icon.png) Debugging the Camera Application
 Debugging the camera application is done using a remote GDB connection to
 the Linux operating system running on the Chronos camera. The easiest way

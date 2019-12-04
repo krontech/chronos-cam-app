@@ -3,7 +3,7 @@
 cd $(dirname ${BASH_SOURCE[0]})
 
 # Get the source name from the git remote.
-GITREMOTE=$(git remote get-url $(git remote show))
+GITREMOTE=$(git remote get-url origin)
 DEBSOURCE=$(basename ${GITREMOTE} | cut -d. -f1)
 
 # Get the user name and e-mail from the last commit.
