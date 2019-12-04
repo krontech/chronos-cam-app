@@ -4,9 +4,9 @@ build-camApp-*-Debug/
 build-camApp-*-Release/
 
 ## Ignore Debian packages we may have built
-chronos-gui_*.build
-chronos-gui_*.changes
-chronos-gui_*.deb
+chronos-cam-app_*.build
+chronos-cam-app_*.changes
+*.deb
 
 ## Ignore common temporary files.
 .DS_Store

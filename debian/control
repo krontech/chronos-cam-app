@@ -11,6 +11,7 @@ Package: chronos-gui
 Architecture: armel
 Depends: ${shlibs:Depends}, ${misc:Depends},
          libqt4-chronos,
+         chronos-control,
          chronos-pwrutil,
          chronos-video,
 	 dosfstools
