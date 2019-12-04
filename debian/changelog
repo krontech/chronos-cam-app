@@ -1,0 +1,223 @@
+chronos-cam-app (0.4.0~alpha212) unstable; urgency=medium
+
+  * Add Debain packaging for native/automated builds.
+  * Fixed initial loop interval being too long
+  * Removed H-flip and V-flip checkboxes
+  * Tightened live slow motion timing, greyed out buttons during LSM
+  * Saving digital gain bug fix, added an extra 6dB of digital gain
+  * Fixed Live frame rate bug, added digital gain
+  * Added one-shot "finish line replay" mode
+  * Live mode settings are preserved in appSettings
+  * Added 15, 30 and 60 fps playback rates for Live Slow Motion
+  * Added "OK to stop Live Slow Motion" check for menus, added loop timer
+  * Added loop timing control, and loop information
+  * Basic functionality of Live Slow Motion is working
+  * Check if NFS host is exporting folder before trying to automount
+  * Fixed new bug where exposure slider was not functioning
+  * Merge branch 'cam-control' of github.com:krontech/chronos-cam-app into cam-control
+  * Added backslash to keyboard, added disconnection of SMB and NFS shares
+  * Add package dependency on nfs-common.
+  * Fix debian packaging for API based builds.
+  * Fixed gain setting bug
+  * Minor fixes with saving
+  * Rewrote saving to use device instead of full path
+  * Added isReachable() check to startup SMB mounting
+  * Fixed bug where a disconnected NFS share hangs the camera on bootup
+  * Added QMessageBoxes to SMB and NFS Test buttons, reorganized symbolic keyboard to match standard 
+    keyboard
+  * Added NFS mount on startup
+  * FP bug fix, SMB mounts on startup
+  * Added zebra and focus peaking functionality, needs updated pipeline and pychronos
+  * Merge branch 'cam-control' of github.com:krontech/chronos-cam-app into cam-control
+  * Quick fix to initialize focus peaking at startup
+  * Record Settings: Unable to change frame period or exposure.
+  * Smooth shutter slider, bugs remain in changing settings locally
+  * Implement recording trigger delay.
+  * Added setting and clearing static IP
+  * Remove imagerSettings from the Camera class.
+  * Remove recDataThread, and general cleanup.
+  * control: Add defval property to getParameter call.
+  * Remove PySensor class.
+  * Add dynamic signal generation on parameter updates.
+  * Reorganize network tab, and use QSettings for storage.
+  * Remove qd #define.
+  * Merge-from-hell of branch 'master' into cam-control
+  * Remove qjson4 library.
+  * Dead code removal.
+  * More focus peaking bug fixes
+  * Fixed bugs around focus peaking, attempt at a zebra workaround
+  * Fixed bug where focus peaking is black
+  * bug fix for loading network mounts in util screen
+  * Fixed it so SMB shares have arbitrary folder names
+  * Changed mountmounts to /media/, arbitrary mount folders, removed redundant NFS entries from list
+  * debug buttons, tab order
+  * bug fix for parsing automount samba password
+  * Added noserverino to SMB mount command
+  * Added symbols to numeric keyboard
+  * Add workaround for max-framerate corruption.
+  * Removed non-permanent network connections, added IP addresses on timer
+  * Code cleanup, network page shows only connected IP interfaces
+  * Added available mount point list, checking if address is reachable
+  * Removed sensor.cpp and sensor.h, all virtual sensor methods
+  * Removed unused sensor functions
+  * Fixed some bugs with NFS shares, graying of Safely Remove button
+  * Added NFS network storage
+  * Improved Samba error handling and messaging
+  * Fixed bug with checking IP address of Samba mount
+  * Added permanent Samba connection
+  * Added Samba connection and permanent connection
+  * Added subfolders to save settings
+  * Added slash to keyboard for testing; added support for Samba shares
+  * Moved file save from Video to API; added percent save indicator
+  * Commit prior to moving all file saving from Video to Control
+  * Fixed softReset to have zero arguments, added softReset command to debug control
+  * fixed bug with GST state change failure during autosave  - all combinations of shutter-button and 
+    API start and stop recording      commands are autosaved properly
+  * Hid unofficial real-time slow motion mode behind factory password
+  * Code merge with camApp 0.3.2; error strings, code style export, tab order
+  * Merge branch 'cam-control' of github.com:krontech/chronos2-cam-app into cam-control
+  * Some power bug fixes, small bugs, all res cal tuning (with qDebugs to be removed once tuned)
+  * Fix bug when loading IO configuration.
+  * Removed factory-password all std res black cal
+  * Removed all black cal timing detail
+  * Has all black cal timing counter
+  * Another fix to exposure slider, removing every-frame dbus calls
+  * Exposure slider works properly
+  * QSettings related to imagerSettings removed; gain in record settings fixed
+  * Merge branch 'cam-control' of github.com:krontech/chronos2-cam-app into cam-control
+  * Minor fixes; analog cal is already done during gain changes
+  * Fix main window black cal button.
+  * Reduce duplication using template getters.
+  * Apply imager settings as an atomic unit.
+  * Dead code removal: camera class.
+  * Dead code removal: pysensor and exec classes.
+  * Record end trigger maps to 'trigger' and not 'stopRec'
+  * Remove old IO class and fix bugs in IO1/2 pullups.
+  * Added progress window to all standard resolutions calibration
+  * Use async signals for updating power data.
+  * Checking in changes on focus aid, calibration, imagerSettings
+  * Fixed minor code spacing issue to match the rest of the style.
+  * Added dropdown menu for auto power modes, fixed ui bug for info box regarding shipping mode, 
+    cleaned up ui layout on factory settings screen,resolved issues from last pull request, updated 
+    spacing.
+  * Moved shipping mode checkbox to factory screen, added info box to tell the user what will happen 
+    once shipping mode is enabled, added disable command in camera constructor to automatically take 
+    the camera out of shipping mode after it is started for the first time.
+  * Added shipping mode checkbox, unix socket for connecting to pcUtil daemon.
+  * Replace chronos-upower with chronos-pwrutil.
+  * Revert to 2-point calibration.
+  * CR14-74 complete. Added autopower, shipping mode
+  * Changed battery voltage from int millivolts to float volts
+  * Added auto power mode, auto save and power down, fixed bug with minFrameTime
+  * CR14-66 changed ImagerSettings from QSettings to dBus calls
+  * util window uses dbus; battery data uses pcUtil_noPoll
+  * Added dbus data for power status
+  * Minor UI tweak
+  * Added live looping mode
+  * fixed qtcreator rebuilding mainwindow
+  * Removed eeprom, ecp5config, dm8148PWM and spi.
+  * cleanup, fixed defunct cam-json forks
+  * Removed GPMC
+  * Removed ramwindow, more calibration functions
+  * Removed calibration code
+  * Removed debug window, LUX1310, LUX2100
+  * Removed if(pych) commands, for running entirely on pychronos
+  * More cleanup; showing when camer is in API mode
+  * Some more cleanup
+  * More cleanup
+  * some more cleanup
+  * Cleanup of debug messages, unused code
+  * Added cancel button to WB dialog
+  * API resolution change is functioning
+  * API response moved to camera.cpp, resolution dict received
+  * About to move dbus messages from pysensor to camera
+  * Implemented skeleton of floats and strings
+  * Implemented skeleton of integer API setters
+  * Working on notifiers on main screen
+  * Default gain should be x1.
+  * Ignore video segment data generated by black cal.
+  * Add fallback to 2-point gain cal.
+  * Workaround wavetable corruption.
+  * Add clean step to remove debian package directories.
+  * Disable video system during factory calibration.
+  * black cal, WB, color matrix
+  * Added proper black cal, white balance, colour matrix
+  * Fix signed arithmetic error in zero-time black cal.
+  * Add loading of IO config via the API.
+  * Add setting of IO config via the API.
+  * Add native QDBus hooks for dict parsing.
+  * Merge branch 'cam-control' of github.com:krontech/chronos2-cam-app into cam-control
+  * Exposure slider works
+  * Improve load time for the Record settings window.
+  * Working on io block
+  * Recording settings is mostly complete
+  * added qjson4 things properly
+  * added qjson4 files
+  * Save and load gain calibration data to files.
+  * Fix offset calibration at minimum vertical resolution.
+  * Split offset and gain cal, save ADC offsets to file.
+  * added exec.cpp and exec.h
+  * Latest changes on the recording settings
+  * Fix math error in readPixelCal
+  * Add a progress bar to the factory black cal.
+  * Update lux2100 to fix binning at short wavetables.
+  * Recording and playback work; starting on replacing sensor-> calls.
+  * Changes for new API and dbus name
+  * Added set resolution
+  * Added resolution getter
+  * Added call to cam-json, added json library, aaded parser for getArray
+  * DBUS is talking nicely with new API, some API methods implemented
+  * Commit before all the big NEWAPI changes
+  * Saving videos works, except for the recording offset time bug.
+  * some space to tab conversions; cleaned up
+  * Recording mostly of works through pychronos
+  * camera power up works with pychronos
+  * API with stubs complete. Ready to strip out hardware calls from camApp!
+  * Added all 25 control API calls; some are stubs.
+  * added control.cpp and control.h
+  * New cam-control branch  - added control.cpp    - in API, added getCameraData and getSensorData
+  * Sensor API cleanup for exposure timing.
+  * Fix calibration bug leading to exposure mismatch.
+  * Fix crash if video system fails to save before SOF.
+  * Merge chronos-cam-app repository and update LUX1310.
+  * Disable Qt cursor.
+  * Make LUX2100 internals private, and fix horizontal line bug.
+  * Convert integration time functions to use clock periods.
+  * Convert frame period functions to use clock periods.
+  * Add abstract sensor class and API for analog cal.
+  * Add macro to select LUX2100 windowed or binning mode.
+  * Update to FPGA version 3.19 for signed FPN math.
+  * Use video segment signal to detect new recording info.
+  * Add storage tab to util window, add buttons to format disks.
+  * Converter FPGA register definitions to use byte addressing.
+  * Increase high ADC training target to minimize banding at saturation.
+  * Add support for multipoint calibration when loading FPN.
+  * Compute FPN as two components (column and per-pixel offset).
+  * Enable 3-point calibration.
+  * Add work-in-progress calculation of 3-point calibration coefficients.
+  * Implement automated gain calibration using LUX2100 dummy voltage.
+  * Move wavetables into an array, and add WT62 and WT42.
+  * Fix bug causing the frame preview to redraw with incorrect offset.
+  * Remove ADC offsets from factory/manual calibration.
+  * Revise ADC offset training target, and use  multiple frames.
+  * Compute column FPN subtraction using dark pixel rows.
+  * Combine the cal and FPN regions, and add non-destructive black cal.
+  * Add ADC offset calibration during FPN, and dedicated cal region in RAM.
+  * Make SCI readback optional and improve error reporting durng sensor init.
+  * Convert to systemd and move FPGA/video init to other services.
+  * Create FrameGeometry clas to collect resolution info into one place.
+  * V0.3.1-RC1: Update version string
+  * Fix IO trigger source reverting from IO2 to 1.
+  * Move playback framerate updates into updatePlayFrame().
+  * Animate status window text while saving and aborting.
+  * Fix: fps text label not updated during save
+  * Cleanup the playback window even when a filesave terminates with an erorr.
+  * Add TIFF Raw encoding for 16-bit linear data in a TIFF container.
+  * Extend the horizontal porches to relax the FPGA timing constraints.
+  * Set HOME=/var/camera for Debian for consistent settings.
+  * Autosave and filename fixes
+  * More documetation updates for Debian.
+  * Update README with build configuration for Debian targets.
+  * Upstream release v0.4.0-alpha
+
+ -- Owen Kirby <oskirby@gmail.com>  Tue, 03 Dec 2019 18:23:23 -0800

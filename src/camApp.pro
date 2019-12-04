@@ -54,21 +54,6 @@ exists( $${QT_SYSROOT}/etc/debian_version ) {
     target.path = /usr/bin
     datafiles.path = /var/camera
     DEFINES += DEBIAN=1
-
-    DEBPACKAGE = chronos-gui
-    DEBFULLNAME = $$system(git config user.name)
-    DEBEMAIL = $$system(git config user.email)
-    DEBFILES = $$files(debian/*, true)
-    DEBCONFIG = $$find(DEBFILES, "\\.in$")
-    DEBFILES -= $$DEBCONFIG
-    QMAKE_SUBSTITUTES += $$DEBCONFIG
-
-    system($$QMAKE_MKDIR -p $${OUT_PWD}/debian $${OUT_PWD}/debian/source)
-    system($$QMAKE_COPY -r $$DEBFILES $${OUT_PWD}/debian)
-    system($${_PRO_FILE_PWD_}/changelog.sh > $${OUT_PWD}/debian/changelog)
-
-    ## Sloppy workaround to ensure a clean build.
-    QMAKE_CLEAN += $$files($${OUT_PWD}/debian/*, false)
 }
 
 SOURCES += main.cpp\

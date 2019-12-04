@@ -1,21 +1,19 @@
-Source: $${DEBPACKAGE}
+Source: chronos-cam-app
 Section: misc
 Priority: optional
-Maintainer: $${DEBFULLNAME} <$${DEBEMAIL}>
-Build-Depends: debhelper (>=9), dh-systemd (>=1.5)
+Maintainer: Owen Kirby <oskirby@gmail.com>
+Build-Depends: debhelper (>=9), dh-systemd (>=1.5),
+               libqt4-chronos-dev
 Standards-Version: 3.9.6
 Homepage: https://github.com/krontech/chronos-cam-app
 
-Package: $${DEBPACKAGE}
+Package: chronos-gui
 Architecture: armel
 Depends: ${shlibs:Depends}, ${misc:Depends},
-         libqt4-chronos (>= $${QT_VERSION}),
+         libqt4-chronos,
          chronos-pwrutil,
          chronos-video,
-         chronos-control,
-         cifs-utils,
-	 dosfstools,
-         nfs-common
+	 dosfstools
 Description: User Interface for the Chronos Camera
  Qt4 user interface runs locally on the camera, and
  renders to the LCD display on the back of the camera.
