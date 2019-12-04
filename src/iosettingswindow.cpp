@@ -106,8 +106,6 @@ void IOSettingsWindow::setIoSettings()
 
 	QVariantMap io1config;
 	QVariantMap io2config;
-	QVariantMap io1thresh;
-	QVariantMap io2thresh;
 
 	int io1pull = 0;
 	int io2pull = 0;
@@ -176,13 +174,11 @@ void IOSettingsWindow::setIoSettings()
 
 	/* Configure the IO output drivers. */
 	io1config.insert("invert", QVariant(ui->chkIO1InvertOut->isChecked()));
-	io1config.insert("driveStrength", QVariant(io1pull));
+	io1config.insert("drive", QVariant(io1pull));
 	io1config.insert("source", QVariant(ui->radioIO1FSOut->isChecked() ? "timingIo" : "alwaysHigh"));
-	io1thresh.insert("threshold", QVariant(ui->spinIO1Thresh->value()));
 	io2config.insert("invert", QVariant(ui->chkIO2InvertOut->isChecked()));
-	io2config.insert("driveStrength", QVariant(io2pull));
+	io2config.insert("drive", QVariant(io2pull));
 	io2config.insert("source", QVariant(ui->radioIO2FSOut->isChecked() ? "timingIo" : "alwaysHigh"));
-	io2thresh.insert("threshold", QVariant(ui->spinIO2Thresh->value()));
 
 	/* Load up the IO mapping configuration */
 	values.insert("ioMappingCombOr1", QVariant(orConfig[0]));
@@ -194,8 +190,8 @@ void IOSettingsWindow::setIoSettings()
 	values.insert("ioMappingShutter", QVariant(shutterConfig));
 	values.insert("ioMappingIo1", QVariant(io1config));
 	values.insert("ioMappingIo2", QVariant(io2config));
-	values.insert("ioInputConfigIo1", QVariant(io1thresh));
-	values.insert("ioInputConfigIo2", QVariant(io2thresh));
+	values.insert("ioThresholdIo1", QVariant(ui->spinIO1Thresh->value()));
+	values.insert("ioThresholdIo2", QVariant(ui->spinIO2Thresh->value()));
 
 	/* Apply the settings via D-Bus */
 	camera->cinst->setPropertyGroup(values);
@@ -256,8 +252,8 @@ void IOSettingsWindow::getIoSettings()
 		"ioMappingShutter",
 		"ioMappingIo1",
 		"ioMappingIo2",
-		"ioInputConfigIo1",
-		"ioInputConfigIo2",
+		"ioThresholdIo1",
+		"ioThresholdIo2",
 		"exposureMode"
 	};
 
@@ -267,8 +263,6 @@ void IOSettingsWindow::getIoSettings()
 
 	QVariantMap io1config;
 	QVariantMap io2config;
-	QVariantMap io1thresh;
-	QVariantMap io2thresh;
 
 	QVariantMap ioMapping = camera->cinst->getPropertyGroup(names);
 
@@ -282,8 +276,6 @@ void IOSettingsWindow::getIoSettings()
 
 	ioMapping["ioMappingIo1"].value<QDBusArgument>() >> io1config;
 	ioMapping["ioMappingIo2"].value<QDBusArgument>() >> io2config;
-	ioMapping["ioInputConfigIo1"].value<QDBusArgument>() >> io1thresh;
-	ioMapping["ioInputConfigIo2"].value<QDBusArgument>() >> io2thresh;
 
 	/* Start with nothing selected. */
 	ui->radioIO1None->setChecked(true);
@@ -292,13 +284,14 @@ void IOSettingsWindow::getIoSettings()
 
 	ui->chkIO1InvertOut->setChecked(io1config["invert"].toBool());
 	ui->radioIO1FSOut->setChecked(io1config["source"].toString() == "timingIo");
-	ui->spinIO1Thresh->setValue(io1thresh["threshold"].toDouble());
 	ui->chkIO2InvertOut->setChecked(io2config["invert"].toBool());
 	ui->radioIO2FSOut->setChecked(io2config["source"].toString() == "timingIo");
-	ui->spinIO2Thresh->setValue(io2thresh["threshold"].toDouble());
-	ui->chkIO2Pull->setChecked(io2config["driveStrength"].toInt() != 0);
+	ui->chkIO2Pull->setChecked(io2config["drive"].toInt() != 0);
 
-	io1pull = io1config["driveStrength"].toInt();
+	ui->spinIO1Thresh->setValue(ioMapping.value("ioThresholdIo1", 2.5).toDouble());
+	ui->spinIO2Thresh->setValue(ioMapping.value("ioThresholdIo2", 2.5).toDouble());
+
+	io1pull = io1config["drive"].toInt();
 	ui->chkIO1WeakPull->setChecked((io1pull & 1) != 0);
 	ui->chkIO1Pull->setChecked((io1pull & 2) != 0);
 
@@ -324,17 +317,16 @@ void IOSettingsWindow::getIoSettings()
 
 UInt32 IOSettingsWindow::getIoLevels(void)
 {
-	QStringList names = {
-		"ioStatusSourceIo1",
-		"ioStatusSourceIo2",
-		"ioStatusSourceIo3"
-	};
-	QVariantMap ioLevelMap = camera->cinst->getPropertyGroup(names);
 	UInt32 ioLevelBitmap = 0;
+	QVariant qv = camera->cinst->getProperty("ioSourceStatus");
+	if (qv.isValid()) {
+		QVariantMap ioLevelMap;
+		qv.value<QDBusArgument>() >> ioLevelMap;
 
-	if (ioLevelMap["ioStatusSourceIo1"].toBool()) ioLevelBitmap |= (1 << 0);
-	if (ioLevelMap["ioStatusSourceIo2"].toBool()) ioLevelBitmap |= (1 << 1);
-	if (ioLevelMap["ioStatusSourceIo3"].toBool()) ioLevelBitmap |= (1 << 2);
+		if (ioLevelMap["io1"].toBool()) ioLevelBitmap |= (1 << 0);
+		if (ioLevelMap["io2"].toBool()) ioLevelBitmap |= (1 << 1);
+		if (ioLevelMap["io3"].toBool()) ioLevelBitmap |= (1 << 2);
+	}
 	return ioLevelBitmap;
 }
 
