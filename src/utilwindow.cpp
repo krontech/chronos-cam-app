@@ -123,13 +123,20 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 
 	//Fill about label with camera info
 	UInt32 ramSizeGB;
+	QString modelName;
 	QString serialNumber;
+	const char *modelFullName = "Chronos 1.4";
 	char release[128];
 
 	camera->cinst->getInt("cameraMemoryGB", &ramSizeGB);
+	camera->cinst->getString("cameraModel", &modelName);
 	camera->cinst->getString("cameraSerial", &serialNumber);
 
-	aboutText.sprintf("Camera Model: Chronos 1.4, %s, %dGB\r\n", (camera->getIsColor() ? "Color" : "Monochrome"), ramSizeGB);
+	// Chop the version digits off the end of the camera model.
+	if (modelName.startsWith("CR14")) modelFullName = "Chronos 1.4";
+	else if (modelName.startsWith("CR21")) modelFullName = "Chronos 2.1";
+
+	aboutText.sprintf("Camera Model: %s, %s, %dGB\r\n", modelFullName, (camera->getIsColor() ? "Color" : "Monochrome"), ramSizeGB);
 	aboutText.append(QString("Serial Number: %1\r\n").arg(serialNumber));
 	aboutText.append(QString("\r\n"));
 	aboutText.append(QString("Release Version: %1\r\n").arg(readReleaseString(release, sizeof(release))));
