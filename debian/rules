@@ -14,3 +14,5 @@ export INSTALL_ROOT=$(CURDIR)/debian/chronos-gui
 override_dh_auto_configure:
 	${QT_QMAKE_PATH} src/camApp.pro -r -spec qws/linux-omap2-g++ CONFIG+=debug
 
+override_dh_strip:
+	dh_strip --dbg-package=chronos-gui-dbg

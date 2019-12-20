@@ -82,11 +82,11 @@ UInt32 Camera::getFocusPeakThresholdLL(void)
 //dest must be a char array that can handle SERIAL_NUMBER_MAX_LEN + 1 bytes
 Int32 Camera::readSerialNumber(char * dest)
 {
-	int retVal;
 	QString serial;
 	cinst->getString("cameraSerial", &serial);
-	std::copy(serial.toStdString().begin(),serial.toStdString().end(), dest);
-	return retVal;
+	strncpy(dest, serial.toAscii(), SERIAL_NUMBER_MAX_LEN + 1);
+	dest[SERIAL_NUMBER_MAX_LEN] = '\0';
+	return 0;
 }
 
 Int32 Camera::writeSerialNumber(char * src)

@@ -18,3 +18,15 @@ Depends: ${shlibs:Depends}, ${misc:Depends},
 Description: User Interface for the Chronos Camera
  Qt4 user interface runs locally on the camera, and
  renders to the LCD display on the back of the camera.
+
+Package: chronos-gui-dbg
+Architecture: armel
+Depends: chronos-gui (= ${binary:Version}), ${misc:Depends}
+Description: User Interface for the Chronos Camera
+ Qt4 user interface runs locally on the camera, and
+ renders to the LCD display on the back of the camera.
+ .
+ This package contains unstripped binaries. It is provided primarily
+ to provide a backtrace with names in a debugger, this makes it somewhat
+ easier to interpret core dumps. The binaries are installed in
+ /usr/lib/debug and are automatically used by gdb.
