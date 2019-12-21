@@ -38,6 +38,7 @@
 #include "defines.h"
 #include <QWSDisplay>
 
+#define CAL_DEMO_MODE 0
 #define USE_3POINT_CAL 0
 
 void* recDataThread(void *arg);
@@ -1681,7 +1682,9 @@ Int32 Camera::autoGainCalibration(unsigned int iterations)
 	/* Run the gain calibration algorithm. */
 	tRefresh.tv_sec = 0;
 	tRefresh.tv_nsec = (CAL_REGION_FRAMES+10) * (imagerSettings.period * 1000000000ULL) / sensor->getFramePeriodClock();
-	computeGainColumns(&imagerSettings.geometry, CAL_REGION_START, &tRefresh, gName);
+
+	/* TODO: Determine if this still needs to be computed, as it will be done via factory cal */
+	//computeGainColumns(&imagerSettings.geometry, CAL_REGION_START, &tRefresh, gName);
 
 	terminateRecord();
 	ui->setRecLEDFront(false);
@@ -1693,14 +1696,11 @@ Int32 Camera::autoGainCalibration(unsigned int iterations)
 void Camera::loadColGainFromFile(void)
 {
 	QString filename;
-	UInt32 numChannels = sensor->getHResIncrement();
-	double gainCorrection[numChannels];
-	double curveCorrection[numChannels];
+	int gainCorrection[imagerSettings.geometry.hRes];
 
 	/* Prepare a sensible default gain. */
-	for (int col = 0; col < numChannels; col++) {
-		gainCorrection[col] = 1.0;
-		curveCorrection[col] = 0.0;
+	for (int col = 0; col < imagerSettings.geometry.hRes; col++) {
+		gainCorrection[col] = 1 << 12;
 	}
 
 	/* Load gain correction. */
@@ -1725,7 +1725,16 @@ void Camera::loadColGainFromFile(void)
 		fp.close();
 	}
 	for (int col = 0; col < imagerSettings.geometry.hRes; col++) {
-		gpmc->write16(COL_GAIN_MEM_START_ADDR + (2 * col), (int)(gainCorrection[col % numChannels] * (1 << COL_GAIN_FRAC_BITS)));
+
+#if CAL_DEMO_MODE
+		if(col > 960){
+			gpmc->write16(COL_GAIN_MEM_START_ADDR + (2 * col), (int)(gainCorrection[col]));
+		} else {
+			gpmc->write16(COL_GAIN_MEM_START_ADDR + (2 * col), (int)(4096));
+		}
+#else
+		gpmc->write16(COL_GAIN_MEM_START_ADDR + (2 * col), (int)(gainCorrection[col]));
+#endif
 	}
 
 #if USE_3POINT_CAL

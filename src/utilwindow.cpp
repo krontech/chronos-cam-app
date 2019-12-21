@@ -130,6 +130,8 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	ui->cmdCloseApp->setVisible(false);
 	ui->cmdColumnGain->setVisible(false);
 	ui->cmdWhiteRef->setVisible(false);
+	ui->cmdExportCalData->setVisible(false);
+	ui->cmdImportCalData->setVisible(false);
 	ui->cmdSetSN->setVisible(false);
 	ui->lineSerialNumber->setVisible(false);
 	ui->chkShowDebugControls->setVisible(false);
@@ -768,6 +770,8 @@ void UtilWindow::on_linePassword_textEdited(const QString &arg1)
 		ui->cmdCloseApp->setVisible(true);
 		ui->cmdColumnGain->setVisible(true);
 		ui->cmdWhiteRef->setVisible(true);
+		ui->cmdExportCalData->setVisible(true);
+		ui->cmdImportCalData->setVisible(true);
 		ui->cmdSetSN->setVisible(true);
 		ui->lineSerialNumber->setVisible(true);
 		ui->chkShowDebugControls->setVisible(true);
@@ -1060,7 +1064,7 @@ void UtilWindow::on_cmdRestoreSettings_clicked()
 		return;
 	}
 
-	//Check that the directory is writable
+	//Check that the directory is readable
 	if(access("/media/sda1", R_OK) != 0)
 	{	//Not readable
 		msg.setText("Error: /media/sda1 is not present or not readable");
@@ -1177,4 +1181,131 @@ void UtilWindow::on_tabWidget_currentChanged(int index)
 void UtilWindow::on_autoPowerSetting_currentIndexChanged(int index)
 {
 	camera->pinst->setAutoPowerMode(index);
+}
+
+void UtilWindow::on_cmdExportCalData_clicked()
+{
+	StatusWindow sw;
+	QMessageBox msg;
+	Int32 retVal;
+	char str[500];
+	char path[250];
+	struct stat st;
+
+	retVal = stat("/media/sda1",&st);
+	if(retVal != 0)
+	{
+		statErrorMessage();
+		return;
+	}
+
+	if(S_ISDIR(st.st_mode) == false)
+	{
+		msg.setText("Error: /media/sda1 not present");
+		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
+		msg.exec();
+		return;
+	}
+
+	//Check that the directory is writable
+	if(access("/media/sda1", W_OK) != 0)
+	{	//Not writable
+		msg.setText("Error: /media/sda1 is not present or not writable");
+		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
+		msg.exec();
+		return;
+	}
+
+	struct stat mp, mp_parent;
+	stat("/media/sda1",&mp);
+	stat("/media/sda1/..",&mp_parent);
+
+	if(mp.st_dev == mp_parent.st_dev)
+	{
+		msg.setText("Error: no device is mounted to /media/sda1");
+		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
+		msg.exec();
+		return;
+	}
+
+	QMessageBox::StandardButton reply;
+	reply = QMessageBox::question(this, "Calibration Data Export", "Begin flat field export?\r\nThe display may go blank and the camera will turn off after this process.\r\nWARNING: Any unsaved video in RAM will be lost.", QMessageBox::Yes|QMessageBox::No);
+	if(QMessageBox::Yes != reply)
+		return;
+
+	/* Invoke a python script that grabs flat fields for PC processing */
+	QProcess::startDetached("python3 /root/acquireCalFrames.py");
+}
+
+void UtilWindow::on_cmdImportCalData_clicked()
+{
+	StatusWindow sw;
+	QMessageBox msg;
+	Int32 retVal;
+	char str[500];
+	char path[250];
+	struct stat st;
+	int itr;
+
+	retVal = stat("/media/sda1",&st);
+	if(retVal != 0)
+	{
+		statErrorMessage();
+		return;
+	}
+
+	if(S_ISDIR(st.st_mode) == false)
+	{
+		msg.setText("Error: /media/sda1 not present");
+		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
+		msg.exec();
+		return;
+	}
+
+	//Check that the directory is readable
+	if(access("/media/sda1", R_OK) != 0)
+	{	//Not readable
+		msg.setText("Error: /media/sda1 is not present or not readable");
+		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
+		msg.exec();
+		return;
+	}
+
+	struct stat mp, mp_parent;
+	stat("/media/sda1",&mp);
+	stat("/media/sda1/..",&mp_parent);
+
+	if(mp.st_dev == mp_parent.st_dev)
+	{
+		msg.setText("Error: no device is mounted to /media/sda1");
+		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
+		msg.exec();
+		return;
+	}
+
+	QMessageBox::StandardButton reply;
+	reply = QMessageBox::question(this, "Calibration Data Import", "Begin calibration data import?\r\nAny previous cal data imports will be overwritten.", QMessageBox::Yes|QMessageBox::No);
+	if(QMessageBox::Yes != reply)
+		return;
+
+	/* Copy calibration folder from usb drive */
+	sprintf(str, "cp -rv /media/sda1/colGain_G* /var/camera/cal/");
+	system(str);
+
+	/* Verify */
+	for(itr = 0; itr < 4; itr++)
+	{
+		sprintf(str, "/var/camera/cal/colGain_G%d.bin", (2 << itr));
+		if(QFileInfo(str).exists() == false){
+			msg.setText("Error copying colGain files.");
+			msg.setWindowFlags(Qt::WindowStaysOnTopHint);
+			msg.exec();
+			return;
+		}
+	}
+
+	/* Show completion message */
+	msg.setText("Column gain import complete!");
+	msg.setWindowFlags(Qt::WindowStaysOnTopHint);
+	msg.exec();
 }

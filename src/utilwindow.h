@@ -112,6 +112,9 @@ private slots:
 	void on_cmdClose_5_clicked();
 
 	void on_tabWidget_currentChanged(int index);
+
+	void on_cmdExportCalData_clicked();
+	void on_cmdImportCalData_clicked();
 	
 	int updateSoftware(char *updateLocation);
 private:
