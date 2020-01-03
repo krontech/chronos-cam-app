@@ -316,6 +316,7 @@ UInt32 Camera::setPlayMode(bool playMode)
 		bool videoFlip = false;
 		playbackMode = false;
 		vinst->liveDisplay(videoFlip);
+		return SUCCESS;
 	}
 
 	/* Wait until we are finished recording before going to playback. */
