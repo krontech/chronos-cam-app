@@ -432,7 +432,7 @@ Int32 Camera::blackCalAllStdRes(bool factory, QProgressDialog *dialog)
 	FrameGeometry maxSize = sensorInfo.geometry;
 	FrameTiming timing;
 
-	//Populate the common resolution combo box from the list of resolutions
+	//Build a list of common resolutions to calibrate
 	QFile fp;
 	UInt32 retVal = SUCCESS;
 	QStringList resolutions;
@@ -519,6 +519,7 @@ Int32 Camera::blackCalAllStdRes(bool factory, QProgressDialog *dialog)
 			settings.geometry.bitDepth = maxSize.bitDepth;
 			settings.geometry.hOffset = round((maxSize.hRes - settings.geometry.hRes) / 2, sensorInfo.hIncrement);
 			settings.geometry.vOffset = round((maxSize.vRes - settings.geometry.vRes) / 2, sensorInfo.vIncrement);
+			settings.geometry.minFrameTime = 0;	// select fastest timing.
 
 			// Get the resolution timing limits.
 			cinst->getTiming(&settings.geometry, &timing);
