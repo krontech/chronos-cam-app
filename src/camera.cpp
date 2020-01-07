@@ -121,7 +121,6 @@ CameraErrortype Camera::init(Video * vinstInst, Control * cinstInst)
 
 	/* Connect to any parameter updates that we care to receive. */
 	cinst->listen("state", this, SLOT(api_state_valueChanged(const QVariant &)));
-	cinst->listen("wbMatrix", this, SLOT(api_wbMatrix_valueChanged(const QVariant &)));
 	cinst->listen("colorMatrix", this, SLOT(api_colorMatrix_valueChanged(const QVariant &)));
 
 	//vinst->setDisplayOptions(getZebraEnable(), getFocusPeakEnable());
@@ -384,27 +383,10 @@ void Camera::setCCMatrix(const double *matrix)
 	cinst->setArray("colorMatrix", 9, (double *)&ccmd);
 }
 
-void Camera::setWhiteBalance(const double *rgb)
-{
-	qDebug("Setting WB Matrix: %06f %06f %06f", rgb[0], rgb[1], rgb[2]);
-	cinst->setArray("wbMatrix", 3, rgb);
-}
-
 Int32 Camera::autoWhiteBalance(UInt32 x, UInt32 y)
 {
 	cinst->startAutoWhiteBalance();
 }
-
-UInt8 Camera::getWBIndex(){
-	QSettings appsettings;
-	return appsettings.value("camera/WBIndex", 2).toUInt();
-}
-
-void Camera::setWBIndex(UInt8 index){
-	QSettings appsettings;
-	appsettings.setValue("camera/WBIndex", index);
-}
-
 
 void Camera::setFocusAid(bool enable)
 {
@@ -783,17 +765,6 @@ void Camera::api_state_valueChanged(const QVariant &value)
 
 	recording = (state == "recording");
 	lastState = state;
-}
-
-void Camera::api_wbMatrix_valueChanged(const QVariant &wb)
-{
-	QDBusArgument dbusArgs = wb.value<QDBusArgument>();
-	dbusArgs.beginArray();
-	for (int i=0; i<3; i++)
-	{
-		whiteBalMatrix[i] = dbusArgs.asVariant().toDouble();
-	}
-	dbusArgs.endArray();
 }
 
 void Camera::api_colorMatrix_valueChanged(const QVariant &wb)

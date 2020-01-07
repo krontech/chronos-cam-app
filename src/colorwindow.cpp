@@ -19,7 +19,8 @@ ColorWindow::ColorWindow(QWidget *parent, Camera *cameraInst, const double *matr
 
 ColorWindow::~ColorWindow()
 {
-	camera->setWhiteBalance(camera->whiteBalMatrix);
+	double rgb[3] = { ui->wbRed->value(), ui->wbGreen->value(), ui->wbBlue->value() };
+	camera->cinst->setArray("wbMatrix", 3, rgb);
 	camera->setCCMatrix(camera->colorCalMatrix);
 	delete ui;
 }
@@ -31,9 +32,12 @@ void ColorWindow::colorMatrixChanged(void)
 
 void ColorWindow::whiteBalanceChanged(void)
 {
-	ui->wbRed->setValue(camera->whiteBalMatrix[0]);
-	ui->wbGreen->setValue(camera->whiteBalMatrix[1]);
-	ui->wbBlue->setValue(camera->whiteBalMatrix[2]);
+	double wbMatrix[3];
+	camera->cinst->getArray("wbColor", 3, wbMatrix);
+
+	ui->wbRed->setValue(wbMatrix[0]);
+	ui->wbGreen->setValue(wbMatrix[1]);
+	ui->wbBlue->setValue(wbMatrix[2]);
 }
 
 void ColorWindow::getWhiteBalance(double *rgb)
@@ -98,19 +102,19 @@ void ColorWindow::on_wbApply_clicked(void)
 void ColorWindow::on_wbRed_valueChanged(double arg)
 {
 	double wb[3] = { arg, ui->wbGreen->value(), ui->wbBlue->value() };
-	camera->setWhiteBalance(wb);
+	camera->cinst->setArray("wbColor", 3, wb);
 }
 
 void ColorWindow::on_wbGreen_valueChanged(double arg)
 {
 	double wb[3] = {ui->wbRed->value(), arg, ui->wbBlue->value() };
-	camera->setWhiteBalance(wb);
+	camera->cinst->setArray("wbColor", 3, wb);
 }
 
 void ColorWindow::on_wbBlue_valueChanged(double arg)
 {
 	double wb[3] = {ui->wbRed->value(), ui->wbGreen->value(), arg };
-	camera->setWhiteBalance(wb);
+	camera->cinst->setArray("wbColor", 3, wb);
 }
 
 void ColorWindow::on_ccm11_valueChanged(double arg)

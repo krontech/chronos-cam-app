@@ -5,11 +5,6 @@
 #include <QDebug>
 #include <QBitmap>
 
-#define RED   camera->whiteBalMatrix[0]
-#define GREEN camera->whiteBalMatrix[1]
-#define BLUE  camera->whiteBalMatrix[2]
-#define COMBO_MAX_INDEX ui->comboWB->count()-1
-
 /* 32x32 Crosshair in PNG format */
 static const uint8_t crosshair32x32_png[] = {
 	0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d,
@@ -57,26 +52,30 @@ whiteBalanceDialog::whiteBalanceDialog(QWidget *parent, Camera * cameraInst) :
 	ui->cmdMatrix->setText(camera->ButtonsOnLeft ? "Matrix >>" : "<< Matrix");
 	
 	/* Load white balance presets. */
-	addPreset(1.53, 1.00, 1.35, "8000K(Cloudy Sky)");
-	addPreset(1.42, 1.00, 1.46, "6500K(Noon Daylight)");
-	addPreset(1.35, 1.00, 1.584,"5600K(Avg Daylight)");
+	ui->comboWB->addItem("8000K(Cloudy Sky)",    8000);
+	ui->comboWB->addItem("6500K(Noon Daylight)", 6500);
+	ui->comboWB->addItem("5600K(Avg Daylight)",  5600);
 	/* Since "Avg Daylight" is chosen by default if this is the user's first time entering the WB dialog,
 	these the default values set near the end of Camera::init() on boot should match up with this,
 	or else the white balance will change from the original values to this upon opening the dialog. */
-	addPreset(1.30, 1.00, 1.61, "5250K(Flash)");
-	addPreset(1.22, 1.00, 1.74, "4600K(Flourescent)");
-	addPreset(1.02, 1.00, 1.91, "3200K(Tungsten)");
+	ui->comboWB->addItem("5250K(Flash)",         5250);
+	ui->comboWB->addItem("4600K(Flourescent)",   4600);
+	ui->comboWB->addItem("3200K(Tungsten)",      3200);
 	
-	if(appSettings.value("whiteBalance/customR", 0.0).toDouble() != 0.0){
-		//Only if custom values have been loaded, add "Custom" to the list and store old WB values
-		
-		addCustomPreset();
-		
-		customWhiteBalOld[0] = sceneWhiteBalPresets[COMBO_MAX_INDEX][0];
-		customWhiteBalOld[1] = sceneWhiteBalPresets[COMBO_MAX_INDEX][1];
-		customWhiteBalOld[2] = sceneWhiteBalPresets[COMBO_MAX_INDEX][2];
-	} else customWhiteBalOld[0] = -1.0;// so that on_cmdSetCustomWB_clicked() knows not to enable the "Reset Custom WB" button
-	
+	/* If the custom white balance is sane, load it too. */
+	camera->cinst->getArray("wbCustomColor", 3, (double *)&customWhiteBalOld);
+	if (customWhiteBalOld[0] && customWhiteBalOld[1] && customWhiteBalOld[2]) {
+		ui->comboWB->addItem("Custom", 0);
+		customWhiteBalIndex = ui->comboWB->count() - 1;
+	}
+	else {
+		// so that on_cmdSetCustomWB_clicked() knows not to enable the "Reset Custom WB" button
+		customWhiteBalIndex = -1;
+		customWhiteBalOld[0] = -1.0;
+		customWhiteBalOld[1] = -1.0;
+		customWhiteBalOld[2] = -1.0;
+	}
+
 	/* Load Color Matrix presets */
 	for (int i = 0; i < sizeof(camera->ccmPresets)/sizeof(camera->ccmPresets[0]); i++) {
 		ui->comboColor->addItem(camera->ccmPresets[i].name);
@@ -98,8 +97,20 @@ whiteBalanceDialog::whiteBalanceDialog(QWidget *parent, Camera * cameraInst) :
 	}
 	appSettings.endArray();
 
+	/* Get the wbTemperature and select the nearest preset. */
+	int diff = INT_MAX;
+	int wbIndex = 0;
+	for (int i = 0; i < ui->comboWB->count(); i++) {
+		int x = ui->comboWB->itemData(i).toInt() - saveWbTemp;
+		if (x < 0) x = -x; /* take the absolute value */
+		if (x < diff) {
+			wbIndex = i;   /* find which preset is closest */
+			diff = x;
+		}
+	}
+
 	windowInitComplete = true;
-	ui->comboWB->setCurrentIndex(camera->getWBIndex());
+	ui->comboWB->setCurrentIndex(wbIndex);
 }
 
 whiteBalanceDialog::~whiteBalanceDialog()
@@ -107,38 +118,13 @@ whiteBalanceDialog::~whiteBalanceDialog()
 	delete ui;
 }
 
-void whiteBalanceDialog::addPreset(double r, double g, double b, QString s){
-	ui->comboWB->addItem(s);
-	UInt8 workingPreset = COMBO_MAX_INDEX;
-	sceneWhiteBalPresets[workingPreset][0] = r;
-	sceneWhiteBalPresets[workingPreset][1] = g;
-	sceneWhiteBalPresets[workingPreset][2] = b;
-}
-
-void whiteBalanceDialog::addCustomPreset(){
-	QSettings appSettings;
-	addPreset(appSettings.value("whiteBalance/customR", 1.0).toDouble(),
-			appSettings.value("whiteBalance/customG", 1.0).toDouble(),
-			appSettings.value("whiteBalance/customB", 1.0).toDouble(),
-			"Custom");
-}
-
 void whiteBalanceDialog::on_comboWB_currentIndexChanged(int index)
 {
 	if(!windowInitComplete) return;
-	QSettings appSettings;
-	camera->setWBIndex(index);
-	
-	RED =   sceneWhiteBalPresets[index][0];
-	GREEN = sceneWhiteBalPresets[index][1];
-	BLUE =  sceneWhiteBalPresets[index][2];
 
-	camera->setWhiteBalance(camera->whiteBalMatrix);
+	camera->cinst->setProperty("wbTemperature", ui->comboWB->itemData(index));
+
 	if (cw) cw->whiteBalanceChanged();
-	
-	appSettings.setValue("whiteBalance/currentR", RED);
-	appSettings.setValue("whiteBalance/currentG", GREEN);
-	appSettings.setValue("whiteBalance/currentB", BLUE);
 }
 
 void whiteBalanceDialog::on_comboColor_currentIndexChanged(int index)
@@ -189,19 +175,18 @@ void whiteBalanceDialog::applyColorMatrix(void)
 
 void whiteBalanceDialog::applyWhiteBalance(void)
 {
-	QSettings appSettings;
-
 	/* Get the white balance from the colour matrix window, if open. */
 	if (cw) {
-		cw->getWhiteBalance(camera->whiteBalMatrix);
-		camera->setWhiteBalance(camera->whiteBalMatrix);
+		double wbMatrix[3];
+
+		cw->getWhiteBalance(wbMatrix);
+		camera->cinst->setArray("wbCustomColor", 3, wbMatrix);
+		camera->cinst->setInt("wbTemperature", 0);
 	}
 	else {
-		FrameGeometry size;
 		Int32 ret;
 
-		camera->cinst->getResolution(&size);
-		ret = camera->autoWhiteBalance(size.hRes / 2, size.vRes / 2);
+		ret = camera->cinst->startAutoWhiteBalance();
 		if(ret == CAMERA_CLIPPED_ERROR)
 		{
 			sw->setText("Clipping. Reduce exposure and try white balance again");
@@ -218,18 +203,18 @@ void whiteBalanceDialog::applyWhiteBalance(void)
 		}
 	}
 
-	if(appSettings.value("whiteBalance/customR", 0.0).toDouble() == 0.0)
-		ui->comboWB->addItem("Custom"); //Only add "Custom" if the values have not already been set
-	appSettings.setValue("whiteBalance/customR", RED);
-	appSettings.setValue("whiteBalance/customG", GREEN);
-	appSettings.setValue("whiteBalance/customB", BLUE);
+	/* Enable the reset "custom" button. */
+	if (customWhiteBalOld[0] > 0.0) {
+		ui->cmdResetCustomWB->setEnabled(true);
+	}
+	/* Add the custom white balance to the dropdown. */
+	if (customWhiteBalIndex < 0) {
+		ui->comboWB->addItem("Custom", 0);
+		customWhiteBalIndex = ui->comboWB->count() - 1;
+	}
 
-	sceneWhiteBalPresets[COMBO_MAX_INDEX][0] = RED;
-	sceneWhiteBalPresets[COMBO_MAX_INDEX][1] = GREEN;
-	sceneWhiteBalPresets[COMBO_MAX_INDEX][2] = BLUE;
-
-	ui->comboWB->setCurrentIndex(COMBO_MAX_INDEX);
-	if(customWhiteBalOld[0] > 0.0) ui->cmdResetCustomWB->setEnabled(true);
+	/* Select the custom white balance. */
+	ui->comboWB->setCurrentIndex(customWhiteBalIndex);
 }
 
 void whiteBalanceDialog::on_cmdSetCustomWB_clicked()
@@ -263,19 +248,9 @@ void whiteBalanceDialog::on_cmdCancel_clicked()
 
 void whiteBalanceDialog::on_cmdResetCustomWB_clicked()
 {
-    RED   = sceneWhiteBalPresets[COMBO_MAX_INDEX][0] = customWhiteBalOld[0];
-    GREEN = sceneWhiteBalPresets[COMBO_MAX_INDEX][1] = customWhiteBalOld[1];
-    BLUE  = sceneWhiteBalPresets[COMBO_MAX_INDEX][2] = customWhiteBalOld[2];
-    
-    QSettings appSettings;
-    appSettings.setValue("whiteBalance/currentR", RED);
-    appSettings.setValue("whiteBalance/currentG", GREEN);
-    appSettings.setValue("whiteBalance/currentB", BLUE);
-    
-	if(ui->comboWB->currentIndex() == COMBO_MAX_INDEX) {
-		camera->setWhiteBalance(camera->whiteBalMatrix);
-		if (cw) cw->whiteBalanceChanged();
-	}
+	camera->cinst->setArray("wbCustomColor", 3, customWhiteBalOld);
+	camera->cinst->setInt("wbTemperature", 0);
+	ui->comboWB->setCurrentIndex(customWhiteBalIndex);
 }
 
 void whiteBalanceDialog::on_cmdMatrix_clicked()
@@ -306,10 +281,7 @@ void whiteBalanceDialog::saveColor(void)
 	{
 		saveMatrix[i] = camera->colorCalMatrix[i];
 	}
-	for (i = 0; i<3; i++)
-	{
-		saveWb[i] = camera->whiteBalMatrix[i];
-	}
+	saveWbTemp = camera->cinst->getProperty("wbTemperature", 5600).toUInt();
 }
 
 void whiteBalanceDialog::restoreColor(void)
@@ -319,9 +291,6 @@ void whiteBalanceDialog::restoreColor(void)
 	{
 		camera->colorCalMatrix[i] = saveMatrix[i];
 	}
-	for (i = 0; i<3; i++)
-	{
-		camera->whiteBalMatrix[i] = saveWb[i];
-	}
+	camera->cinst->setArray("wbCustomColor", 3, customWhiteBalOld);
+	camera->cinst->setInt("wbTemperature", saveWbTemp);
 }
-

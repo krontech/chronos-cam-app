@@ -126,7 +126,6 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	cinst->listen("videoState", this, SLOT(on_videoState_valueChanged(const QVariant &)));
 	cinst->listen("exposurePeriod", this, SLOT(on_exposurePeriod_valueChanged(const QVariant &)));
 
-	cinst->getArray("wbMatrix", 3, (double *)&camera->whiteBalMatrix);
 	cinst->getArray("colorMatrix", 9, (double *)&camera->colorCalMatrix);
 
 	/* Go into live display after initialization */

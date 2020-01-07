@@ -95,7 +95,6 @@ public:
 	bool focusPeakEnabled;
 
 	void setCCMatrix(const double *matrix);
-	void setWhiteBalance(const double *rgb);
 	int autoWhiteBalance(unsigned int x, unsigned int y);
 	void setFocusAid(bool enable);
 	bool getFocusAid();
@@ -155,7 +154,6 @@ private:
 
 public:
 	// Actual white balance applied at runtime.
-	double whiteBalMatrix[3] = { 1.0, 1.0, 1.0 };
 	double colorCalMatrix[9] = {
 		1.0, 0.0, 0.0,
 		0.0, 1.0, 0.0,
@@ -179,8 +177,6 @@ public:
 		}
 	};
 
-	UInt8 getWBIndex();
-	void  setWBIndex(UInt8 index);
 	int unsavedWarnEnabled;
 	int autoPowerMode;
 	bool videoHasBeenReviewed;
@@ -234,7 +230,6 @@ private:
 protected slots:
 	/* Slots from the API on how to handle value changes. */
 	void api_state_valueChanged(const QVariant &value);
-	void api_wbMatrix_valueChanged(const QVariant &value);
 	void api_colorMatrix_valueChanged(const QVariant &value);
 
 	void onLoopTimer();

@@ -21,7 +21,8 @@ public:
 	void saveColor(void);
 	void restoreColor(void);
 	double saveMatrix[9];
-	double saveWb[3];
+	int saveWbTemp;
+
 
 
 private slots:
@@ -57,10 +58,8 @@ private:
 		}
 	};
 
-	double sceneWhiteBalPresets[7][3];
+	int customWhiteBalIndex;
 	double customWhiteBalOld[3] = {1.0, 1.0, 1.0};
-	void addPreset(double r, double b, double g, QString s);
-	void addCustomPreset();
 };
 
 #endif // WHITEBALANCEDIALOG_H
