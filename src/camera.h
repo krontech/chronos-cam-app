@@ -75,6 +75,10 @@
 #define TRIGGERDELAY_SECONDS 1
 #define TRIGGERDELAY_FRAMES 2
 
+#define BOARD_REV_LUX2100		2100
+#define BOARD_REV_LUX1310MZ		1400
+#define BOARD_REV_LUX1310FF		0000
+
 /*
 typedef enum CameraErrortype
 {
@@ -248,6 +252,8 @@ public:
 	char * getSerialNumber(void) {return serialNumber;}
 	void setSerialNumber(const char * sn) {strcpy(serialNumber, sn);}
 	bool getIsColor() {return isColor;}
+
+	Int32 getBoardRevision(void);
 
 	UInt32 getFrameSizeWords(FrameGeometry *geometry);
 	UInt32 getMaxRecordRegionSizeFrames(FrameGeometry *geometry);

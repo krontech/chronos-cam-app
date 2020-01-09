@@ -1234,7 +1234,7 @@ void UtilWindow::on_cmdExportCalData_clicked()
 		return;
 
 	/* Invoke a python script that grabs flat fields for PC processing */
-	QProcess::startDetached("python3 /root/acquireCalFrames.py");
+	QProcess::startDetached("python3 /var/camera/acquireCalFrames.py");
 }
 
 void UtilWindow::on_cmdImportCalData_clicked()

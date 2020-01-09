@@ -38,7 +38,6 @@
 #include "defines.h"
 #include <QWSDisplay>
 
-#define CAL_DEMO_MODE 0
 #define USE_3POINT_CAL 0
 
 void* recDataThread(void *arg);
@@ -1683,8 +1682,10 @@ Int32 Camera::autoGainCalibration(unsigned int iterations)
 	tRefresh.tv_sec = 0;
 	tRefresh.tv_nsec = (CAL_REGION_FRAMES+10) * (imagerSettings.period * 1000000000ULL) / sensor->getFramePeriodClock();
 
-	/* TODO: Determine if this still needs to be computed, as it will be done via factory cal */
-	//computeGainColumns(&imagerSettings.geometry, CAL_REGION_START, &tRefresh, gName);
+	/* Compute gain columns only if the sensor isn't a LUX2100, which uses factory cal instead. */
+	if(getBoardRevision() != BOARD_REV_LUX2100) {
+		computeGainColumns(&imagerSettings.geometry, CAL_REGION_START, &tRefresh, gName);
+	}
 
 	terminateRecord();
 	ui->setRecLEDFront(false);
@@ -1696,11 +1697,24 @@ Int32 Camera::autoGainCalibration(unsigned int iterations)
 void Camera::loadColGainFromFile(void)
 {
 	QString filename;
-	int gainCorrection[imagerSettings.geometry.hRes];
+	UInt32 numChannels = sensor->getHResIncrement();
+	double gainCorrection[numChannels];
+	int fullColGainCorrection[imagerSettings.geometry.hRes];
+	int boardRev;
+
+	/* Check which sensor is populated by checking board revision,
+	 * this will determine how cal data is loaded. */
+	boardRev = getBoardRevision();
 
 	/* Prepare a sensible default gain. */
-	for (int col = 0; col < imagerSettings.geometry.hRes; col++) {
-		gainCorrection[col] = 1 << 12;
+	if(boardRev == BOARD_REV_LUX2100) {
+		for (int col = 0; col < imagerSettings.geometry.hRes; col++) {
+			gainCorrection[col] = 1 << 12;
+		}
+	} else {
+		for (int col = 0; col < numChannels; col++) {
+			gainCorrection[col] = 1.0;
+		}
 	}
 
 	/* Load gain correction. */
@@ -1724,47 +1738,17 @@ void Camera::loadColGainFromFile(void)
 		}
 		fp.close();
 	}
-	for (int col = 0; col < imagerSettings.geometry.hRes; col++) {
 
-#if CAL_DEMO_MODE
-		if(col > 960){
+	if(boardRev == BOARD_REV_LUX2100){
+		for (int col = 0; col < imagerSettings.geometry.hRes; col++) {
 			gpmc->write16(COL_GAIN_MEM_START_ADDR + (2 * col), (int)(gainCorrection[col]));
-		} else {
-			gpmc->write16(COL_GAIN_MEM_START_ADDR + (2 * col), (int)(4096));
 		}
-#else
-		gpmc->write16(COL_GAIN_MEM_START_ADDR + (2 * col), (int)(gainCorrection[col]));
-#endif
-	}
-
-#if USE_3POINT_CAL
-	/* Load curvature correction. */
-	filename.sprintf("cal:colCurve_G%d.bin", imagerSettings.gain);
-	QFileInfo colCurveFile(filename);
-	if (colCurveFile.exists() && colCurveFile.isFile()) {
-		QFile fp;
-
-		qDebug("Found colCurve file %s", colCurveFile.absoluteFilePath().toLocal8Bit().constData());
-
-		fp.setFileName(filename);
-		fp.open(QIODevice::ReadOnly);
-		qint64 ret = fp.read((char*)curveCorrection, sizeof(curveCorrection));
-		if (ret < sizeof(curveCorrection)) {
-			qDebug("Error: File couldn't be opened (ret=%d)", (int)ret);
+	} else {
+		for (int col = 0; col < imagerSettings.geometry.hRes; col++) {
+			gpmc->write16(COL_GAIN_MEM_START_ADDR + (2 * col), (int)(gainCorrection[col % numChannels] * (1 << COL_GAIN_FRAC_BITS)));
 		}
-		fp.close();
-	}
-	for (int col = 0; col < imagerSettings.geometry.hRes; col++) {
-		Int16 curve16 = curveCorrection[col % numChannels] * (1 << COL_CURVE_FRAC_BITS);
-		gpmc->write16(COL_CURVE_MEM_START_ADDR + (2 * col), (unsigned)curve16);
 	}
 
-	/* Enable 3-point calibration. */
-	gpmc->write16(DISPLAY_GAIN_CONTROL_ADDR, DISPLAY_GAIN_CONTROL_3POINT);
-#else
-	/* Disable 3-point calibration. */
-	gpmc->write16(DISPLAY_GAIN_CONTROL_ADDR, 0);
-#endif
 }
 
 /* Compute the gain columns by controlling exposure. */
@@ -2942,6 +2926,35 @@ void Camera::set_demoMode(bool state) {
 bool Camera::get_demoMode() {
 	QSettings appSettings;
 	return appSettings.value("camera/demoMode", false).toBool();
+}
+
+Int32 Camera::getBoardRevision() {
+	QFile file("/proc/cpuinfo");
+	Int32 retVal = -1;
+
+	if(!file.open(QIODevice::ReadOnly | QIODevice::Text)){
+		qDebug() << "Could not read cpuinfo via fopen.";
+		return retVal;
+	}
+
+	QTextStream in(&file);
+	QString line = in.readLine();
+
+	while(!line.isNull()) {
+		/* Search for Revision string. */
+		line = in.readLine();
+		if(line.contains("Revision")){
+			if(line.contains("2100")){
+				retVal =  BOARD_REV_LUX2100;
+			} else if (line.contains("1400")){
+				retVal = BOARD_REV_LUX1310MZ;
+			} else if (line.contains("0000")){
+				retVal = BOARD_REV_LUX1310FF;
+			}
+		}
+	}
+
+	return retVal;
 }
 
 void* recDataThread(void *arg)
