@@ -74,27 +74,29 @@ void IOSettingsWindow::on_cmdOK_clicked()
 void IOSettingsWindow::setIoConfig1(QVariantMap &config)
 {
 	config.insert("debounce", QVariant(ui->chkIO1Debounce->isChecked()));
-	config.insert("invert", QVariant(ui->chkIO1InvertIn->isChecked()));
+	config.insert("invert", QVariant(ui->chkIO1Invert->isChecked()));
 	config.insert("source", QVariant("io1"));
 }
 
 void IOSettingsWindow::setIoConfig2(QVariantMap &config)
 {
 	config.insert("debounce", QVariant(ui->chkIO2Debounce->isChecked()));
-	config.insert("invert", QVariant(ui->chkIO2InvertIn->isChecked()));
+	config.insert("invert", QVariant(ui->chkIO2Invert->isChecked()));
 	config.insert("source", QVariant("io2"));
 }
 
 void IOSettingsWindow::setIoConfig3(QVariantMap &config)
 {
 	config.insert("debounce", QVariant(ui->chkIO3Debounce->isChecked()));
-	config.insert("invert", QVariant(ui->chkIO3InvertIn->isChecked()));
+	config.insert("invert", QVariant(ui->chkIO3Invert->isChecked()));
 	config.insert("source", QVariant("io3"));
 }
 
 /* Generate the IO configuration and apply it via the API. */
 void IOSettingsWindow::setIoSettings()
 {
+	QSettings settings;
+
 	QVariantMap values;
 
 	QVariantMap orConfig[3];
@@ -121,7 +123,7 @@ void IOSettingsWindow::setIoSettings()
 	/* If multiple inputs are mapped to the same thing, we need to use a combinatorial block. */
 	if (ui->radioIO1TrigIn->isChecked()) nRecTrig++;
 	if (ui->radioIO2TrigIn->isChecked()) nRecTrig++;
-	if (ui->chkIO3TriggerInEn->isChecked()) nRecTrig++;
+	if (ui->radioIO3TrigIn->isChecked()) nRecTrig++;
 	if (ui->radioIO1TriggeredShutter->isChecked()) nExpTrig++;
 	if (ui->radioIO2TriggeredShutter->isChecked()) nExpTrig++;
 	if (ui->radioIO1ShutterGating->isChecked()) nShGate++;
@@ -141,13 +143,13 @@ void IOSettingsWindow::setIoSettings()
 	if (nRecTrig > 1) {
 		if (ui->radioIO1TrigIn->isChecked()) setIoConfig1(orConfig[0]);
 		if (ui->radioIO2TrigIn->isChecked()) setIoConfig2(orConfig[1]);
-		if (ui->chkIO3TriggerInEn->isChecked()) setIoConfig3(orConfig[2]);
+		if (ui->radioIO3TrigIn->isChecked()) setIoConfig3(orConfig[2]);
 		triggerConfig.insert("source", QVariant("comb"));
 	}
 	/* Otherwise directly connect the recording end trigger. */
 	else if (ui->radioIO1TrigIn->isChecked()) setIoConfig1(triggerConfig);
 	else if (ui->radioIO2TrigIn->isChecked()) setIoConfig2(triggerConfig);
-	else if (ui->chkIO3TriggerInEn->isChecked()) setIoConfig3(triggerConfig);
+	else if (ui->radioIO3TrigIn->isChecked()) setIoConfig3(triggerConfig);
 
 	/* Prepare the combinatorial block for exposure trigger and/or shutter gating. */
 	if ((nExpTrig + nShGate) > 1) {
@@ -160,8 +162,50 @@ void IOSettingsWindow::setIoSettings()
 	/* Otherwise directly connect the frame trigger. */
 	else if (ui->radioIO1TriggeredShutter->isChecked()) setIoConfig1(shutterConfig);
 	else if (ui->radioIO2TriggeredShutter->isChecked()) setIoConfig2(shutterConfig);
+	else if (ui->radioIO3TriggeredShutter->isChecked()) setIoConfig3(shutterConfig);
 	else if (ui->radioIO1ShutterGating->isChecked()) setIoConfig1(shutterConfig);
 	else if (ui->radioIO2ShutterGating->isChecked()) setIoConfig2(shutterConfig);
+	else if (ui->radioIO3ShutterGating->isChecked()) setIoConfig3(shutterConfig);
+
+	/* Configure the IO1 output drivers. */
+	if (ui->radioIO1FSOut->isChecked()) {
+		io1config.insert("debounce", QVariant(ui->chkIO1Debounce->isChecked()));
+		io1config.insert("invert", QVariant(ui->chkIO1Invert->isChecked()));
+		io1config.insert("source", "timingIo");
+	}
+	else {
+		io1config.insert("source", "alwaysHigh");
+		io2config.insert("debounce", QVariant(false));
+		io2config.insert("invert", QVariant(false));
+	}
+	io1config.insert("drive", QVariant(io1pull));
+
+	/* Configure the IO2 output drivers. */
+	if (ui->radioIO2FSOut->isChecked()) {
+		io2config.insert("debounce", QVariant(ui->chkIO2Debounce->isChecked()));
+		io2config.insert("invert", QVariant(ui->chkIO2Invert->isChecked()));
+		io2config.insert("source", "timingIo");
+	}
+	else {
+		io2config.insert("source", "alwaysHigh");
+		io2config.insert("debounce", QVariant(false));
+		io2config.insert("invert", QVariant(false));
+	}
+	io2config.insert("drive", QVariant(io2pull));
+
+	/* Save the state of invert and debounce when 'None' is selected. */
+	if (ui->radioIO1None->isChecked()) {
+		settings.setValue("io/io1invert", ui->chkIO1Invert->isChecked());
+		settings.setValue("io/io1debounce", ui->chkIO1Debounce->isChecked());
+	}
+	if (ui->radioIO2None->isChecked()) {
+		settings.setValue("io/io2invert", ui->chkIO2Invert->isChecked());
+		settings.setValue("io/io2debounce", ui->chkIO2Debounce->isChecked());
+	}
+	if (ui->radioIO3None->isChecked()) {
+		settings.setValue("io/io3invert", ui->chkIO3Invert->isChecked());
+		settings.setValue("io/io3debounce", ui->chkIO3Debounce->isChecked());
+	}
 
 	/* HACK: This feels like the wrong place to be selecting the exposure program. */
 	if (nShGate) {
@@ -171,14 +215,6 @@ void IOSettingsWindow::setIoSettings()
 	} else {
 		values.insert("exposureMode", QVariant("normal"));
 	}
-
-	/* Configure the IO output drivers. */
-	io1config.insert("invert", QVariant(ui->chkIO1InvertOut->isChecked()));
-	io1config.insert("drive", QVariant(io1pull));
-	io1config.insert("source", QVariant(ui->radioIO1FSOut->isChecked() ? "timingIo" : "alwaysHigh"));
-	io2config.insert("invert", QVariant(ui->chkIO2InvertOut->isChecked()));
-	io2config.insert("drive", QVariant(io2pull));
-	io2config.insert("source", QVariant(ui->radioIO2FSOut->isChecked() ? "timingIo" : "alwaysHigh"));
 
 	/* Load up the IO mapping configuration */
 	values.insert("ioMappingCombOr1", QVariant(orConfig[0]));
@@ -203,17 +239,17 @@ void IOSettingsWindow::getIoTriggerConfig(QVariantMap &config)
 	if (source == "io1") {
 		ui->radioIO1TrigIn->setChecked(true);
 		ui->chkIO1Debounce->setChecked(config["debounce"].toBool());
-		ui->chkIO1InvertIn->setChecked(config["invert"].toBool());
+		ui->chkIO1Invert->setChecked(config["invert"].toBool());
 	}
 	else if (source == "io2") {
 		ui->radioIO2TrigIn->setChecked(true);
 		ui->chkIO2Debounce->setChecked(config["debounce"].toBool());
-		ui->chkIO2InvertIn->setChecked(config["invert"].toBool());
+		ui->chkIO2Invert->setChecked(config["invert"].toBool());
 	}
 	else if (source == "io3") {
-		ui->chkIO3TriggerInEn->setChecked(true);
+		ui->radioIO3TrigIn->setChecked(true);
 		ui->chkIO3Debounce->setChecked(config["debounce"].toBool());
-		ui->chkIO3InvertIn->setChecked(config["invert"].toBool());
+		ui->chkIO3Invert->setChecked(config["invert"].toBool());
 	}
 }
 
@@ -228,7 +264,7 @@ void IOSettingsWindow::getIoShutterConfig(QVariantMap &config, QString expMode)
 		}
 
 		ui->chkIO1Debounce->setChecked(config["debounce"].toBool());
-		ui->chkIO1InvertIn->setChecked(config["invert"].toBool());
+		ui->chkIO1Invert->setChecked(config["invert"].toBool());
 	}
 	else if (source == "io2") {
 		if (expMode == "shutterGating") {
@@ -238,12 +274,14 @@ void IOSettingsWindow::getIoShutterConfig(QVariantMap &config, QString expMode)
 		}
 
 		ui->chkIO2Debounce->setChecked(config["debounce"].toBool());
-		ui->chkIO2InvertIn->setChecked(config["invert"].toBool());
+		ui->chkIO2Invert->setChecked(config["invert"].toBool());
 	}
 }
 
 void IOSettingsWindow::getIoSettings()
 {
+	QSettings settings;
+
 	QStringList names = {
 		"ioMappingCombOr1",
 		"ioMappingCombOr2",
@@ -276,24 +314,33 @@ void IOSettingsWindow::getIoSettings()
 
 	ioMapping["ioMappingIo1"].value<QDBusArgument>() >> io1config;
 	ioMapping["ioMappingIo2"].value<QDBusArgument>() >> io2config;
+	io1pull = io1config["drive"].toInt();
 
 	/* Start with nothing selected. */
 	ui->radioIO1None->setChecked(true);
 	ui->radioIO2None->setChecked(true);
-	ui->chkIO3TriggerInEn->setChecked(false);
+	ui->radioIO3None->setChecked(true);
 
-	ui->chkIO1InvertOut->setChecked(io1config["invert"].toBool());
-	ui->radioIO1FSOut->setChecked(io1config["source"].toString() == "timingIo");
-	ui->chkIO2InvertOut->setChecked(io2config["invert"].toBool());
-	ui->radioIO2FSOut->setChecked(io2config["source"].toString() == "timingIo");
+	/* Get the drive strength from the output config. */
+	ui->chkIO1WeakPull->setChecked((io1pull & 1) != 0);
+	ui->chkIO1Pull->setChecked((io1pull & 2) != 0);
 	ui->chkIO2Pull->setChecked(io2config["drive"].toInt() != 0);
 
+	/* Get the threshold values */
 	ui->spinIO1Thresh->setValue(ioMapping.value("ioThresholdIo1", 2.5).toDouble());
 	ui->spinIO2Thresh->setValue(ioMapping.value("ioThresholdIo2", 2.5).toDouble());
 
-	io1pull = io1config["drive"].toInt();
-	ui->chkIO1WeakPull->setChecked((io1pull & 1) != 0);
-	ui->chkIO1Pull->setChecked((io1pull & 2) != 0);
+	/* Load config if configured as an output. */
+	if (io1config["source"].toString() == "timingIo") {
+		ui->chkIO1Invert->setChecked(io1config["invert"].toBool());
+		ui->chkIO1Debounce->setChecked(io1config["debounce"].toBool());
+		ui->radioIO1FSOut->setChecked(true);
+	}
+	if (io2config["source"].toString() == "timingIo") {
+		ui->chkIO2Invert->setChecked(io2config["invert"].toBool());
+		ui->chkIO2Debounce->setChecked(io2config["debounce"].toBool());
+		ui->radioIO2FSOut->setChecked(true);
+	}
 
 	/* Load the record-end configuration. */
 	if (triggerConfig["source"].toString() == "comb") {
@@ -312,6 +359,20 @@ void IOSettingsWindow::getIoSettings()
 		getIoShutterConfig(orConfig[2], expMode);
 	} else {
 		getIoShutterConfig(shutterConfig, ioMapping["exposureMode"].toString());
+	}
+
+	/* If the output is still 'None' then restored the saved invert and debounce */
+	if (ui->radioIO1None->isChecked()) {
+		ui->chkIO1Invert->setChecked(settings.value("io/io1invert", false).toBool());
+		ui->chkIO1Debounce->setChecked(settings.value("io/io1debounce", false).toBool());
+	}
+	if (ui->radioIO2None->isChecked()) {
+		ui->chkIO2Invert->setChecked(settings.value("io/io2invert", false).toBool());
+		ui->chkIO2Debounce->setChecked(settings.value("io/io2debounce", false).toBool());
+	}
+	if (ui->radioIO2None->isChecked()) {
+		ui->chkIO3Invert->setChecked(settings.value("io/io3invert", false).toBool());
+		ui->chkIO3Debounce->setChecked(settings.value("io/io3debounce", false).toBool());
 	}
 }
 
@@ -341,12 +402,16 @@ void IOSettingsWindow::on_radioIO1TriggeredShutter_toggled(bool checked)
 	if(checked)
 	{
 		ui->radioIO2TriggeredShutter->setEnabled(false);
+		ui->radioIO3TriggeredShutter->setEnabled(false);
 		ui->radioIO2ShutterGating->setEnabled(false);
+		ui->radioIO3ShutterGating->setEnabled(false);
 	}
 	else
 	{
 		ui->radioIO2TriggeredShutter->setEnabled(true);
+		ui->radioIO3TriggeredShutter->setEnabled(true);
 		ui->radioIO2ShutterGating->setEnabled(true);
+		ui->radioIO3ShutterGating->setEnabled(true);
 	}
 }
 
@@ -360,16 +425,43 @@ void IOSettingsWindow::on_radioIO2TriggeredShutter_toggled(bool checked)
 	if(checked)
 	{
 		ui->radioIO1TriggeredShutter->setEnabled(false);
+		ui->radioIO3TriggeredShutter->setEnabled(false);
 		ui->radioIO1ShutterGating->setEnabled(false);
+		ui->radioIO3ShutterGating->setEnabled(false);
 	}
 	else
 	{
 		ui->radioIO1TriggeredShutter->setEnabled(true);
+		ui->radioIO3TriggeredShutter->setEnabled(true);
 		ui->radioIO1ShutterGating->setEnabled(true);
+		ui->radioIO3ShutterGating->setEnabled(true);
 	}
 }
 
 void IOSettingsWindow::on_radioIO2ShutterGating_toggled(bool checked)
 {
 	on_radioIO2TriggeredShutter_toggled(checked);
+}
+
+void IOSettingsWindow::on_radioIO3TriggeredShutter_toggled(bool checked)
+{
+	if(checked)
+	{
+		ui->radioIO1TriggeredShutter->setEnabled(false);
+		ui->radioIO2TriggeredShutter->setEnabled(false);
+		ui->radioIO1ShutterGating->setEnabled(false);
+		ui->radioIO2ShutterGating->setEnabled(false);
+	}
+	else
+	{
+		ui->radioIO1TriggeredShutter->setEnabled(true);
+		ui->radioIO2TriggeredShutter->setEnabled(true);
+		ui->radioIO1ShutterGating->setEnabled(true);
+		ui->radioIO2ShutterGating->setEnabled(true);
+	}
+}
+
+void IOSettingsWindow::on_radioIO3ShutterGating_toggled(bool checked)
+{
+	on_radioIO3TriggeredShutter_toggled(checked);
 }

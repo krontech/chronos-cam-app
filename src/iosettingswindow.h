@@ -53,6 +53,10 @@ private slots:
 
 	void on_radioIO2ShutterGating_toggled(bool checked);
 
+	void on_radioIO3TriggeredShutter_toggled(bool checked);
+
+	void on_radioIO3ShutterGating_toggled(bool checked);
+
 private:
 	void getIoTriggerConfig(QVariantMap &config);
 	void getIoShutterConfig(QVariantMap &config, QString expMode);
