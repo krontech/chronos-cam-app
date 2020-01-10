@@ -221,44 +221,6 @@ void Video::pauseDisplay(void)
 	pthread_mutex_unlock(&mutex);
 }
 
-void Video::setOverlay(const char *format)
-{
-	QVariantMap args;
-	QDBusPendingReply<QVariantMap> reply;
-
-	args.insert("format", QVariant(format));
-	args.insert("position", QVariant("bottom"));
-	args.insert("textbox", QVariant("0x0"));
-
-	pthread_mutex_lock(&mutex);
-	reply = iface.overlay(args);
-	pthread_mutex_unlock(&mutex);
-
-	if (reply.isError()) {
-		QDBusError err = reply.error();
-		fprintf(stderr, "Failed to configure video overlay: %s - %s\n", err.name().data(), err.message().toAscii().data());
-	}
-	QSettings appSettings;
-	appSettings.setValue("overlayEnabled", true);
-}
-
-bool Video::getOverlayStatus(){
-	QSettings appSettings;
-	return appSettings.value("overlayEnabled", false).toBool();
-}
-
-void Video::clearOverlay(void)
-{
- 	QVariantMap args;
-	args.insert("format", QVariant(""));
-
-	pthread_mutex_lock(&mutex);
-	iface.overlay(args);
-	pthread_mutex_unlock(&mutex);
-	QSettings appSettings;
-	appSettings.setValue("overlayEnabled", false);
-}
-
 void Video::flushRegions(void)
 {
 	QDBusPendingReply<QVariantMap> reply;

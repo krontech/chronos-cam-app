@@ -96,10 +96,7 @@ public:
 	~Video();
 
 	UInt32 getPosition(void);
-	bool getOverlayStatus();
-	void setOverlay(const char *format);
 	void seekFrame(int delta);
-	void clearOverlay(void);
 	void setPosition(unsigned int position);
 	void setPlayback(int rate);
 	void loopPlayback(unsigned int start, unsigned int length, int rate);

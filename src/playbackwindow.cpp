@@ -52,10 +52,11 @@ playbackWindow::playbackWindow(QWidget *parent, Camera * cameraInst, bool autosa
 	saveAbortedAutomatically = false;
 	
 	camera->vinst->getStatus(&vStatus);
-	
-	if(camera->vinst->getOverlayStatus())	{
-		camera->vinst->setOverlay("%.6h/%.6z Sg=%g/%i T=%.8Ss");
-	}
+
+	/* Configure the overlay. */
+	camera->cinst->setString("overlayFormat", "%.6h/%.6z Sg=%g/%i T=%.8Ss");
+	camera->cinst->setString("overlayPosition", "bottom");
+	camera->cinst->setBool("overlayEnable", appSettings.value("camera/overlayEnabled", false).toBool());
 
 	playFrame = 0;
 	playLoop = false;

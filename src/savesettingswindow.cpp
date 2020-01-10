@@ -124,9 +124,7 @@ saveSettingsWindow::saveSettingsWindow(QWidget *parent, Camera * camInst) :
 
 	ui->comboSaveFormat->setEnabled(true);
 	
-	
-	ui->chkEnableOverlay->setChecked(camera->vinst->getOverlayStatus());
-	//updateOverlayCheckboxCheckable();
+	ui->chkEnableOverlay->setChecked(settings.value("camera/overlayEnabled", false).toBool());
 
 	if(ui->comboSaveFormat->currentIndex() == 0) {
 		ui->spinBitrate->setEnabled(true);
@@ -514,8 +512,9 @@ void saveSettingsWindow::on_comboDrive_currentIndexChanged(const QString &arg1)
 
 void saveSettingsWindow::on_chkEnableOverlay_toggled(bool checked)
 {
-	if(checked) camera->vinst->setOverlay("%.6h/%.6z Sg=%g/%i T=%.8Ss");
-	else camera->vinst->clearOverlay();
+	QSettings settings;
+	settings.setValue("camera/overlayEnabled", checked);
+	camera->cinst->setBool("overlayEnable", checked);
 }
 
 void saveSettingsWindow::updateOverlayCheckboxCheckable(){
