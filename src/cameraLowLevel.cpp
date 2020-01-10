@@ -95,21 +95,3 @@ Int32 Camera::writeSerialNumber(char * src)
 
 	return 4;
 }
-
-UInt16 Camera::getFPGAVersion(void)
-{
-	bool ok;
-	QString compoundVersion;
-	cinst->getString("cameraFpgaVersion", &compoundVersion);
-	double dVersion = compoundVersion.toDouble(&ok);
-	return (int)dVersion;
-}
-
-UInt16 Camera::getFPGASubVersion(void)
-{
-	bool ok;
-	QString compoundVersion;
-	cinst->getString("cameraFpgaVersion", &compoundVersion);
-	double dVersion = compoundVersion.toDouble(&ok);
-	return round(100 * (dVersion - (int)dVersion));
-}

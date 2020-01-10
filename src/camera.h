@@ -126,8 +126,6 @@ public:
 	UInt32 getFocusPeakThresholdLL(void);
 	Int32 readSerialNumber(char * dest);
 	Int32 writeSerialNumber(char * src);
-	UInt16 getFPGAVersion(void);
-	UInt16 getFPGASubVersion(void);
 	bool ButtonsOnLeft;
 	bool UpsideDownDisplay;
 	void startLiveLoop();

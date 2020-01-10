@@ -125,12 +125,14 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	UInt32 ramSizeGB;
 	QString modelName;
 	QString serialNumber;
+	QString fpgaVersion;
 	const char *modelFullName = "Chronos 1.4";
 	char release[128];
 
 	camera->cinst->getInt("cameraMemoryGB", &ramSizeGB);
 	camera->cinst->getString("cameraModel", &modelName);
 	camera->cinst->getString("cameraSerial", &serialNumber);
+	camera->cinst->getString("cameraFpgaVersion", &fpgaVersion);
 
 	// Chop the version digits off the end of the camera model.
 	if (modelName.startsWith("CR14")) modelFullName = "Chronos 1.4";
@@ -141,7 +143,7 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	aboutText.append(QString("\r\n"));
 	aboutText.append(QString("Release Version: %1\r\n").arg(readReleaseString(release, sizeof(release))));
 	aboutText.append(QString("Build: %1 (%2)\r\n").arg(CAMERA_APP_VERSION, git_version_str));
-	aboutText.append(QString("FPGA Revision: %1.%2").arg(QString::number(camera->getFPGAVersion()), QString::number(camera->getFPGASubVersion())));
+	aboutText.append(QString("FPGA Revision: %1").arg(fpgaVersion));
 	ui->lblAbout->setText(aboutText);
 	
 	ui->cmdCloseApp->setVisible(false);
