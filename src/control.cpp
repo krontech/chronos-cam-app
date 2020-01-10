@@ -148,6 +148,7 @@ CameraErrortype Control::getTiming(FrameGeometry *geometry, FrameTiming *timing)
 	args.insert("hRes", QVariant(geometry->hRes));
 	args.insert("vRes", QVariant(geometry->vRes));
 	args.insert("vDarkRows", QVariant(geometry->vDarkRows));
+	args.insert("minFrameTime", QVariant(geometry->minFrameTime));
 
 	pthread_mutex_lock(&mutex);
 	reply = iface.testResolution(args);
