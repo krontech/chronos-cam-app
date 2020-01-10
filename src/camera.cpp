@@ -233,6 +233,7 @@ UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 	values.insert("recSegments", QVariant(settings.segments));
 	values.insert("recMaxFrames", QVariant(settings.recRegionSizeFrames));
 	values.insert("recTrigDelay", QVariant(settings.recTrigDelay));
+	values.insert("recPreBurst", QVariant(settings.prerecordFrames));
 
 	CameraErrortype retVal = cinst->setPropertyGroup(values);
 
