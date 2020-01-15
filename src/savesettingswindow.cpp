@@ -347,41 +347,38 @@ void saveSettingsWindow::on_cmdRefresh_clicked()
 	refreshDriveList();
 }
 
+/* Compute the bitrate for the saved file. */
+UInt32 saveSettingsWindow::getBitrate()
+{
+	UInt32 pixelRate = camera->recordingData.is.geometry.pixels() * ui->spinFramerate->value();
+	UInt32 maxBitrate = ui->spinMaxBitrate->value() * 1000000;
+
+	switch (ui->comboSaveFormat->currentIndex()) {
+	case SAVE_MODE_DNG:
+	case SAVE_MODE_TIFF_RAW:
+	case SAVE_MODE_RAW16:
+		return pixelRate * 16;
+
+	case SAVE_MODE_RAW12:
+		return pixelRate * 12;
+
+	case SAVE_MODE_TIFF:
+		return camera->getIsColor() ? (pixelRate * 24) : (pixelRate * 8);
+
+	case SAVE_MODE_H264:
+	default:
+		if (maxBitrate > 60000000) maxBitrate = 6000000; /* Maximum of 60Mbps */
+		return min(ui->spinBitrate->value() * pixelRate, maxBitrate);
+	}
+}
+
 void saveSettingsWindow::updateBitrate()
 {
 	if(!windowInitComplete) return;
-	int saveFormat = ui->comboSaveFormat->currentIndex();
-	UInt32 frameRate = ui->spinFramerate->value();
-	double bitsPerPixel;
 	char str[100];
 	
-	if (saveFormat == SAVE_MODE_H264) {
-		UInt32 bitrate = min(ui->spinBitrate->value() * camera->recordingData.is.geometry.hRes * camera->recordingData.is.geometry.vRes * frameRate, min(60000000, (UInt32)(ui->spinMaxBitrate->value() * 1000000.0)) * frameRate / 60);	//Max of 60Mbps
-		
-		sprintf(str, "%4.2fMbps @\n%dx%d %dfps", (double)bitrate / 1000000.0, camera->recordingData.is.geometry.hRes, camera->recordingData.is.geometry.vRes, frameRate);
-		ui->lblBitrate->setText(str);
-	}
-	else {
-		switch(saveFormat) {
-			case SAVE_MODE_DNG:
-			case SAVE_MODE_TIFF_RAW:
-			case SAVE_MODE_RAW16:
-				bitsPerPixel = 16.0;
-				break;
-			case SAVE_MODE_RAW12:
-				bitsPerPixel = 12.0;
-				break;
-			case SAVE_MODE_TIFF:
-				if (camera->getIsColor()) {
-					bitsPerPixel = 24.0;
-				} else {
-					bitsPerPixel = 8.0;
-				}
-				break;
-		}
-		sprintf(str, "%4.2fMbps @\n%dx%d %dfps", ((double)camera->recordingData.is.geometry.hRes * (double)camera->recordingData.is.geometry.vRes * (double)frameRate * bitsPerPixel) / 1000000.0, camera->recordingData.is.geometry.hRes, camera->recordingData.is.geometry.vRes, frameRate);
-		ui->lblBitrate->setText(str);
-	}
+	sprintf(str, "%4.2fMbps @\n%dx%d %dfps", (double)getBitrate() / 1000000.0, camera->recordingData.is.geometry.hRes, camera->recordingData.is.geometry.vRes, ui->spinFramerate->value());
+	ui->lblBitrate->setText(str);
 }
 
 void saveSettingsWindow::on_spinBitrate_valueChanged(double arg1)
