@@ -319,12 +319,12 @@ CameraErrortype Control::getImagerSettings(ImagerSettings_t *is)
 		"recPreBurst",
 		"recSegments",
 		"recMode",
+		"disableRingBuffer",
 		"recTrigDelay"
 	};
 	QVariantMap response = getPropertyGroup(names);
 	QVariantMap res;
 	QString mode;
-	QSettings appSettings;
 
 	if (response.isEmpty()) {
 		return CAMERA_API_CALL_FAIL;
@@ -342,6 +342,7 @@ CameraErrortype Control::getImagerSettings(ImagerSettings_t *is)
 	is->recTrigDelay = response.value("recTrigDelay", 0).toUInt();
 	is->prerecordFrames = response.value("recPreBurst", 0).toUInt();
 	is->segments = response.value("recSegments", 1).toUInt();
+	is->disableRingBuffer = response.value("disableRingBuffer", 0).toBool();
 
 	/* Translate the recording mode */
 	mode = response.value("recMode", "normal").toString();
@@ -357,7 +358,6 @@ CameraErrortype Control::getImagerSettings(ImagerSettings_t *is)
 
 	/* Some stuff that doesn't quite fit... */
 	is->segmentLengthFrames = is->recRegionSizeFrames / is->segments;
-	is->disableRingBuffer = appSettings.value("camera/disableRingBuffer", 0).toInt();
 
 	return SUCCESS;
 }

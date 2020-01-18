@@ -233,6 +233,7 @@ UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 	values.insert("recSegments", QVariant(settings.segments));
 	values.insert("recMaxFrames", QVariant(settings.recRegionSizeFrames));
 	values.insert("recTrigDelay", QVariant(settings.recTrigDelay));
+	values.insert("disableRingBuffer", QVariant(settings.disableRingBuffer & 1));
 	values.insert("recPreBurst", QVariant(settings.prerecordFrames));
 
 	CameraErrortype retVal = cinst->setPropertyGroup(values);
@@ -510,7 +511,6 @@ Int32 Camera::blackCalAllStdRes(bool factory, QProgressDialog *dialog)
 			settings.recRegionSizeFrames = timing.cameraMaxFrames;
 			settings.period = timing.minFramePeriod;
 			settings.exposure = timing.exposureMax;
-			settings.disableRingBuffer = 0;
 			settings.mode = RECORD_MODE_NORMAL;
 			settings.prerecordFrames = 1;
 			settings.segmentLengthFrames = timing.cameraMaxFrames;
