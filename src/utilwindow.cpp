@@ -148,6 +148,8 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	ui->cmdColumnGain->setVisible(false);
 	ui->cmdWhiteRef->setVisible(false);
 	ui->cmdSetSN->setVisible(false);
+	ui->cmdExportCalData->setVisible(false);
+	ui->cmdImportCalData->setVisible(false);
 	ui->lineSerialNumber->setVisible(false);
 	ui->chkShowDebugControls->setVisible(false);
 
@@ -543,6 +545,28 @@ void UtilWindow::on_cmdSetSN_clicked()
 	camera->writeSerialNumber(camera->getSerialNumber());
 }
 
+void UtilWindow::on_cmdExportCalData_clicked()
+{
+	QMessageBox::StandardButton reply;
+	reply = QMessageBox::question(this, "Calibration Data Export", "Begin flat field export?\r\nThe display may go blank and the camera will turn off after this process.\r\nWARNING: Any unsaved video in RAM will be lost.", QMessageBox::Yes|QMessageBox::No);
+	if(QMessageBox::Yes != reply)
+		return;
+
+	qDebug() << "### flat-field export";
+	camera->cinst->exportCalData();
+}
+
+void UtilWindow::on_cmdImportCalData_clicked()
+{
+	QMessageBox::StandardButton reply;
+	reply = QMessageBox::question(this, "Calibration Data Import", "Begin calibration data import?\r\nAny previous cal data imports will be overwritten.", QMessageBox::Yes|QMessageBox::No);
+	if(QMessageBox::Yes != reply)
+		return;
+
+	qDebug() << "### flat-field import";
+	camera->cinst->importCalData();
+}
+
 void UtilWindow::statErrorMessage(){
 	QMessageBox msg;
 	msg.setText("Error: USB device not detected"); // /media/sda1
@@ -699,6 +723,8 @@ void UtilWindow::on_linePassword_textEdited(const QString &arg1)
 		ui->cmdWhiteRef->setVisible(true);
 		ui->cmdSetSN->setVisible(true);
 		ui->lineSerialNumber->setVisible(true);
+		ui->cmdExportCalData->setVisible(true);
+		ui->cmdImportCalData->setVisible(true);
 		ui->chkShowDebugControls->setVisible(true);
 	}
 }

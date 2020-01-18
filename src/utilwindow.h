@@ -69,6 +69,10 @@ private slots:
 
 	void on_cmdSetSN_clicked();
 
+	void on_cmdExportCalData_clicked();
+
+	void on_cmdImportCalData_clicked();
+
 	void on_cmdSaveCal_clicked();
 
 	void on_cmdRestoreCal_clicked();

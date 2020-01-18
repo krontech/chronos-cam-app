@@ -490,6 +490,39 @@ CameraErrortype Control::startCalibration(QString calType, bool saveCal)
 	return startCalibration(QStringList(calType), saveCal);
 }
 
+CameraErrortype Control::exportCalData(void)
+{
+	QVariantMap args;
+	QDBusPendingReply<QVariantMap> reply;
+
+	pthread_mutex_lock(&mutex);
+	reply = iface.exportCalData(args);
+	reply.waitForFinished();
+	pthread_mutex_unlock(&mutex);
+
+	if (reply.isError()) {
+		QDBusError err = reply.error();
+		fprintf(stderr, "Failed - exportCalData: %s - %s\n", err.name().data(), err.message().toAscii().data());
+	}
+}
+
+CameraErrortype Control::importCalData(void)
+{
+	QVariantMap args;
+	QDBusPendingReply<QVariantMap> reply;
+
+	pthread_mutex_lock(&mutex);
+	reply = iface.importCalData(args);
+	reply.waitForFinished();
+	pthread_mutex_unlock(&mutex);
+
+	if (reply.isError()) {
+		QDBusError err = reply.error();
+		fprintf(stderr, "Failed - importCalData: %s - %s\n", err.name().data(), err.message().toAscii().data());
+	}
+}
+
+
 CameraErrortype Control::status(CameraStatus *cs)
 {
 	QVariantMap args;

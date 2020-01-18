@@ -29,7 +29,7 @@
     <enum>QTabWidget::East</enum>
    </property>
    <property name="currentIndex">
-    <number>0</number>
+    <number>5</number>
    </property>
    <widget class="QWidget" name="tabMain">
     <attribute name="title">
@@ -1684,7 +1684,7 @@ All Resolutions</string>
      <property name="geometry">
       <rect>
        <x>190</x>
-       <y>240</y>
+       <y>310</y>
        <width>151</width>
        <height>51</height>
       </rect>
@@ -1715,7 +1715,7 @@ Calibration</string>
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>240</y>
+       <y>310</y>
        <width>151</width>
        <height>51</height>
       </rect>
@@ -1728,7 +1728,7 @@ Calibration</string>
      <property name="geometry">
       <rect>
        <x>130</x>
-       <y>310</y>
+       <y>380</y>
        <width>211</width>
        <height>51</height>
       </rect>
@@ -1749,7 +1749,7 @@ Calibration</string>
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>310</y>
+       <y>380</y>
        <width>101</width>
        <height>51</height>
       </rect>
@@ -1878,6 +1878,32 @@ Calibration Data
      </property>
      <property name="text">
       <string>Shipping Mode</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="cmdImportCalData">
+     <property name="geometry">
+      <rect>
+       <x>190</x>
+       <y>240</y>
+       <width>151</width>
+       <height>51</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Import Cal Data</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="cmdExportCalData">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>240</y>
+       <width>151</width>
+       <height>51</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Export Cal Data</string>
      </property>
     </widget>
    </widget>

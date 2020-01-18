@@ -119,6 +119,8 @@ public:
 	CameraErrortype revertAutoWhiteBalance(void);
 	CameraErrortype startCalibration(QString calType, bool saveCal=false);
 	CameraErrortype startCalibration(QStringList calTypes, bool saveCal=false);
+	CameraErrortype exportCalData(void);
+	CameraErrortype importCalData(void);
 
 	CameraErrortype status(CameraStatus *cs);
 	CameraErrortype availableKeys(void);
