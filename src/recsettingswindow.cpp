@@ -221,6 +221,7 @@ void RecSettingsWindow::on_cmdOK_clicked()
 	is->exposure = ui->lineExp->siText() * sensor.timingClock;
 	is->gain = sensor.minGain;
 	is->geometry = getResolution();
+	is->geometry.minFrameTime = (double)is->period / sensor.timingClock;
 	if (gainIndex >= 0) {
 		is->gain = ui->comboGain->itemData(gainIndex).toInt();
 	}
@@ -229,7 +230,6 @@ void RecSettingsWindow::on_cmdOK_clicked()
 	if (camera->cinst->getTiming(&is->geometry, &timing) == SUCCESS) {
 		is->exposure = within(is->exposure, timing.exposureMin, timing.exposureMax);
 		is->period = max(is->period, timing.minFramePeriod);
-		is->geometry.minFrameTime = (double)is->period / sensor.timingClock;
 	}
 	else {
 		/* The API reported that this timing is not possible... bad times await. */

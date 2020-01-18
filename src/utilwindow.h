@@ -107,10 +107,6 @@ private slots:
 
 	void on_comboAutoPowerMode_currentIndexChanged(int index);
 
-	void on_spinAutoSavePercent_valueChanged(int arg1);
-	void on_chkAutoSavePercent_stateChanged(int arg1);
-	void on_chkShippingMode_stateChanged(int arg1);
-
 	void on_chkFanDisable_stateChanged(int arg1);
 
 	void on_cmdClose_2_clicked();

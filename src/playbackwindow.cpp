@@ -52,10 +52,11 @@ playbackWindow::playbackWindow(QWidget *parent, Camera * cameraInst, bool autosa
 	saveAbortedAutomatically = false;
 	
 	camera->vinst->getStatus(&vStatus);
-	
-	if(camera->vinst->getOverlayStatus())	{
-		camera->vinst->setOverlay("%.6h/%.6z Sg=%g/%i T=%.8Ss");
-	}
+
+	/* Configure the overlay. */
+	camera->cinst->setString("overlayFormat", "%.6h/%.6z Sg=%g/%i T=%.8Ss");
+	camera->cinst->setString("overlayPosition", "bottom");
+	camera->cinst->setBool("overlayEnable", appSettings.value("camera/overlayEnabled", false).toBool());
 
 	playFrame = 0;
 	playLoop = false;
@@ -111,8 +112,6 @@ playbackWindow::~playbackWindow()
 
 void playbackWindow::videoStarted(VideoState state)
 {
-	ui->cmdSave->setEnabled(true);
-
 	/* When starting a filesave, increase the frame timing for maximum speed */
 	if (state == VIDEO_STATE_FILESAVE) {
 		camera->recordingData.hasBeenSaved = true;
@@ -129,7 +128,7 @@ void playbackWindow::videoStarted(VideoState state)
 		 * as that can make the camera try to save a 2nd video too soon, crashing the camapp.
 		 * It is also disabled in checkForSaveDone(), but if the video is very short,
 		 * that might not be called at all before the end of the video, so just disable the button right away.*/
-		if(markOutFrame - markInFrame < 25) ui->cmdSave->setEnabled(false);
+		if(markOutFrame - markInFrame < 25 || (markOutFrame - markInFrame < 230 && getSaveFormat() == SAVE_MODE_H264)) ui->cmdSave->setEnabled(false);
 		else ui->cmdSave->setEnabled(true);
 	} else {
 		ui->cmdSave->setText("Save");
@@ -149,6 +148,9 @@ void playbackWindow::videoEnded(VideoState state, QString err)
 		//TODO turn on sensor
 
 		sw->close();
+		
+		if(saveAbortedAutomatically)
+			QMessageBox::warning(this, "Warning - Insufficient free space", "Save aborted due to insufficient free space.");
 		ui->cmdSave->setText("Save");
 		saveAborted = false;
 		autoSaveFlag = false;
@@ -507,7 +509,9 @@ void playbackWindow::updatePlayFrame()
 //Once save is done, re-enable the window
 void playbackWindow::checkForSaveDone()
 {
-	if(camera->vinst->getStatus(NULL) == VIDEO_STATE_FILESAVE) {
+	VideoStatus st;
+	camera->vinst->getStatus(&st);
+	if(st.state == VIDEO_STATE_FILESAVE) {
 		setControlEnable(false);
 
 		struct statvfs statvfsBuf;
@@ -516,7 +520,8 @@ void playbackWindow::checkForSaveDone()
 		
 		/* Prevent the user from pressing the abort/save button just after the last frame,
 		 * as that can make the camera try to save a 2nd video too soon, crashing the camapp.*/
-		if(playFrame >= markOutFrame - 25)
+		UInt32 framerate = (UInt32) st.framerate;
+		if(playFrame + framerate > markOutFrame)
 			ui->cmdSave->setEnabled(false);
 		
 		/*Abort the save if insufficient free space,

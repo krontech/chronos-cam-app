@@ -110,8 +110,6 @@ public:
 	void setUnsavedWarnEnable(int newSetting);
 	int getAutoPowerMode(void);
 	void setAutoPowerMode(int newSetting);
-	bool getFanDisable(void);
-	void setFanDisable(bool dis);
 
 	char * getSerialNumber(void) {return serialNumber;}
 	void setSerialNumber(const char * sn) {strcpy(serialNumber, sn);}
@@ -126,8 +124,6 @@ public:
 	UInt32 getFocusPeakThresholdLL(void);
 	Int32 readSerialNumber(char * dest);
 	Int32 writeSerialNumber(char * src);
-	UInt16 getFPGAVersion(void);
-	UInt16 getFPGASubVersion(void);
 	bool ButtonsOnLeft;
 	bool UpsideDownDisplay;
 	void startLiveLoop();
@@ -217,12 +213,6 @@ public:
 	void setFocusPeakColor(int value);
 
 	void on_spinLiveLoopTime_valueChanged(double arg1);
-	int getAutoSavePercent(void);
-	void setAutoSavePercent(int newSetting);
-	bool getAutoSavePercentEnabled(void);
-	void setAutoSavePercentEnabled(bool newSetting);
-	bool getShippingMode(void);
-	void setShippingMode(int newSetting);
 
 private:
 	QString lastState = "idle";

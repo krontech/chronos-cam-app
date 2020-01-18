@@ -97,7 +97,7 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	ui->comboFPColor->addItem("White");
 	ui->comboFPColor->setCurrentIndex(camera->getFocusPeakColor() - 1);
 	ui->chkZebraEnable->setChecked(camera->getZebraEnable());
-	ui->chkShippingMode->setChecked(camera->getShippingMode());
+	ui->chkFanDisable->setChecked(camera->cinst->getProperty("shippingMode", false).toBool());
 
 	if (camera->focusPeakEnabled)
 	{
@@ -125,12 +125,14 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	UInt32 ramSizeGB;
 	QString modelName;
 	QString serialNumber;
+	QString fpgaVersion;
 	const char *modelFullName = "Chronos 1.4";
 	char release[128];
 
 	camera->cinst->getInt("cameraMemoryGB", &ramSizeGB);
 	camera->cinst->getString("cameraModel", &modelName);
 	camera->cinst->getString("cameraSerial", &serialNumber);
+	camera->cinst->getString("cameraFpgaVersion", &fpgaVersion);
 
 	// Chop the version digits off the end of the camera model.
 	if (modelName.startsWith("CR14")) modelFullName = "Chronos 1.4";
@@ -141,7 +143,7 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	aboutText.append(QString("\r\n"));
 	aboutText.append(QString("Release Version: %1\r\n").arg(readReleaseString(release, sizeof(release))));
 	aboutText.append(QString("Build: %1 (%2)\r\n").arg(CAMERA_APP_VERSION, git_version_str));
-	aboutText.append(QString("FPGA Revision: %1.%2").arg(QString::number(camera->getFPGAVersion()), QString::number(camera->getFPGASubVersion())));
+	aboutText.append(QString("FPGA Revision: %1").arg(fpgaVersion));
 	ui->lblAbout->setText(aboutText);
 	
 	ui->cmdCloseApp->setVisible(false);
@@ -158,9 +160,9 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	ui->chkAutoRecord->setChecked(camera->get_autoRecord());
 	ui->chkDemoMode->setChecked(camera->get_demoMode());
 	ui->chkUiOnLeft->setChecked(camera->getButtonsOnLeft());
+	ui->chkFanDisable->setChecked(camera->cinst->getProperty("fanOverride", false).toBool());
 	ui->comboDisableUnsavedWarning->setCurrentIndex(camera->getUnsavedWarnEnable());
 	ui->comboAutoPowerMode->setCurrentIndex(camera->getAutoPowerMode());
-	ui->spinAutoSavePercent->setValue(camera->getAutoSavePercent());
 
 	/* Load the Samba network settings. */
 	ui->lineSmbUser->setText(appSettings.value("network/smbUser", "").toString());
@@ -901,7 +903,7 @@ void UtilWindow::on_chkShippingMode_clicked()
 		QMessageBox::information(this, "Shipping Mode Enabled","On the next restart, the AC adapter must be plugged in to turn the camera on.", QMessageBox::Ok);
 	}
 
-	camera->setShippingMode(state);
+	camera->cinst->setBool("shippingMode", state);
 }
 
 void UtilWindow::on_cmdDefaults_clicked()
@@ -1112,7 +1114,7 @@ void UtilWindow::on_comboDisableUnsavedWarning_currentIndexChanged(int index)
 
 void UtilWindow::on_comboAutoPowerMode_currentIndexChanged(int index)
 {
-	camera->setAutoPowerMode(index);
+	if (!openingWindow) camera->setAutoPowerMode(index);
 }
 
 void UtilWindow::on_tabWidget_currentChanged(int index)
@@ -1140,27 +1142,10 @@ void UtilWindow::on_spinLiveLoopTime_valueChanged(double arg1)
 	}
 }
 
-void UtilWindow::on_spinAutoSavePercent_valueChanged(int arg1)
+void UtilWindow::on_chkFanDisable_stateChanged(int enable)
 {
-	camera->setAutoSavePercent(arg1);
+	if (!openingWindow) camera->cinst->setBool("fanOverride", (enable != 0));
 }
-
-void UtilWindow::on_chkAutoSavePercent_stateChanged(int arg1)
-{
-	camera->setAutoSavePercentEnabled(arg1);
-
-}
-
-void UtilWindow::on_chkFanDisable_stateChanged(int arg1)
-{
-	camera->setFanDisable(arg1);
-}
-
-void UtilWindow::on_chkShippingMode_stateChanged(int arg1)
-{
-	camera->setShippingMode(arg1);
-}
-
 
 // helper function to wait for idle state
 void UtilWindow::waitForIdle(void)

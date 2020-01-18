@@ -233,6 +233,8 @@ UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 	values.insert("recSegments", QVariant(settings.segments));
 	values.insert("recMaxFrames", QVariant(settings.recRegionSizeFrames));
 	values.insert("recTrigDelay", QVariant(settings.recTrigDelay));
+	values.insert("disableRingBuffer", QVariant(settings.disableRingBuffer & 1));
+	values.insert("recPreBurst", QVariant(settings.prerecordFrames));
 
 	CameraErrortype retVal = cinst->setPropertyGroup(values);
 
@@ -509,7 +511,6 @@ Int32 Camera::blackCalAllStdRes(bool factory, QProgressDialog *dialog)
 			settings.recRegionSizeFrames = timing.cameraMaxFrames;
 			settings.period = timing.minFramePeriod;
 			settings.exposure = timing.exposureMax;
-			settings.disableRingBuffer = 0;
 			settings.mode = RECORD_MODE_NORMAL;
 			settings.prerecordFrames = 1;
 			settings.segmentLengthFrames = timing.cameraMaxFrames;
@@ -642,20 +643,6 @@ void Camera::setZebraEnable(bool en)
 	cinst->setFloat("zebraLevel", en ? 0.05 : 0.0);
 }
 
-bool Camera::getFanDisable(void)
-{
-	QSettings appSettings;
-	return appSettings.value("camera/fanDisabled", true).toBool();
-}
-
-void Camera::setFanDisable(bool en)
-{
-	QSettings appSettings;
-	fanDisabled = en;
-	appSettings.setValue("camera/fanDisabled", en);
-	//TODO: cinst->setInt("fanSpeed", arg1);
-}
-
 int Camera::getUnsavedWarnEnable(void){
 	QSettings appSettings;
 	return appSettings.value("camera/unsavedWarn", 1).toInt();
@@ -668,58 +655,23 @@ void Camera::setUnsavedWarnEnable(int newSetting){
 	appSettings.setValue("camera/unsavedWarn", newSetting);
 }
 
-int Camera::getAutoPowerMode(void){
-	QSettings appSettings;
-	return appSettings.value("camera/autoPowerMode", 1).toInt();
-	//0 = disabled, 1 = turn on if AC inserted, 2 = turn off if AC removed, 3 = both
+int Camera::getAutoPowerMode(void)
+{
+	int mode = 0;
+	QStringList get = {"powerOnWhenMainsConnected", "powerOffWhenMainsLost" };
+	QVariantMap response = cinst->getPropertyGroup(get);
+
+	if (response.value("powerOnWhenMainsConnected", false).toBool()) mode |= 1;
+	if (response.value("powerOffWhenMainsLost", false).toBool()) mode |= 2;
+	return mode;
 }
 
-void Camera::setAutoPowerMode(int newSetting){
-	qDebug() << "AutoPowerMode:" << newSetting;
-	QSettings appSettings;
-	autoPowerMode = newSetting;
-	appSettings.setValue("camera/autoPowerMode", newSetting);
-	bool mainsConnectTurnOn = newSetting & 1;
-	bool mainsDisconnectTurnOff = newSetting & 2;
-	cinst->setBool("powerOnWhenMainsConnected", mainsConnectTurnOn);
-	cinst->setBool("powerOffWhenMainsDisconnected", mainsDisconnectTurnOff);
-}
-
-int Camera::getAutoSavePercent(void){
-	QSettings appSettings;
-	return appSettings.value("camera/autoAutoSavePercent", 1).toInt();
-}
-
-void Camera::setAutoSavePercent(int newSetting){
-	QSettings appSettings;
-	autoSavePercent = newSetting;
-	appSettings.setValue("camera/autoAutoSavePercent", newSetting);
-	cinst->setFloat("saveAndPowerDownLowBatteryLevelPercent", (double)newSetting);
-}
-
-bool Camera::getAutoSavePercentEnabled(void){
-	QSettings appSettings;
-	return appSettings.value("camera/autoAutoSavePercentEnabled", 1).toBool();
-}
-
-void Camera::setAutoSavePercentEnabled(bool newSetting){
-	QSettings appSettings;
-	autoSavePercentEnabled = newSetting;
-	appSettings.setValue("camera/autoAutoSavePercent", newSetting);
-	cinst->setBool("saveAndPowerDownWhenLowBattery", newSetting);
-}
-
-bool Camera::getShippingMode(void){
-	QSettings appSettings;
-	return appSettings.value("camera/shippingMode", 1).toBool();
-	//0 = disabled, 1 = turn on if AC inserted, 2 = turn off if AC removed, 3 = both
-}
-
-void Camera::setShippingMode(int newSetting){
-	QSettings appSettings;
-	shippingMode = newSetting;
-	appSettings.setValue("camera/shippingMode", newSetting);
-	cinst->setBool("shippingMode", newSetting);
+void Camera::setAutoPowerMode(int newSetting)
+{
+	QVariantMap values;
+	values.insert("powerOnWhenMainsConnected", QVariant((newSetting & 1) != 0));
+	values.insert("powerOffWhenMainsLost", QVariant((newSetting & 2) != 0));
+	cinst->setPropertyGroup(values);
 }
 
 void Camera::set_autoSave(bool state) {

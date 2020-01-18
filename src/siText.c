@@ -73,7 +73,7 @@ void getSIText(char * buf, double val, UInt32 sigfigs, UInt32 options, Int32 res
 	if(negative)
 		val = -val;
 
-	sprintf(buf, "%.*f%c%c", decPlaces, val, options & SI_SPACE_BEFORE_PREFIX ? ' ' : '\0',  prefixes[ex/3+8]);
+	sprintf(buf, "%.*f%s%c", decPlaces, val, options & SI_SPACE_BEFORE_PREFIX ? " " : "",  prefixes[ex/3+8]);
 
 	//Instert thousands separators if needed
 	if(	options & SI_DELIM_SPACE ||
@@ -82,23 +82,22 @@ void getSIText(char * buf, double val, UInt32 sigfigs, UInt32 options, Int32 res
 		char * pt;
 		char * end;
 
-		// Point pt at "."
+		// Find the decimal point.
 		for (pt = buf; *pt && *pt != '.'; pt++) {}
-		//pt++;
+		// Skip the decimal point and the first three digits.
+		pt += 4;
+		decPlaces -= 3;
 
 		// Find end (including terminator)
-		end = buf + strlen(buf);
+		end = buf + strlen(buf) + 1;
 		// Step forwards from the decimal, inserting spaces
-		do {
-			pt += 4; // shift 3 digits
-			if (/*pt <= end*/decPlaces > 3) {
-				memmove(pt + 1, pt, end - pt + 1);
-				*pt = (options & SI_DELIM_SPACE) ? ' ' : ','; // thousand separator
-				decPlaces -= 3;
-				//n += 4; // 3 digits + separator
-			} else
-				break;
-		} while (1);
+		while (decPlaces > 0) {
+			// Insert a separator
+			memmove(pt + 1, pt, end - pt + 1);
+			*pt = (options & SI_DELIM_SPACE) ? ' ' : ','; // thousand separator
+			pt += 4; // 3 digits + separator
+			decPlaces -= 3;
+		}
 	}
 }
 

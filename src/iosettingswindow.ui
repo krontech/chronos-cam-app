@@ -20,9 +20,9 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>0</y>
+     <y>5</y>
      <width>761</width>
-     <height>196</height>
+     <height>151</height>
     </rect>
    </property>
    <property name="autoFillBackground">
@@ -43,7 +43,7 @@
    <widget class="QRadioButton" name="radioIO1FSOut">
     <property name="geometry">
      <rect>
-      <x>395</x>
+      <x>540</x>
       <y>15</y>
       <width>231</width>
       <height>41</height>
@@ -69,7 +69,7 @@
      <rect>
       <x>150</x>
       <y>15</y>
-      <width>221</width>
+      <width>211</width>
       <height>41</height>
      </rect>
     </property>
@@ -96,7 +96,7 @@
      <rect>
       <x>150</x>
       <y>60</y>
-      <width>221</width>
+      <width>211</width>
       <height>41</height>
      </rect>
     </property>
@@ -115,11 +115,11 @@
      <string>E&amp;xposure Trigger</string>
     </property>
    </widget>
-   <widget class="QCheckBox" name="chkIO1InvertIn">
+   <widget class="QCheckBox" name="chkIO1Invert">
     <property name="geometry">
      <rect>
-      <x>150</x>
-      <y>150</y>
+      <x>370</x>
+      <y>105</y>
       <width>97</width>
       <height>41</height>
      </rect>
@@ -137,8 +137,8 @@
    <widget class="QCheckBox" name="chkIO1Debounce">
     <property name="geometry">
      <rect>
-      <x>570</x>
-      <y>150</y>
+      <x>370</x>
+      <y>60</y>
       <width>151</width>
       <height>41</height>
      </rect>
@@ -156,30 +156,11 @@
      <string>Debounce</string>
     </property>
    </widget>
-   <widget class="QCheckBox" name="chkIO1InvertOut">
-    <property name="geometry">
-     <rect>
-      <x>395</x>
-      <y>60</y>
-      <width>151</width>
-      <height>41</height>
-     </rect>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">QCheckBox::indicator {
-     width: 40px;
-     height: 40px;
-}</string>
-    </property>
-    <property name="text">
-     <string>Invert Output</string>
-    </property>
-   </widget>
    <widget class="QCheckBox" name="chkIO1WeakPull">
     <property name="geometry">
      <rect>
-      <x>430</x>
-      <y>150</y>
+      <x>540</x>
+      <y>105</y>
       <width>131</width>
       <height>41</height>
      </rect>
@@ -197,8 +178,8 @@
    <widget class="QCheckBox" name="chkIO1Pull">
     <property name="geometry">
      <rect>
-      <x>280</x>
-      <y>150</y>
+      <x>540</x>
+      <y>60</y>
       <width>141</width>
       <height>41</height>
      </rect>
@@ -217,7 +198,7 @@
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>63</y>
+      <y>40</y>
       <width>66</width>
       <height>17</height>
      </rect>
@@ -229,7 +210,7 @@
    <widget class="QRadioButton" name="radioIO1None">
     <property name="geometry">
      <rect>
-      <x>640</x>
+      <x>370</x>
       <y>15</y>
       <width>101</width>
       <height>41</height>
@@ -250,28 +231,12 @@
      <string>None</string>
     </property>
    </widget>
-   <widget class="Line" name="line_2">
-    <property name="geometry">
-     <rect>
-      <x>365</x>
-      <y>10</y>
-      <width>20</width>
-      <height>121</height>
-     </rect>
-    </property>
-    <property name="frameShadow">
-     <enum>QFrame::Plain</enum>
-    </property>
-    <property name="orientation">
-     <enum>Qt::Vertical</enum>
-    </property>
-   </widget>
    <widget class="QRadioButton" name="radioIO1ShutterGating">
     <property name="geometry">
      <rect>
       <x>150</x>
       <y>105</y>
-      <width>221</width>
+      <width>211</width>
       <height>41</height>
      </rect>
     </property>
@@ -294,7 +259,7 @@
     <property name="geometry">
      <rect>
       <x>5</x>
-      <y>83</y>
+      <y>60</y>
       <width>136</width>
       <height>41</height>
      </rect>
@@ -338,7 +303,7 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>200</y>
+     <y>160</y>
      <width>761</width>
      <height>151</height>
     </rect>
@@ -362,7 +327,7 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
     <property name="geometry">
      <rect>
       <x>540</x>
-      <y>10</y>
+      <y>15</y>
       <width>211</width>
       <height>41</height>
      </rect>
@@ -409,11 +374,11 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
      <bool>true</bool>
     </property>
    </widget>
-   <widget class="QCheckBox" name="chkIO2InvertIn">
+   <widget class="QCheckBox" name="chkIO2Invert">
     <property name="geometry">
      <rect>
       <x>370</x>
-      <y>10</y>
+      <y>105</y>
       <width>97</width>
       <height>41</height>
      </rect>
@@ -432,7 +397,7 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
     <property name="geometry">
      <rect>
       <x>370</x>
-      <y>55</y>
+      <y>60</y>
       <width>141</width>
       <height>41</height>
      </rect>
@@ -447,30 +412,11 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
      <string>Debounce</string>
     </property>
    </widget>
-   <widget class="QCheckBox" name="chkIO2InvertOut">
-    <property name="geometry">
-     <rect>
-      <x>540</x>
-      <y>55</y>
-      <width>151</width>
-      <height>41</height>
-     </rect>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">QCheckBox::indicator {
-     width: 40px;
-     height: 40px;
-}</string>
-    </property>
-    <property name="text">
-     <string>Invert Output</string>
-    </property>
-   </widget>
    <widget class="QCheckBox" name="chkIO2Pull">
     <property name="geometry">
      <rect>
-      <x>370</x>
-      <y>100</y>
+      <x>540</x>
+      <y>60</y>
       <width>141</width>
       <height>41</height>
      </rect>
@@ -501,8 +447,8 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
    <widget class="QRadioButton" name="radioIO2None">
     <property name="geometry">
      <rect>
-      <x>540</x>
-      <y>100</y>
+      <x>370</x>
+      <y>15</y>
       <width>101</width>
       <height>41</height>
      </rect>
@@ -520,22 +466,6 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
     </property>
     <property name="text">
      <string>None</string>
-    </property>
-   </widget>
-   <widget class="Line" name="line">
-    <property name="geometry">
-     <rect>
-      <x>510</x>
-      <y>10</y>
-      <width>20</width>
-      <height>141</height>
-     </rect>
-    </property>
-    <property name="frameShadow">
-     <enum>QFrame::Plain</enum>
-    </property>
-    <property name="orientation">
-     <enum>Qt::Vertical</enum>
     </property>
    </widget>
    <widget class="QRadioButton" name="radioIO2TriggeredShutter">
@@ -660,9 +590,9 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>360</y>
-     <width>351</width>
-     <height>111</height>
+     <y>320</y>
+     <width>431</width>
+     <height>151</height>
     </rect>
    </property>
    <property name="font">
@@ -685,11 +615,11 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
    <property name="checked">
     <bool>false</bool>
    </property>
-   <widget class="QCheckBox" name="chkIO3InvertIn">
+   <widget class="QCheckBox" name="chkIO3Invert">
     <property name="geometry">
      <rect>
-      <x>80</x>
-      <y>60</y>
+      <x>230</x>
+      <y>105</y>
       <width>97</width>
       <height>41</height>
      </rect>
@@ -707,7 +637,7 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
    <widget class="QCheckBox" name="chkIO3Debounce">
     <property name="geometry">
      <rect>
-      <x>210</x>
+      <x>230</x>
       <y>60</y>
       <width>131</width>
       <height>41</height>
@@ -723,23 +653,107 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
      <string>Debounce</string>
     </property>
    </widget>
-   <widget class="QCheckBox" name="chkIO3TriggerInEn">
+   <widget class="QRadioButton" name="radioIO3TrigIn">
     <property name="geometry">
      <rect>
-      <x>80</x>
-      <y>20</y>
-      <width>121</width>
+      <x>10</x>
+      <y>15</y>
+      <width>211</width>
       <height>41</height>
      </rect>
     </property>
+    <property name="font">
+     <font>
+      <family>Sans Serif</family>
+      <pointsize>16</pointsize>
+     </font>
+    </property>
     <property name="styleSheet">
-     <string notr="true">QCheckBox::indicator {
+     <string notr="true">QRadioButton::indicator {
      width: 40px;
      height: 40px;
 }</string>
     </property>
     <property name="text">
-     <string>Trigger In</string>
+     <string>Record End Trigger</string>
+    </property>
+   </widget>
+   <widget class="QRadioButton" name="radioIO3TriggeredShutter">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>60</y>
+      <width>211</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Sans Serif</family>
+      <pointsize>16</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QRadioButton::indicator {
+     width: 40px;
+     height: 40px;
+}</string>
+    </property>
+    <property name="text">
+     <string>Exposure Trigger</string>
+    </property>
+   </widget>
+   <widget class="QRadioButton" name="radioIO3ShutterGating">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>105</y>
+      <width>211</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Sans Serif</family>
+      <pointsize>16</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QRadioButton::indicator {
+     width: 40px;
+     height: 40px;
+}</string>
+    </property>
+    <property name="text">
+     <string>Shutter Gating</string>
+    </property>
+   </widget>
+   <widget class="QRadioButton" name="radioIO3None">
+    <property name="geometry">
+     <rect>
+      <x>230</x>
+      <y>15</y>
+      <width>211</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Sans Serif</family>
+      <pointsize>16</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QRadioButton::indicator {
+     width: 40px;
+     height: 40px;
+}</string>
+    </property>
+    <property name="text">
+     <string>None</string>
+    </property>
+    <property name="checked">
+     <bool>true</bool>
     </property>
    </widget>
   </widget>
@@ -759,8 +773,8 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
   <widget class="QLabel" name="lblStatus">
    <property name="geometry">
     <rect>
-     <x>370</x>
-     <y>370</y>
+     <x>460</x>
+     <y>330</y>
      <width>91</width>
      <height>81</height>
     </rect>
@@ -789,28 +803,29 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
   <tabstop>cmdCancel</tabstop>
   <tabstop>cmdOK</tabstop>
   <tabstop>cmdApply</tabstop>
+  <tabstop>chkIO3Invert</tabstop>
+  <tabstop>radioIO3ShutterGating</tabstop>
   <tabstop>chkIO3Debounce</tabstop>
-  <tabstop>chkIO3InvertIn</tabstop>
-  <tabstop>chkIO3TriggerInEn</tabstop>
-  <tabstop>radioIO2None</tabstop>
-  <tabstop>chkIO2Pull</tabstop>
+  <tabstop>radioIO3TriggeredShutter</tabstop>
+  <tabstop>radioIO3None</tabstop>
+  <tabstop>radioIO3TrigIn</tabstop>
+  <tabstop>chkIO2Invert</tabstop>
   <tabstop>radioIO2ShutterGating</tabstop>
-  <tabstop>chkIO2InvertOut</tabstop>
+  <tabstop>chkIO2Pull</tabstop>
   <tabstop>chkIO2Debounce</tabstop>
   <tabstop>radioIO2TriggeredShutter</tabstop>
   <tabstop>radioIO2FSOut</tabstop>
-  <tabstop>chkIO2InvertIn</tabstop>
+  <tabstop>radioIO2None</tabstop>
   <tabstop>radioIO2TrigIn</tabstop>
   <tabstop>spinIO2Thresh</tabstop>
-  <tabstop>chkIO1Debounce</tabstop>
   <tabstop>chkIO1WeakPull</tabstop>
-  <tabstop>chkIO1Pull</tabstop>
-  <tabstop>chkIO1InvertIn</tabstop>
+  <tabstop>chkIO1Invert</tabstop>
   <tabstop>radioIO1ShutterGating</tabstop>
-  <tabstop>chkIO1InvertOut</tabstop>
+  <tabstop>chkIO1Pull</tabstop>
+  <tabstop>chkIO1Debounce</tabstop>
   <tabstop>radioIO1TriggeredShutter</tabstop>
-  <tabstop>radioIO1None</tabstop>
   <tabstop>radioIO1FSOut</tabstop>
+  <tabstop>radioIO1None</tabstop>
   <tabstop>radioIO1TrigIn</tabstop>
   <tabstop>spinIO1Thresh</tabstop>
  </tabstops>
