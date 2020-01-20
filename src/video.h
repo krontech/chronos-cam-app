@@ -105,6 +105,7 @@ public:
 	void setDisplayPosition(bool videoOnRight);
 	void liveDisplay(bool flip);
 	void pauseDisplay(void);
+	void reset(void);
 	VideoState getStatus(VideoStatus *st);
 
 	CameraErrortype startRecording(UInt32 sizeX, UInt32 sizeY, UInt32 start, UInt32 length, save_mode_type save_mode);

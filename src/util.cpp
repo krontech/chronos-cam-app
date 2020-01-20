@@ -19,6 +19,8 @@
 #include "defines.h"
 #include "QDebug"
 #include <sys/stat.h>
+#include <unistd.h>
+#include <signal.h>
 #include <QCoreApplication>
 #include <QTime>
 #include <QSettings>
@@ -172,4 +174,17 @@ bool isExportingNfs(QString camIpAddress)
 		}
 	}
 	return false;
+}
+
+/* Run a shell command that may need to run in the background */
+void
+runBackground(const char *command)
+{
+	int child = fork();
+	if (child == 0) {
+		setsid();
+		signal(SIGHUP, SIG_IGN);
+		system(command);
+		exit(0);
+	}
 }

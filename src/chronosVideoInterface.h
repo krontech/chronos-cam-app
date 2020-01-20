@@ -78,6 +78,12 @@ public Q_SLOTS: // METHODS
 		return asyncCallWithArgumentList(QLatin1String("overlay"), argumentList);
 	}
 
+	inline QDBusPendingReply<QVariantMap> reset()
+	{
+		QList<QVariant> argumentList;
+		return asyncCallWithArgumentList(QLatin1String("pause"), argumentList);
+	}
+
 	inline QDBusPendingReply<QVariantMap> pause()
 	{
 		QList<QVariant> argumentList;

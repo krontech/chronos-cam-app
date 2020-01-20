@@ -18,9 +18,8 @@
  ****************************************************************************/
 #include <QLabel>
 #include <QMessageBox>
-#include <unistd.h>
-#include <signal.h>
 
+#include "util.h"
 #include "aptupdate.h"
 
 AptUpdate::AptUpdate(QWidget * parent)
@@ -129,14 +128,7 @@ int AptUpdate::exec()
 		return 0;
 	}
 
-	/* To perform the actual upgrade - we will need to fork and detach a copy of apt. */
-	child = fork();
-	if (child == 0) {
-		setsid();
-		signal(SIGHUP, SIG_IGN);
-		system("apt-get -y upgrade; sleep 10; shutdown -hr now");
-		exit(0);
-	}
+	runBackground("apt-get -y upgrade; sleep 10; shutdown -hr now");
 	reply = QMessageBox::information(parent, "apt upgrade", "Package update in progress. The camera will reboot when complete.", QMessageBox::NoButton);
 	return 0;
 }

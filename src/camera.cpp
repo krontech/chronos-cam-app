@@ -125,8 +125,6 @@ CameraErrortype Camera::init(Video * vinstInst, Control * cinstInst)
 
 	//vinst->setDisplayOptions(getZebraEnable(), getFocusPeakEnable());
 	vinst->setDisplayPosition(ButtonsOnLeft ^ UpsideDownDisplay);
-	usleep(2000000); //needed temporarily with current pychronos
-	cinst->doReset(); //also needed temporarily
 
 	/* Try to mount the SMB share */
 	if (appSettings.value("network/smbAddress", "").toString() != "" &&

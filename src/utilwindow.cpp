@@ -922,7 +922,17 @@ void UtilWindow::on_cmdDefaults_clicked()
 	if(QMessageBox::Yes != reply2)
 		return;
 
+	/* Reboot the conrol and video interfaces */
+	camera->vinst->reset();
+	camera->cinst->reboot(true);
+
+#ifdef DEBIAN
+	/* May not be necessary; systemd will probably reboot us */
+	runBackground("service chronos-gui restart");
+	QApplication::quit();
+#else
 	system("killall camApp && /etc/init.d/camera restart");
+#endif
 }
 
 void UtilWindow::on_cmdBackupSettings_clicked()
@@ -976,8 +986,10 @@ void UtilWindow::on_cmdBackupSettings_clicked()
 	sw.show();
 	QCoreApplication::processEvents();
 
-	sprintf(str, "tar -cf /media/sda1/user_settings.tar /Settings/KronTech");
+	/* Generate backups of the control and video API settings. */
+	system("cam-json -g config videoConfig > Settings/KronTech/apiBackup.json");
 
+	sprintf(str, "tar -cf /media/sda1/user_settings.tar Settings/KronTech");
 	retVal = system(str);	//tar cal files
 
 	if(0 != retVal)
@@ -1043,7 +1055,7 @@ void UtilWindow::on_cmdRestoreSettings_clicked()
 	sw.show();
 	QCoreApplication::processEvents();
 
-	sprintf(str, "tar -xf /media/sda1/user_settings.tar -C /");
+	sprintf(str, "tar -xf /media/sda1/user_settings.tar");
 
 	retVal = system(str);	//tar cal files
 	if(0 != retVal)
@@ -1057,6 +1069,9 @@ void UtilWindow::on_cmdRestoreSettings_clicked()
 	QSettings appSettings;
 	appSettings.sync();
 
+	/* Update the control and video APIs with the restored settings. */
+	system("cam-json set Settings/KronTech/apiBackup.json");
+
 	sw.hide();
 	msg.setText("User settings restore successful!");
 	msg.setWindowFlags(Qt::WindowStaysOnTopHint);
@@ -1067,7 +1082,13 @@ void UtilWindow::on_cmdRestoreSettings_clicked()
 	if(QMessageBox::Yes != reply)
 		return;
 
+#ifdef DEBIAN
+	/* May not be necessary; systemd will probably reboot us */
+	runBackground("service chronos-gui restart");
+	QApplication::quit();
+#else
 	system("killall camApp && /etc/init.d/camera restart");
+#endif
 }
 
 

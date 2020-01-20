@@ -231,6 +231,16 @@ void Video::flushRegions(void)
 	pthread_mutex_unlock(&mutex);
 }
 
+void Video::reset(void)
+{
+	QDBusPendingReply<QVariantMap> reply;
+
+	pthread_mutex_lock(&mutex);
+	reply = iface.reset();
+	reply.waitForFinished();
+	pthread_mutex_unlock(&mutex);
+}
+
 CameraErrortype Video::startRecording(UInt32 sizeX, UInt32 sizeY, UInt32 start, UInt32 length, save_mode_type save_mode)
 {
 	QDBusPendingReply<QVariantMap> reply;

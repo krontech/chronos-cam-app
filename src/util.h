@@ -35,6 +35,7 @@ bool checkAndCreateDir(const char * dir);
 int path_is_mounted(const char *path);
 
 QString runCommand(QString command, int *status = NULL);
+void runBackground(const char *command);
 QString buildSambaString();
 QString buildNfsString();
 bool isReachable(QString address);

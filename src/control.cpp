@@ -411,18 +411,21 @@ CameraErrortype Control::testResolution(void)
 	}
 }
 
-CameraErrortype Control::doReset(void)
+CameraErrortype Control::reboot(bool settings)
 {
 	QDBusPendingReply<QVariantMap> reply;
+	QVariantMap args;
+
+	args.insert("settings", settings);
 
 	pthread_mutex_lock(&mutex);
-	reply = iface.doReset();
+	reply = iface.reboot(args);
 	reply.waitForFinished();
 	pthread_mutex_unlock(&mutex);
 
 	if (reply.isError()) {
 		QDBusError err = reply.error();
-		fprintf(stderr, "Failed - doReset: %s - %s\n", err.name().data(), err.message().toAscii().data());
+		fprintf(stderr, "Failed - reboot: %s - %s\n", err.name().data(), err.message().toAscii().data());
 	}
 }
 

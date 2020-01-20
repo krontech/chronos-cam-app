@@ -64,10 +64,11 @@ public Q_SLOTS: // METHODS
 		return asyncCallWithArgumentList(QLatin1String("getResolutionTimingLimits"), argumentList);
 	}
 
-	inline QDBusPendingReply<QVariantMap> doReset()
+	inline QDBusPendingReply<QVariantMap> reboot(const QVariantMap &args)
 	{
 		QList<QVariant> argumentList;
-		return asyncCallWithArgumentList(QLatin1String("softReset"), argumentList);
+		argumentList << qVariantFromValue(args);
+		return asyncCallWithArgumentList(QLatin1String("reboot"), argumentList);
 	}
 
 	inline QDBusPendingReply<QVariantMap> startAutoWhiteBalance(const QVariantMap &args)

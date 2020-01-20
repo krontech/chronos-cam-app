@@ -113,7 +113,7 @@ public:
 	/* API Methods */
 	CameraErrortype startRecording(void);
 	CameraErrortype stopRecording(void);
-	CameraErrortype doReset(void);
+	CameraErrortype reboot(bool settings);
 	CameraErrortype testResolution(void);
 	CameraErrortype startAutoWhiteBalance(void);
 	CameraErrortype revertAutoWhiteBalance(void);
