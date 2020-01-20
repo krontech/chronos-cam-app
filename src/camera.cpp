@@ -126,6 +126,9 @@ CameraErrortype Camera::init(Video * vinstInst, Control * cinstInst)
 	//vinst->setDisplayOptions(getZebraEnable(), getFocusPeakEnable());
 	vinst->setDisplayPosition(ButtonsOnLeft ^ UpsideDownDisplay);
 
+	/* Disable shipping mode on a successful boot */
+	cinst->setBool("shippingMode", false);
+
 	/* Try to mount the SMB share */
 	if (appSettings.value("network/smbAddress", "").toString() != "" &&
 		appSettings.value("network/smbMount", "").toString() != "" &&
