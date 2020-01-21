@@ -120,8 +120,6 @@ private slots:
 
 	void on_chkLiveLoop_stateChanged(int arg1);
 	void on_spinLiveLoopTime_valueChanged(double arg1);
-	void waitForIdle(void);
-	Int32 blackCalAllStdRes(void);
 
 	void on_cmdStaticIp_clicked(void);
 	bool checkStaticIp(void);
