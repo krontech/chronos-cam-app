@@ -345,14 +345,25 @@ void playbackWindow::on_cmdSave_clicked()
 				return;
 			}
 			else if (RECORD_FOLDER_DOES_NOT_EXIST == ret) {
-				msg.setText("Save folder does not exist.");
-				msg.exec();
-				return;
+				qDebug() << "RECORD_FOLDER_DOES_NOT_EXIST";
+				if(autoSaveFlag) {
+					strncpy(camera->cinst->fileFolder, "\0", 1);
+					ret = camera->cinst->saveRecording(markInFrame - 1, markOutFrame - markInFrame + 1, format, camera->vinst->framerate, realBitrate);
+				} else {
+					msg.setText("Save folder does not exist.");
+					msg.exec();
+					return;
+				}
 			}
 			else if (RECORD_DIRECTORY_NOT_WRITABLE == ret) {
-				msg.setText("Save directory is not writable.");
-				msg.exec();
-				return;
+				if(autoSaveFlag) {
+					strncpy(camera->cinst->fileFolder, "\0", 1);
+					ret = camera->cinst->saveRecording(markInFrame - 1, markOutFrame - markInFrame + 1, format, camera->vinst->framerate, realBitrate);
+				} else {
+					msg.setText("Save directory is not writable.");
+					msg.exec();
+					return;
+				}
 			}
 			else if (RECORD_INSUFFICIENT_SPACE == ret) {
 				msg.setText("Selected device does not have sufficient free space.");
