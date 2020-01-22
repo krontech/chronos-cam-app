@@ -494,6 +494,7 @@ void saveSettingsWindow::setControlEnable(bool en){
 	ui->spinFramerate->setEnabled(H264SettingsEnabled);
 	ui->spinMaxBitrate->setEnabled(H264SettingsEnabled);
 	if(!camera->autoSave) ui->lineFilename->setEnabled(en);
+	ui->lineFoldername->setEnabled(en);
 	ui->comboSaveFormat->setEnabled(en);
 	ui->comboDrive->setEnabled(en);
 	ui->cmdRefresh->setEnabled(en);
