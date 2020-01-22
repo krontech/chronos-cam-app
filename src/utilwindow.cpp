@@ -154,6 +154,7 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	ui->cmdImportCalData->setVisible(false);
 	ui->lineSerialNumber->setVisible(false);
 	ui->chkShowDebugControls->setVisible(false);
+	ui->cmdAutoCal->setVisible(false);
 
 
 	ui->chkAutoSave->setChecked(camera->get_autoSave());
@@ -728,6 +729,7 @@ void UtilWindow::on_linePassword_textEdited(const QString &arg1)
 		ui->cmdExportCalData->setVisible(true);
 		ui->cmdImportCalData->setVisible(true);
 		ui->chkShowDebugControls->setVisible(true);
+		ui->cmdAutoCal->setVisible(true);
 	}
 }
 
