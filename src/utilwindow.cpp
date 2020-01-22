@@ -35,6 +35,7 @@
 #include <sys/mount.h>
 #include <sys/sendfile.h>
 #include <mntent.h>
+#include <sys/statvfs.h>
 
 #include "aptupdate.h"
 #include "control.h"
@@ -292,6 +293,7 @@ bool copyFile(const char * fromfile, const char * tofile)
 
 void UtilWindow::onUtilWindowTimer()
 {
+	struct statvfs fsInfoBuf;
 	if(!settingClock)
 	{
 		if(ui->dateTimeEdit->hasFocus())
@@ -324,6 +326,14 @@ void UtilWindow::onUtilWindowTimer()
 			break;
 		}
 		ui->lblStatusSD->setText(sdText);
+		
+		/* enable/disable the format/eject buttons */
+		bool usbPresent = (!statvfs("/dev/sda", &fsInfoBuf));
+		ui->cmdEjectDisk->setEnabled(usbPresent);
+		ui->cmdFormatDisk->setEnabled(usbPresent);
+		bool SDPresent = (!statvfs("/dev/mmcblk1p1", &fsInfoBuf));
+		ui->cmdEjectSD->setEnabled(SDPresent);
+		ui->cmdFormatSD->setEnabled(SDPresent);
 	}
 	/* If on the network tab, update the interface and network status. */
 	if (ui->tabWidget->currentWidget()  == ui->tabNetwork) {
@@ -765,6 +775,10 @@ void UtilWindow::formatStorageDevice(const char *blkdev)
 	char partpath[128];
 	char diskname[128];
 	int filepathlen;
+	int mkfsReturn;
+	char title[128];
+	char message[1024];
+	struct statvfs fsInfoBuf;
 	FILE *fp;
 	int ret;
 
@@ -785,6 +799,15 @@ void UtilWindow::formatStorageDevice(const char *blkdev)
 		else {
 			strcpy(diskname, blkdev);
 		}
+	}
+
+	/* Check if storage device exists */
+	sprintf(filepath, "/dev/%s", blkdev);
+	if(statvfs(filepath, &fsInfoBuf) == -1){
+		sprintf(title, "Storage device not found");
+		sprintf(message, "\"%s\" not found", diskname);
+		QMessageBox::warning(this, title, message);
+		return;
 	}
 
 	/* Prompt the user for confirmation */
