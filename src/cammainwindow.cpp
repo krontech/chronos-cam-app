@@ -322,17 +322,6 @@ void CamMainWindow::on_cmdFPNCal_clicked()//Black cal
 
 	camera->cinst->startCalibration({"analogCal", "blackCal"}, true);
 
-	bool calWaiting;
-	do {
-		QString state;
-		cinst->getString("state", &state);
-		calWaiting = state != "idle";
-
-		struct timespec t = {0, 50000000};
-		nanosleep(&t, NULL);
-
-	} while (calWaiting);
-
 	sw->hide();
 }
 

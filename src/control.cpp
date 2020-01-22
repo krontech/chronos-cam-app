@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <string>
 #include <QDebug>
+#include <QEventLoop>
 #include <memory.h>
 #include <getopt.h>
 #include <string.h>
@@ -441,10 +442,7 @@ CameraErrortype Control::startAutoWhiteBalance(void)
 	reply.waitForFinished();
 	pthread_mutex_unlock(&mutex);
 
-	if (reply.isError()) {
-		QDBusError err = reply.error();
-		fprintf(stderr, "Failed - startAutoWhiteBalance: %s - %s\n", err.name().data(), err.message().toAscii().data());
-	}
+	return waitAsyncComplete(reply);
 }
 
 CameraErrortype Control::revertAutoWhiteBalance(void)
@@ -479,14 +477,7 @@ CameraErrortype Control::startCalibration(QStringList calTypes, bool saveCal)
 	reply.waitForFinished();
 	pthread_mutex_unlock(&mutex);
 
-	if (reply.isError()) {
-		QDBusError err = reply.error();
-		fprintf(stderr, "Failed - revertAutoWhiteBalance: %s - %s\n", err.name().data(), err.message().toAscii().data());
-		return CAMERA_API_CALL_FAIL;
-	}
-	else {
-		return SUCCESS;
-	}
+	return waitAsyncComplete(reply, 30000);
 }
 
 CameraErrortype Control::startCalibration(QString calType, bool saveCal)
@@ -600,10 +591,17 @@ Control::Control() : iface("ca.krontech.chronos.control", "/ca/krontech/chronos/
 	strcpy(fileDirectory, "/media/mmcblk1p1");
 
     pthread_mutex_init(&mutex, NULL);
+	evloop = NULL;
+
+	timer = new QTimer(this);
+	connect(timer, SIGNAL(timeout()), this, SLOT(timeout()));
+	timer->setSingleShot(true);
 
 	// Connect DBus signals
 	conn.connect("ca.krontech.chronos.control", "/ca/krontech/chronos/control", "ca.krontech.chronos.control",
 				 "notify", this, SLOT(notify(const QVariantMap&)));
+	conn.connect("ca.krontech.chronos.control", "/ca/krontech/chronos/control", "ca.krontech.chronos.control",
+				 "complete", this, SLOT(complete(const QVariantMap&)));
 
     qDebug("####### Control DBUS initialized.");
 }
@@ -617,6 +615,69 @@ void Control::notify(const QVariantMap &args)
 {
 	for (auto e : args.keys()) {
 		notifyParam(e, args.value(e));
+	}
+}
+
+void Control::complete(const QVariantMap &args)
+{
+	QString err;
+	int code;
+
+	if (!args.contains("error")) {
+		qDebug() << args["method"].toString() << "completed";
+		if (evloop) evloop->exit(SUCCESS);
+		return;
+	}
+
+	/* Log errors */
+	qDebug() << args["method"].toString() << "failed:" << args["error"].toString() + "(" + args.value("message", "").toString() + ")";
+
+	/* Attempt to convert the error into a code. */
+	err = args["error"].toString();
+	code = CAMERA_API_CALL_FAIL;
+	if (err == "SignalClippingError") code = CAMERA_CLIPPED_ERROR;
+	else if (err == "LowSignalError") code = CAMERA_LOW_SIGNAL_ERROR;
+
+	if (evloop) evloop->exit(code);
+}
+
+void Control::timeout(void)
+{
+	qDebug() << "API Call timed out";
+	if (evloop) {
+		evloop->exit(CAMERA_API_CALL_FAIL);
+	}
+}
+
+CameraErrortype Control::waitAsyncComplete(QDBusPendingReply<QVariantMap> &reply, int timeout)
+{
+	QVariantMap map;
+
+	/* Check if the D-Bus call failed. */
+	if (reply.isError()) {
+		QDBusError err = reply.error();
+		qDebug("D-Bus failed: %s", err.name().data(), err.message().toAscii().data());
+		return CAMERA_API_CALL_FAIL;
+	}
+	/* Check if there was a synchronos error */
+	map = reply.value();
+	if (map.contains("error")) {
+		qDebug() << "Call failed:" << map["error"].toString();
+		return CAMERA_API_CALL_FAIL;
+	}
+	/* Wait for the asynchronos reply. */
+	else {
+		QEventLoop evwait;
+		int ret;
+
+		timer->start(timeout);
+
+		evloop = &evwait;
+		ret = evwait.exec();
+		evloop = NULL;
+
+		timer->stop();
+		return (CameraErrortype)ret;
 	}
 }
 

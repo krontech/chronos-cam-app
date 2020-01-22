@@ -536,17 +536,9 @@ Int32 Camera::blackCalAllStdRes(bool factory, QProgressDialog *dialog)
 				return retVal;
 
 			qDebug("Doing calibration for %ux%u...", settings.geometry.hRes, settings.geometry.vRes);
-			cinst->startCalibration({"analogCal", "blackCal"}, true);
-			bool calWaiting;
-			do {
-				QString state;
-				cinst->getString("state", &state);
-				calWaiting = state != "idle";
-
-				struct timespec t = {0, 50000000};
-				nanosleep(&t, NULL);
-
-			} while (calWaiting);
+			retVal = cinst->startCalibration({"analogCal", "blackCal"}, true);
+			if (SUCCESS != retVal)
+				return retVal;
 
 			qDebug() << "Done.";
 		}

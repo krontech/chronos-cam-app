@@ -149,14 +149,20 @@ private:
     pthread_mutex_t mutex;
 	QMultiHash<QString, ControlNotify *> params;
 	CaKrontechChronosControlInterface iface;
+	QEventLoop *evloop;
+	QTimer *timer;
 
 	void notifyParam(QString name, const QVariant &value);
 	void parseResolution(FrameGeometry *geometry, const QVariantMap &map);
+	CameraErrortype waitAsyncComplete(QDBusPendingReply<QVariantMap> &reply, int timeout = 1000);
 
 private slots:
 	/* D-Bus signal handler for parameter changes. */
 	void notify(const QVariantMap &args);
-
+	/* D-Bus signal handler for async call completion. */
+	void complete(const QVariantMap &args);
+	/* Qt timer to cleanup if we lose the async completion. */
+	void timeout();
 };
 
 /* Template wrapper to get a property and convert it to a type. */
