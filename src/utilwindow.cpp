@@ -98,7 +98,7 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	ui->comboFPColor->addItem("White");
 	ui->comboFPColor->setCurrentIndex(camera->getFocusPeakColor() - 1);
 	ui->chkZebraEnable->setChecked(camera->getZebraEnable());
-	ui->chkFanDisable->setChecked(camera->cinst->getProperty("shippingMode", false).toBool());
+	ui->chkShippingMode->setChecked(camera->cinst->getProperty("shippingMode", false).toBool());
 
 	if (camera->focusPeakEnabled)
 	{
