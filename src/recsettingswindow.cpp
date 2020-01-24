@@ -61,6 +61,14 @@ RecSettingsWindow::RecSettingsWindow(QWidget *parent, Camera * cameraInst) :
 	ImagerSettings_t isTemp = camera->getImagerSettings();          //Using new and memcpy because passing the address of a class variable was causing segfaults among others in the trigger delay window.
 	memcpy((void *)is, (void *)(&isTemp), sizeof(ImagerSettings_t));
 
+	/* Adjust the size of the preview window to match the sensor. */
+	if ((maxSize.hRes * ui->frame->height()) > (maxSize.vRes * ui->frame->width())) {
+		previewScale = (maxSize.hRes / ui->frame->width());
+	} else {
+		previewScale = (maxSize.vRes / ui->frame->height());
+	}
+	ui->frame->setFixedSize(maxSize.hRes / previewScale, maxSize.vRes / previewScale);
+
 	ui->spinHRes->setSingleStep(camera->sensor->getHResIncrement());
 	ui->spinHRes->setMinimum(camera->sensor->getMinHRes());
 	ui->spinHRes->setMaximum(maxSize.hRes);
@@ -445,7 +453,7 @@ void RecSettingsWindow::on_cmdExpMax_clicked()
 void RecSettingsWindow::updateFramePreview()
 {
 	FrameGeometry fSize = getResolution();
-	ui->frameImage->setGeometry(QRect(fSize.hOffset/4, fSize.vOffset/4, fSize.hRes/4, fSize.vRes/4));
+	ui->frameImage->setGeometry(QRect(fSize.hOffset/previewScale, fSize.vOffset/previewScale, fSize.hRes/previewScale, fSize.vRes/previewScale));
 	ui->frame->repaint();
 }
 

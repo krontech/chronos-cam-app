@@ -82,6 +82,7 @@ private:
 	Camera * camera;
 	ImagerSettings_t * is;
 	bool windowInitComplete;
+	int previewScale;
 
 	FrameGeometry getResolution(void);
 
