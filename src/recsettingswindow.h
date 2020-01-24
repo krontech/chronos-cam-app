@@ -84,6 +84,7 @@ private:
 	ImagerSettings_t * is;
 	SensorInfo_t sensor;
 	bool windowInitComplete;
+	int previewScale;
 
 	FrameGeometry getResolution(void);
 

@@ -61,6 +61,14 @@ RecSettingsWindow::RecSettingsWindow(QWidget *parent, Camera * cameraInst) :
 	sensor = camera->getSensorInfo();
 	camera->cinst->getImagerSettings(is);
 
+	/* Adjust the size of the preview window to match the sensor. */
+	if ((sensor.geometry.hRes * ui->frame->height()) > (sensor.geometry.vRes * ui->frame->width())) {
+		previewScale = (sensor.geometry.hRes / ui->frame->width());
+	} else {
+		previewScale = (sensor.geometry.vRes / ui->frame->height());
+	}
+	ui->frame->setFixedSize(sensor.geometry.hRes / previewScale, sensor.geometry.vRes / previewScale);
+
 	ui->spinHRes->setSingleStep(sensor.hIncrement);
 	ui->spinHRes->setMinimum(sensor.hMinimum);
 	ui->spinHRes->setMaximum(sensor.geometry.hRes);
@@ -457,7 +465,7 @@ void RecSettingsWindow::on_cmdExpMax_clicked()
 void RecSettingsWindow::updateFramePreview()
 {
 	FrameGeometry fSize = getResolution();
-	ui->frameImage->setGeometry(QRect(fSize.hOffset/4, fSize.vOffset/4, fSize.hRes/4, fSize.vRes/4));
+	ui->frameImage->setGeometry(QRect(fSize.hOffset/previewScale, fSize.vOffset/previewScale, fSize.hRes/previewScale, fSize.vRes/previewScale));
 	ui->frame->repaint();
 }
 
