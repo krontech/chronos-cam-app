@@ -23,6 +23,7 @@
 #include "camera.h"
 #include "util.h"
 extern "C" {
+	#include "eeprom.h"
 }
 #include "defines.h"
 
@@ -82,16 +83,59 @@ UInt32 Camera::getFocusPeakThresholdLL(void)
 //dest must be a char array that can handle SERIAL_NUMBER_MAX_LEN + 1 bytes
 Int32 Camera::readSerialNumber(char * dest)
 {
-	QString serial;
-	cinst->getString("cameraSerial", &serial);
-	strncpy(dest, serial.toAscii(), SERIAL_NUMBER_MAX_LEN + 1);
+	int retVal;
+	int file;
+
+	/* if we are reading, *WRITE* to file */
+	if ((file = open(RAM_SPD_I2C_BUS_FILE, O_WRONLY|O_CREAT,0666)) < 0) {
+		/* ERROR HANDLING: you can check errno to see what went wrong */
+		qDebug() << "Failed to open i2c bus" << RAM_SPD_I2C_BUS_FILE;
+		return CAMERA_FILE_ERROR;
+	}
+
+	retVal = eeprom_read_large(file, CAMERA_EEPROM_I2C_ADDR/*Address*/, SERIAL_NUMBER_OFFSET/*Offset*/, (unsigned char *)dest/*buffer*/, SERIAL_NUMBER_MAX_LEN/*Length*/);
+	close(file);
+
+	if(retVal < 0)
+	{
+		return CAMERA_ERROR_IO;
+	}
+
+	qDebug() << "Read in serial number" << dest;
 	dest[SERIAL_NUMBER_MAX_LEN] = '\0';
-	return 0;
+
+	return SUCCESS;
 }
 
 Int32 Camera::writeSerialNumber(char * src)
 {
-	//TODO - when implemented in API
+	int retVal;
+	int file;
+	char serialNumber[SERIAL_NUMBER_MAX_LEN];
 
-	return 4;
+	memset(serialNumber, 0x00, SERIAL_NUMBER_MAX_LEN);
+
+	if (strlen(src) > SERIAL_NUMBER_MAX_LEN) {
+		// forcefully null terminate string
+		src[SERIAL_NUMBER_MAX_LEN] = 0;
+	}
+
+	strcpy(serialNumber, src);
+
+	const char *filename = RAM_SPD_I2C_BUS_FILE;
+
+	/* if we are writing to eeprom, *READ* from file */
+	if ((file = open(filename, O_RDONLY)) < 0) {
+		/* ERROR HANDLING: you can check errno to see what went wrong */
+		qDebug() << "Failed to open the i2c bus";
+		return CAMERA_FILE_ERROR;
+	}
+
+	retVal = eeprom_write_large(file, CAMERA_EEPROM_I2C_ADDR, SERIAL_NUMBER_OFFSET, (unsigned char *) serialNumber, SERIAL_NUMBER_MAX_LEN);
+	qDebug("eeprom_write_large returned: %d", retVal);
+	::close(file);
+
+	delayms(250);
+
+	return SUCCESS;
 }

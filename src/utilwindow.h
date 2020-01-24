@@ -65,8 +65,6 @@ private slots:
 
 	void on_cmdClose_clicked();
 
-	void on_cmdWhiteRef_clicked();
-
 	void on_cmdSetSN_clicked();
 
 	void on_cmdExportCalData_clicked();

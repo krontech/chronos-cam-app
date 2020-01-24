@@ -149,14 +149,11 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	
 	ui->cmdCloseApp->setVisible(false);
 	ui->cmdColumnGain->setVisible(false);
-	ui->cmdWhiteRef->setVisible(false);
 	ui->cmdSetSN->setVisible(false);
 	ui->cmdExportCalData->setVisible(false);
 	ui->cmdImportCalData->setVisible(false);
 	ui->lineSerialNumber->setVisible(false);
 	ui->chkShowDebugControls->setVisible(false);
-	ui->cmdAutoCal->setVisible(false);
-
 
 	ui->chkAutoSave->setChecked(camera->get_autoSave());
 	ui->chkAutoRecord->setChecked(camera->get_autoRecord());
@@ -539,11 +536,6 @@ void UtilWindow::on_cmdClose_5_clicked()
 	on_cmdClose_clicked();
 }
 
-void UtilWindow::on_cmdWhiteRef_clicked()
-{
-	/* Nothing to see here folks... */
-}
-
 void UtilWindow::on_cmdSetSN_clicked()
 {
 	if(ui->lineSerialNumber->text().length() > SERIAL_NUMBER_MAX_LEN)
@@ -733,13 +725,11 @@ void UtilWindow::on_linePassword_textEdited(const QString &arg1)
 	{
 		ui->cmdCloseApp->setVisible(true);
 		ui->cmdColumnGain->setVisible(true);
-		ui->cmdWhiteRef->setVisible(true);
 		ui->cmdSetSN->setVisible(true);
 		ui->lineSerialNumber->setVisible(true);
 		ui->cmdExportCalData->setVisible(true);
 		ui->cmdImportCalData->setVisible(true);
 		ui->chkShowDebugControls->setVisible(true);
-		ui->cmdAutoCal->setVisible(true);
 	}
 }
 

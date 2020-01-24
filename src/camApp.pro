@@ -91,7 +91,8 @@ SOURCES += main.cpp\
     aptupdate.cpp \
     errorStrings.cpp \
     control.cpp \
-    myinputpanel.cpp
+    myinputpanel.cpp \
+    eeprom.c
 
 ## Generate version.cpp on every build
 versionTarget.target = version.cpp
@@ -141,7 +142,8 @@ HEADERS  += mainwindow.h \
     myinputpanel.h \
     ui_myinputpanelform.h \
     aptupdate.h \
-    control.h
+    control.h \
+    eeprom.h
 
 FORMS    += mainwindow.ui \
     cammainwindow.ui \
