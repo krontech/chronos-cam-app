@@ -7,6 +7,7 @@ Requires=chronos-video.service chronos-control.service
 WorkingDirectory=/var/camera
 EnvironmentFile=/etc/chronos-gui.conf
 ExecStart=/usr/bin/camApp -qws
+KillMode=process
 StandardOutput=journal+console
 StandardError=inherit
 

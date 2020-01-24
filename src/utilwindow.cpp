@@ -200,19 +200,26 @@ void UtilWindow::on_cmdSWUpdate_clicked()
 {
 	int itr, retval;
 	char location[100];
+
+	/* Arago and Debian update procedures are not meant to be interoperable. */
+#ifdef DEBIAN
+	const char *script = "camUpdate.sh";
+#else
+	const char *script = "update.sh";
+#endif
 	
 	for(itr = 1; itr <= 4; itr++)
 	{
 		//Look for the update on sda
-		sprintf(location, "/media/sda%d/camUpdate/update.sh", itr);
+		sprintf(location, "/media/sda%d/camUpdate/%s", itr, script);
 		if((retval = updateSoftware(location)) != CAMERA_FILE_NOT_FOUND) return;
 		
 		//Also look for the update on sdb, as the usb is sometimes mounted there instead of sda
-		sprintf(location, "/media/sdb%d/camUpdate/update.sh", itr);
+		sprintf(location, "/media/sdb%d/camUpdate/%s", itr, script);
 		if((retval = updateSoftware(location)) != CAMERA_FILE_NOT_FOUND) return;
 		
 		//Look for the update on the SD card
-		sprintf(location, "/media/mmcblk1p%d/camUpdate/update.sh", itr);
+		sprintf(location, "/media/mmcblk1p%d/camUpdate/%s", itr, script);
 		if((retval = updateSoftware(location)) != CAMERA_FILE_NOT_FOUND) return;
 	}
 
@@ -230,27 +237,33 @@ void UtilWindow::on_cmdNetUpdate_clicked()
 	delete update;
 }
 
-int UtilWindow::updateSoftware(char * updateLocation){
-	struct stat buffer;
-	char mesg[100];
+int UtilWindow::updateSoftware(char * updateLocation)
+{
+	struct stat st;
 
-	if(stat (updateLocation, &buffer) == 0)	//If file exists
-	{
-		QMessageBox::StandardButton reply;
-		reply = QMessageBox::question(this, "Software update", "Found software update, do you want to install it now?\r\nThe display may go blank and the camera may restart during this process.\r\nWARNING: Any unsaved video in RAM will be lost.", QMessageBox::Yes|QMessageBox::No);
-		if(QMessageBox::Yes != reply)
-			return USER_EXIT;
-
-		UInt32 retVal = system(updateLocation);
-		QMessageBox msg;
-		sprintf(mesg, "Update complete! Please restart camera to complete update.");
-		msg.setText(mesg);
-		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
-		msg.exec();
-		return SUCCESS;
+	/* Check that the update file exists and is executable */
+	if (stat(updateLocation, &st) != 0) {
+		return CAMERA_FILE_NOT_FOUND;
 	}
-	return CAMERA_FILE_NOT_FOUND;
+	if ((st.st_mode & S_IXUSR) == 0) {
+		return CAMERA_FILE_NOT_FOUND;
+	}
+
+	/* Prompt the user for confirmation. */
+	QMessageBox::StandardButton reply;
+	reply = QMessageBox::question(this, "Software update", "Found software update, do you want to install it now?\r\nThe display may go blank and the camera may restart during this process.\r\nWARNING: Any unsaved video in RAM will be lost.", QMessageBox::Yes|QMessageBox::No);
+	if(QMessageBox::Yes != reply)
+		return USER_EXIT;
+
+
+	/* Start the update in the background and close the GUI in the foreground. */
+	runBackground(updateLocation);
+	QApplication::quit();
+
+	/* We won't get here... */
+	return SUCCESS;
 }
+
 bool copyFile(const char * fromfile, const char * tofile)
 {
 

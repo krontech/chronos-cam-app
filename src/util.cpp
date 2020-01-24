@@ -182,9 +182,11 @@ runBackground(const char *command)
 {
 	int child = fork();
 	if (child == 0) {
+		char nohupcmd[1024] = "nohup ";
+
 		setsid();
 		signal(SIGHUP, SIG_IGN);
-		system(command);
+		system(strcat(nohupcmd, command));
 		exit(0);
 	}
 }
