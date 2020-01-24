@@ -22,7 +22,7 @@ int main(int argc, char *argv[])
 	}
 
 	/* Load and execute the update window */
-	UpdateWindow w;
+	UpdateWindow w(QString("/media/sda1/camUpdate/manifest.md5sum"), NULL);
 	w.show();
 	return a.exec();
 }

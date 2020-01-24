@@ -8,14 +8,15 @@ QT += core gui
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-
-TARGET = update
+TARGET = camUpdate
 TEMPLATE = app
 INSTALLS += target
 
-target.path = /var/camera
+QMAKE_CXXFLAGS += -std=c++11
 
-SOURCES += main.cpp\
+target.path = /usr/bin
+
+SOURCES += main.cpp \
         updatewindow.cpp
 
 HEADERS  += updatewindow.h
