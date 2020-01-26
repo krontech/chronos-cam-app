@@ -1,6 +1,8 @@
-chronos-cam-app (0.4.0~beta) unstable; urgency=medium
+chronos-cam-app (0.4.0~beta3) unstable; urgency=medium
 
-
+  * Add chronos-update service to manage software updates.
+  * Add a landing page to the GUI update tool.
+  * Move update handling into C++ app.
   * Upstream release v0.4.0-beta
 
- -- Owen Kirby <oskirby@gmail.com>  Fri, 24 Jan 2020 05:23:03 -0800
+ -- Owen Kirby <oskirby@gmail.com>  Sun, 26 Jan 2020 13:21:54 -0800

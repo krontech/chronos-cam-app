@@ -30,3 +30,11 @@ Description: User Interface for the Chronos Camera
  to provide a backtrace with names in a debugger, this makes it somewhat
  easier to interpret core dumps. The binaries are installed in
  /usr/lib/debug and are automatically used by gdb.
+
+Package: chronos-update
+Architecture: armel
+Depends: ${shlibs:Depends}, ${misc:Depends}, libqt4-chronos
+Description: Software Updater for the Chrnos Camera
+ Qt4 user interface runs locally on the camera and manages the
+ software update process and package configuration.
+

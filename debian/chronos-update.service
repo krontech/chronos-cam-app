@@ -1,0 +1,13 @@
+[Unit]
+Description=Software Updater for the Chronos Camera
+Conflicts=chronos-gui.service chronos-gui2.service
+
+[Service]
+WorkingDirectory=/var/camera
+ExecStart=/usr/bin/camUpdate -qws
+Environment=QWS_MOUSE_PROTO=Tslib:/dev/input/event0
+StandardOutput=journal+console
+StandardError=inherit
+
+[Install]
+WantedBy=multi-user.target
