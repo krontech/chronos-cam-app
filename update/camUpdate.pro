@@ -17,9 +17,23 @@ QMAKE_CXXFLAGS += -std=c++11
 target.path = /usr/bin
 
 SOURCES += main.cpp \
-        updatewindow.cpp
+    updateprogress.cpp \
+    updatewindow.cpp \
+    utils.cpp \
+    mediaupdate.cpp \
+    networkupdate.cpp \
+    packagelist.cpp
 
-HEADERS  += updatewindow.h
+HEADERS  += \
+    updateprogress.h \
+    updatewindow.h \
+    utils.h \
+    mediaupdate.h \
+    networkupdate.h \
+    packagelist.h
 
-FORMS    += updatewindow.ui
+FORMS    += \
+    updateprogress.ui \
+    updatewindow.ui \
+    packagelist.ui
 

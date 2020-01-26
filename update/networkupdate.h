@@ -14,33 +14,37 @@
  *  You should have received a copy of the GNU General Public License       *
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.   *
  ****************************************************************************/
-#include <QApplication>
-#include <QWSServer>
-#include <QFile>
+#ifndef NETWORKUPDATE_H
+#define NETWORKUPDATE_H
 
-#include "updatewindow.h"
 #include "updateprogress.h"
 
-int main(int argc, char *argv[])
+enum NetworkUpdateStates {
+	NETWORK_COUNT_REPOS,
+	NETWORK_UPDATE_LISTS,
+	NETWORK_UPGRADE_PACKAGES,
+	NETWORK_REBOOT,
+};
+
+class NetworkUpdate : public UpdateProgress
 {
-	QApplication a(argc, argv);
+	Q_OBJECT
 
-#ifdef Q_WS_QWS
-	QWSServer::setCursorVisible( false );
-	QWSServer::setBackground(QBrush(Qt::transparent));
-#endif
-	a.setQuitOnLastWindowClosed(false);
+public:
+	NetworkUpdate(QWidget *parent = NULL);
+	~NetworkUpdate();
 
-	// Load stylesheet from file, if one exists.
-	QFile fStyle("stylesheet.qss");
-	if (fStyle.open(QFile::ReadOnly)) {
-		QString sheet = QLatin1String(fStyle.readAll());
-		qApp->setStyleSheet(sheet);
-		fStyle.close();
-	}
+private:
+	QString dist;
+	unsigned int repoCount;
+	unsigned int packageCount;
+	enum NetworkUpdateStates state;
 
-	/* Load and execute the update window */
-	UpdateWindow w(NULL);
-	w.show();
-	return a.exec();
-}
+	virtual void handleStdout(QString msg);
+
+private slots:
+	virtual void started();
+	virtual void finished(int code, QProcess::ExitStatus status);
+};
+
+#endif // NETWORKUPDATE_H

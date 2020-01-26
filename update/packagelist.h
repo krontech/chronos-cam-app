@@ -14,33 +14,31 @@
  *  You should have received a copy of the GNU General Public License       *
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.   *
  ****************************************************************************/
-#include <QApplication>
-#include <QWSServer>
-#include <QFile>
+#ifndef PACKAGELIST_H
+#define PACKAGELIST_H
 
-#include "updatewindow.h"
-#include "updateprogress.h"
+#include <QDialog>
+#include <QProcess>
 
-int main(int argc, char *argv[])
-{
-	QApplication a(argc, argv);
-
-#ifdef Q_WS_QWS
-	QWSServer::setCursorVisible( false );
-	QWSServer::setBackground(QBrush(Qt::transparent));
-#endif
-	a.setQuitOnLastWindowClosed(false);
-
-	// Load stylesheet from file, if one exists.
-	QFile fStyle("stylesheet.qss");
-	if (fStyle.open(QFile::ReadOnly)) {
-		QString sheet = QLatin1String(fStyle.readAll());
-		qApp->setStyleSheet(sheet);
-		fStyle.close();
-	}
-
-	/* Load and execute the update window */
-	UpdateWindow w(NULL);
-	w.show();
-	return a.exec();
+namespace Ui {
+class PackageList;
 }
+
+class PackageList : public QDialog
+{
+	Q_OBJECT
+
+public:
+	explicit PackageList(QWidget *parent = 0);
+	~PackageList();
+
+private:
+	Ui::PackageList *ui;
+	QProcess *process;
+
+private slots:
+	void on_cmdClose_clicked();
+	void readyReadStandardOutput();
+};
+
+#endif // PACKAGELIST_H

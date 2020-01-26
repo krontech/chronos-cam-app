@@ -1,73 +1,255 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>UpdateWindow</class>
- <widget class="QWidget" name="UpdateWindow">
+ <widget class="QDialog" name="UpdateWindow">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
     <width>600</width>
-    <height>300</height>
+    <height>400</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>UpdateWindow</string>
+   <string>Dialog</string>
   </property>
-  <widget class="QProgressBar" name="progress">
-   <property name="geometry">
-    <rect>
-     <x>30</x>
-     <y>140</y>
-     <width>540</width>
-     <height>51</height>
-    </rect>
-   </property>
-   <property name="value">
-    <number>24</number>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label">
-   <property name="geometry">
-    <rect>
-     <x>30</x>
-     <y>95</y>
-     <width>540</width>
-     <height>31</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Status Text</string>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignCenter</set>
-   </property>
-  </widget>
   <widget class="QLabel" name="title">
    <property name="geometry">
     <rect>
      <x>30</x>
-     <y>30</y>
+     <y>10</y>
      <width>540</width>
      <height>41</height>
     </rect>
    </property>
    <property name="font">
     <font>
-     <pointsize>24</pointsize>
+     <pointsize>-1</pointsize>
+     <weight>75</weight>
+     <bold>true</bold>
     </font>
    </property>
    <property name="styleSheet">
-    <string notr="true"/>
+    <string notr="true">QLabel {font-weight: bold; font-size: 24px; color: black; }</string>
    </property>
    <property name="text">
-    <string>Applying Update</string>
+    <string>Software Updates</string>
    </property>
    <property name="alignment">
     <set>Qt::AlignCenter</set>
    </property>
   </widget>
+  <widget class="QGroupBox" name="groupMedia">
+   <property name="geometry">
+    <rect>
+     <x>30</x>
+     <y>60</y>
+     <width>540</width>
+     <height>80</height>
+    </rect>
+   </property>
+   <property name="title">
+    <string>Update From Local Media</string>
+   </property>
+   <widget class="QComboBox" name="comboMedia">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>25</y>
+      <width>261</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>14</pointsize>
+     </font>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="cmdApplyMedia">
+    <property name="geometry">
+     <rect>
+      <x>290</x>
+      <y>25</y>
+      <width>111</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>14</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Apply Update</string>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QGroupBox" name="groupGui">
+   <property name="geometry">
+    <rect>
+     <x>30</x>
+     <y>240</y>
+     <width>541</width>
+     <height>80</height>
+    </rect>
+   </property>
+   <property name="title">
+    <string>User Interface</string>
+   </property>
+   <widget class="QComboBox" name="comboGui">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>25</y>
+      <width>261</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>14</pointsize>
+     </font>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="cmdApplyGui">
+    <property name="geometry">
+     <rect>
+      <x>290</x>
+      <y>25</y>
+      <width>111</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>14</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Apply</string>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QPushButton" name="cmdQuit">
+   <property name="geometry">
+    <rect>
+     <x>450</x>
+     <y>340</y>
+     <width>111</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>14</pointsize>
+    </font>
+   </property>
+   <property name="text">
+    <string>Quit</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="cmdReboot">
+   <property name="geometry">
+    <rect>
+     <x>320</x>
+     <y>340</y>
+     <width>111</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>14</pointsize>
+    </font>
+   </property>
+   <property name="text">
+    <string>Reboot</string>
+   </property>
+  </widget>
+  <widget class="QGroupBox" name="groupNetwork">
+   <property name="geometry">
+    <rect>
+     <x>30</x>
+     <y>150</y>
+     <width>541</width>
+     <height>81</height>
+    </rect>
+   </property>
+   <property name="title">
+    <string>Update From Package Repository</string>
+   </property>
+   <widget class="QPushButton" name="cmdRescanNetwork">
+    <property name="geometry">
+     <rect>
+      <x>290</x>
+      <y>25</y>
+      <width>111</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>14</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Rescan</string>
+    </property>
+   </widget>
+   <widget class="QComboBox" name="comboRelease">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>25</y>
+      <width>261</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>14</pointsize>
+     </font>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="cmdApplyNetwork">
+    <property name="geometry">
+     <rect>
+      <x>420</x>
+      <y>25</y>
+      <width>111</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>14</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Apply Update</string>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QPushButton" name="cmdListSoftware">
+   <property name="geometry">
+    <rect>
+     <x>40</x>
+     <y>340</y>
+     <width>131</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>14</pointsize>
+    </font>
+   </property>
+   <property name="text">
+    <string>List Packages</string>
+   </property>
+  </widget>
  </widget>
- <layoutdefault spacing="6" margin="11"/>
  <resources/>
  <connections/>
 </ui>

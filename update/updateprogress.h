@@ -14,33 +14,53 @@
  *  You should have received a copy of the GNU General Public License       *
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.   *
  ****************************************************************************/
-#include <QApplication>
-#include <QWSServer>
-#include <QFile>
+#ifndef UPDATEPROGRESS_H
+#define UPDATEPROGRESS_H
 
-#include "updatewindow.h"
-#include "updateprogress.h"
+#include <QWidget>
+#include <QDir>
+#include <QFileInfo>
+#include <QProcess>
 
-int main(int argc, char *argv[])
-{
-	QApplication a(argc, argv);
+#include <pthread.h>
 
-#ifdef Q_WS_QWS
-	QWSServer::setCursorVisible( false );
-	QWSServer::setBackground(QBrush(Qt::transparent));
-#endif
-	a.setQuitOnLastWindowClosed(false);
-
-	// Load stylesheet from file, if one exists.
-	QFile fStyle("stylesheet.qss");
-	if (fStyle.open(QFile::ReadOnly)) {
-		QString sheet = QLatin1String(fStyle.readAll());
-		qApp->setStyleSheet(sheet);
-		fStyle.close();
-	}
-
-	/* Load and execute the update window */
-	UpdateWindow w(NULL);
-	w.show();
-	return a.exec();
+namespace Ui {
+class UpdateProgress;
 }
+
+class UpdateProgress : public QWidget
+{
+	Q_OBJECT
+	
+public:
+	explicit UpdateProgress(QWidget *parent = 0);
+	~UpdateProgress();
+	
+	/* What to do with the console output */
+	void log(QString msg);
+	virtual void handleStdout(QString msg) { log(msg); }
+	virtual void handleStderr(QString msg) { log(msg); }
+
+protected:
+	Ui::UpdateProgress *ui;
+	QProcess *process;
+	QTimer   *timer;
+	QStringList packages;
+	QString   preinst;
+	QString   postinst;
+	int       countdown;
+
+	void startReboot(int secs);
+	void stepProgress(const QString & title = QString());
+
+public slots:
+	virtual void started() = 0;
+	virtual void finished(int code, QProcess::ExitStatus status) = 0;
+	void error(QProcess::ProcessError err);
+	void readyReadStandardOutput();
+	void readyReadStandardError();
+
+	void timeout();
+};
+
+#endif // UPDATEPROGRESS_H

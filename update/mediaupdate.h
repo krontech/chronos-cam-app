@@ -14,33 +14,38 @@
  *  You should have received a copy of the GNU General Public License       *
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.   *
  ****************************************************************************/
-#include <QApplication>
-#include <QWSServer>
-#include <QFile>
+#ifndef MEDIAUPDATE_H
+#define MEDIAUPDATE_H
 
-#include "updatewindow.h"
 #include "updateprogress.h"
 
-int main(int argc, char *argv[])
+enum UpdateStates {
+	UPDATE_CHECKSUMS,
+	UPDATE_PREINST,
+	UPDATE_DEBPKG,
+	UPDATE_POSTINST,
+	UPDATE_REBOOT,
+};
+
+class MediaUpdate : public UpdateProgress
 {
-	QApplication a(argc, argv);
+	Q_OBJECT
 
-#ifdef Q_WS_QWS
-	QWSServer::setCursorVisible( false );
-	QWSServer::setBackground(QBrush(Qt::transparent));
-#endif
-	a.setQuitOnLastWindowClosed(false);
+public:
+	MediaUpdate(QString manifestPath, QWidget *parent = NULL);
+	~MediaUpdate();
 
-	// Load stylesheet from file, if one exists.
-	QFile fStyle("stylesheet.qss");
-	if (fStyle.open(QFile::ReadOnly)) {
-		QString sheet = QLatin1String(fStyle.readAll());
-		qApp->setStyleSheet(sheet);
-		fStyle.close();
-	}
+private:
+	QDir      location;
+	QFileInfo manifest;
+	enum UpdateStates state;
 
-	/* Load and execute the update window */
-	UpdateWindow w(NULL);
-	w.show();
-	return a.exec();
-}
+	void parseManifest();
+	virtual void handleStdout(QString msg);
+
+private slots:
+	virtual void started();
+	virtual void finished(int code, QProcess::ExitStatus status);
+};
+
+#endif // MEDIAUPDATE_H

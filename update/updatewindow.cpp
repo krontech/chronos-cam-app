@@ -1,176 +1,232 @@
+/****************************************************************************
+ *  Copyright (C) 2019-2020 Kron Technologies Inc <http://www.krontech.ca>. *
+ *                                                                          *
+ *  This program is free software: you can redistribute it and/or modify    *
+ *  it under the terms of the GNU General Public License as published by    *
+ *  the Free Software Foundation, either version 3 of the License, or       *
+ *  (at your option) any later version.                                     *
+ *                                                                          *
+ *  This program is distributed in the hope that it will be useful,         *
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of          *
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           *
+ *  GNU General Public License for more details.                            *
+ *                                                                          *
+ *  You should have received a copy of the GNU General Public License       *
+ *  along with this program.  If not, see <http://www.gnu.org/licenses/>.   *
+ ****************************************************************************/
+#include <mntent.h>
+#include <stdio.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <sys/mount.h>
+#include <unistd.h>
+#include <unistd.h>
+
+#include <QDebug>
+
+#include "mediaupdate.h"
+#include "networkupdate.h"
+#include "packagelist.h"
 #include "updatewindow.h"
 #include "ui_updatewindow.h"
 
-#include <QDesktopWidget>
-#include <QTextStream>
-#include <QTimer>
-#include <QDebug>
+#include "utils.h"
 
-#include <pthread.h>
-#include <unistd.h>
-#include <errno.h>
-#include <string.h>
-#include <signal.h>
-#include <sys/stat.h>
-#include <sys/fcntl.h>
-#include <sys/socket.h>
-#include <sys/un.h>
-
-UpdateWindow::UpdateWindow(QString manifestPath, QWidget *parent) :
-	QWidget(parent),
+UpdateWindow::UpdateWindow(QWidget *parent) :
+	QDialog(parent),
 	ui(new Ui::UpdateWindow)
 {
-	QRect screen = QApplication::desktop()->screenGeometry();
-
 	ui->setupUi(this);
 	setWindowFlags(Qt::Window /*| Qt::WindowStaysOnTopHint*/ | Qt::FramelessWindowHint);
-	move((screen.width() - width()) / 2, (screen.height() - height()) / 2);
+	recenterWidget(this);
 
-	process = new QProcess(this);
-	connect(process, SIGNAL(started()), this, SLOT(started()));
-	connect(process, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(finished(int, QProcess::ExitStatus)));
-	connect(process, SIGNAL(error(QProcess::ProcessError)), this, SLOT(error(QProcess::ProcessError)));
-	connect(process, SIGNAL(readyReadStandardOutput()), this, SLOT(readyReadStandardOutput()));
-	connect(process, SIGNAL(readyReadStandardError()), this, SLOT(readyReadStandardError()));
+	/* Run a timer to scan the media devices for updates. */
+	mediaTimer = new QTimer(this);
+	connect(mediaTimer, SIGNAL(timeout()), this, SLOT(checkForMedia()));
+	mediaTimer->start(1000);
 
-	manifest = QFileInfo(manifestPath);
-	location = manifest.dir();
-	process->setWorkingDirectory(location.absolutePath());
+	/* Check which, if any of the GUIs are enabled. */
+	ui->comboGui->addItem("None (Headless)");
+	ui->comboGui->addItem("Chronos 2.1");
+	ui->comboGui->addItem("Chronos Legacy");
+	if (system("systemctl is-enabled chronos-gui") == 0) {
+		ui->comboGui->setCurrentIndex(2);
+	}
+	else if (system("systemctl is-enabled chronos-gui2") == 0) {
+		ui->comboGui->setCurrentIndex(1);
+	}
+	else {
+		ui->comboGui->setCurrentIndex(0);
+	}
+	ui->cmdApplyGui->setEnabled(false);
 
-	/* Prepare a timer to reboot */
-	timer = new QTimer(this);
-	connect(timer, SIGNAL(timeout()), this, SLOT(timeout()));
+	/* Parse the apt sources file to figure out what release we're on. */
+	QFile releaseFile("/etc/apt/sources.list.d/krontech-debian.list");
+	if (releaseFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+		QTextStream fileStream(&releaseFile);
+		QRegExp whitespace = QRegExp("\\s+");
+		while (!fileStream.atEnd()) {
+			QStringList slist = fileStream.readLine().split(whitespace);
+			if (slist.count() < 4) continue;
+			if (slist[0] != "deb") continue;
+			ui->comboRelease->addItem(slist[2], slist[1]);
+		}
+		releaseFile.close();
+	}
 
-	/* Progress bar should start at 0% */
-	ui->progress->setMaximum(100);
-	ui->progress->setValue(0);
-	ui->title->setStyleSheet("QLabel {font-weight: bold; color: black; }");
+	aptCheck = new QProcess(this);
+	connect(aptCheck, SIGNAL(started()), this, SLOT(started()));
+	connect(aptCheck, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(finished(int, QProcess::ExitStatus)));
+	connect(aptCheck, SIGNAL(error(QProcess::ProcessError)), this, SLOT(error(QProcess::ProcessError)));
+	connect(aptCheck, SIGNAL(readyReadStandardOutput()), this, SLOT(readyReadStandardOutput()));
 
-	/* Start by validating the manifest hashes */
-	QStringList checksumArgs = {
-		"-c", manifest.fileName()
+	/* Start a process to get the number of packages known for update. */
+	QStringList aptCheckArgs = {
+		"list", "--upgradable"
 	};
-	process->start("md5sum", checksumArgs, QProcess::ReadOnly);
-	state = UPDATE_CHECKSUMS;
+	aptUpdateCount = 0;
+	aptCheck->start("apt", aptCheckArgs, QProcess::ReadOnly);
 }
 
 UpdateWindow::~UpdateWindow()
 {
+	delete mediaTimer;
+	delete aptCheck;
 	delete ui;
+}
+
+void UpdateWindow::checkForMedia()
+{
+	FILE* mtab = setmntent("/etc/mtab", "r");
+	char mpath[PATH_MAX];
+	int count = ui->comboMedia->count();
+	int stale = (1 << count) - 1;
+	struct mntent* m;
+	struct mntent mnt;
+
+	while ((m = getmntent_r(mtab, &mnt, mpath, sizeof(mpath)))) {
+		struct stat st;
+		char manifest[PATH_MAX];
+		int isusb, ismmc;
+		int index;
+
+		/* Sanity check the mount */
+		if (mnt.mnt_dir == NULL) continue;
+		isusb = (strstr(mnt.mnt_dir, "/media/mmcblk1") != NULL);
+		ismmc = (strstr(mnt.mnt_dir, "/media/sd") != NULL);
+		if (!isusb && !ismmc) continue;
+
+		/* Look for a software update on the media device. */
+		snprintf(manifest, sizeof(manifest), "%s/camUpdate/manifest.md5sum", mnt.mnt_dir);
+		manifest[sizeof(manifest)-1] = '\0'; /* just in case */
+		if (stat(manifest, &st) != 0) continue;
+		if (!S_ISREG(st.st_mode)) continue;
+
+		/* Add the update if doesn't already exist. */
+		index = ui->comboMedia->findData(QString(manifest));
+		if (index < 0) {
+			ui->comboMedia->addItem(QString(mnt.mnt_dir), QString(manifest));
+		}
+		/* Indicate that it's still there */
+		else {
+			stale &= ~(1 << index);
+		}
+	}
+	endmntent(mtab);
+
+	/* Remove any items that disappeared */
+	while (count >= 0) {
+		if (stale & (1 << count)) ui->comboMedia->removeItem(count);
+		count--;
+	}
+
+	ui->comboMedia->setEnabled(ui->comboMedia->count() > 0);
+	ui->cmdApplyMedia->setEnabled(ui->comboMedia->count() > 0);
+}
+
+void UpdateWindow::updateClosed()
+{
+	this->show();
+}
+
+void UpdateWindow::on_cmdApplyMedia_clicked()
+{
+	int index = ui->comboMedia->currentIndex();
+	MediaUpdate *w = new MediaUpdate(ui->comboMedia->itemData(index).toString(), NULL);
+	this->hide();
+	connect(w, SIGNAL(destroyed()), this, SLOT(updateClosed()));
+	w->show();
+}
+
+void UpdateWindow::on_cmdRescanNetwork_clicked()
+{
+	NetworkUpdate *w = new NetworkUpdate(NULL);
+	this->hide();
+	connect(w, SIGNAL(destroyed()), this, SLOT(updateClosed()));
+	w->show();
+}
+
+void UpdateWindow::on_comboGui_currentIndexChanged(int index)
+{
+	ui->cmdApplyGui->setEnabled(true);
+}
+
+void UpdateWindow::on_cmdApplyGui_clicked()
+{
+	int index = ui->comboGui->currentIndex();
+	if (index == 1) {
+		system("systemctl disable chronos-gui");
+		system("systemctl enable chronos-gui2");
+	}
+	else if (index == 2) {
+		system("systemctl disable chronos-gui2");
+		system("systemctl enable chronos-gui");
+	}
+	else {
+		system("systemctl disable chronos-gui");
+		system("systemctl disable chronos-gui2");
+	}
+}
+
+void UpdateWindow::on_cmdListSoftware_clicked()
+{
+	PackageList *w = new PackageList(NULL);
+	this->hide();
+	connect(w, SIGNAL(destroyed()), this, SLOT(updateClosed()));
+	w->show();
+}
+
+void UpdateWindow::on_cmdReboot_clicked()
+{
+	system("shutdown -hr now");
+	QApplication::quit();
+}
+
+void UpdateWindow::on_cmdQuit_clicked()
+{
+	int index = ui->comboGui->currentIndex();
+	if (index == 1) {
+		system("service chronos-gui2 start");
+	}
+	else if (index == 2) {
+		system("service chronos-gui start");
+	}
+	QApplication::quit();
 }
 
 void UpdateWindow::started()
 {
-	ui->title->setStyleSheet("QLabel {font-weight: bold; color: black; }");
-	switch (state) {
-		case UPDATE_CHECKSUMS:
-			ui->title->setText("Validating Checksums");
-			break;
-		case UPDATE_PREINST:
-			ui->title->setText("Running Preinstall Hooks");
-			break;
-		case UPDATE_DEBPKG:
-			ui->title->setText("Installing Packages");
-			break;
-		case UPDATE_POSTINST:
-			ui->title->setText("Running Postinstall Hooks");
-			break;
-	}
-
-	/* Increment the progress slider */
-	int count = ui->progress->value();
-	if (count < ui->progress->maximum()) ui->progress->setValue(count+1);
-}
-
-void UpdateWindow::parseManifest()
-{
-	const QRegExp whitespace("\\s+");
-
-	QFile mFile(manifest.filePath());
-	if (!mFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
-		return;
-	}
-
-	QTextStream mStream(&mFile);
-	while (!mStream.atEnd()) {
-		QString line = mStream.readLine();
-		QString filename = line.section(whitespace, 1, 1);
-		if (filename == "preinst.sh") preinst = location.absoluteFilePath(filename);
-		if (filename == "postinst.sh") postinst = location.absoluteFilePath(filename);
-		if (filename.endsWith(".deb")) packages.append(filename);
-	}
-	mFile.close();
-}
-
-void UpdateWindow::startReboot(int secs)
-{
-	ui->progress->setValue(0);
-	ui->progress->setMaximum(secs);
-	state = UPDATE_REBOOT;
-	countdown = secs;
-	timer->start(1000);
+	qDebug("apt check started");
 }
 
 void UpdateWindow::finished(int code, QProcess::ExitStatus status)
 {
-	/* Handle failed exit conditions. */
-	if (code != 0) {
-		ui->title->setStyleSheet("QLabel {font-weight: bold; color: red; }");
-		ui->title->setText("Update Failed");
-		startReboot(30);
-		return;
-	}
-
-	switch (state) {
-		case UPDATE_CHECKSUMS: {
-			parseManifest();
-
-			/* Estimate the number of steps on the progress bar */
-			int steps = 2*packages.count() + 2;
-			if (packages.count()) steps++;
-			if (!preinst.isEmpty()) steps++;
-			if (!postinst.isEmpty()) steps++;
-			ui->progress->setMaximum(steps);
-
-			/* If a pre-install hook exists, run it. */
-			if (!preinst.isEmpty()) {
-				state = UPDATE_PREINST;
-				process->start(preinst, QProcess::ReadOnly);
-				return;
-			}
-		}
-		/* Fall-Through */
-
-		case UPDATE_PREINST: {
-			/* If debian packages exist, install them. */
-			if (packages.count()) {
-				state = UPDATE_DEBPKG;
-				QStringList dpkgArgs = {"--status-fd=1", "-i"};
-				process->start("dpkg", dpkgArgs + packages, QProcess::ReadOnly);
-				return;
-			}
-		}
-		/* Fall-Through */
-
-		case UPDATE_DEBPKG: {
-			/* If a post-install hook exists, run it. */
-			if (!postinst.isEmpty()) {
-				state = UPDATE_POSTINST;
-				process->start(preinst, QProcess::ReadOnly);
-				return;
-			}
-		}
-
-		case UPDATE_POSTINST:
-			ui->title->setText("Update Successful");
-			startReboot(10);
-			return;
-	}
+	qDebug("apt check finished: %d", code);
 }
 
 void UpdateWindow::error(QProcess::ProcessError err)
 {
-	qDebug("Process error in state %d: %d", state, (int)err);
+	qDebug("apt check failed: %d", err);
 }
 
 void UpdateWindow::readyReadStandardOutput()
@@ -179,54 +235,13 @@ void UpdateWindow::readyReadStandardOutput()
 	char buf[1024];
 	qint64 len;
 
-	process->setReadChannel(QProcess::StandardOutput);
-	len = process->readLine(buf, sizeof(buf));
+	aptCheck->setReadChannel(QProcess::StandardOutput);
+	len = aptCheck->readLine(buf, sizeof(buf));
 	if (len < 0) {
 		return;
 	}
 	msg = QString(buf).trimmed();
 
-	/* Special case when handling package installation. */
-	if (state == UPDATE_DEBPKG) {
-		/* Special case: parse the dpkg status format and use it to increment the progress bar. */
-		if (msg.startsWith("status: ")) return;
-		if (msg.startsWith("processing: ")) {
-			QString value = msg.section(QRegExp("\\s+"), 1, 1);
-			int count = ui->progress->value() + 1;
-			if (count > ui->progress->maximum()) return;
-			else if (value == "upgrade:") ui->progress->setValue(count);
-			else if (value == "install:") ui->progress->setValue(count);
-			else if (value == "configure:") ui->progress->setValue(count);
-			return;
-		}
-	}
-
-	/* Otherwise, just display it. */
-	qDebug() << msg;
-	ui->label->setText(msg);
-}
-
-void UpdateWindow::readyReadStandardError()
-{
-	QString msg;
-	char buf[1024];
-	qint64 len;
-
-	process->setReadChannel(QProcess::StandardError);
-	len = process->readLine(buf, sizeof(buf));
-	if (len > 0) {
-		msg = QString(buf).trimmed();
-		qDebug() << msg;
-		ui->label->setText(buf);
-	}
-}
-
-void UpdateWindow::timeout()
-{
-	int count = ui->progress->value();
-	if (count < ui->progress->maximum()) ui->progress->setValue(count+1);
-	ui->label->setText(QString("Restarting in %1").arg(countdown));
-	if (!countdown--) {
-		QApplication::quit();
-	}
+	if (msg.contains("upgradable")) aptUpdateCount++;
+	qDebug() << "apt:" << msg;
 }

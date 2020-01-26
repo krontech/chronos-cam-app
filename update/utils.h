@@ -14,33 +14,11 @@
  *  You should have received a copy of the GNU General Public License       *
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.   *
  ****************************************************************************/
-#include <QApplication>
-#include <QWSServer>
-#include <QFile>
+#ifndef UTILS_H
+#define UTILS_H
 
-#include "updatewindow.h"
-#include "updateprogress.h"
+#include <QWidget>
 
-int main(int argc, char *argv[])
-{
-	QApplication a(argc, argv);
+void recenterWidget(QWidget *w);
 
-#ifdef Q_WS_QWS
-	QWSServer::setCursorVisible( false );
-	QWSServer::setBackground(QBrush(Qt::transparent));
-#endif
-	a.setQuitOnLastWindowClosed(false);
-
-	// Load stylesheet from file, if one exists.
-	QFile fStyle("stylesheet.qss");
-	if (fStyle.open(QFile::ReadOnly)) {
-		QString sheet = QLatin1String(fStyle.readAll());
-		qApp->setStyleSheet(sheet);
-		fStyle.close();
-	}
-
-	/* Load and execute the update window */
-	UpdateWindow w(NULL);
-	w.show();
-	return a.exec();
-}
+#endif /* UTILS_H */
