@@ -583,7 +583,7 @@ Display</string>
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>30</y>
+        <y>25</y>
         <width>121</width>
         <height>51</height>
        </rect>
@@ -597,7 +597,7 @@ Settings Data</string>
       <property name="geometry">
        <rect>
         <x>140</x>
-        <y>30</y>
+        <y>25</y>
         <width>121</width>
         <height>51</height>
        </rect>
@@ -611,7 +611,7 @@ from backup</string>
       <property name="geometry">
        <rect>
         <x>270</x>
-        <y>30</y>
+        <y>25</y>
         <width>121</width>
         <height>51</height>
        </rect>
@@ -638,7 +638,7 @@ to defaults</string>
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>30</y>
+        <y>25</y>
         <width>121</width>
         <height>51</height>
        </rect>
@@ -652,7 +652,7 @@ Calibration Data</string>
       <property name="geometry">
        <rect>
         <x>140</x>
-        <y>30</y>
+        <y>25</y>
         <width>121</width>
         <height>51</height>
        </rect>
@@ -679,7 +679,7 @@ Calibration Data</string>
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>30</y>
+        <y>25</y>
         <width>101</width>
         <height>51</height>
        </rect>
@@ -700,7 +700,7 @@ Disk</string>
       <property name="geometry">
        <rect>
         <x>120</x>
-        <y>30</y>
+        <y>25</y>
         <width>101</width>
         <height>51</height>
        </rect>
@@ -721,9 +721,9 @@ Disk</string>
       <property name="geometry">
        <rect>
         <x>240</x>
-        <y>30</y>
+        <y>20</y>
         <width>431</width>
-        <height>51</height>
+        <height>71</height>
        </rect>
       </property>
       <property name="font">
@@ -755,7 +755,7 @@ Disk</string>
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>30</y>
+        <y>25</y>
         <width>101</width>
         <height>51</height>
        </rect>
@@ -776,7 +776,7 @@ SD Card</string>
       <property name="geometry">
        <rect>
         <x>120</x>
-        <y>30</y>
+        <y>25</y>
         <width>101</width>
         <height>51</height>
        </rect>
@@ -797,9 +797,9 @@ SD Card</string>
       <property name="geometry">
        <rect>
         <x>240</x>
-        <y>30</y>
+        <y>20</y>
         <width>431</width>
-        <height>51</height>
+        <height>71</height>
        </rect>
       </property>
       <property name="font">

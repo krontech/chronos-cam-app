@@ -330,12 +330,10 @@ void UtilWindow::onUtilWindowTimer()
 		ui->lblStatusSD->setText(sdText);
 		
 		/* enable/disable the format/eject buttons */
-		bool usbPresent = (!statvfs("/dev/sda", &fsInfoBuf));
-		ui->cmdEjectDisk->setEnabled(usbPresent);
-		ui->cmdFormatDisk->setEnabled(usbPresent);
-		bool SDPresent = (!statvfs("/dev/mmcblk1p1", &fsInfoBuf));
-		ui->cmdEjectSD->setEnabled(SDPresent);
-		ui->cmdFormatSD->setEnabled(SDPresent);
+		ui->cmdEjectDisk->setEnabled(!diskText.isEmpty());
+		ui->cmdFormatDisk->setEnabled(!diskText.isEmpty());
+		ui->cmdEjectSD->setEnabled(!sdText.isEmpty());
+		ui->cmdFormatSD->setEnabled(!sdText.isEmpty());
 	}
 	/* If on the network tab, update the interface and network status. */
 	if (ui->tabWidget->currentWidget()  == ui->tabNetwork) {
