@@ -25,7 +25,9 @@ PackageList::PackageList(QWidget *parent) :
 
 	process = new QProcess(this);
 	connect(process, SIGNAL(readyReadStandardOutput()), this, SLOT(readyReadStandardOutput()));
-	QStringList dpkgArgs = { "-l" };
+	QStringList dpkgArgs = {
+		"--showformat=${db:Status-Abbrev} ${Package;-28} ${Version;-24} ${binary:Summary}\n", "-W"
+	};
 	process->start("dpkg-query", dpkgArgs);
 }
 

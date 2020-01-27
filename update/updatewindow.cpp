@@ -61,6 +61,7 @@ UpdateWindow::UpdateWindow(QWidget *parent) :
 	ui->cmdApplyGui->setEnabled(false);
 
 	/* Parse the apt sources file to figure out what release we're on. */
+	/* TODO: We should get a list of the available releases from somewhere */
 	QFile releaseFile("/etc/apt/sources.list.d/krontech-debian.list");
 	if (releaseFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
 		QTextStream fileStream(&releaseFile);
@@ -158,7 +159,7 @@ void UpdateWindow::on_cmdApplyMedia_clicked()
 	w->show();
 }
 
-void UpdateWindow::on_cmdRescanNetwork_clicked()
+void UpdateWindow::on_cmdApplyNetwork_clicked()
 {
 	NetworkUpdate *w = new NetworkUpdate(NULL);
 	this->hide();

@@ -49,7 +49,7 @@ private slots:
 	void updateClosed();
 
 	void on_cmdApplyMedia_clicked();
-	void on_cmdRescanNetwork_clicked();
+	void on_cmdApplyNetwork_clicked();
 	void on_comboGui_currentIndexChanged(int);
 	void on_cmdApplyGui_clicked();
 	void on_cmdListSoftware_clicked();

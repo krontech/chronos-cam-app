@@ -72,10 +72,15 @@ void UpdateProgress::stepProgress(const QString & title)
 
 void UpdateProgress::startReboot(int secs)
 {
+	QString msg = QString("Rebooting in %1").arg(secs);
+
 	ui->progress->setValue(0);
 	ui->progress->setMaximum(secs);
+	ui->progress->setFormat(msg);
 	countdown = secs;
 	timer->start(1000);
+
+	log(msg);
 }
 
 void UpdateProgress::error(QProcess::ProcessError err)
@@ -85,7 +90,7 @@ void UpdateProgress::error(QProcess::ProcessError err)
 
 void UpdateProgress::log(QString msg)
 {
-	qDebug() << msg;
+	qDebug("%s", msg.toUtf8().constData());
 	ui->log->appendPlainText(msg);
 }
 
@@ -118,7 +123,7 @@ void UpdateProgress::timeout()
 {
 	int count = ui->progress->value();
 	if (count < ui->progress->maximum()) ui->progress->setValue(count+1);
-	log(QString("Rebooting in %1").arg(countdown));
+	ui->progress->setFormat(QString("Rebooting in %1").arg(countdown));
 	if (!countdown--) {
 		QApplication::quit();
 	}

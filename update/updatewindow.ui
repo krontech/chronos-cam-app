@@ -56,7 +56,7 @@
      <rect>
       <x>10</x>
       <y>25</y>
-      <width>261</width>
+      <width>391</width>
       <height>41</height>
      </rect>
     </property>
@@ -69,7 +69,7 @@
    <widget class="QPushButton" name="cmdApplyMedia">
     <property name="geometry">
      <rect>
-      <x>290</x>
+      <x>420</x>
       <y>25</y>
       <width>111</width>
       <height>41</height>
@@ -102,7 +102,7 @@
      <rect>
       <x>10</x>
       <y>25</y>
-      <width>261</width>
+      <width>391</width>
       <height>41</height>
      </rect>
     </property>
@@ -115,7 +115,7 @@
    <widget class="QPushButton" name="cmdApplyGui">
     <property name="geometry">
      <rect>
-      <x>290</x>
+      <x>420</x>
       <y>25</y>
       <width>111</width>
       <height>41</height>
@@ -179,30 +179,12 @@
    <property name="title">
     <string>Update From Package Repository</string>
    </property>
-   <widget class="QPushButton" name="cmdRescanNetwork">
-    <property name="geometry">
-     <rect>
-      <x>290</x>
-      <y>25</y>
-      <width>111</width>
-      <height>41</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>14</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>Rescan</string>
-    </property>
-   </widget>
    <widget class="QComboBox" name="comboRelease">
     <property name="geometry">
      <rect>
       <x>10</x>
       <y>25</y>
-      <width>261</width>
+      <width>391</width>
       <height>41</height>
      </rect>
     </property>
@@ -227,7 +209,8 @@
      </font>
     </property>
     <property name="text">
-     <string>Apply Update</string>
+     <string>Check for
+Updates</string>
     </property>
    </widget>
   </widget>

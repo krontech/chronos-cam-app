@@ -24,6 +24,11 @@
 
 NetworkUpdate::NetworkUpdate(QWidget *parent) : UpdateProgress(parent)
 {
+	/* Debian packaging must be prepared to run non-interractively */
+	QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+	env.insert("DEBIAN_FRONTEND", "noninteractive");
+	process->setProcessEnvironment(env);
+
 	/* Figure out how many repositories need to be queried. */
 	QStringList checksumArgs = { "update", "--print-uris" };
 	process->start("apt-get", checksumArgs, QProcess::ReadOnly);
@@ -45,6 +50,9 @@ void NetworkUpdate::started()
 			break;
 		case NETWORK_UPDATE_LISTS:
 			stepProgress("Updating Package Lists");
+			break;
+		case NETWORK_UPGRADE_PACKAGES:
+			stepProgress("Upgrading Packages");
 			break;
 	}
 }
@@ -85,8 +93,20 @@ void NetworkUpdate::finished(int code, QProcess::ExitStatus status)
 				return;
 			}
 
+			/*
+			 * Steps during an upgrade:
+			 *   'Reading package lists...'
+			 *   'Building dependency tree...'
+			 *   'Reading state information...'
+			 *
+			 * For each package there is also:
+			 *   'Unpacking <package> ...'
+			 */
+			ui->progress->setValue(0);
+			ui->progress->setMaximum(packageCount + 3);
+
 			/* Continue with the upgrade. */
-			QStringList aptUpgradeArgs = {"-y", "upgrade", "-q"};
+			QStringList aptUpgradeArgs = {"-q", "-y", "dist-upgrade"};
 			process->start("apt-get", aptUpgradeArgs, QProcess::ReadOnly);
 			state = NETWORK_UPGRADE_PACKAGES;
 			break;
@@ -118,6 +138,13 @@ void NetworkUpdate::handleStdout(QString msg)
 		else {
 			packageCount = first.toUInt();
 		}
+	}
+	else if (state == NETWORK_UPGRADE_PACKAGES) {
+		if (msg.isEmpty()) return; /* eat empty lines, since there's a lot of them */
+		if (msg.startsWith("Reading Package lists")) stepProgress();
+		else if (msg.startsWith("Building dependency tree")) stepProgress();
+		else if (msg.startsWith("Reading state information")) stepProgress();
+		else if (msg.startsWith("Unpacking")) stepProgress();
 	}
 	log(msg);
 }

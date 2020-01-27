@@ -1,7 +1,7 @@
 ## Ignore project and compiled files
-src/camApp.pro.user
-build-camApp-*-Debug/
-build-camApp-*-Release/
+*.pro.user
+build-*-Debug/
+build-*-Release/
 
 ## Ignore Debian packages we may have built
 chronos-cam-app_*.build
