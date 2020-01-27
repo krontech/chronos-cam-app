@@ -39,8 +39,6 @@ signals:
 private slots:
 	void on_cmdSWUpdate_clicked();
 
-	void on_cmdNetUpdate_clicked();
-
 	void onUtilWindowTimer();
 
 	void on_cmdSetClock_clicked();

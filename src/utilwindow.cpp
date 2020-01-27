@@ -198,28 +198,25 @@ UtilWindow::~UtilWindow()
 
 void UtilWindow::on_cmdSWUpdate_clicked()
 {
+#ifdef DEBIAN
+	system("service chronos-update start");
+	QApplication::quit();
+#else
 	int itr, retval;
 	char location[100];
 
-	/* Arago and Debian update procedures are not meant to be interoperable. */
-#ifdef DEBIAN
-	const char *script = "camUpdate.sh";
-#else
-	const char *script = "update.sh";
-#endif
-	
 	for(itr = 1; itr <= 4; itr++)
 	{
 		//Look for the update on sda
-		sprintf(location, "/media/sda%d/camUpdate/%s", itr, script);
+		sprintf(location, "/media/sda%d/camUpdate/update.sh", itr, script);
 		if((retval = updateSoftware(location)) != CAMERA_FILE_NOT_FOUND) return;
 		
 		//Also look for the update on sdb, as the usb is sometimes mounted there instead of sda
-		sprintf(location, "/media/sdb%d/camUpdate/%s", itr, script);
+		sprintf(location, "/media/sdb%d/camUpdate/update.sh", itr, script);
 		if((retval = updateSoftware(location)) != CAMERA_FILE_NOT_FOUND) return;
 		
 		//Look for the update on the SD card
-		sprintf(location, "/media/mmcblk1p%d/camUpdate/%s", itr, script);
+		sprintf(location, "/media/mmcblk1p%d/camUpdate/update.sh", itr, script);
 		if((retval = updateSoftware(location)) != CAMERA_FILE_NOT_FOUND) return;
 	}
 
@@ -228,17 +225,12 @@ void UtilWindow::on_cmdSWUpdate_clicked()
 	msg.setWindowFlags(Qt::WindowStaysOnTopHint);
 	//msg.setInformativeText("Update");
 	msg.exec();
-}
-
-void UtilWindow::on_cmdNetUpdate_clicked()
-{
-	AptUpdate *update = new AptUpdate(this);
-	update->exec();
-	delete update;
+#endif
 }
 
 int UtilWindow::updateSoftware(char * updateLocation)
 {
+#ifndef DEBIAN
 	struct stat st;
 
 	/* Check that the update file exists and is executable */
@@ -262,6 +254,7 @@ int UtilWindow::updateSoftware(char * updateLocation)
 
 	/* We won't get here... */
 	return SUCCESS;
+#endif
 }
 
 bool copyFile(const char * fromfile, const char * tofile)

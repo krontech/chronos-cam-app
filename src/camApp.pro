@@ -88,7 +88,6 @@ SOURCES += main.cpp\
     chronosVideoInterface.cpp \
     colorwindow.cpp \
     colordoublespinbox.cpp \
-    aptupdate.cpp \
     errorStrings.cpp \
     control.cpp \
     myinputpanel.cpp \
@@ -141,7 +140,6 @@ HEADERS  += mainwindow.h \
     frameGeometry.h \
     myinputpanel.h \
     ui_myinputpanelform.h \
-    aptupdate.h \
     control.h \
     eeprom.h
 
