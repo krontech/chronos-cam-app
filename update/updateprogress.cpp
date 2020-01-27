@@ -125,6 +125,7 @@ void UpdateProgress::timeout()
 	if (count < ui->progress->maximum()) ui->progress->setValue(count+1);
 	ui->progress->setFormat(QString("Rebooting in %1").arg(countdown));
 	if (!countdown--) {
+		system("shutdown -hr now");
 		QApplication::quit();
 	}
 }

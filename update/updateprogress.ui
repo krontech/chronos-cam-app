@@ -59,6 +59,9 @@
      <height>161</height>
     </rect>
    </property>
+   <property name="focusPolicy">
+    <enum>Qt::NoFocus</enum>
+   </property>
    <property name="readOnly">
     <bool>true</bool>
    </property>

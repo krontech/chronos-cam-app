@@ -53,3 +53,8 @@ QCheckBox::indicator {
 QComboBox QAbstractItemView:focus {
     background-color: white;
 }
+
+QTabBar:tab {
+    width: 30px;
+}
+
