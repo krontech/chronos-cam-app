@@ -91,14 +91,14 @@ RecSettingsWindow::RecSettingsWindow(QWidget *parent, Camera * cameraInst) :
 	ui->spinHOffset->setValue(is->geometry.hOffset);
 	ui->spinVOffset->setValue(is->geometry.vOffset);
 
+	int gainIndex = 0;
 	for (gain = sensor.minGain; gain <= sensor.maxGain; gain *= 2) {
 		QString gainText;
 		gainText.sprintf("%ddB (x%u)", int(6.0 * log2(gain)), gain);
 
+		if (is->gain > gain) gainIndex++;
 		ui->comboGain->addItem(gainText, QVariant(gain));
 	}
-	int gainIndex = ui->comboGain->findData(QVariant(is->gain));
-	if (gainIndex < 0) gainIndex = 0;
 	ui->comboGain->setCurrentIndex(gainIndex);
 
 	//Populate the common resolution combo box from the list of resolutions

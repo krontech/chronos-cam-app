@@ -336,7 +336,7 @@ CameraErrortype Control::getImagerSettings(ImagerSettings_t *is)
 	parseResolution(&is->geometry, res);
 
 	/* Load the rest of the imager settings. */
-	is->gain = response.value("currentGain", 1).toUInt();
+	is->gain = floor(response.value("currentGain", 1.0).toDouble());
 	is->period = response.value("framePeriod", 1000000).toUInt();
 	is->exposure = response.value("exposurePeriod", 0).toUInt();
 	is->recRegionSizeFrames = response.value("recMaxFrames", 0).toUInt();
@@ -679,7 +679,7 @@ CameraErrortype Control::waitAsyncComplete(QDBusPendingReply<QVariantMap> &reply
 	/* Check if the D-Bus call failed. */
 	if (reply.isError()) {
 		QDBusError err = reply.error();
-		qDebug("D-Bus failed: %s", err.name().data(), err.message().toAscii().data());
+		qDebug("D-Bus failed: %s", err.name().toUtf8().data());
 		return CAMERA_API_CALL_FAIL;
 	}
 	/* Check if there was a synchronos error */
