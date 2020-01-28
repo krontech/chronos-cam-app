@@ -249,6 +249,11 @@ void RecSettingsWindow::on_cmdOK_clicked()
 	camera->setImagerSettings(*is);
 	camera->vinst->liveDisplay(videoFlip);
 
+	/* If calibration is now suggested, we should start zero-time black cal. */
+	if (camera->cinst->getProperty("calSuggested", false).toBool()) {
+		camera->cinst->asyncCalibration({"analogCal", "zeroTimeBlackCal"}, false);
+	}
+
 	emit settingsChanged();
 	
 	close();

@@ -461,6 +461,29 @@ CameraErrortype Control::revertAutoWhiteBalance(void)
 	}
 }
 
+CameraErrortype Control::asyncCalibration(QStringList calTypes, bool saveCal)
+{
+	QVariantMap args;
+	QDBusPendingReply<QVariantMap> reply;
+	QStringList::const_iterator i;
+
+	for (i = calTypes.constBegin(); i != calTypes.constEnd(); i++) {
+		args[*i] = QVariant(true);
+	}
+	args["saveCal"] = QVariant(saveCal);
+
+	pthread_mutex_lock(&mutex);
+	reply = iface.startCalibration(args);
+	reply.waitForFinished();
+	pthread_mutex_unlock(&mutex);
+	if (reply.isError()) {
+		QDBusError err = reply.error();
+		fprintf(stderr, "Failed - startCalibration: %s - %s\n", err.name().data(), err.message().toAscii().data());
+		return CAMERA_API_CALL_FAIL;
+	}
+	return SUCCESS;
+}
+
 CameraErrortype Control::startCalibration(QStringList calTypes, bool saveCal)
 {
 	QVariantMap args;
