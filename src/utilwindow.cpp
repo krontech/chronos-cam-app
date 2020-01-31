@@ -166,6 +166,11 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	ui->cmdImportCalData->setVisible(false);
 	ui->lineSerialNumber->setVisible(false);
 	ui->chkShowDebugControls->setVisible(false);
+	ui->chkFanDisable->setVisible(false);
+
+	/* fan override is either [1.0,0.0] to set a PWM, or < 0 for auto. */
+	double fanOverride = camera->cinst->getProperty("fanOverride", -1).toDouble();
+	ui->chkFanDisable->setChecked(fanOverride >= 0);
 
 	ui->chkAutoSave->setChecked(camera->get_autoSave());
 	ui->chkAutoRecord->setChecked(camera->get_autoRecord());
@@ -174,9 +179,6 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	ui->comboDisableUnsavedWarning->setCurrentIndex(camera->getUnsavedWarnEnable());
 	ui->comboAutoPowerMode->setCurrentIndex(camera->getAutoPowerMode());
 
-	/* fan override is either [1.0,0.0] to set a PWM, or < 0 for auto. */
-	double fanOverride = camera->cinst->getProperty("fanOverride", -1).toDouble();
-	ui->chkFanDisable->setChecked(fanOverride >= 0);
 
 	/* Load the Samba network settings. */
 	ui->lineSmbUser->setText(appSettings.value("network/smbUser", "").toString());
@@ -749,6 +751,7 @@ void UtilWindow::on_linePassword_textEdited(const QString &arg1)
 		ui->cmdExportCalData->setVisible(true);
 		ui->cmdImportCalData->setVisible(true);
 		ui->chkShowDebugControls->setVisible(true);
+		ui->chkFanDisable->setVisible(true);
 	}
 }
 

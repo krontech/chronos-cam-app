@@ -514,36 +514,6 @@ Display</string>
       <bool>true</bool>
      </property>
     </widget>
-    <widget class="QCheckBox" name="chkFanDisable">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>480</x>
-       <y>320</y>
-       <width>251</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <pointsize>16</pointsize>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QCheckBox::indicator {
-     width: 40px;
-     height: 40px;
-}</string>
-     </property>
-     <property name="text">
-      <string>Disable Fan When Cool</string>
-     </property>
-     <property name="checkable">
-      <bool>true</bool>
-     </property>
-    </widget>
    </widget>
    <widget class="QWidget" name="tabStorage">
     <attribute name="title">
@@ -1785,6 +1755,36 @@ Calibration Data
       <string>Export Cal Data</string>
      </property>
     </widget>
+    <widget class="QCheckBox" name="chkFanDisable">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>410</x>
+       <y>130</y>
+       <width>251</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>16</pointsize>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QCheckBox::indicator {
+     width: 40px;
+     height: 40px;
+}</string>
+     </property>
+     <property name="text">
+      <string>Disable Fan When Cool</string>
+     </property>
+     <property name="checkable">
+      <bool>true</bool>
+     </property>
+    </widget>
    </widget>
   </widget>
  </widget>
@@ -1819,7 +1819,6 @@ Calibration Data
   <tabstop>cmdRestoreSettings</tabstop>
   <tabstop>cmdBackupSettings</tabstop>
   <tabstop>cmdClose</tabstop>
-  <tabstop>chkFanDisable</tabstop>
   <tabstop>chkUpsideDownDisplay</tabstop>
   <tabstop>chkUiOnLeft</tabstop>
   <tabstop>chkDemoMode</tabstop>
