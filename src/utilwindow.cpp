@@ -787,12 +787,10 @@ void UtilWindow::formatStorageDevice(const char *blkdev)
 	char partpath[128];
 	char diskname[128];
 	int filepathlen;
-	int mkfsReturn;
 	char title[128];
 	char message[1024];
 	struct statvfs fsInfoBuf;
 	FILE *fp;
-	int ret;
 
 	/* Read the disk name from sysfs. */
 	sprintf(filepath, "/sys/block/%s/device/model", blkdev);
@@ -848,19 +846,15 @@ void UtilWindow::formatStorageDevice(const char *blkdev)
 	}
 	endmntent(mtab);
 
-	/* Overwrite the first 4kB with zeros and then rebuild the partition table. */
+	/* Overwrite the first 1MB with zeros and then rebuild the partition table. */
 	progress->setLabelText("Wiping partition table");
 	if (progress->wasCanceled()) {
 		delete progress;
 		return;
 	}
 	progress->setValue(1);
-	fp = fopen(filepath, "wb");
-	if (fp) {
-		fwrite(memset(tempbuf, 0, sizeof(tempbuf)), sizeof(tempbuf), 1, fp);
-		fflush(fp);
-		fclose(fp);
-	}
+	sprintf(command, "dd if=/dev/zero of=%s bs=1M count=1", filepath);
+	system(command);
 
 	progress->setLabelText("Writing partition table");
 	if (progress->wasCanceled()) {
