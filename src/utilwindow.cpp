@@ -70,7 +70,7 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 {
 	openingWindow = true;
 	QSettings appSettings;
-	QString aboutText;\
+	QString aboutText;
 
 	ui->setupUi(this);
 	this->setWindowFlags(Qt::Dialog | Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
@@ -142,6 +142,19 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	aboutText.append(QString("Serial Number: %1\r\n").arg(serialNumber));
 	aboutText.append(QString("\r\n"));
 	aboutText.append(QString("Release Version: %1\r\n").arg(readReleaseString(release, sizeof(release))));
+#ifdef DEBIAN
+	QFile releaseFile("/etc/apt/sources.list.d/krontech-debian.list");
+	if (releaseFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+		QTextStream fileStream(&releaseFile);
+		QRegExp whitespace = QRegExp("\\s+");
+		while (!fileStream.atEnd()) {
+			QStringList slist = fileStream.readLine().split(whitespace);
+			if (slist.count() < 4) continue;
+			if (slist[0] != "deb") continue;
+			aboutText.append(QString("Release Codename: %1\r\n").arg(slist[2]));
+		}
+	}
+#endif
 	aboutText.append(QString("Build: %1 (%2)\r\n").arg(CAMERA_APP_VERSION, git_version_str));
 	aboutText.append(QString("FPGA Revision: %1").arg(fpgaVersion));
 	ui->lblAbout->setText(aboutText);
@@ -158,9 +171,12 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	ui->chkAutoRecord->setChecked(camera->get_autoRecord());
 	ui->chkDemoMode->setChecked(camera->get_demoMode());
 	ui->chkUiOnLeft->setChecked(camera->getButtonsOnLeft());
-	ui->chkFanDisable->setChecked(camera->cinst->getProperty("fanOverride", false).toBool());
 	ui->comboDisableUnsavedWarning->setCurrentIndex(camera->getUnsavedWarnEnable());
 	ui->comboAutoPowerMode->setCurrentIndex(camera->getAutoPowerMode());
+
+	/* fan override is either [1.0,0.0] to set a PWM, or < 0 for auto. */
+	double fanOverride = camera->cinst->getProperty("fanOverride", -1).toDouble();
+	ui->chkFanDisable->setChecked(fanOverride >= 0);
 
 	/* Load the Samba network settings. */
 	ui->lineSmbUser->setText(appSettings.value("network/smbUser", "").toString());
@@ -1183,7 +1199,10 @@ void UtilWindow::on_spinLiveLoopTime_valueChanged(double arg1)
 
 void UtilWindow::on_chkFanDisable_stateChanged(int enable)
 {
-	if (!openingWindow) camera->cinst->setBool("fanOverride", (enable != 0));
+	if (!openingWindow) {
+		/* 33% seems to be the slowest we can spin the fan without stopping it */
+		camera->cinst->setFloat("fanOverride", enable ? 0.33 : -1);
+	}
 }
 
 void UtilWindow::on_lineSmbPassword_editingStarted()
