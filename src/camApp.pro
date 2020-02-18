@@ -178,7 +178,8 @@ HEADERS  += mainwindow.h \
     frameGeometry.h \
     sensor.h \
     aptupdate.h \
-    power.h
+    power.h \
+    lux8m.h
 
 FORMS    += mainwindow.ui \
     cammainwindow.ui \

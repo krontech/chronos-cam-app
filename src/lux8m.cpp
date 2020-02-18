@@ -32,11 +32,12 @@
 
 #include "types.h"
 #include "lux2100.h"
+#include "lux8m.h"
 
 #include <QSettings>
 
 /* Select binning or windowed mode. */
-#define LUX8M_BINNING_MODE	1
+#define LUX8M_BINNING_MODE	0
 
 /* 4k non-binned full length. */
 const UInt8 sram126clk_full4k[] = {
@@ -197,7 +198,7 @@ CameraErrortype LUX8M::init(GPMC * gpmc_inst)
 
 CameraErrortype LUX8M::initSensor()
 {
-	wavetableSize = 66;
+	wavetableSize = 126;
 	gain = 1;
 
 	gpmc->write32(IMAGER_FRAME_PERIOD_ADDR, 100*4000);	//Disable integration
@@ -215,8 +216,8 @@ CameraErrortype LUX8M::initSensor()
 	delayms(50);
 
 
-	currentRes.hRes = LUX2100_MAX_H_RES;
-	currentRes.vRes = LUX2100_MAX_V_RES;
+	currentRes.hRes = LUX8M_MAX_H_RES;
+	currentRes.vRes = LUX8M_MAX_V_RES;
 	currentRes.hOffset = 0;
 	currentRes.vOffset = 0;
 	currentRes.vDarkRows = 0;
@@ -228,19 +229,34 @@ CameraErrortype LUX8M::initSensor()
 	return SUCCESS;
 }
 
+FrameGeometry LUX8M::getMaxGeometry(void)
+{
+	FrameGeometry size = {
+		.hRes = LUX8M_MAX_H_RES,
+		.vRes = LUX8M_MAX_V_RES,
+		.hOffset = 0,
+		.vOffset = 0,
+		.vDarkRows = LUX8M_MAX_V_DARK,
+		.bitDepth = LUX2100_BITS_PER_PIXEL,
+	};
+	return size;
+}
+
 void LUX8M::setResolution(FrameGeometry *size)
 {
 	UInt32 hStartBlocks = size->hOffset / LUX2100_HRES_INCREMENT;
 	UInt32 hEndblocks = hStartBlocks + (size->hRes / LUX2100_HRES_INCREMENT);
-	UInt32 vLastRow = LUX2100_MAX_V_RES + LUX2100_LOW_BOUNDARY_ROWS + LUX2100_HIGH_BOUNDARY_ROWS + LUX2100_HIGH_DARK_ROWS;
+	UInt32 vLastRow = LUX8M_MAX_V_RES + LUX8M_LOW_BOUNDARY_ROWS + LUX8M_HIGH_BOUNDARY_ROWS + LUX8M_HIGH_DARK_ROWS;
 
 	/* Windowed operation - add extra offset to put the readout at the centre. */
-	SCIWrite(0x06, (LUX2100_LEFT_DARK_COLUMNS * 2 + 0x3E0) + hStartBlocks * LUX2100_HRES_INCREMENT);
-	SCIWrite(0x07, (LUX2100_LEFT_DARK_COLUMNS * 2 + 0x3E0) + hEndblocks * LUX2100_HRES_INCREMENT - 1);
-	SCIWrite(0x08, (LUX2100_LOW_BOUNDARY_ROWS * 2 + 0x22C) + size->vOffset);
-	SCIWrite(0x09, (LUX2100_LOW_BOUNDARY_ROWS * 2 + 0x22C) + size->vOffset + size->vRes - 1);
+	SCIWrite(0x06, (LUX8M_LEFT_DARK_COLUMNS + 0x3E0) + hStartBlocks * LUX2100_HRES_INCREMENT);
+	SCIWrite(0x07, (LUX8M_LEFT_DARK_COLUMNS + 0x3E0) + hEndblocks * LUX2100_HRES_INCREMENT - 1);
+	//SCIWrite(0x08, (LUX2100_LOW_BOUNDARY_ROWS * 2 + 0x22C) + size->vOffset);
+	//SCIWrite(0x09, (LUX2100_LOW_BOUNDARY_ROWS * 2 + 0x22C) + size->vOffset + size->vRes - 1);
+	SCIWrite(0x08, 0x0000);
+	SCIWrite(0x09, 0x088F);
 	if (size->vDarkRows) {
-		SCIWrite(0x2A, (vLastRow * 2) - size->vDarkRows);
+		SCIWrite(0x2A, (vLastRow * 2) - size->vDarkRows * 2);
 	}
 	SCIWrite(0x2B, size->vDarkRows);
 
@@ -350,8 +366,8 @@ Int32 LUX8M::initLUX8M()
 	SCIWrite(0x04, 0x0000); // switch to sensor register space
 
 	//Load the wavetable
-	SCIWriteBuf(0x7F, wavetab66clk_window1080p.wavetab, wavetab66clk_window1080p.length);
-
+	SCIWriteBuf(0x7F, wavetab126clk_full4k.wavetab, wavetab126clk_full4k.length);
+	qDebug() << "loaded wt 126\n";
 	//Enable timing engine
 	SCIWrite(0x01, 0x0011); // enable the internal timing engine
 	return SUCCESS;

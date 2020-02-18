@@ -203,6 +203,7 @@ protected:
  */
 class LUX8M : public LUX2100 {
 	CameraErrortype init(GPMC * gpmc_inst);
+	FrameGeometry getMaxGeometry(void);
 	void setResolution(FrameGeometry *frameSize);
 	unsigned int enableAnalogTestMode(void);
 	void disableAnalogTestMode(void);

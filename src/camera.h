@@ -34,7 +34,7 @@
 #include "types.h"
 
 #define RECORD_DATA_LENGTH		2048		//Number of record data entries for the record sequencer data
-#define MAX_FRAME_WORDS			0x19000
+#define MAX_FRAME_WORDS			0x5EEC0
 #define CAL_REGION_START		0x0
 #define CAL_REGION_FRAMES		3
 #define LIVE_REGION_START		(CAL_REGION_START + MAX_FRAME_WORDS * CAL_REGION_FRAMES)
@@ -45,8 +45,8 @@
 #define SEGMENT_COUNT_MAX       (32*1024)   //Maximum number of record segments in segmented mode
 #define FPN_ADDRESS				CAL_REGION_START
 
-#define MAX_FRAME_SIZE_H		1920
-#define MAX_FRAME_SIZE_V		1080
+#define MAX_FRAME_SIZE_H		3840	//Accomodate a LUX8M
+#define MAX_FRAME_SIZE_V		2160	//Accomodate a LUX8M
 #define MAX_FRAME_SIZE          (MAX_FRAME_SIZE_H * MAX_FRAME_SIZE_V * 8 / 12)
 #define BITS_PER_PIXEL			12
 #define BYTES_PER_WORD			32
