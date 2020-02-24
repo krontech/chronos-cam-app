@@ -51,8 +51,15 @@ void NetworkUpdate::started()
 		case NETWORK_UPDATE_LISTS:
 			stepProgress("Updating Package Lists");
 			break;
-		case NETWORK_UPGRADE_PACKAGES:
+		case NETWORK_PREPARE_METAPACKAGE:
+			stepProgress("Installing Metapackage");
+			break;
+		case NETWORK_INSTALL_METAPACKAGE:
+			break;
+		case NETWORK_PREPARE_UPGRADE:
 			stepProgress("Upgrading Packages");
+			break;
+		case NETWORK_INSTALL_UPGRADE:
 			break;
 	}
 }
@@ -60,6 +67,14 @@ void NetworkUpdate::started()
 void NetworkUpdate::finished(int code, QProcess::ExitStatus status)
 {
 	int reply;
+
+	/* Handle failed exit conditions. */
+	if (code != 0) {
+		ui->title->setStyleSheet("QLabel {font-weight: bold; color: red; }");
+		ui->title->setText("Update Failed");
+		startReboot(30);
+		return;
+	}
 
 	switch (state) {
 		case NETWORK_COUNT_REPOS:{
@@ -75,12 +90,57 @@ void NetworkUpdate::finished(int code, QProcess::ExitStatus status)
 			ui->progress->setMaximum(repoCount + 6);
 
 			QStringList aptUpdateArgs = { "update" };
-			process->start("apt", aptUpdateArgs, QProcess::ReadOnly);
+			process->start("apt-get", aptUpdateArgs, QProcess::ReadOnly);
 			state = NETWORK_UPDATE_LISTS;
 			break;
 		}
 
-		case NETWORK_UPDATE_LISTS: {
+		case NETWORK_UPDATE_LISTS:{
+			/* Ensure that the chronos-essential metapackage is installed. */
+			const char *checkpkg = "dpkg-query --show --showformat=\'${db:Status-Status}\n\' chronos-essential | grep ^installed";
+			if (system(checkpkg) != 0) {
+				/* Install the chronos-essentials metapackage */
+				ui->progress->setValue(0);
+				ui->progress->setMaximum(100); /* Just a random guess for now... */
+				QStringList aptInstallArgs = { "--assume-no", "--dry-run", "install", "chronos-essential"};
+				process->start("apt-get", aptInstallArgs, QProcess::ReadOnly);
+				state = NETWORK_PREPARE_METAPACKAGE;
+			}
+			else {
+				/* Perform a dry-run to calculate the dist-upgrade. */
+				ui->progress->setValue(0);
+				ui->progress->setMaximum(100); /* Just a random guess for now... */
+
+				QStringList aptUgradeArgs = { "--assume-no", "--dry-run", "dist-upgrade" };
+				process->start("apt-get", aptUgradeArgs, QProcess::ReadOnly);
+				state = NETWORK_PREPARE_UPGRADE;
+			}
+			break;
+		}
+
+		case NETWORK_PREPARE_METAPACKAGE: {
+			/* Start installation of the chronos-essentials package */
+			ui->progress->setValue(1);
+			ui->progress->setMaximum(packageCount + 4);
+
+			QStringList aptInstallArgs = { "-y", "install", "chronos-essential" };
+			process->start("apt-get", aptInstallArgs, QProcess::ReadOnly);
+			state = NETWORK_INSTALL_METAPACKAGE;
+			break;
+		}
+
+		case NETWORK_INSTALL_METAPACKAGE:{
+			/* Perform a dry-run to calculate the dist-upgrade. */
+			ui->progress->setValue(0);
+			ui->progress->setMaximum(100); /* Just a random guess for now... */
+
+			QStringList aptUgradeArgs = { "--assume-no", "--dry-run", "dist-upgrade" };
+			process->start("apt-get", aptUgradeArgs, QProcess::ReadOnly);
+			state = NETWORK_PREPARE_UPGRADE;
+			break;
+		}
+
+		case NETWORK_PREPARE_UPGRADE:{
 			/* Prompt the user about our findings, and ask to continue. */
 			if (packageCount == 0) {
 				reply = QMessageBox::information(this, "apt update", "No updates were found.", QMessageBox::Ok);
@@ -102,17 +162,17 @@ void NetworkUpdate::finished(int code, QProcess::ExitStatus status)
 			 * For each package there is also:
 			 *   'Unpacking <package> ...'
 			 */
-			ui->progress->setValue(0);
-			ui->progress->setMaximum(packageCount + 3);
+			ui->progress->setValue(1);
+			ui->progress->setMaximum(packageCount + 4);
 
 			/* Continue with the upgrade. */
-			QStringList aptUpgradeArgs = {"-q", "-y", "dist-upgrade"};
+			QStringList aptUpgradeArgs = {"-y", "dist-upgrade"};
 			process->start("apt-get", aptUpgradeArgs, QProcess::ReadOnly);
-			state = NETWORK_UPGRADE_PACKAGES;
+			state = NETWORK_INSTALL_UPGRADE;
 			break;
 		}
 
-		case NETWORK_UPGRADE_PACKAGES: {
+		case NETWORK_INSTALL_UPGRADE: {
 			state = NETWORK_REBOOT;
 			stepProgress("Update Successful");
 			startReboot(10);
@@ -135,11 +195,19 @@ void NetworkUpdate::handleStdout(QString msg)
 		else if ((first == "Fetched") || (first == "Reading")) {
 			stepProgress();
 		}
-		else {
-			packageCount = first.toUInt();
-		}
 	}
-	else if (state == NETWORK_UPGRADE_PACKAGES) {
+	else if ((state == NETWORK_PREPARE_METAPACKAGE) || (state == NETWORK_PREPARE_UPGRADE)) {
+		QStringList list = msg.split(",");
+		QString::SectionFlags flags = QString::SectionSkipEmpty;
+		QRegExp whitespace = QRegExp("\\s+");
+		if (list.count() < 3) return;
+
+		packageCount = list[0].section(whitespace, 0, 0, flags).toUInt();  /* %d upgraded */
+		packageCount += list[1].section(whitespace, 0, 0, flags).toUInt(); /* %d newly installed */
+		packageCount += list[2].section(whitespace, 0, 0, flags).toUInt(); /* %d to remove */
+		/* and %d not upgraded */
+	}
+	else if ((state == NETWORK_INSTALL_UPGRADE) || (state == NETWORK_INSTALL_METAPACKAGE)) {
 		if (msg.isEmpty()) return; /* eat empty lines, since there's a lot of them */
 		if (msg.startsWith("Reading Package lists")) stepProgress();
 		else if (msg.startsWith("Building dependency tree")) stepProgress();

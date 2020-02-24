@@ -101,8 +101,7 @@ void UpdateProgress::readyReadStandardOutput()
 	qint64 len;
 
 	process->setReadChannel(QProcess::StandardOutput);
-	len = process->readLine(buf, sizeof(buf));
-	if (len > 0) {
+	while ((len = process->readLine(buf, sizeof(buf))) > 0) {
 		handleStdout(QString(buf).trimmed());
 	}
 }
@@ -113,8 +112,7 @@ void UpdateProgress::readyReadStandardError()
 	qint64 len;
 
 	process->setReadChannel(QProcess::StandardError);
-	len = process->readLine(buf, sizeof(buf));
-	if (len > 0) {
+	while ((len = process->readLine(buf, sizeof(buf))) > 0) {
 		handleStderr(QString(buf).trimmed());
 	}
 }
