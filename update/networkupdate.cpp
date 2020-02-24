@@ -32,6 +32,7 @@ NetworkUpdate::NetworkUpdate(QWidget *parent) : UpdateProgress(parent)
 	/* Figure out how many repositories need to be queried. */
 	QStringList checksumArgs = { "update", "--print-uris" };
 	process->start("apt-get", checksumArgs, QProcess::ReadOnly);
+	userReply = 0;
 	repoCount = 0;
 	packageCount = 0;
 	state = NETWORK_COUNT_REPOS;
@@ -66,8 +67,6 @@ void NetworkUpdate::started()
 
 void NetworkUpdate::finished(int code, QProcess::ExitStatus status)
 {
-	int reply;
-
 	/* Handle failed exit conditions. */
 	if (code != 0) {
 		ui->title->setStyleSheet("QLabel {font-weight: bold; color: red; }");
@@ -98,15 +97,7 @@ void NetworkUpdate::finished(int code, QProcess::ExitStatus status)
 		case NETWORK_UPDATE_LISTS:{
 			/* Ensure that the chronos-essential metapackage is installed. */
 			const char *checkpkg = "dpkg-query --show --showformat=\'${db:Status-Status}\n\' chronos-essential | grep ^installed";
-			if (system(checkpkg) != 0) {
-				/* Install the chronos-essentials metapackage */
-				ui->progress->setValue(0);
-				ui->progress->setMaximum(100); /* Just a random guess for now... */
-				QStringList aptInstallArgs = { "--assume-no", "--dry-run", "install", "chronos-essential"};
-				process->start("apt-get", aptInstallArgs, QProcess::ReadOnly);
-				state = NETWORK_PREPARE_METAPACKAGE;
-			}
-			else {
+			if (system(checkpkg) == 0) {
 				/* Perform a dry-run to calculate the dist-upgrade. */
 				ui->progress->setValue(0);
 				ui->progress->setMaximum(100); /* Just a random guess for now... */
@@ -115,13 +106,29 @@ void NetworkUpdate::finished(int code, QProcess::ExitStatus status)
 				process->start("apt-get", aptUgradeArgs, QProcess::ReadOnly);
 				state = NETWORK_PREPARE_UPGRADE;
 			}
+			else {
+				/* The user needs to install the chronos-essential metapackage */
+				QString prompt = QString("Found packages eligible for upgrade, download and install them?");
+				userReply = QMessageBox::question(this, "apt update", prompt, QMessageBox::Yes|QMessageBox::No);
+				if (userReply != QMessageBox::Yes) {
+					close();
+					return;
+				}
+
+				/* Install the chronos-essentials metapackage */
+				ui->progress->setValue(0);
+				ui->progress->setMaximum(100); /* Just a random guess for now... */
+				QStringList aptInstallArgs = { "--assume-no", "--dry-run", "install", "chronos-essential"};
+				process->start("apt-get", aptInstallArgs, QProcess::ReadOnly);
+				state = NETWORK_PREPARE_METAPACKAGE;
+			}
 			break;
 		}
 
 		case NETWORK_PREPARE_METAPACKAGE: {
 			/* Start installation of the chronos-essentials package */
 			ui->progress->setValue(1);
-			ui->progress->setMaximum(packageCount + 4);
+			ui->progress->setMaximum((packageCount * 2) + 4);
 
 			QStringList aptInstallArgs = { "-y", "install", "chronos-essential" };
 			process->start("apt-get", aptInstallArgs, QProcess::ReadOnly);
@@ -140,38 +147,41 @@ void NetworkUpdate::finished(int code, QProcess::ExitStatus status)
 			break;
 		}
 
-		case NETWORK_PREPARE_UPGRADE:{
-			/* Prompt the user about our findings, and ask to continue. */
-			if (packageCount == 0) {
-				reply = QMessageBox::information(this, "apt update", "No updates were found.", QMessageBox::Ok);
-				close();
-				return;
+		case NETWORK_PREPARE_UPGRADE:
+			if (userReply == 0) {
+				/* Prompt the user about our findings, and ask to continue. */
+				if (packageCount == 0) {
+					userReply = QMessageBox::information(this, "apt update", "No updates were found.", QMessageBox::Ok);
+					close();
+					return;
+				}
+				userReply = QMessageBox::question(this, "apt update", QString("Found %1 packages eligible for upgrade, download and install them?").arg(packageCount), QMessageBox::Yes|QMessageBox::No);
+				if (userReply != QMessageBox::Yes) {
+					close();
+					return;
+				}
 			}
-			reply = QMessageBox::question(this, "apt update", QString("Found %1 packages eligible for upgrade, download and install them?").arg(packageCount), QMessageBox::Yes|QMessageBox::No);
-			if (reply != QMessageBox::Yes) {
-				close();
-				return;
+
+			if (packageCount != 0) {
+				/*
+				 * Steps during an upgrade:
+				 *   'Reading package lists...'
+				 *   'Building dependency tree...'
+				 *   'Reading state information...'
+				 *
+				 * For each package there is also:
+				 *   'Unpacking <package> ...'
+				 */
+				ui->progress->setValue(1);
+				ui->progress->setMaximum((packageCount * 2) + 4);
+
+				/* Continue with the upgrade. */
+				QStringList aptUpgradeArgs = {"-y", "dist-upgrade"};
+				process->start("apt-get", aptUpgradeArgs, QProcess::ReadOnly);
+				state = NETWORK_INSTALL_UPGRADE;
+				break;
 			}
-
-			/*
-			 * Steps during an upgrade:
-			 *   'Reading package lists...'
-			 *   'Building dependency tree...'
-			 *   'Reading state information...'
-			 *
-			 * For each package there is also:
-			 *   'Unpacking <package> ...'
-			 */
-			ui->progress->setValue(1);
-			ui->progress->setMaximum(packageCount + 4);
-
-			/* Continue with the upgrade. */
-			QStringList aptUpgradeArgs = {"-y", "dist-upgrade"};
-			process->start("apt-get", aptUpgradeArgs, QProcess::ReadOnly);
-			state = NETWORK_INSTALL_UPGRADE;
-			break;
-		}
-
+			/* Otherwise, fall through for a successful update */
 		case NETWORK_INSTALL_UPGRADE: {
 			state = NETWORK_REBOOT;
 			stepProgress("Update Successful");
@@ -188,8 +198,8 @@ void NetworkUpdate::handleStdout(QString msg)
 		return;
 	}
 	else if (state == NETWORK_UPDATE_LISTS) {
-		QString first = msg.section(QRegExp("\\s+"), 0, 0);
-		if ((first == "Get") || (first == "Hit")) {
+		QString first = msg.section(QRegExp("[:\\s]+"), 0, 0);
+		if ((first == "Get") || (first == "Hit") || (first == "Ign")) {
 			stepProgress();
 		}
 		else if ((first == "Fetched") || (first == "Reading")) {
@@ -213,6 +223,7 @@ void NetworkUpdate::handleStdout(QString msg)
 		else if (msg.startsWith("Building dependency tree")) stepProgress();
 		else if (msg.startsWith("Reading state information")) stepProgress();
 		else if (msg.startsWith("Unpacking")) stepProgress();
+		else if (msg.startsWith("Setting up")) stepProgress();
 	}
 	log(msg);
 }

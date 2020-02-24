@@ -22,7 +22,6 @@
 enum NetworkUpdateStates {
 	NETWORK_COUNT_REPOS,
 	NETWORK_UPDATE_LISTS,
-	NETWORK_COUNT_PACKAGES,
 	NETWORK_PREPARE_METAPACKAGE,
 	NETWORK_INSTALL_METAPACKAGE,
 	NETWORK_PREPARE_UPGRADE,
@@ -40,6 +39,7 @@ public:
 
 private:
 	QString dist;
+	unsigned int userReply;
 	unsigned int repoCount;
 	unsigned int packageCount;
 	enum NetworkUpdateStates state;
