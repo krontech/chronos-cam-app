@@ -358,6 +358,18 @@ void UtilWindow::onUtilWindowTimer()
 		QString netText = runCommand("ifconfig eth0");
 		ui->lblNetStatus->setText(netText);
 	}
+	/* Of on the about tab, update the temperature and battery voltage. */
+	if (ui->tabWidget->currentWidget() == ui->tabAbout) {
+		double sensorTemp = camera->cinst->getProperty("sensorTemperature", 0.0).toDouble();
+		double systemTemp = camera->cinst->getProperty("systemTemperature", 0.0).toDouble();
+		double battVoltage = camera->cinst->getProperty("batteryVoltage", 0.0).toDouble();
+		QString status;
+
+		status = QString("Sensor Temperature: %1 C\n").arg(sensorTemp);
+		status.append(QString("System Temperature: %1 C\n").arg(systemTemp));
+		status.append(QString("Battery Voltage: %1 V\n").arg(battVoltage));
+		ui->lblStatus->setText(status);
+	}
 }
 
 void UtilWindow::on_cmdSetClock_clicked()

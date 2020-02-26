@@ -1301,7 +1301,7 @@ Static IP</string>
        <x>30</x>
        <y>20</y>
        <width>591</width>
-       <height>431</height>
+       <height>241</height>
       </rect>
      </property>
      <property name="font">
@@ -1334,6 +1334,29 @@ Static IP</string>
      </property>
      <property name="text">
       <string>Close</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lblStatus">
+     <property name="geometry">
+      <rect>
+       <x>30</x>
+       <y>290</y>
+       <width>591</width>
+       <height>151</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>16</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>TextLabel</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
      </property>
     </widget>
    </widget>
