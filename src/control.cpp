@@ -365,10 +365,11 @@ CameraErrortype Control::getImagerSettings(ImagerSettings_t *is)
 
 CameraErrortype Control::startRecording(void)
 {
+	QVariantMap args;
 	QDBusPendingReply<QVariantMap> reply;
 
 	pthread_mutex_lock(&mutex);
-	reply = iface.startRecording();
+	reply = iface.startRecording(args);
 	reply.waitForFinished();
 	pthread_mutex_unlock(&mutex);
 

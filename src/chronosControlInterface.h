@@ -38,9 +38,10 @@ public Q_SLOTS: // METHODS
 
 	// manually entered for NEWAPI
 	// in/out methdods:
-	inline QDBusPendingReply<QVariantMap> startRecording()
+	inline QDBusPendingReply<QVariantMap> startRecording(const QVariantMap &args)
 	{
 		QList<QVariant> argumentList;
+		argumentList << qVariantFromValue(args);
 		return asyncCallWithArgumentList(QLatin1String("startRecording"), argumentList);
 	}
 
