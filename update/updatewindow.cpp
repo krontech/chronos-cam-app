@@ -47,13 +47,13 @@ UpdateWindow::UpdateWindow(QWidget *parent) :
 
 	/* Check which, if any of the GUIs are enabled. */
 	ui->comboGui->addItem("None (Headless)");
-	ui->comboGui->addItem("Chronos 2.1");
-	ui->comboGui->addItem("Chronos Legacy");
+	ui->comboGui->addItem("Chronos");
+	ui->comboGui->addItem("GUI2 (Experimental)");
 	if (system("systemctl is-enabled chronos-gui") == 0) {
-		ui->comboGui->setCurrentIndex(2);
+		ui->comboGui->setCurrentIndex(1);
 	}
 	else if (system("systemctl is-enabled chronos-gui2") == 0) {
-		ui->comboGui->setCurrentIndex(1);
+		ui->comboGui->setCurrentIndex(2);
 	}
 	else {
 		ui->comboGui->setCurrentIndex(0);
@@ -176,12 +176,12 @@ void UpdateWindow::on_cmdApplyGui_clicked()
 {
 	int index = ui->comboGui->currentIndex();
 	if (index == 1) {
-		system("systemctl disable chronos-gui");
-		system("systemctl enable chronos-gui2");
-	}
-	else if (index == 2) {
 		system("systemctl disable chronos-gui2");
 		system("systemctl enable chronos-gui");
+	}
+	else if (index == 2) {
+		system("systemctl disable chronos-gui");
+		system("systemctl enable chronos-gui2");
 	}
 	else {
 		system("systemctl disable chronos-gui");
@@ -207,10 +207,10 @@ void UpdateWindow::on_cmdQuit_clicked()
 {
 	int index = ui->comboGui->currentIndex();
 	if (index == 1) {
-		system("service chronos-gui2 start");
+		system("service chronos-gui start");
 	}
 	else if (index == 2) {
-		system("service chronos-gui start");
+		system("service chronos-gui2 start");
 	}
 	QApplication::quit();
 }
