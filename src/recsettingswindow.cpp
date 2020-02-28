@@ -91,6 +91,7 @@ RecSettingsWindow::RecSettingsWindow(QWidget *parent, Camera * cameraInst) :
 	ui->spinHOffset->setValue(is->geometry.hOffset);
 	ui->spinVOffset->setValue(is->geometry.vOffset);
 
+	/* Populate the analog gain dropdown. */
 	int gainIndex = 0;
 	for (gain = sensor.minGain; gain <= sensor.maxGain; gain *= 2) {
 		QString gainText;
@@ -100,6 +101,16 @@ RecSettingsWindow::RecSettingsWindow(QWidget *parent, Camera * cameraInst) :
 		ui->comboGain->addItem(gainText, QVariant(gain));
 	}
 	ui->comboGain->setCurrentIndex(gainIndex);
+
+	/* Populate the digital gain dropdown. */
+	gainIndex = 0;
+	for (gain = 1; gain <= 16; gain *= 2) {
+		QString gainText;
+		gainText.sprintf("%ddB (x%u)", int(6.0 * log2(gain)), gain);
+		if (gain == round(is->digitalGain)) gainIndex = ui->comboDigGain->count();
+		ui->comboDigGain->addItem(gainText, QVariant(gain));
+	}
+	ui->comboDigGain->setCurrentIndex(gainIndex);
 
 	//Populate the common resolution combo box from the list of resolutions
 	QFile fp;
@@ -221,17 +232,22 @@ FrameGeometry RecSettingsWindow::getResolution(void)
 void RecSettingsWindow::on_cmdOK_clicked()
 {
 	FrameTiming timing;
-	//bool videoFlip = (camera->sensor->getSensorQuirks() & SENSOR_QUIRK_UPSIDE_DOWN) != 0;
 	bool videoFlip = false;
-	int gainIndex = ui->comboGain->currentIndex();
+	int gainIndex;
 
 	is->period = ui->linePeriod->siText() * sensor.timingClock;
 	is->exposure = ui->lineExp->siText() * sensor.timingClock;
 	is->gain = sensor.minGain;
+	is->digitalGain = 1.0;
 	is->geometry = getResolution();
 	is->geometry.minFrameTime = (double)is->period / sensor.timingClock;
+	gainIndex = ui->comboGain->currentIndex();
 	if (gainIndex >= 0) {
 		is->gain = ui->comboGain->itemData(gainIndex).toInt();
+	}
+	gainIndex = ui->comboDigGain->currentIndex();
+	if (gainIndex >= 0) {
+		is->digitalGain = ui->comboDigGain->itemData(gainIndex).toDouble();
 	}
 
 	/* Sanity check the requested frame and exposure timing */

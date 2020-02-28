@@ -314,6 +314,7 @@ CameraErrortype Control::getImagerSettings(ImagerSettings_t *is)
 	QStringList names = {
 		"resolution",
 		"currentGain",
+		"digitalGain",
 		"framePeriod",
 		"exposurePeriod",
 		"recMaxFrames",
@@ -337,6 +338,7 @@ CameraErrortype Control::getImagerSettings(ImagerSettings_t *is)
 
 	/* Load the rest of the imager settings. */
 	is->gain = floor(response.value("currentGain", 1.0).toDouble());
+	is->digitalGain = response.value("digitalGain", 1.0).toDouble();
 	is->period = response.value("framePeriod", 1000000).toUInt();
 	is->exposure = response.value("exposurePeriod", 0).toUInt();
 	is->recRegionSizeFrames = response.value("recMaxFrames", 0).toUInt();

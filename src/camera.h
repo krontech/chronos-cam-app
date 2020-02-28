@@ -189,7 +189,6 @@ public:
 	int playbackFps = 60;
 	QTimer * loopTimer;
 	double liveFramePeriod;
-	int liveGainIndex = 0;
 
 	void set_autoSave(bool state);
 	bool get_autoSave();

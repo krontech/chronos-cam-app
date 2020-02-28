@@ -68,7 +68,7 @@
     <enum>QFrame::Raised</enum>
    </property>
    <property name="currentIndex">
-    <number>2</number>
+    <number>0</number>
    </property>
    <widget class="QWidget" name="normalPage">
     <widget class="QPushButton" name="cmdMax">
@@ -830,7 +830,7 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
      <string>Norma&amp;l</string>
     </property>
     <property name="checked">
-     <bool>false</bool>
+     <bool>true</bool>
     </property>
    </widget>
    <widget class="QRadioButton" name="radioGated">
@@ -911,7 +911,7 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
      <string>Live Slow Motion</string>
     </property>
     <property name="checked">
-     <bool>true</bool>
+     <bool>false</bool>
     </property>
    </widget>
   </widget>
@@ -935,42 +935,6 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
    </property>
    <property name="text">
     <string>Disable ring buffer</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="lblRes_14">
-   <property name="geometry">
-    <rect>
-     <x>320</x>
-     <y>250</y>
-     <width>181</width>
-     <height>30</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>16</pointsize>
-    </font>
-   </property>
-   <property name="text">
-    <string>Digital Gain</string>
-   </property>
-  </widget>
-  <widget class="QComboBox" name="comboDigitalGain">
-   <property name="geometry">
-    <rect>
-     <x>320</x>
-     <y>283</y>
-     <width>161</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>16</pointsize>
-     <weight>75</weight>
-     <italic>true</italic>
-     <bold>true</bold>
-    </font>
    </property>
   </widget>
  </widget>

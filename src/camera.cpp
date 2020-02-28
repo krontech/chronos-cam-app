@@ -103,7 +103,6 @@ CameraErrortype Camera::init(Video * vinstInst, Control * cinstInst)
 	playbackFps                = appSettings.value("recorder/liveLoopPlaybackFps", "60").toInt();
 	liveSlowMotion             = appSettings.value("recorder/liveMode", false).toBool();
 	liveOneShot                = appSettings.value("recorder/liveOneshot", false).toBool();
-	liveGainIndex              = appSettings.value("recorder/liveGainIndex", 0).toInt();
 
 	if(strlen(cinst->fileDirectory) == 0){
 		/* Set the default file path, or fall back to the MMC card. */
@@ -228,6 +227,7 @@ UInt32 Camera::setImagerSettings(ImagerSettings_t settings)
 	values.insert("resolution", QVariant(resolution));
 	values.insert("framePeriod", QVariant(settings.period));
 	values.insert("currentGain", QVariant(settings.gain));
+	values.insert("digitalGain", QVariant(settings.digitalGain));
 	values.insert("exposurePeriod", QVariant(settings.exposure));
 	if (settings.mode > 3 ) qFatal("imagerSetting mode is FPN");
 	else values.insert("recMode", modes[settings.mode]);
@@ -509,6 +509,7 @@ Int32 Camera::blackCalAllStdRes(bool factory, QProgressDialog *dialog)
 			// Get the resolution timing limits.
 			cinst->getTiming(&settings.geometry, &timing);
 			settings.gain = g;
+			settings.digitalGain = 1.0;
 			settings.recRegionSizeFrames = timing.cameraMaxFrames;
 			settings.period = timing.minFramePeriod;
 			settings.exposure = timing.exposureMax;
