@@ -121,6 +121,9 @@
      <height>256</height>
     </rect>
    </property>
+   <property name="styleSheet">
+    <string notr="true">QFrame { background-color: rgb(85, 85, 85); }</string>
+   </property>
    <property name="frameShape">
     <enum>QFrame::StyledPanel</enum>
    </property>
@@ -135,6 +138,9 @@
       <width>181</width>
       <height>151</height>
      </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QFrame { background-color: rgba(255, 255, 255, 63); }</string>
     </property>
     <property name="frameShape">
      <enum>QFrame::StyledPanel</enum>
