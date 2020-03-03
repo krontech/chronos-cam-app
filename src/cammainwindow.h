@@ -87,7 +87,6 @@ private slots:
 	void on_videoState_valueChanged(const QVariant &value);
 	void on_exposurePeriod_valueChanged(const QVariant &value);
 
-	void exposureHandler(void);
 	void buttonsEnabled(bool en);
 
 
@@ -114,13 +113,10 @@ private:
 
 	bool autoSaveActive;
 
+	bool apiUpdate = false;
 	UInt32 expSliderFramePeriod;
 
 	ImagerSettings_t is;
-
-	/* For handling exposure slider asynchronously */
-	Int32 newExposure = -1;
-	UInt32 sliderExposure = 0;
 };
 
 #endif // CAMMAINWINDOW_H

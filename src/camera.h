@@ -89,7 +89,6 @@ public:
 	SensorInfo_t     getSensorInfo() { return sensorInfo; }
 
 	UInt32 setImagerSettings(ImagerSettings_t settings);
-	UInt32 setIntegrationTime(double intTime, FrameGeometry *geometry, Int32 flags);
 	bool isValidResolution(FrameGeometry *geometry);
 	UInt32 setPlayMode(bool playMode);
 	bool focusPeakEnabled;

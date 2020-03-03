@@ -36,6 +36,10 @@
 #include "camera.h"
 #include "cammainwindow.h"
 
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/un.h>
+
 Camera::Camera()
 {
 	QSettings appSettings;
@@ -251,12 +255,6 @@ UInt32 Camera::getMaxRecordRegionSizeFrames(FrameGeometry *geometry)
 		return 0;
 	}
 	return timing.cameraMaxFrames;
-}
-
-UInt32 Camera::setIntegrationTime(double intTime, FrameGeometry *fSize, Int32 flags)
-{
-	cinst->setInt("exposurePeriod", intTime * 1e9);
-	return SUCCESS;
 }
 
 void Camera::updateVideoPosition()

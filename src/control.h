@@ -144,9 +144,6 @@ public:
 
 	void listen(QString name, QObject *receiver, const char *method);
 
-	bool exposurePending = false;
-
-
 private:
     pthread_mutex_t mutex;
 	QMultiHash<QString, ControlNotify *> params;

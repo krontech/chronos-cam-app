@@ -33,6 +33,11 @@
 #include "util.h"
 #include "whitebalancedialog.h"
 
+#include <time.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/un.h>
+
 extern "C" {
 #include "siText.h"
 }
@@ -148,16 +153,9 @@ void CamMainWindow::on_videoState_valueChanged(const QVariant &value)
 
 void CamMainWindow::on_exposurePeriod_valueChanged(const QVariant &value)
 {
-	/*
-	 * TODO: We don't really need to update the limits if it was just the
-	 * the exposure that changed. We should, however, update the limits
-	 * if either exposureMin, exposureMax or framePeriod were changed.
-	 *
-	 * Maybe do ui->expSlider->setValue(value.toInt()); instead?
-	 */
-	cinst->exposurePending = false;
-	camera->cinst->getImagerSettings(&is);
-	//updateExpSliderLimits();
+	apiUpdate = true;
+	ui->expSlider->setValue(value.toInt());
+	apiUpdate = false;
 }
 
 QMessageBox::StandardButton
@@ -474,9 +472,6 @@ void CamMainWindow::on_MainWindowTimer()
 	updateCurrentSettingsLabel();
 	updateCurrentSettingsLabel();
 
-	// handle exposure slider asynchronously
-	exposureHandler();
-
 	if (appSettings.value("debug/hideDebug", true).toBool()) {
 		ui->cmdDebugWnd->setVisible(false);
 		ui->cmdClose->setVisible(false);
@@ -536,25 +531,33 @@ void CamMainWindow::on_chkFocusAid_clicked(bool focusAidEnabled)
 	camera->setFocusPeakEnable(focusAidEnabled);
 }
 
-static int c;
-
 void CamMainWindow::on_expSlider_valueChanged(int exposure)
 {
-	newExposure = exposure;
-	sliderExposure = exposure;
-	c++;
-	qDebug() << "slider" << c;
-}
+	/* The exposure slider moves too fast for the conventional D-Bus API
+	 * to execute without lagging down the GUI significantly, so instead
+	 * we will just send-and-forget the exposure change using JSON-RPC.
+	 */
+	static int sock = -1;
 
-void CamMainWindow::exposureHandler(void)
-{
-	if ((newExposure != -1) && !cinst->exposurePending)
-	{
-		UInt32 expClock = camera->getSensorInfo().timingClock;
-		camera->setIntegrationTime((double)newExposure / expClock, NULL, 0);
-		cinst->exposurePending = true;
-		newExposure = -1;
+	char msg[256];
+	int msglen;
+	struct sockaddr_un addr;
+
+	/* Do nothing if the slider moved because of an API update. */
+	if (apiUpdate) return;
+
+	/* Attempt to open a socket if not already done */
+	if (sock < 0) sock = socket(AF_UNIX, SOCK_DGRAM, 0);
+	if (sock < 0) {
+		qDebug("Failed to open socket: %s", strerror(errno));
+		return;
 	}
+
+	/* Send the JSON-RPC request. */
+	addr.sun_family = AF_UNIX;
+	sprintf(addr.sun_path, "/tmp/camControl.sock");
+	msglen = sprintf(msg, "{\"jsonrpc\": \"2.0\", \"method\": \"set\", \"params\": {\"exposurePeriod\": %d}}", exposure);
+	sendto(sock, msg, msglen, 0, (const struct sockaddr *)&addr, sizeof(addr));
 }
 
 void CamMainWindow::recSettingsClosed()
@@ -608,13 +611,11 @@ void CamMainWindow::updateBatteryData()
 void CamMainWindow::updateCurrentSettingsLabel()
 {
 	UInt32 clock = camera->getSensorInfo().timingClock;
-	//ImagerSettings_t is;
 
 	camera->cinst->getImagerSettings(&is);
 
 	double framePeriod = (double)is.period / clock;
-	//double expPeriod = (double)is.exposure / clock;
-	double expPeriod = (double)sliderExposure / clock;
+	double expPeriod = (double)is.exposure / clock;
 	int shutterAngle = (expPeriod * 360.0) / framePeriod;
 
 	char str[300];
