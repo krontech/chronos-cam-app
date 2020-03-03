@@ -130,6 +130,7 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	cinst->listen("state", this, SLOT(on_state_valueChanged(const QVariant &)));
 	cinst->listen("videoState", this, SLOT(on_videoState_valueChanged(const QVariant &)));
 	cinst->listen("exposurePeriod", this, SLOT(on_exposurePeriod_valueChanged(const QVariant &)));
+	cinst->listen("focusPeakingLevel", this, SLOT(on_focusPeakingLevel_valueChanged(const QVariant &)));
 
 	cinst->getArray("colorMatrix", 9, (double *)&camera->colorCalMatrix);
 
@@ -157,6 +158,14 @@ void CamMainWindow::on_exposurePeriod_valueChanged(const QVariant &value)
 	ui->expSlider->setValue(value.toInt());
 	apiUpdate = false;
 }
+
+void CamMainWindow::on_focusPeakingLevel_valueChanged(const QVariant &value)
+{
+	apiUpdate = true;
+	ui->chkFocusAid->setChecked(value.toDouble() > 0.0);
+	apiUpdate = false;
+}
+
 
 QMessageBox::StandardButton
 CamMainWindow::question(const QString &title, const QString &text, QMessageBox::StandardButtons buttons)
@@ -528,6 +537,7 @@ void CamMainWindow::on_newVideoSegment(VideoStatus *st)
 
 void CamMainWindow::on_chkFocusAid_clicked(bool focusAidEnabled)
 {
+	if (apiUpdate) return;
 	camera->setFocusPeakEnable(focusAidEnabled);
 }
 
