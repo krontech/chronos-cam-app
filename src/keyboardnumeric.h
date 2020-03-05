@@ -24,6 +24,7 @@ private:
 
 private slots:
 	void buttonClicked(QWidget *w);
+	void saveFocusWidget(QWidget *, QWidget *newFocus);
 };
 
 #endif // KEYBOARDNUMERIC_H

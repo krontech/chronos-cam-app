@@ -91,7 +91,8 @@ SOURCES += main.cpp\
     errorStrings.cpp \
     control.cpp \
     myinputpanel.cpp \
-    eeprom.c
+    eeprom.c \
+    networkconfig.cpp
 
 ## Generate version.cpp on every build
 versionTarget.target = version.cpp
@@ -141,7 +142,8 @@ HEADERS  += mainwindow.h \
     myinputpanel.h \
     ui_myinputpanelform.h \
     control.h \
-    eeprom.h
+    eeprom.h \
+    networkconfig.h
 
 FORMS    += mainwindow.ui \
     cammainwindow.ui \

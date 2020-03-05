@@ -52,3 +52,23 @@ void keyboardNumeric::buttonClicked(QWidget *w)
 	QPushButton * pb = (QPushButton *)w;
 	emit characterGenerated(pb->text()[0]);
 }
+
+void keyboardNumeric::saveFocusWidget(QWidget * /*oldFocus*/, QWidget *newFocus)
+{
+	if (!newFocus || this->isAncestorOf(newFocus)) {
+		return;
+	}
+	lastFocusedWidget = newFocus;
+	qDebug() << "keyboardNumeric::saveFocusWidget lastFocusedWidget set to" << newFocus;
+
+	/* Handle input hint specailization */
+	Qt::InputMethodHints hints = newFocus->inputMethodHints();
+	if (hints & Qt::ImhDigitsOnly) {
+		ui->numdot->setEnabled(false);
+		ui->minus->setEnabled(false);
+	}
+	else {
+		ui->numdot->setEnabled(true);
+		ui->minus->setEnabled(true);
+	}
+}

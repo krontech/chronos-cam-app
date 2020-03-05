@@ -133,12 +133,9 @@ CameraErrortype Camera::init(Video * vinstInst, Control * cinstInst)
 	cinst->setBool("shippingMode", false);
 
 	/* Try to mount the SMB share */
-	if (appSettings.value("network/smbAddress", "").toString() != "" &&
-		appSettings.value("network/smbMount", "").toString() != "" &&
-		appSettings.value("network/smbUser", "").toString() != "")
-	{
-		if (isReachable(appSettings.value("network/smbAddress", "").toString()))
-		{
+	QString smbServer = parseSambaServer(appSettings.value("network/smbShare", "").toString());
+	if (!smbServer.isEmpty() && appSettings.value("network/smbUser", "").toString() != "") {
+		if (isReachable(smbServer)) {
 			QString mountString = buildSambaString();
 			mountString.append(" 2>&1");
 			QString returnString = runCommand(mountString.toLatin1());
@@ -147,7 +144,7 @@ CameraErrortype Camera::init(Video * vinstInst, Control * cinstInst)
 
 	/* Try to mount the NFS share */
 	if (appSettings.value("network/nfsAddress", "").toString() != "" &&
-		appSettings.value("network/smbMount", "").toString() != "")
+		appSettings.value("network/nfsMount", "").toString() != "")
 	{
 		if (isReachable(appSettings.value("network/nfsAddress", "").toString()))
 		{

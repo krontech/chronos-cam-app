@@ -89,7 +89,15 @@ bool MyInputPanelContext::filterEvent(const QEvent* event)
 		}
 
 		QString className = widget->metaObject()->className();
+		Qt::InputMethodHints hints = widget->inputMethodHints();
 		if(className.contains("spinbox", Qt::CaseInsensitive))
+		{
+			inputPanel = inputPanelNumeric;
+			QTimer::singleShot(200, inputPanelAlphabetic, SLOT(hide()));
+		}
+		else if ((hints & Qt::ImhFormattedNumbersOnly) ||
+				 (hints & Qt::ImhDigitsOnly) ||
+				 (hints & Qt::ImhDialableCharactersOnly))
 		{
 			inputPanel = inputPanelNumeric;
 			QTimer::singleShot(200, inputPanelAlphabetic, SLOT(hide()));

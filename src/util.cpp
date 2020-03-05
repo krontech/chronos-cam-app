@@ -104,18 +104,37 @@ QString removeFirstAndLastSlash(QString string)
 	return string;
 }
 
+QString parseSambaServer(QString share)
+{
+	int start = 0;
+	int end = -1;
+
+	/* The string may start with an smb: schema, which we will ignore */
+	if (share.startsWith("smb://")) {
+		start += 6;
+	} else if (share.startsWith("//")) {
+		start += 2;
+	} else {
+		/* Otherwise, this is not a valid SMB share */
+		return QString();
+	}
+	/* Find the end of the SMB server name. */
+	end = share.indexOf('/', start);
+	if (end <= start) return QString();
+
+	/* Return the SMB server name. */
+	return share.mid(start, end - start);
+}
+
 QString buildSambaString()
 {
 	QSettings appSettings;
 	QString mountString = "mount -t cifs -o ";
-	QString mountShare = "//" + appSettings.value("network/smbAddress", "").toString() + "/";
-
-	mountShare.append(removeFirstAndLastSlash(appSettings.value("network/smbMount", "").toString()));
 
 	mountString.append("user=" + appSettings.value("network/smbUser", "").toString());
 	mountString.append(",password=" + appSettings.value("network/smbPassword", "").toString());
 	mountString.append(",noserverino ");
-	mountString.append(mountShare + " " + SMB_STORAGE_MOUNT);
+	mountString.append(appSettings.value("network/smbShare", "").toString() + " " + SMB_STORAGE_MOUNT);
 
 	qDebug() << "Preparing samba mount:" << mountString;
 	return mountString;

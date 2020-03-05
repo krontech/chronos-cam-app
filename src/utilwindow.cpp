@@ -40,6 +40,7 @@
 #include "control.h"
 #include "util.h"
 #include "chronosControlInterface.h"
+#include "networkconfig.h"
 
 #define USER_EXIT -2
 
@@ -182,8 +183,7 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 
 	/* Load the Samba network settings. */
 	ui->lineSmbUser->setText(appSettings.value("network/smbUser", "").toString());
-	ui->lineSmbAddress->setText(appSettings.value("network/smbAddress", "").toString());
-	ui->lineSmbMount->setText(appSettings.value("network/smbMount", "").toString());
+	ui->lineSmbShare->setText(appSettings.value("network/smbShare", "").toString());
 	/* Place a dummy password until set by the user. */
 	//ui->lineSmbPassword->setText("********");
 	ui->lineSmbPassword->setText(appSettings.value("network/smbPassword", "").toString());
@@ -194,12 +194,49 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	ui->lineNfsAddress->setText(appSettings.value("network/nfsAddress", "").toString());
 	ui->lineNfsMount->setText(appSettings.value("network/nfsMount", "").toString());
 
-	checkStaticIp();
-
 	if(camera->RotationArgumentIsSet())
 		ui->chkUpsideDownDisplay->setChecked(camera->getUpsideDownDisplay());
 	else //If the argument was not added, set the control to invisible because it would be useless anyway
 		ui->chkUpsideDownDisplay->setVisible(false);
+
+	/* Load the configuration from the network manager */
+	NetworkConfig netcfg;
+	QStringList list;
+	ui->chkDhcpEnable->setChecked(netcfg.dhcp);
+	list = netcfg.ipAddress.split('.');
+	if (list.count() == 4) {
+		ui->lineStaticIpPart1->setText(list[0]);
+		ui->lineStaticIpPart2->setText(list[1]);
+		ui->lineStaticIpPart3->setText(list[2]);
+		ui->lineStaticIpPart4->setText(list[3]);
+	}
+	list = netcfg.gateway.split('.');
+	if (list.count() == 4) {
+		ui->lineStaticGwPart1->setText(list[0]);
+		ui->lineStaticGwPart2->setText(list[1]);
+		ui->lineStaticGwPart3->setText(list[2]);
+		ui->lineStaticGwPart4->setText(list[3]);
+	}
+	unsigned long mask = 0xffffffff ^ (0xffffffff >> netcfg.prefixLen);
+	ui->lineStaticMaskPart1->setText(QString::number((mask >> 24) & 0xff));
+	ui->lineStaticMaskPart2->setText(QString::number((mask >> 16) & 0xff));
+	ui->lineStaticMaskPart3->setText(QString::number((mask >> 8) & 0xff));
+	ui->lineStaticMaskPart4->setText(QString::number((mask >> 0) & 0xff));
+
+	/* Install input validators for IP addresses. */
+	ipValidator.setRange(0, 255);
+	ui->lineStaticIpPart1->setValidator(&ipValidator);
+	ui->lineStaticIpPart2->setValidator(&ipValidator);
+	ui->lineStaticIpPart3->setValidator(&ipValidator);
+	ui->lineStaticIpPart4->setValidator(&ipValidator);
+	ui->lineStaticMaskPart1->setValidator(&ipValidator);
+	ui->lineStaticMaskPart2->setValidator(&ipValidator);
+	ui->lineStaticMaskPart3->setValidator(&ipValidator);
+	ui->lineStaticMaskPart4->setValidator(&ipValidator);
+	ui->lineStaticGwPart1->setValidator(&ipValidator);
+	ui->lineStaticGwPart2->setValidator(&ipValidator);
+	ui->lineStaticGwPart3->setValidator(&ipValidator);
+	ui->lineStaticGwPart4->setValidator(&ipValidator);
 
 	openingWindow = false;
 
@@ -706,7 +743,7 @@ void UtilWindow::on_cmdRestoreCal_clicked()
 		return;
 	}
 
-	//Check that the directory is writable
+	//Check that the directory is readable
 	if(access("/media/sda1", R_OK) != 0)
 	{	//Not readable
 		msg.setText("Error: /media/sda1 is not present or not readable");
@@ -732,7 +769,6 @@ void UtilWindow::on_cmdRestoreCal_clicked()
 	QCoreApplication::processEvents();
 
 	sprintf(path, "/media/sda1/cal_%s", camera->getSerialNumber());
-
 	sprintf(str, "tar -xf %s.tar", path);
 
 	retVal = system(str);	//tar cal files
@@ -1239,8 +1275,7 @@ void UtilWindow::on_cmdSmbApply_clicked()
 
 	/* Store the updated samba settings. */
 	appSettings.setValue("network/smbUser", ui->lineSmbUser->text());
-	appSettings.setValue("network/smbAddress", ui->lineSmbAddress->text());
-	appSettings.setValue("network/smbMount", ui->lineSmbMount->text());
+	appSettings.setValue("network/smbShare", ui->lineSmbShare->text());
 	/* Update the password only if edited... */
 	if (lineSmbPassword_wasEdited) {
 		appSettings.setValue("network/smbPassword", ui->lineSmbPassword->text());
@@ -1252,7 +1287,7 @@ void UtilWindow::on_cmdSmbApply_clicked()
 	prompt.show();
 
 	/* If any of the fields are blank, disconnect SMB share */
-	if (!ui->lineSmbUser->text().length() || !ui->lineSmbAddress->text().length() || !ui->lineSmbMount->text().length())
+	if (!ui->lineSmbUser->text().length() || !ui->lineSmbShare->text().length())
 	{
 		prompt.setText("SMB share disconnected.");
 		prompt.exec();
@@ -1261,9 +1296,9 @@ void UtilWindow::on_cmdSmbApply_clicked()
 
 	/* Try to determine server reachability */
 	QCoreApplication::processEvents();
-	if (!isReachable(ui->lineSmbAddress->text()))
-	{
-		prompt.setText(ui->lineSmbAddress->text() + " is not reachable!");
+	QString smbServer = parseSambaServer(ui->lineSmbShare->text());
+	if (!isReachable(smbServer)) {
+		prompt.setText(smbServer + " is not reachable!");
 		prompt.exec();
 		return;
 	}
@@ -1293,26 +1328,26 @@ void UtilWindow::on_cmdSmbTest_clicked()
 	if (path_is_mounted(SMB_STORAGE_MOUNT))
 	{
 		QString mountPoint = SMB_STORAGE_MOUNT;
-		QString mountFile = mountPoint + "/testfile";
+		QString mountFile = mountPoint + "/text.txt";
 
 		QFile file(mountFile);
 		if (file.open(QFile::WriteOnly))
 		{
 			QTextStream out(&file);
-			out << "TESTING";
+			out << "Hello World";
 			bool sambaOK = file.flush();
 
 			file.close();
 			sambaOK &= file.remove();
 			if (sambaOK)
 			{
-				QString text = "SMB share " + ui->lineSmbUser->text() + " on " + ui->lineSmbAddress->text() + " is connected.";
+				QString text = "SMB share " + ui->lineSmbUser->text() + " on " + ui->lineSmbShare->text() + " is connected.";
 				prompt.setText(text);
 				prompt.exec();
 			}
 			else
 			{
-				QString text = "SMB share " + ui->lineSmbUser->text() + " on " + ui->lineSmbAddress->text() + " write failed.";
+				QString text = "SMB share " + ui->lineSmbUser->text() + " on " + ui->lineSmbShare->text() + " write failed.";
 				prompt.setText(text);
 				prompt.exec();
 			}
@@ -1326,7 +1361,7 @@ void UtilWindow::on_cmdSmbTest_clicked()
 	}
 	else
 	{
-		QString text = "SMB share " + ui->lineSmbUser->text() + " on " + ui->lineSmbAddress->text() + " is not connected!";
+		QString text = "SMB share " + ui->lineSmbUser->text() + " on " + ui->lineSmbShare->text() + " is not connected!";
 		prompt.setText(text);
 		prompt.exec();
 	}
@@ -1423,6 +1458,100 @@ void UtilWindow::on_cmdNfsTest_clicked()
 		prompt.setText(text);
 		prompt.exec();
 	}
+}
+
+void UtilWindow::on_chkDhcpEnable_stateChanged(int checked)
+{
+	ui->lineStaticIpPart1->setEnabled(!checked);
+	ui->lineStaticIpPart2->setEnabled(!checked);
+	ui->lineStaticIpPart3->setEnabled(!checked);
+	ui->lineStaticIpPart4->setEnabled(!checked);
+	ui->lineStaticMaskPart1->setEnabled(!checked);
+	ui->lineStaticMaskPart2->setEnabled(!checked);
+	ui->lineStaticMaskPart3->setEnabled(!checked);
+	ui->lineStaticMaskPart4->setEnabled(!checked);
+	ui->lineStaticGwPart1->setEnabled(!checked);
+	ui->lineStaticGwPart2->setEnabled(!checked);
+	ui->lineStaticGwPart3->setEnabled(!checked);
+	ui->lineStaticGwPart4->setEnabled(!checked);
+
+	if (!openingWindow) ui->cmdStaticIpApply->setEnabled(true);
+}
+
+void UtilWindow::ipChunkChanged(QLineEdit *edit)
+{
+	if (!openingWindow) ui->cmdStaticIpApply->setEnabled(true);
+}
+
+void UtilWindow::on_lineStaticIpPart1_editingFinished() { ipChunkChanged(ui->lineStaticIpPart1); }
+void UtilWindow::on_lineStaticIpPart2_editingFinished() { ipChunkChanged(ui->lineStaticIpPart2); }
+void UtilWindow::on_lineStaticIpPart3_editingFinished() { ipChunkChanged(ui->lineStaticIpPart3); }
+void UtilWindow::on_lineStaticIpPart4_editingFinished() { ipChunkChanged(ui->lineStaticIpPart4); }
+void UtilWindow::on_lineStaticMaskPart1_editingFinished() { ipChunkChanged(ui->lineStaticMaskPart1); }
+void UtilWindow::on_lineStaticMaskPart2_editingFinished() { ipChunkChanged(ui->lineStaticMaskPart2); }
+void UtilWindow::on_lineStaticMaskPart3_editingFinished() { ipChunkChanged(ui->lineStaticMaskPart3); }
+void UtilWindow::on_lineStaticMaskPart4_editingFinished() { ipChunkChanged(ui->lineStaticMaskPart4); }
+void UtilWindow::on_lineStaticGwPart1_editingFinished() { ipChunkChanged(ui->lineStaticGwPart1); }
+void UtilWindow::on_lineStaticGwPart2_editingFinished() { ipChunkChanged(ui->lineStaticGwPart2); }
+void UtilWindow::on_lineStaticGwPart3_editingFinished() { ipChunkChanged(ui->lineStaticGwPart3); }
+void UtilWindow::on_lineStaticGwPart4_editingFinished() { ipChunkChanged(ui->lineStaticGwPart4); }
+
+static int countbits(int i)
+{
+	int count;
+	for (count = 0; i != 0; i >>= 1) {
+		count += (i & 1);
+	}
+	return count;
+}
+
+void UtilWindow::on_cmdStaticIpApply_clicked(void)
+{
+	QString uuid = NetworkConfig::getUUID();
+	QString nmcfg;
+	QString nmreload;
+
+	unsigned int ipParts[4] = {
+		ui->lineStaticIpPart1->text().toUInt(),
+		ui->lineStaticIpPart2->text().toUInt(),
+		ui->lineStaticIpPart3->text().toUInt(),
+		ui->lineStaticIpPart4->text().toUInt(),
+	};
+	unsigned int gwParts[4] = {
+		ui->lineStaticGwPart1->text().toUInt(),
+		ui->lineStaticGwPart2->text().toUInt(),
+		ui->lineStaticGwPart3->text().toUInt(),
+		ui->lineStaticGwPart4->text().toUInt(),
+	};
+	unsigned int prefixLen = 0;
+	prefixLen += countbits(ui->lineStaticMaskPart1->text().toUInt());
+	prefixLen += countbits(ui->lineStaticMaskPart2->text().toUInt());
+	prefixLen += countbits(ui->lineStaticMaskPart3->text().toUInt());
+	prefixLen += countbits(ui->lineStaticMaskPart4->text().toUInt());
+
+	/* Prepare the nmcli command to set the IPv4 address and gateway. */
+	nmcfg.sprintf("nmcli con mod %s ipv4.addresses \"%u.%u.%u.%u/%u %u.%u.%u.%u\"",
+				  uuid.toAscii().constData(),
+				  ipParts[0], ipParts[1], ipParts[2], ipParts[3], prefixLen,
+				  gwParts[0], gwParts[1], gwParts[2], gwParts[3]);
+
+	if (ui->chkDhcpEnable->isChecked()) {
+		nmcfg.append(" ipv4.method \"auto\"");
+	} else {
+		nmcfg.append(" ipv4.method \"manual\"");
+	}
+
+	/* Disable the 'Apply' button until the user makes more edits. */
+	ui->cmdStaticIpApply->setEnabled(false);
+
+	/* Apply the network configuration */
+	qDebug() << "Executing:" << nmcfg;
+	system(nmcfg.toAscii().constData());
+
+	/* Restart the network interface */
+	nmreload.sprintf("nmcli con down %s && nmcli con up %s", uuid.toAscii().constData(), uuid.toAscii().constData());
+	qDebug() << "Executing:" << nmreload;
+	runBackground(nmreload.toAscii().constData());
 }
 
 #if 0
@@ -1523,148 +1652,3 @@ void UtilWindow::on_cmdNetListConnections_clicked()
 	}
 }
 #endif
-
-bool UtilWindow::checkStaticIp(void)
-{
-	QFile file("/etc/network/interfaces");
-	if (file.open(QIODevice::ReadOnly))
-	{
-		QTextStream in(&file);
-		QString lines = in.readAll();
-
-		qDebug() << lines;
-
-		QString eth0 = lines.split("eth0").value(2);
-
-		if (eth0.length())
-		{
-			//there is a static IP
-			QString staticIp = eth0.split("address ").value(1).split("\n").value(0);
-			qDebug() << staticIp;
-			ui->lineStaticIpAddress->setText(staticIp);
-			ipIsStatic = true;
-		}
-		else
-		{
-			ipIsStatic = false;
-		}
-		file.close();
-	}
-	return ipIsStatic;
-}
-
-void UtilWindow::on_cmdStaticIp_clicked(void)
-{
-
-	QString ipAddress = ui->lineStaticIpAddress->text();
-	bool dhcp = false;
-
-	//check if blank, to use DHCP
-	if (ipAddress.length() == 0)
-	{
-		if (!ipIsStatic)
-		{
-			restartNetwork("");
-			return;		//already using DHCP
-		}
-		dhcp = true;
-		ui->lblNetStatus->setText("Already using DHCP.");
-	}
-	else
-	{
-		//check if IP address looks valid
-		QStringList splitIp = ipAddress.split(".");
-		bool validIp = (splitIp.length() == 4);
-		if (validIp)
-		{
-			for (int i=0; i<4; i++)
-			{
-				bool ok;
-				int num = splitIp.value(i).toInt(&ok);
-				if (ok)
-				{
-					if ((num < 0) || (num > 255))
-					{
-						validIp = false;
-						break;
-					}
-				}
-				else
-				{
-					validIp = false;
-					break;
-				}
-			}
-		}
-		if (!validIp)
-		{
-			QMessageBox msg;
-			msg.setText("Invalid IP address!");
-			msg.setInformativeText(ipAddress);
-			msg.setWindowFlags(Qt::WindowStaysOnTopHint);
-			msg.exec();
-			return;
-		}
-	}
-
-	QFile file("/etc/network/interfaces");
-
-	if (file.open(QIODevice::WriteOnly))
-	{
-		QTextStream out(&file);
-		QString outLines = "## Loopback interface\n\tauto lo\n\tiface lo inet loopback\n\n";
-		outLines.append("## Ethernet/RNDIS gadget\nauto usb0\n\tiface usb0 inet static\n");
-		outLines.append("\taddress 192.168.12.1\n\tnetmask 255.255.255.0\n\tdns-nameservers 8.8.8.8\n");
-
-		if (dhcp)
-		{
-			ipIsStatic = false;
-		}
-		else
-		{
-			outLines.append("\n## Ethernet port\nauto eth0\niface eth0 inet static\n\taddress ");
-			outLines.append(ipAddress);
-			outLines.append("\n\tnetmask 255.255.255.0\n\tgateway 192.168.1.1\n\tdns-nameservers 8.8.8.8\n");
-			ipIsStatic = true;
-		}
-		out << outLines;
-		file.close();
-		if (dhcp)
-		{
-			ui->lblNetStatus->setText("Using dynamic IP address");
-		}
-		else
-		{
-			ui->lblNetStatus->setText("Static IP address set to " + ipAddress);
-		}
-		restartNetwork(ipAddress);
-	}
-}
-
-void UtilWindow::restartNetwork(QString newIpAddress)
-{
-	int count = 0;
-	do
-	{
-		count++;
-		QString output, output1, output2, output3;
-		output = runCommand("ifconfig");
-		QString ipAddress = output.split("inet addr:").value(1).split(" ").value(0);
-		if (ipAddress == newIpAddress)
-		{
-			//successful restart
-			return;
-		}
-		output1 = runCommand("ip address delete " + ipAddress + "/32 dev eth0 2>&1");
-		output2= runCommand("ifdown eth0  2>&1");
-		output3= runCommand("ifup eth0 2>&1");
-		if(!output2.length() && !output3.length())
-		{
-			//successful IP change
-			return;
-		}
-
-
-	} while (count < 4);
-}
-

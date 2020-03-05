@@ -18,6 +18,8 @@
 #define UTILWINDOW_H
 
 #include <QWidget>
+#include <QLineEdit>
+#include <QIntValidator>
 #include "camera.h"
 #include <QDBusInterface>
 
@@ -117,10 +119,6 @@ private slots:
 	void on_chkLiveLoop_stateChanged(int arg1);
 	void on_spinLiveLoopTime_valueChanged(double arg1);
 
-	void on_cmdStaticIp_clicked(void);
-	bool checkStaticIp(void);
-	void restartNetwork(QString newIpAddress);
-
 	/* Slots for Samba Storage Widgets */
 	void on_cmdSmbListShares_clicked();
 	void on_cmdSmbTest_clicked();
@@ -132,17 +130,36 @@ private slots:
 	void on_cmdNfsTest_clicked();
 	void on_cmdNfsApply_clicked();
 
+	/* Slots for IP Address Widgets */
+	void on_chkDhcpEnable_stateChanged(int checked);
+	void on_cmdStaticIpApply_clicked();
+
+	void on_lineStaticIpPart1_editingFinished();
+	void on_lineStaticIpPart2_editingFinished();
+	void on_lineStaticIpPart3_editingFinished();
+	void on_lineStaticIpPart4_editingFinished();
+	void on_lineStaticMaskPart1_editingFinished();
+	void on_lineStaticMaskPart2_editingFinished();
+	void on_lineStaticMaskPart3_editingFinished();
+	void on_lineStaticMaskPart4_editingFinished();
+	void on_lineStaticGwPart1_editingFinished();
+	void on_lineStaticGwPart2_editingFinished();
+	void on_lineStaticGwPart3_editingFinished();
+	void on_lineStaticGwPart4_editingFinished();
+
 private:
 	Ui::UtilWindow *ui;
 	Camera * camera;
 	QTimer * timer;
+	QIntValidator ipValidator;
 	bool settingClock;
 	bool openingWindow;
 	bool lineSmbPassword_wasEdited;
-	bool ipIsStatic = false;
 
 	void formatStorageDevice(const char *blkdev);
 	void statErrorMessage();
+
+	void ipChunkChanged(QLineEdit *edit);
 };
 
 #endif // UTILWINDOW_H

@@ -859,21 +859,21 @@ Software Update</string>
     <widget class="QGroupBox" name="gbSamba">
      <property name="geometry">
       <rect>
-       <x>19</x>
+       <x>10</x>
        <y>9</y>
-       <width>721</width>
+       <width>471</width>
        <height>151</height>
       </rect>
      </property>
      <property name="title">
       <string>Windows/SMB Network Storage</string>
      </property>
-     <widget class="CamLineEdit" name="lineSmbAddress">
+     <widget class="CamLineEdit" name="lineSmbShare">
       <property name="geometry">
        <rect>
         <x>120</x>
         <y>30</y>
-        <width>201</width>
+        <width>341</width>
         <height>31</height>
        </rect>
       </property>
@@ -901,7 +901,7 @@ Software Update</string>
        </font>
       </property>
       <property name="text">
-       <string>Address</string>
+       <string>SMB Share</string>
       </property>
       <property name="alignment">
        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -912,7 +912,7 @@ Software Update</string>
        <rect>
         <x>120</x>
         <y>70</y>
-        <width>201</width>
+        <width>181</width>
         <height>31</height>
        </rect>
       </property>
@@ -948,7 +948,7 @@ Software Update</string>
        <rect>
         <x>120</x>
         <y>110</y>
-        <width>201</width>
+        <width>181</width>
         <height>31</height>
        </rect>
       </property>
@@ -984,50 +984,11 @@ Software Update</string>
        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
       </property>
      </widget>
-     <widget class="CamLineEdit" name="lineSmbMount">
-      <property name="geometry">
-       <rect>
-        <x>450</x>
-        <y>30</y>
-        <width>251</width>
-        <height>31</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>16</pointsize>
-       </font>
-      </property>
-      <property name="text">
-       <string/>
-      </property>
-     </widget>
-     <widget class="QLabel" name="lblSmbMount">
-      <property name="geometry">
-       <rect>
-        <x>340</x>
-        <y>30</y>
-        <width>101</width>
-        <height>31</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>16</pointsize>
-       </font>
-      </property>
-      <property name="text">
-       <string>Mount</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-      </property>
-     </widget>
      <widget class="QPushButton" name="cmdSmbTest">
       <property name="geometry">
        <rect>
-        <x>560</x>
-        <y>90</y>
+        <x>310</x>
+        <y>80</y>
         <width>71</width>
         <height>51</height>
        </rect>
@@ -1044,8 +1005,8 @@ Software Update</string>
      <widget class="QPushButton" name="cmdSmbApply">
       <property name="geometry">
        <rect>
-        <x>640</x>
-        <y>90</y>
+        <x>390</x>
+        <y>80</y>
         <width>71</width>
         <height>51</height>
        </rect>
@@ -1059,32 +1020,13 @@ Software Update</string>
        <string>Apply</string>
       </property>
      </widget>
-     <widget class="QPushButton" name="cmdSmbListShares">
-      <property name="geometry">
-       <rect>
-        <x>460</x>
-        <y>90</y>
-        <width>91</width>
-        <height>51</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>16</pointsize>
-       </font>
-      </property>
-      <property name="text">
-       <string>List
-Shares</string>
-      </property>
-     </widget>
     </widget>
     <widget class="QGroupBox" name="gbNfs">
      <property name="geometry">
       <rect>
-       <x>20</x>
+       <x>10</x>
        <y>170</y>
-       <width>461</width>
+       <width>471</width>
        <height>111</height>
       </rect>
      </property>
@@ -1117,7 +1059,7 @@ Shares</string>
        <rect>
         <x>90</x>
         <y>30</y>
-        <width>201</width>
+        <width>211</width>
         <height>31</height>
        </rect>
       </property>
@@ -1133,7 +1075,7 @@ Shares</string>
      <widget class="QPushButton" name="cmdNfsTest">
       <property name="geometry">
        <rect>
-        <x>300</x>
+        <x>310</x>
         <y>40</y>
         <width>71</width>
         <height>51</height>
@@ -1151,7 +1093,7 @@ Shares</string>
      <widget class="QPushButton" name="cmdNfsApply">
       <property name="geometry">
        <rect>
-        <x>380</x>
+        <x>390</x>
         <y>40</y>
         <width>71</width>
         <height>51</height>
@@ -1171,7 +1113,7 @@ Shares</string>
        <rect>
         <x>90</x>
         <y>70</y>
-        <width>201</width>
+        <width>211</width>
         <height>31</height>
        </rect>
       </property>
@@ -1209,7 +1151,7 @@ Shares</string>
     <widget class="QGroupBox" name="gbNetStatus">
      <property name="geometry">
       <rect>
-       <x>20</x>
+       <x>10</x>
        <y>290</y>
        <width>621</width>
        <height>151</height>
@@ -1243,21 +1185,21 @@ Shares</string>
     <widget class="QGroupBox" name="gbStaticIP">
      <property name="geometry">
       <rect>
-       <x>500</x>
-       <y>170</y>
-       <width>241</width>
-       <height>111</height>
+       <x>490</x>
+       <y>10</y>
+       <width>251</width>
+       <height>271</height>
       </rect>
      </property>
      <property name="title">
       <string>IP Address</string>
      </property>
-     <widget class="CamLineEdit" name="lineStaticIpAddress">
+     <widget class="CamLineEdit" name="lineStaticIpPart1">
       <property name="geometry">
        <rect>
-        <x>20</x>
-        <y>20</y>
-        <width>201</width>
+        <x>10</x>
+        <y>50</y>
+        <width>51</width>
         <height>31</height>
        </rect>
       </property>
@@ -1266,27 +1208,365 @@ Shares</string>
         <pointsize>16</pointsize>
        </font>
       </property>
+      <property name="inputMethodHints">
+       <set>Qt::ImhDigitsOnly</set>
+      </property>
       <property name="text">
        <string/>
       </property>
+      <property name="maxLength">
+       <number>3</number>
+      </property>
      </widget>
-     <widget class="QPushButton" name="cmdStaticIp">
+     <widget class="QCheckBox" name="chkDhcpEnable">
       <property name="geometry">
        <rect>
-        <x>80</x>
-        <y>60</y>
-        <width>81</width>
+        <x>10</x>
+        <y>215</y>
+        <width>141</width>
         <height>41</height>
        </rect>
       </property>
       <property name="font">
        <font>
-        <pointsize>11</pointsize>
+        <pointsize>16</pointsize>
+       </font>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QCheckBox::indicator {
+     width: 40px;
+     height: 40px;
+}</string>
+      </property>
+      <property name="text">
+       <string>DHCP</string>
+      </property>
+      <property name="tristate">
+       <bool>false</bool>
+      </property>
+     </widget>
+     <widget class="CamLineEdit" name="lineStaticIpPart2">
+      <property name="geometry">
+       <rect>
+        <x>70</x>
+        <y>50</y>
+        <width>51</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>16</pointsize>
+       </font>
+      </property>
+      <property name="inputMethodHints">
+       <set>Qt::ImhDigitsOnly</set>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+      <property name="maxLength">
+       <number>3</number>
+      </property>
+     </widget>
+     <widget class="CamLineEdit" name="lineStaticIpPart4">
+      <property name="geometry">
+       <rect>
+        <x>190</x>
+        <y>50</y>
+        <width>51</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>16</pointsize>
+       </font>
+      </property>
+      <property name="inputMethodHints">
+       <set>Qt::ImhDigitsOnly</set>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+      <property name="maxLength">
+       <number>3</number>
+      </property>
+     </widget>
+     <widget class="CamLineEdit" name="lineStaticIpPart3">
+      <property name="geometry">
+       <rect>
+        <x>130</x>
+        <y>50</y>
+        <width>51</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>16</pointsize>
+       </font>
+      </property>
+      <property name="inputMethodHints">
+       <set>Qt::ImhDigitsOnly</set>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+      <property name="maxLength">
+       <number>3</number>
+      </property>
+     </widget>
+     <widget class="CamLineEdit" name="lineStaticMaskPart4">
+      <property name="geometry">
+       <rect>
+        <x>190</x>
+        <y>110</y>
+        <width>51</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>16</pointsize>
+       </font>
+      </property>
+      <property name="inputMethodHints">
+       <set>Qt::ImhDigitsOnly</set>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+      <property name="maxLength">
+       <number>3</number>
+      </property>
+     </widget>
+     <widget class="CamLineEdit" name="lineStaticMaskPart3">
+      <property name="geometry">
+       <rect>
+        <x>130</x>
+        <y>110</y>
+        <width>51</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>16</pointsize>
+       </font>
+      </property>
+      <property name="inputMethodHints">
+       <set>Qt::ImhDigitsOnly</set>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+      <property name="maxLength">
+       <number>3</number>
+      </property>
+     </widget>
+     <widget class="CamLineEdit" name="lineStaticMaskPart1">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>110</y>
+        <width>51</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>16</pointsize>
+       </font>
+      </property>
+      <property name="inputMethodHints">
+       <set>Qt::ImhDigitsOnly</set>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+      <property name="maxLength">
+       <number>3</number>
+      </property>
+     </widget>
+     <widget class="CamLineEdit" name="lineStaticMaskPart2">
+      <property name="geometry">
+       <rect>
+        <x>70</x>
+        <y>110</y>
+        <width>51</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>16</pointsize>
+       </font>
+      </property>
+      <property name="inputMethodHints">
+       <set>Qt::ImhDigitsOnly</set>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+      <property name="maxLength">
+       <number>3</number>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_2">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>25</y>
+        <width>161</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Static IP Address</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_3">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>85</y>
+        <width>161</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Netmask</string>
+      </property>
+     </widget>
+     <widget class="CamLineEdit" name="lineStaticGwPart4">
+      <property name="geometry">
+       <rect>
+        <x>190</x>
+        <y>170</y>
+        <width>51</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>16</pointsize>
+       </font>
+      </property>
+      <property name="inputMethodHints">
+       <set>Qt::ImhDigitsOnly</set>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+      <property name="maxLength">
+       <number>3</number>
+      </property>
+     </widget>
+     <widget class="CamLineEdit" name="lineStaticGwPart3">
+      <property name="geometry">
+       <rect>
+        <x>130</x>
+        <y>170</y>
+        <width>51</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>16</pointsize>
+       </font>
+      </property>
+      <property name="inputMethodHints">
+       <set>Qt::ImhDigitsOnly</set>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+      <property name="maxLength">
+       <number>3</number>
+      </property>
+     </widget>
+     <widget class="CamLineEdit" name="lineStaticGwPart1">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>170</y>
+        <width>51</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>16</pointsize>
+       </font>
+      </property>
+      <property name="inputMethodHints">
+       <set>Qt::ImhDigitsOnly</set>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+      <property name="maxLength">
+       <number>3</number>
+      </property>
+     </widget>
+     <widget class="CamLineEdit" name="lineStaticGwPart2">
+      <property name="geometry">
+       <rect>
+        <x>70</x>
+        <y>170</y>
+        <width>51</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>16</pointsize>
+       </font>
+      </property>
+      <property name="inputMethodHints">
+       <set>Qt::ImhDigitsOnly</set>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+      <property name="maxLength">
+       <number>3</number>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_4">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>145</y>
+        <width>161</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Gateway</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="cmdStaticIpApply">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="geometry">
+       <rect>
+        <x>170</x>
+        <y>210</y>
+        <width>71</width>
+        <height>51</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>16</pointsize>
        </font>
       </property>
       <property name="text">
-       <string>Make/Clear
-Static IP</string>
+       <string>Apply</string>
       </property>
      </widget>
     </widget>
