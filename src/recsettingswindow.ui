@@ -122,7 +122,11 @@
     </rect>
    </property>
    <property name="styleSheet">
-    <string notr="true">QFrame { background-color: rgb(85, 85, 85); }</string>
+    <string notr="true">QFrame#frame {
+    background-color: rgb(85, 85, 85);
+    background-position: center;
+    background-image: url(frame-preview.png);
+}</string>
    </property>
    <property name="frameShape">
     <enum>QFrame::StyledPanel</enum>

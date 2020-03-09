@@ -43,6 +43,7 @@ datafiles.path = /opt/camera
 datafiles.files = data/resolutions
 datafiles.files += data/shuttingDown.data
 datafiles.files += data/stylesheet.qss
+datafiles.files += data/frame-preview.png
 INSTALLS += datafiles
 
 conffiles.path = /etc
