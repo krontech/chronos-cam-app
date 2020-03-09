@@ -102,8 +102,9 @@ void NetworkUpdate::finished(int code, QProcess::ExitStatus status)
 				ui->progress->setValue(0);
 				ui->progress->setMaximum(100); /* Just a random guess for now... */
 
-				QStringList aptUgradeArgs = { "--assume-no", "--dry-run", "dist-upgrade" };
+				QStringList aptUgradeArgs = { "--assume-yes", "--print-uris", "dist-upgrade" };
 				process->start("apt-get", aptUgradeArgs, QProcess::ReadOnly);
+				downloadCount = 0;
 				state = NETWORK_PREPARE_UPGRADE;
 			}
 			else {
@@ -118,8 +119,9 @@ void NetworkUpdate::finished(int code, QProcess::ExitStatus status)
 				/* Install the chronos-essentials metapackage */
 				ui->progress->setValue(0);
 				ui->progress->setMaximum(100); /* Just a random guess for now... */
-				QStringList aptInstallArgs = { "--assume-no", "--dry-run", "install", "chronos-essential"};
+				QStringList aptInstallArgs = { "--assume-yes", "--print-uris", "install", "chronos-essential"};
 				process->start("apt-get", aptInstallArgs, QProcess::ReadOnly);
+				downloadCount = 0;
 				state = NETWORK_PREPARE_METAPACKAGE;
 			}
 			break;
@@ -128,7 +130,7 @@ void NetworkUpdate::finished(int code, QProcess::ExitStatus status)
 		case NETWORK_PREPARE_METAPACKAGE: {
 			/* Start installation of the chronos-essentials package */
 			ui->progress->setValue(1);
-			ui->progress->setMaximum((packageCount * 2) + 4);
+			ui->progress->setMaximum((packageCount * 2) + downloadCount + 4);
 
 			QStringList aptInstallArgs = { "-y", "install", "chronos-essential" };
 			process->start("apt-get", aptInstallArgs, QProcess::ReadOnly);
@@ -141,7 +143,7 @@ void NetworkUpdate::finished(int code, QProcess::ExitStatus status)
 			ui->progress->setValue(0);
 			ui->progress->setMaximum(100); /* Just a random guess for now... */
 
-			QStringList aptUgradeArgs = { "--assume-no", "--dry-run", "dist-upgrade" };
+			QStringList aptUgradeArgs = { "--assume-yes", "--print-uris", "dist-upgrade" };
 			process->start("apt-get", aptUgradeArgs, QProcess::ReadOnly);
 			state = NETWORK_PREPARE_UPGRADE;
 			break;
@@ -170,10 +172,11 @@ void NetworkUpdate::finished(int code, QProcess::ExitStatus status)
 				 *   'Reading state information...'
 				 *
 				 * For each package there is also:
+				 *   Get:<n> <url> or Hit:<n> <url>
 				 *   'Unpacking <package> ...'
 				 */
 				ui->progress->setValue(1);
-				ui->progress->setMaximum((packageCount * 2) + 4);
+				ui->progress->setMaximum((packageCount * 2) + downloadCount + 4);
 
 				/* Continue with the upgrade. */
 				QStringList aptUpgradeArgs = {"-y", "dist-upgrade"};
@@ -207,23 +210,39 @@ void NetworkUpdate::handleStdout(QString msg)
 		}
 	}
 	else if ((state == NETWORK_PREPARE_METAPACKAGE) || (state == NETWORK_PREPARE_UPGRADE)) {
-		QStringList list = msg.split(",");
-		QString::SectionFlags flags = QString::SectionSkipEmpty;
 		QRegExp whitespace = QRegExp("\\s+");
-		if (list.count() < 3) return;
+		if (msg.startsWith('\'')) {
+			/* Possibly a URL to be parsed. */
+			/* Expecting the form: 'url' packagename.deb size hash */
+			QStringList list = msg.split(whitespace);
+			if (list.count() != 4) return;
+			if (!list[0].endsWith('\'')) return;
+			downloadCount++;
+		}
+		else {
+			/* Look for the size of the calculated upgrade. */
+			QStringList list = msg.split(",");
+			QString::SectionFlags flags = QString::SectionSkipEmpty;
+			if (list.count() < 3) return;
 
-		packageCount = list[0].section(whitespace, 0, 0, flags).toUInt();  /* %d upgraded */
-		packageCount += list[1].section(whitespace, 0, 0, flags).toUInt(); /* %d newly installed */
-		packageCount += list[2].section(whitespace, 0, 0, flags).toUInt(); /* %d to remove */
-		/* and %d not upgraded */
+			packageCount = list[0].section(whitespace, 0, 0, flags).toUInt();  /* %d upgraded */
+			packageCount += list[1].section(whitespace, 0, 0, flags).toUInt(); /* %d newly installed */
+			packageCount += list[2].section(whitespace, 0, 0, flags).toUInt(); /* %d to remove */
+			/* and %d not upgraded */
+		}
 	}
 	else if ((state == NETWORK_INSTALL_UPGRADE) || (state == NETWORK_INSTALL_METAPACKAGE)) {
 		if (msg.isEmpty()) return; /* eat empty lines, since there's a lot of them */
 		if (msg.startsWith("Reading Package lists")) stepProgress();
 		else if (msg.startsWith("Building dependency tree")) stepProgress();
 		else if (msg.startsWith("Reading state information")) stepProgress();
+		/* Move the progress bar on package installation */
 		else if (msg.startsWith("Unpacking")) stepProgress();
 		else if (msg.startsWith("Setting up")) stepProgress();
+		/* Move the progress bar on package downloads */
+		else if (msg.startsWith("Get:")) stepProgress();
+		else if (msg.startsWith("Hit:")) stepProgress();
+		else if (msg.startsWith("Ign:")) stepProgress();
 	}
 	log(msg);
 }

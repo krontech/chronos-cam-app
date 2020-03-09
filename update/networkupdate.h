@@ -42,6 +42,7 @@ private:
 	unsigned int userReply;
 	unsigned int repoCount;
 	unsigned int packageCount;
+	unsigned int downloadCount;
 	enum NetworkUpdateStates state;
 
 	virtual void handleStdout(QString msg);
