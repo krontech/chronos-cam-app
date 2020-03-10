@@ -400,11 +400,13 @@ void UtilWindow::onUtilWindowTimer()
 		double sensorTemp = camera->cinst->getProperty("sensorTemperature", 0.0).toDouble();
 		double systemTemp = camera->cinst->getProperty("systemTemperature", 0.0).toDouble();
 		double battVoltage = camera->cinst->getProperty("batteryVoltage", 0.0).toDouble();
+		QString lastShutdownReason = camera->cinst->getProperty("lastShutdownReason", "NA").toString();
 		QString status;
 
 		status = QString("Sensor Temperature: %1 C\n").arg(sensorTemp);
 		status.append(QString("System Temperature: %1 C\n").arg(systemTemp));
 		status.append(QString("Battery Voltage: %1 V\n").arg(battVoltage));
+		status.append(QString("Last Shutdown Reason: %1\n").arg(lastShutdownReason));
 		ui->lblStatus->setText(status);
 	}
 }
