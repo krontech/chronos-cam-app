@@ -65,7 +65,6 @@ CameraErrortype Camera::init(Video * vinstInst, Control * cinstInst)
 {
 	CameraErrortype retVal;
 	QSettings appSettings;
-	CameraStatus cs;
 
 	vinst = vinstInst;
 	cinst = cinstInst;
@@ -93,8 +92,8 @@ CameraErrortype Camera::init(Video * vinstInst, Control * cinstInst)
 		isColor = sensorInfo.cfaPattern != "mono";
 	}
 
-	retVal = cinst->status(&cs);
-	recording = !strcmp(cs.state, "idle");
+	/* Check if the camera is already recording */
+	recording = cinst->getProperty("state", "idle").toString() != "idle";
 
 	vinst->bitsPerPixel        = appSettings.value("recorder/bitsPerPixel", 0.7).toDouble();
 	vinst->maxBitrate          = appSettings.value("recorder/maxBitrate", 40.0).toDouble();
@@ -263,17 +262,6 @@ Int32 Camera::startRecording(void)
 {
 	qDebug("===== Camera::startRecording()");
 
-	QString str;
-
-	FrameGeometry geometry;
-	geometry.hRes          = 1280;
-	geometry.vRes          = 1024;
-	geometry.hOffset       = 0;
-	geometry.vOffset       = 0;
-	geometry.vDarkRows     = 0;
-	geometry.bitDepth	   = 12;
-	geometry.minFrameTime  = 0.0002; //arbitrary here!
-
 	cinst->stopRecording();
 
 	if(recording)
@@ -379,22 +367,6 @@ void Camera::setCCMatrix(const double *matrix)
 
 	for (i = 0; i < 9; i++) ccmd[i] = ccm[i] / 4096.0;
 	cinst->setArray("colorMatrix", 9, (double *)&ccmd);
-}
-
-Int32 Camera::autoWhiteBalance(UInt32 x, UInt32 y)
-{
-	cinst->startAutoWhiteBalance();
-}
-
-void Camera::setFocusAid(bool enable)
-{
-	/* FIXME: Not implemented */
-}
-
-bool Camera::getFocusAid()
-{
-	/* FIXME: Not implemented */
-	return false;
 }
 
 /* Nearest multiple rounding */

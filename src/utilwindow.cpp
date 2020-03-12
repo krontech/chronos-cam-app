@@ -308,10 +308,9 @@ int UtilWindow::updateSoftware(char * updateLocation)
 	/* Start the update in the background and close the GUI in the foreground. */
 	runBackground(updateLocation);
 	QApplication::quit();
-
+#endif
 	/* We won't get here... */
 	return SUCCESS;
-#endif
 }
 
 bool copyFile(const char * fromfile, const char * tofile)
@@ -353,7 +352,6 @@ bool copyFile(const char * fromfile, const char * tofile)
 
 void UtilWindow::onUtilWindowTimer()
 {
-	struct statvfs fsInfoBuf;
 	if(!settingClock)
 	{
 		if(ui->dateTimeEdit->hasFocus())
