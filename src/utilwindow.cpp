@@ -628,23 +628,41 @@ void UtilWindow::on_cmdSetSN_clicked()
 void UtilWindow::on_cmdExportCalData_clicked()
 {
 	QMessageBox::StandardButton reply;
-	reply = QMessageBox::question(this, "Calibration Data Export", "Begin flat field export?\r\nThe display may go blank and the camera will turn off after this process.\r\nWARNING: Any unsaved video in RAM will be lost.", QMessageBox::Yes|QMessageBox::No);
+	reply = QMessageBox::question(this, "Calibration Data Export", "Begin flat field export?\r\nWARNING: Any unsaved video in RAM will be lost.", QMessageBox::Yes|QMessageBox::No);
 	if(QMessageBox::Yes != reply)
 		return;
 
 	qDebug() << "### flat-field export";
 	camera->cinst->exportCalData();
+
+	/* Notify on completion */
+	QMessageBox msg;
+	msg.setText("Flat-field export complete.");
+	msg.setWindowTitle("Factory Calibration");
+	msg.setWindowFlags(Qt::WindowStaysOnTopHint);
+	msg.exec();
 }
 
 void UtilWindow::on_cmdImportCalData_clicked()
 {
 	QMessageBox::StandardButton reply;
+	QDir calDir ("/var/camera/cal");
+
 	reply = QMessageBox::question(this, "Calibration Data Import", "Begin calibration data import?\r\nAny previous cal data imports will be overwritten.", QMessageBox::Yes|QMessageBox::No);
 	if(QMessageBox::Yes != reply)
 		return;
 
 	qDebug() << "### flat-field import";
 	camera->cinst->importCalData();
+
+	/* Verify that factory_*.bin files are present in /var/camera/cal */
+	QStringList calFileList = calDir.entryList(QStringList() << "factory_*", QDir::Files);
+	reply = QMessageBox::question(this,"Calibration Data Import", QString("Import Complete. %1 files copied.\r\nReboot now?").arg(calFileList.count()), QMessageBox::Yes|QMessageBox::No);
+	if(QMessageBox::Yes == reply) {
+		system("shutdown -hr now");
+	} else {
+		return;
+	}
 }
 
 void UtilWindow::statErrorMessage(){
@@ -795,16 +813,23 @@ void UtilWindow::on_cmdRestoreCal_clicked()
 
 void UtilWindow::on_linePassword_textEdited(const QString &arg1)
 {
+	QString modelName;
+
 	if(0 == QString::compare(arg1, "4242"))
 	{
 		ui->cmdCloseApp->setVisible(true);
 		ui->cmdColumnGain->setVisible(true);
 		ui->cmdSetSN->setVisible(true);
 		ui->lineSerialNumber->setVisible(true);
-		ui->cmdExportCalData->setVisible(true);
-		ui->cmdImportCalData->setVisible(true);
 		ui->chkShowDebugControls->setVisible(true);
 		ui->chkFanDisable->setVisible(true);
+
+		//Only show cal export/import buttons for Chronos 2.1
+		camera->cinst->getString("cameraModel", &modelName);
+		if(modelName.startsWith("CR21")){
+			ui->cmdExportCalData->setVisible(true);
+			ui->cmdImportCalData->setVisible(true);
+		}
 	}
 }
 

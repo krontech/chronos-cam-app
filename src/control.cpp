@@ -5,6 +5,7 @@
 #include <string>
 #include <QDebug>
 #include <QEventLoop>
+#include <QMessageBox>
 #include <memory.h>
 #include <getopt.h>
 #include <string.h>
@@ -525,6 +526,8 @@ CameraErrortype Control::exportCalData(void)
 		QDBusError err = reply.error();
 		fprintf(stderr, "Failed - exportCalData: %s - %s\n", err.name().data(), err.message().toAscii().data());
 	}
+
+	return waitAsyncComplete(reply, 180000);
 }
 
 CameraErrortype Control::importCalData(void)
@@ -663,7 +666,6 @@ void Control::complete(const QVariantMap &args)
 	code = CAMERA_API_CALL_FAIL;
 	if (err == "SignalClippingError") code = CAMERA_CLIPPED_ERROR;
 	else if (err == "LowSignalError") code = CAMERA_LOW_SIGNAL_ERROR;
-
 	if (evloop) evloop->exit(code);
 }
 
