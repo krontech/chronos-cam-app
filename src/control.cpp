@@ -22,13 +22,6 @@
 #include "camera.h"
 #include "util.h"
 
-static CameraStatus *parseCameraStatus(const QVariantMap &args, CameraStatus *cs)
-{
-	strcpy(cs->state, args["state"].toString().toAscii());
-
-	return cs;
-}
-
 QVariant Control::getProperty(QString parameter, const QVariant &defval)
 {
 	QStringList args(parameter);
@@ -153,13 +146,13 @@ CameraErrortype Control::getTiming(FrameGeometry *geometry, FrameTiming *timing)
 	args.insert("minFrameTime", QVariant(geometry->minFrameTime));
 
 	pthread_mutex_lock(&mutex);
-	reply = iface.testResolution(args);
+	reply = iface.getResolutionTimingLimits(args);
 	reply.waitForFinished();
 	pthread_mutex_unlock(&mutex);
 
 	if (reply.isError()) {
 		QDBusError err = reply.error();
-		fprintf(stderr, "Failed - testResolution: %s - %s\n", err.name().data(), err.message().toAscii().data());
+		fprintf(stderr, "Failed - getResolutionTimingLimits: %s - %s\n", err.name().data(), err.message().toAscii().data());
 		memset(timing, 0, sizeof(FrameTiming));
 		return CAMERA_API_CALL_FAIL;
 	}
@@ -399,23 +392,6 @@ CameraErrortype Control::stopRecording(void)
 	}
 }
 
-CameraErrortype Control::testResolution(void)
-{
-	// TODO: implement various different ways to call this
-	QVariantMap args;
-	QDBusPendingReply<QVariantMap> reply;
-
-	pthread_mutex_lock(&mutex);
-	reply = iface.testResolution(args);
-	reply.waitForFinished();
-	pthread_mutex_unlock(&mutex);
-
-	if (reply.isError()) {
-		QDBusError err = reply.error();
-		fprintf(stderr, "Failed - testResolution: %s - %s\n", err.name().data(), err.message().toAscii().data());
-	}
-}
-
 CameraErrortype Control::reboot(bool settings)
 {
 	QDBusPendingReply<QVariantMap> reply;
@@ -434,35 +410,19 @@ CameraErrortype Control::reboot(bool settings)
 	}
 }
 
-CameraErrortype Control::startAutoWhiteBalance(void)
+CameraErrortype Control::startWhiteBalance(void)
 {
 	QVariantMap args;
 	QDBusPendingReply<QVariantMap> reply;
 
-	qDebug("startAutoWhiteBalance");
+	qDebug("startWhiteBalance");
 
 	pthread_mutex_lock(&mutex);
-	reply = iface.startAutoWhiteBalance(args);
+	reply = iface.startWhiteBalance(args);
 	reply.waitForFinished();
 	pthread_mutex_unlock(&mutex);
 
 	return waitAsyncComplete(reply);
-}
-
-CameraErrortype Control::revertAutoWhiteBalance(void)
-{
-	QVariantMap args;
-	QDBusPendingReply<QVariantMap> reply;
-
-	pthread_mutex_lock(&mutex);
-	reply = iface.revertAutoWhiteBalance(args);
-	reply.waitForFinished();
-	pthread_mutex_unlock(&mutex);
-
-	if (reply.isError()) {
-		QDBusError err = reply.error();
-		fprintf(stderr, "Failed - revertAutoWhiteBalance: %s - %s\n", err.name().data(), err.message().toAscii().data());
-	}
 }
 
 CameraErrortype Control::asyncCalibration(QStringList calTypes, bool saveCal)
@@ -545,30 +505,6 @@ CameraErrortype Control::importCalData(void)
 		fprintf(stderr, "Failed - importCalData: %s - %s\n", err.name().data(), err.message().toAscii().data());
 	}
 }
-
-
-CameraErrortype Control::status(CameraStatus *cs)
-{
-	QVariantMap args;
-	QDBusPendingReply<QVariantMap> reply;
-	QVariantMap map;
-	static CameraStatus st;
-
-	pthread_mutex_lock(&mutex);
-	reply = iface.status(args);
-	reply.waitForFinished();
-	pthread_mutex_unlock(&mutex);
-
-	if (reply.isError()) {
-		QDBusError err = reply.error();
-		fprintf(stderr, "Failed - status: %s - %s\n", err.name().data(), err.message().toAscii().data());
-	}
-	map = reply.value();
-	parseCameraStatus(map, &st);
-
-	return SUCCESS;
-}
-
 
 CameraErrortype Control::availableKeys(void)
 {

@@ -186,7 +186,7 @@ void whiteBalanceDialog::applyWhiteBalance(void)
 	else {
 		Int32 ret;
 
-		ret = camera->cinst->startAutoWhiteBalance();
+		ret = camera->cinst->startWhiteBalance();
 		if(ret == CAMERA_CLIPPED_ERROR)
 		{
 			sw->setText("Clipping. Reduce exposure and try white balance again");
