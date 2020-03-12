@@ -58,8 +58,6 @@
 #define FLAG_SHIPPING_MODE     (1 << 5)
 #define FLAG_SHUTDOWN_REQUEST  (1 << 6)
 
-#define DEBIAN
-
 typedef struct {
 	ImagerSettings_t is;
 	bool valid;

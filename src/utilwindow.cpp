@@ -127,6 +127,7 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	QString modelName;
 	QString serialNumber;
 	QString fpgaVersion;
+	QString pmicVersion;
 	const char *modelFullName = "Chronos 1.4";
 	char release[128];
 
@@ -134,6 +135,7 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	camera->cinst->getString("cameraModel", &modelName);
 	camera->cinst->getString("cameraSerial", &serialNumber);
 	camera->cinst->getString("cameraFpgaVersion", &fpgaVersion);
+	pmicVersion = camera->cinst->getProperty("pmicFirmwareVersion", "0").toString();
 
 	// Chop the version digits off the end of the camera model.
 	if (modelName.startsWith("CR14")) modelFullName = "Chronos 1.4";
@@ -157,7 +159,8 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	}
 #endif
 	aboutText.append(QString("Build: %1 (%2)\r\n").arg(CAMERA_APP_VERSION, git_version_str));
-	aboutText.append(QString("FPGA Revision: %1").arg(fpgaVersion));
+	aboutText.append(QString("FPGA Revision: %1\n").arg(fpgaVersion));
+	aboutText.append(QString("PMIC Firmware Version: %1\n").arg(pmicVersion));
 	ui->lblAbout->setText(aboutText);
 	
 	ui->cmdCloseApp->setVisible(false);
@@ -400,7 +403,7 @@ void UtilWindow::onUtilWindowTimer()
 		double sensorTemp = camera->cinst->getProperty("sensorTemperature", 0.0).toDouble();
 		double systemTemp = camera->cinst->getProperty("systemTemperature", 0.0).toDouble();
 		double battVoltage = camera->cinst->getProperty("batteryVoltage", 0.0).toDouble();
-		QString lastShutdownReason = camera->cinst->getProperty("lastShutdownReason", "NA").toString();
+		QString lastShutdownReason = camera->cinst->getProperty("lastShutdownReason", "Unknown").toString();
 		QString status;
 
 		status = QString("Sensor Temperature: %1 C\n").arg(sensorTemp);
