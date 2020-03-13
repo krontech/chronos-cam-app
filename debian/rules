@@ -16,7 +16,7 @@ override_dh_auto_configure:
 
 override_dh_systemd_enable:
 	dh_systemd_enable --no-enable debian/chronos-gui.service
-	dh_systemd_enable --no-enable debian/chronos-update.service
+	dh_systemd_enable debian/chronos-update.service
 
 override_dh_systemd_start:
 	dh_systemd_start --no-start debian/chronos-gui.service
