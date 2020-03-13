@@ -38,6 +38,7 @@ private:
 	QTimer *mediaTimer;
 	QProcess *aptCheck;
 	int aptUpdateCount;
+	int inRescueMode;
 
 private slots:
 	void checkForMedia();
