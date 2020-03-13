@@ -59,8 +59,8 @@ playbackWindow::playbackWindow(QWidget *parent, Camera * cameraInst, bool autosa
 	camera->cinst->setBool("overlayEnable", appSettings.value("camera/overlayEnabled", false).toBool());
 
 	playFrame = 0;
-	playLoop = false;
 	totalFrames = vStatus.totalFrames;
+	demoMode = appSettings.value("camera/demoMode", false).toBool();
 
 	sw = new StatusWindow;
 
@@ -69,11 +69,15 @@ playbackWindow::playbackWindow(QWidget *parent, Camera * cameraInst, bool autosa
 	ui->verticalSlider->setMinimum(0);
 	ui->verticalSlider->setMaximum(totalFrames - 1);
 	ui->verticalSlider->setValue(playFrame);
-	ui->cmdLoop->setVisible(appSettings.value("camera/demoMode", false).toBool());
 	markInFrame = 1;
 	markOutFrame = totalFrames;
 	ui->verticalSlider->setHighlightRegion(markInFrame, markOutFrame);
 	ui->verticalSlider->setFocusProxy(this);
+
+	if (demoMode) {
+		ui->cmdPlayForward->setCheckable(true);
+		ui->cmdPlayReverse->setCheckable(true);
+	}
 
 	camera->setPlayMode(true);
 	camera->vinst->setPosition(0);
@@ -179,8 +183,12 @@ void playbackWindow::videoEnded(VideoState state, QString err)
 
 void playbackWindow::on_verticalSlider_sliderMoved(int position)
 {
-	/* Note that a rate of zero will also pause playback. */
-	stopPlayLoop();
+	/* Stop the playback buttons */
+	ui->cmdPlayForward->setChecked(false);
+	ui->cmdPlayForward->setText(QString::fromUtf8("\u25b6")); /* U+25B6 => Black Right Triangle */
+	ui->cmdPlayReverse->setChecked(false);
+	ui->cmdPlayReverse->setText(QString::fromUtf8("\u25c0")); /* U+25C0 => Black Left Triangle */
+
 	camera->vinst->setPosition(position);
 }
 
@@ -189,29 +197,72 @@ void playbackWindow::on_verticalSlider_valueChanged(int value)
 
 }
 
+void playbackWindow::on_cmdPlayForward_clicked()
+{
+	/* On-click is only used in demo mode. */
+	QSettings appSettings;
+	if (!appSettings.value("camera/demoMode", false).toBool()) return;
+
+	if (ui->cmdPlayForward->isChecked()) {
+		int fps = (playbackExponent >= 0) ? (60 << playbackExponent) : 60 / (1 - playbackExponent);
+		camera->vinst->setPlayback(fps);
+		ui->cmdPlayForward->setText(QString::fromUtf8("\u25a0")); /* U+25A0 => Black Square */
+		ui->cmdPlayReverse->setText(QString::fromUtf8("\u25c0")); /* U+25C0 => Black Left Triangle */
+		ui->cmdPlayReverse->setChecked(false);
+	}
+	else {
+		camera->vinst->setPlayback(0);
+		ui->cmdPlayForward->setText(QString::fromUtf8("\u25b6")); /* U+25B6 => Black Right Triangle */
+		ui->cmdPlayReverse->setText(QString::fromUtf8("\u25c0")); /* U+25C0 => Black Left Triangle */
+	}
+}
+
+void playbackWindow::on_cmdPlayReverse_clicked()
+{
+	/* On-click is only used in demo mode. */
+	if (!demoMode) return;
+
+	if (ui->cmdPlayReverse->isChecked()) {
+		int fps = (playbackExponent >= 0) ? (60 << playbackExponent) : 60 / (1 - playbackExponent);
+		camera->vinst->setPlayback(-fps);
+		ui->cmdPlayReverse->setText(QString::fromUtf8("\u25a0")); /* U+25A0 => Black Square */
+		ui->cmdPlayForward->setText(QString::fromUtf8("\u25b6")); /* U+25B6 => Black Right Triangle */
+		ui->cmdPlayForward->setChecked(false);
+	}
+	else {
+		camera->vinst->setPlayback(0);
+		ui->cmdPlayForward->setText(QString::fromUtf8("\u25b6")); /* U+25B6 => Black Right Triangle */
+		ui->cmdPlayReverse->setText(QString::fromUtf8("\u25c0")); /* U+25C0 => Black Left Triangle */
+	}
+}
+
 void playbackWindow::on_cmdPlayForward_pressed()
 {
+	/* On-pressed is not used in demo mode. */
+	if (demoMode) return;
 	int fps = (playbackExponent >= 0) ? (60 << playbackExponent) : 60 / (1 - playbackExponent);
-	stopPlayLoop();
 	camera->vinst->setPlayback(fps);
 }
 
 void playbackWindow::on_cmdPlayForward_released()
 {
-	stopPlayLoop();
+	/* On-released is not used in demo mode. */
+	if (demoMode) return;
 	camera->vinst->setPlayback(0);
 }
 
 void playbackWindow::on_cmdPlayReverse_pressed()
 {
+	/* On-pressed is not used in demo mode. */
+	if (demoMode) return;
 	int fps = (playbackExponent >= 0) ? (60 << playbackExponent) : 60 / (1 - playbackExponent);
-	stopPlayLoop();
 	camera->vinst->setPlayback(-fps);
 }
 
 void playbackWindow::on_cmdPlayReverse_released()
 {
-	stopPlayLoop();
+	/* On-pressed is not used in demo mode. */
+	if (demoMode) return;
 	camera->vinst->setPlayback(0);
 }
 
@@ -555,14 +606,34 @@ void playbackWindow::checkForSaveDone()
 
 void playbackWindow::on_cmdRateUp_clicked()
 {
-	if(playbackExponent < 5)
+	if(playbackExponent < 5) {
 		playbackExponent++;
+
+		/* Update the playback speed if playing. */
+		int fps = (playbackExponent >= 0) ? (60 << playbackExponent) : 60 / (1 - playbackExponent);
+		if (ui->cmdPlayForward->isChecked()) {
+			camera->vinst->setPlayback(fps);
+		}
+		else if (ui->cmdPlayReverse->isChecked()) {
+			camera->vinst->setPlayback(-fps);
+		}
+	}
 }
 
 void playbackWindow::on_cmdRateDn_clicked()
 {
-	if(playbackExponent > -5)
+	if(playbackExponent > -5) {
 		playbackExponent--;
+
+		/* Update the playback speed if playing. */
+		int fps = (playbackExponent >= 0) ? (60 << playbackExponent) : 60 / (1 - playbackExponent);
+		if (ui->cmdPlayForward->isChecked()) {
+			camera->vinst->setPlayback(fps);
+		}
+		else if (ui->cmdPlayReverse->isChecked()) {
+			camera->vinst->setPlayback(-fps);
+		}
+	}
 }
 
 void playbackWindow::setControlEnable(bool en)
@@ -579,14 +650,7 @@ void playbackWindow::setControlEnable(bool en)
 	ui->cmdPlayReverse->setEnabled(en);
 	ui->cmdRateDn->setEnabled(en);
 	ui->cmdRateUp->setEnabled(en);
-	ui->cmdLoop->setEnabled(en);
 	ui->verticalSlider->setEnabled(en);
-}
-
-void playbackWindow::stopPlayLoop(void)
-{
-	playLoop = false;
-	ui->cmdLoop->setText("Play");
 }
 
 void playbackWindow::on_cmdClose_clicked()
@@ -607,20 +671,5 @@ save_mode_type playbackWindow::getSaveFormat()
 	case 4:  return SAVE_MODE_TIFF;
 	case 5:  return SAVE_MODE_TIFF_RAW;
 	default: return SAVE_MODE_H264;
-	}
-}
-
-void playbackWindow::on_cmdLoop_clicked()
-{
-	if (playLoop) {
-		stopPlayLoop();
-		camera->vinst->setPlayback(0);
-	}
-	else {
-		int fps = (playbackExponent >= 0) ? (60 << playbackExponent) : 60 / (1 - playbackExponent);
-		unsigned int count = (markOutFrame - markInFrame + 1);
-		playLoop = true;
-		ui->cmdLoop->setText("Stop");
-		camera->vinst->loopPlayback(markInFrame - 1, count, fps);
 	}
 }

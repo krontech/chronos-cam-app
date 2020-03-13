@@ -41,12 +41,12 @@ private slots:
 
 	void on_verticalSlider_valueChanged(int value);
 
+	void on_cmdPlayForward_clicked();
 	void on_cmdPlayForward_pressed();
-
 	void on_cmdPlayForward_released();
 
+	void on_cmdPlayReverse_clicked();
 	void on_cmdPlayReverse_pressed();
-
 	void on_cmdPlayReverse_released();
 
 	void on_cmdSave_clicked();
@@ -69,8 +69,6 @@ private slots:
 	void on_cmdClose_clicked();
 	void saveSettingsClosed();
 
-	void on_cmdLoop_clicked();
-
 	/* Video class signals */
 	void videoStarted(VideoState state);
 	void videoEnded(VideoState state, QString err);
@@ -79,7 +77,6 @@ private:
 	Ui::playbackWindow *ui;
 	Camera * camera;
 	StatusWindow * sw;
-	void stopPlayLoop();
 	void updateStatusText();
 	void setControlEnable(bool en);
 
@@ -87,7 +84,7 @@ private:
 	UInt32 markOutFrame;
 	UInt32 totalFrames;
 	UInt32 playFrame;
-	bool playLoop;
+	bool demoMode;
 	QTimer * timer;
 	QTimer * saveDoneTimer;
 	Int32 playbackExponent;
