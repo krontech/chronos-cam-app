@@ -89,6 +89,9 @@
   <property name="autoFillBackground">
    <bool>false</bool>
   </property>
+  <property name="styleSheet">
+   <string notr="true"/>
+  </property>
   <widget class="QPushButton" name="cmdClose">
    <property name="geometry">
     <rect>
@@ -125,9 +128,9 @@
    <property name="geometry">
     <rect>
      <x>100</x>
-     <y>370</y>
-     <width>91</width>
-     <height>51</height>
+     <y>360</y>
+     <width>101</width>
+     <height>61</height>
     </rect>
    </property>
    <property name="font">
@@ -153,10 +156,10 @@
    </property>
    <property name="geometry">
     <rect>
-     <x>100</x>
-     <y>250</y>
-     <width>91</width>
-     <height>51</height>
+     <x>70</x>
+     <y>240</y>
+     <width>131</width>
+     <height>61</height>
     </rect>
    </property>
    <property name="font">
@@ -176,10 +179,10 @@
   <widget class="QPushButton" name="cmdRecSettings">
    <property name="geometry">
     <rect>
-     <x>100</x>
-     <y>10</y>
-     <width>91</width>
-     <height>51</height>
+     <x>70</x>
+     <y>0</y>
+     <width>131</width>
+     <height>61</height>
     </rect>
    </property>
    <property name="font">
@@ -201,10 +204,10 @@ Settings</string>
   <widget class="QPushButton" name="cmdFPNCal">
    <property name="geometry">
     <rect>
-     <x>100</x>
-     <y>130</y>
-     <width>91</width>
-     <height>51</height>
+     <x>70</x>
+     <y>120</y>
+     <width>131</width>
+     <height>61</height>
     </rect>
    </property>
    <property name="font">
@@ -224,10 +227,10 @@ Settings</string>
   <widget class="QPushButton" name="cmdWB">
    <property name="geometry">
     <rect>
-     <x>100</x>
-     <y>190</y>
-     <width>91</width>
-     <height>51</height>
+     <x>70</x>
+     <y>180</y>
+     <width>131</width>
+     <height>61</height>
     </rect>
    </property>
    <property name="font">
@@ -248,10 +251,10 @@ Balance</string>
   <widget class="QPushButton" name="cmdIOSettings">
    <property name="geometry">
     <rect>
-     <x>100</x>
-     <y>70</y>
-     <width>91</width>
-     <height>51</height>
+     <x>70</x>
+     <y>60</y>
+     <width>131</width>
+     <height>61</height>
     </rect>
    </property>
    <property name="font">
@@ -273,7 +276,7 @@ Settings</string>
    <property name="geometry">
     <rect>
      <x>5</x>
-     <y>20</y>
+     <y>30</y>
      <width>51</width>
      <height>331</height>
     </rect>
@@ -282,19 +285,7 @@ Settings</string>
     <enum>Qt::NoFocus</enum>
    </property>
    <property name="styleSheet">
-    <string notr="true">QSlider::groove:vertical {
-     border: 1px solid #999999;
-     width: 48px; /* the groove expands to the size of the slider by default. by giving it a height, it has a fixed size */
-     background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #B1B1B1, stop:1 #c4c4c4);
-     margin: 2px 0;
- } 
-QSlider::handle:vertical {
-     background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #b4b4b4, stop:1 #8f8f8f);
-     border: 1px solid #5c5c5c;
-     height: 60px;
-     margin: -2px 0; /* handle is placed by default on the contents rect of the groove. Expand outside the groove */
-     border-radius: 3px;
- }</string>
+    <string notr="true"/>
    </property>
    <property name="singleStep">
     <number>1</number>
@@ -321,7 +312,7 @@ QSlider::handle:vertical {
     </font>
    </property>
    <property name="styleSheet">
-    <string notr="true">color: rgb(255, 255, 255)</string>
+    <string notr="true"/>
    </property>
    <property name="text">
     <string>TextLabel</string>
@@ -333,14 +324,14 @@ QSlider::handle:vertical {
   <widget class="QLabel" name="lblExp">
    <property name="geometry">
     <rect>
-     <x>5</x>
+     <x>0</x>
      <y>0</y>
      <width>66</width>
      <height>17</height>
     </rect>
    </property>
    <property name="styleSheet">
-    <string notr="true">color : rgb(255, 255, 255)</string>
+    <string notr="true"/>
    </property>
    <property name="text">
     <string>Shutter</string>
@@ -350,9 +341,9 @@ QSlider::handle:vertical {
    <property name="geometry">
     <rect>
      <x>0</x>
-     <y>370</y>
-     <width>91</width>
-     <height>51</height>
+     <y>360</y>
+     <width>101</width>
+     <height>61</height>
     </rect>
    </property>
    <property name="font">
@@ -388,9 +379,7 @@ QSlider::handle:vertical {
     <enum>Qt::NoFocus</enum>
    </property>
    <property name="styleSheet">
-    <string notr="true">background-color: black;
-border-style: none;
-border-color: black;</string>
+    <string notr="true"/>
    </property>
    <property name="text">
     <string/>
@@ -421,10 +410,10 @@ border-color: black;</string>
    </property>
    <property name="geometry">
     <rect>
-     <x>100</x>
-     <y>310</y>
-     <width>91</width>
-     <height>51</height>
+     <x>70</x>
+     <y>300</y>
+     <width>131</width>
+     <height>61</height>
     </rect>
    </property>
    <property name="font">
@@ -447,10 +436,10 @@ border-color: black;</string>
   <widget class="QCheckBox" name="chkFocusAid">
    <property name="geometry">
     <rect>
-     <x>100</x>
-     <y>310</y>
-     <width>91</width>
-     <height>51</height>
+     <x>80</x>
+     <y>300</y>
+     <width>111</width>
+     <height>61</height>
     </rect>
    </property>
    <property name="font">
@@ -464,7 +453,7 @@ border-color: black;</string>
     <enum>Qt::NoFocus</enum>
    </property>
    <property name="styleSheet">
-    <string notr="true">QCheckBox::indicator { width: 28px; height: 28px; }</string>
+    <string notr="true"/>
    </property>
    <property name="text">
     <string>Focus
@@ -475,7 +464,7 @@ Aid</string>
    <property name="geometry">
     <rect>
      <x>97</x>
-     <y>260</y>
+     <y>250</y>
      <width>91</width>
      <height>41</height>
     </rect>
@@ -486,7 +475,7 @@ Aid</string>
     </font>
    </property>
    <property name="styleSheet">
-    <string notr="true">color: rgb(255, 255, 255)</string>
+    <string notr="true"/>
    </property>
    <property name="text">
     <string>999.99</string>
@@ -512,8 +501,7 @@ Aid</string>
     </font>
    </property>
    <property name="styleSheet">
-    <string notr="true">color: rgb(255,0,0)
-</string>
+    <string notr="true"/>
    </property>
    <property name="text">
     <string>REC</string>
@@ -527,7 +515,6 @@ Aid</string>
   <zorder>cmdRec</zorder>
   <zorder>cmdRecSettings</zorder>
   <zorder>cmdFPNCal</zorder>
-  <zorder>cmdWB</zorder>
   <zorder>cmdIOSettings</zorder>
   <zorder>expSlider</zorder>
   <zorder>lblCurrent</zorder>
@@ -540,6 +527,7 @@ Aid</string>
   <zorder>chkFocusAid</zorder>
   <zorder>lblLiveTimer</zorder>
   <zorder>cmdPlay</zorder>
+  <zorder>cmdWB</zorder>
  </widget>
  <resources/>
  <connections/>

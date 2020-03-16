@@ -25,6 +25,7 @@
 
 #include <QDebug>
 #include <cstdio>
+#include <QListView>
 
 extern "C" {
 #include "siText.h"
@@ -101,6 +102,9 @@ RecSettingsWindow::RecSettingsWindow(QWidget *parent, Camera * cameraInst) :
 		ui->comboGain->addItem(gainText, QVariant(gain));
 	}
 	ui->comboGain->setCurrentIndex(gainIndex);
+    //Set QListView to change items in the combo box with qss
+    ui->comboGain->setView(new QListView);
+    ui->comboGain->view()->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
 	/* Populate the digital gain dropdown. */
 	gainIndex = 0;
@@ -111,6 +115,10 @@ RecSettingsWindow::RecSettingsWindow(QWidget *parent, Camera * cameraInst) :
 		ui->comboDigGain->addItem(gainText, QVariant(gain));
 	}
 	ui->comboDigGain->setCurrentIndex(gainIndex);
+
+    //Set QListView to change items in the combo box with qss
+    ui->comboDigGain->setView(new QListView);
+    ui->comboDigGain->view()->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
 	//Populate the common resolution combo box from the list of resolutions
 	QFile fp;
@@ -127,6 +135,11 @@ RecSettingsWindow::RecSettingsWindow(QWidget *parent, Camera * cameraInst) :
 	fps = (double)sensor.timingClock / timing.minFramePeriod;
 	lineText.sprintf("%dx%d %d fps", frameSize.hRes, frameSize.vRes, fps);
 	ui->comboRes->addItem(lineText);
+
+    //Set QListView to change items in the combo box with qss
+    ui->comboRes->setView(new QListView);
+    ui->comboRes->setMaxVisibleItems(6);
+    ui->comboRes->view()->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
 
 	filename.append("camApp:resolutions");
 	QFileInfo resolutionsFile(filename);
@@ -245,11 +258,11 @@ void RecSettingsWindow::on_cmdOK_clicked()
 	if (gainIndex >= 0) {
 		is->gain = ui->comboGain->itemData(gainIndex).toInt();
 	}
+
 	gainIndex = ui->comboDigGain->currentIndex();
 	if (gainIndex >= 0) {
 		is->digitalGain = ui->comboDigGain->itemData(gainIndex).toDouble();
 	}
-
 	/* Sanity check the requested frame and exposure timing */
 	if (camera->cinst->getTiming(&is->geometry, &timing) == SUCCESS) {
 		is->exposure = within(is->exposure, timing.exposureMin, timing.exposureMax);

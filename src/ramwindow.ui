@@ -63,17 +63,13 @@
    <property name="font">
     <font>
      <pointsize>16</pointsize>
-     <weight>75</weight>
-     <italic>true</italic>
-     <bold>true</bold>
+     <weight>50</weight>
+     <italic>false</italic>
+     <bold>false</bold>
     </font>
    </property>
    <property name="styleSheet">
-    <string notr="true">QSpinBox { border: 3px outset grey;padding-right: 40px;}  
-
-QSpinBox::up-button { subcontrol-position: right; right: 40px; width: 40px; height: 35px;}
-
-QSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}</string>
+    <string notr="true"/>
    </property>
   </widget>
   <widget class="QSpinBox" name="spinRPT1">
@@ -100,17 +96,13 @@ QSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}<
    <property name="font">
     <font>
      <pointsize>16</pointsize>
-     <weight>75</weight>
-     <italic>true</italic>
-     <bold>true</bold>
+     <weight>50</weight>
+     <italic>false</italic>
+     <bold>false</bold>
     </font>
    </property>
    <property name="styleSheet">
-    <string notr="true">QSpinBox { border: 3px outset grey;padding-right: 40px;}  
-
-QSpinBox::up-button { subcontrol-position: right; right: 40px; width: 40px; height: 35px;}
-
-QSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}</string>
+    <string notr="true"/>
    </property>
   </widget>
   <widget class="QSpinBox" name="spinRPT2">
@@ -137,17 +129,13 @@ QSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}<
    <property name="font">
     <font>
      <pointsize>16</pointsize>
-     <weight>75</weight>
-     <italic>true</italic>
-     <bold>true</bold>
+     <weight>50</weight>
+     <italic>false</italic>
+     <bold>false</bold>
     </font>
    </property>
    <property name="styleSheet">
-    <string notr="true">QSpinBox { border: 3px outset grey;padding-right: 40px;}  
-
-QSpinBox::up-button { subcontrol-position: right; right: 40px; width: 40px; height: 35px;}
-
-QSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}</string>
+    <string notr="true"/>
    </property>
   </widget>
   <widget class="QSpinBox" name="spinRPT3">
@@ -174,17 +162,13 @@ QSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}<
    <property name="font">
     <font>
      <pointsize>16</pointsize>
-     <weight>75</weight>
-     <italic>true</italic>
-     <bold>true</bold>
+     <weight>50</weight>
+     <italic>false</italic>
+     <bold>false</bold>
     </font>
    </property>
    <property name="styleSheet">
-    <string notr="true">QSpinBox { border: 3px outset grey;padding-right: 40px;}  
-
-QSpinBox::up-button { subcontrol-position: right; right: 40px; width: 40px; height: 35px;}
-
-QSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}</string>
+    <string notr="true"/>
    </property>
   </widget>
   <widget class="QSpinBox" name="spinRPT4">
@@ -211,17 +195,13 @@ QSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}<
    <property name="font">
     <font>
      <pointsize>16</pointsize>
-     <weight>75</weight>
-     <italic>true</italic>
-     <bold>true</bold>
+     <weight>50</weight>
+     <italic>false</italic>
+     <bold>false</bold>
     </font>
    </property>
    <property name="styleSheet">
-    <string notr="true">QSpinBox { border: 3px outset grey;padding-right: 40px;}  
-
-QSpinBox::up-button { subcontrol-position: right; right: 40px; width: 40px; height: 35px;}
-
-QSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}</string>
+    <string notr="true"/>
    </property>
   </widget>
   <widget class="QSpinBox" name="spinRPT5">
@@ -248,17 +228,13 @@ QSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}<
    <property name="font">
     <font>
      <pointsize>16</pointsize>
-     <weight>75</weight>
-     <italic>true</italic>
-     <bold>true</bold>
+     <weight>50</weight>
+     <italic>false</italic>
+     <bold>false</bold>
     </font>
    </property>
    <property name="styleSheet">
-    <string notr="true">QSpinBox { border: 3px outset grey;padding-right: 40px;}  
-
-QSpinBox::up-button { subcontrol-position: right; right: 40px; width: 40px; height: 35px;}
-
-QSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}</string>
+    <string notr="true"/>
    </property>
   </widget>
   <widget class="QSpinBox" name="spinRPT6">
@@ -285,17 +261,13 @@ QSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}<
    <property name="font">
     <font>
      <pointsize>16</pointsize>
-     <weight>75</weight>
-     <italic>true</italic>
-     <bold>true</bold>
+     <weight>50</weight>
+     <italic>false</italic>
+     <bold>false</bold>
     </font>
    </property>
    <property name="styleSheet">
-    <string notr="true">QSpinBox { border: 3px outset grey;padding-right: 40px;}  
-
-QSpinBox::up-button { subcontrol-position: right; right: 40px; width: 40px; height: 35px;}
-
-QSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}</string>
+    <string notr="true"/>
    </property>
   </widget>
   <widget class="QSpinBox" name="spinRPT7">
@@ -322,17 +294,13 @@ QSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}<
    <property name="font">
     <font>
      <pointsize>16</pointsize>
-     <weight>75</weight>
-     <italic>true</italic>
-     <bold>true</bold>
+     <weight>50</weight>
+     <italic>false</italic>
+     <bold>false</bold>
     </font>
    </property>
    <property name="styleSheet">
-    <string notr="true">QSpinBox { border: 3px outset grey;padding-right: 40px;}  
-
-QSpinBox::up-button { subcontrol-position: right; right: 40px; width: 40px; height: 35px;}
-
-QSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}</string>
+    <string notr="true"/>
    </property>
   </widget>
   <widget class="QLabel" name="label">

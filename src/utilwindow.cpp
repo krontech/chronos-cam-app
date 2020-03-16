@@ -24,6 +24,7 @@
 #include <QSettings>
 #include <QDBusInterface>
 #include <QProgressDialog>
+#include <QListView>
 
 #include <stdio.h>
 #include <fcntl.h>
@@ -99,6 +100,10 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	ui->comboFPColor->setCurrentIndex(camera->getFocusPeakColor() - 1);
 	ui->chkZebraEnable->setChecked(camera->getZebraEnable());
 	ui->chkShippingMode->setChecked(camera->cinst->getProperty("shippingMode", false).toBool());
+
+    //Set QListView to change items in the combo box with qss
+    ui->comboFPColor->setView(new QListView);
+    ui->comboFPColor->view()->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
 
 	if (camera->focusPeakEnabled)
 	{
@@ -179,6 +184,14 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	ui->chkUiOnLeft->setChecked(camera->getButtonsOnLeft());
 	ui->comboDisableUnsavedWarning->setCurrentIndex(camera->getUnsavedWarnEnable());
 	ui->comboAutoPowerMode->setCurrentIndex(camera->getAutoPowerMode());
+
+    //Set QListView to change items in the combo box with qss
+    ui->comboAutoPowerMode->setView(new QListView);
+    ui->comboAutoPowerMode->view()->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+
+    //Set QListView to change items in the combo box with qss
+    ui->comboDisableUnsavedWarning->setView(new QListView);
+    ui->comboDisableUnsavedWarning->view()->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
 
 
 	/* Load the Samba network settings. */

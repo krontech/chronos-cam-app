@@ -50,6 +50,7 @@ extern "C" {
 #include <unistd.h>
 #include "util.h"
 #include <QDir>
+#include <QFile>
 
 #include "defines.h"
 
@@ -131,12 +132,17 @@ int main(int argc, char *argv[])
 #endif
 	
 	// Load stylesheet from file, if one exists.
-	QFile fStyle("stylesheet.qss");
-	if (fStyle.open(QFile::ReadOnly)) {
-		QString sheet = QLatin1String(fStyle.readAll());
-		qApp->setStyleSheet(sheet);
-		fStyle.close();
-	}
+    //QFile fStyle("stylesheet.qss");
+    //if (fStyle.open(QFile::ReadOnly)) {
+        //QString sheet = QLatin1String(fStyle.readAll());
+        //a.setStyleSheet(sheet);
+        //fStyle.close();
+    //}
+    QFile styleFile(":/qss/newstylesheet.qss");
+    styleFile.open(QFile::ReadOnly);
+
+    QString style(styleFile.readAll());
+    a.setStyleSheet(style);
 
 	//Disable stdout buffering so prints work rather than just filling the buffer.
 //	setbuf(stdout, NULL);

@@ -4,6 +4,7 @@
 #include <QSettings>
 #include <QDebug>
 #include <QBitmap>
+#include <QListView>
 
 /* 32x32 Crosshair in PNG format */
 static const uint8_t crosshair32x32_png[] = {
@@ -97,6 +98,10 @@ whiteBalanceDialog::whiteBalanceDialog(QWidget *parent, Camera * cameraInst) :
 	}
 	appSettings.endArray();
 
+    //Set QListView to change items in the combo box with qss
+    ui->comboColor->setView(new QListView);
+    ui->comboColor->view()->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+
 	/* Get the wbTemperature and select the nearest preset. */
 	int diff = INT_MAX;
 	int wbIndex = 0;
@@ -111,6 +116,11 @@ whiteBalanceDialog::whiteBalanceDialog(QWidget *parent, Camera * cameraInst) :
 
 	windowInitComplete = true;
 	ui->comboWB->setCurrentIndex(wbIndex);
+
+    //Set QListView to change items in the combo box with qss
+    ui->comboWB->setView(new QListView);
+    ui->comboWB->view()->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+
 }
 
 whiteBalanceDialog::~whiteBalanceDialog()

@@ -20,11 +20,7 @@
    <string>Save Settings</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">QSpinBox { border: 3px outset grey;padding-right: 40px;}  
-
-QSpinBox::up-button { subcontrol-position: right; right: 40px; width: 40px; height: 35px;}
-
-QSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}</string>
+   <string notr="true"/>
   </property>
   <widget class="QGroupBox" name="groupEncoding">
    <property name="geometry">
@@ -81,9 +77,9 @@ QSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}<
     <property name="font">
      <font>
       <pointsize>16</pointsize>
-      <weight>75</weight>
-      <italic>true</italic>
-      <bold>true</bold>
+      <weight>50</weight>
+      <italic>false</italic>
+      <bold>false</bold>
      </font>
     </property>
     <property name="minimum">
@@ -129,17 +125,13 @@ QSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}<
     <property name="font">
      <font>
       <pointsize>16</pointsize>
-      <weight>75</weight>
-      <italic>true</italic>
-      <bold>true</bold>
+      <weight>50</weight>
+      <italic>false</italic>
+      <bold>false</bold>
      </font>
     </property>
     <property name="styleSheet">
-     <string notr="true">QDoubleSpinBox { border: 3px outset grey;padding-right: 40px;}  
-
-QDoubleSpinBox::up-button { subcontrol-position: right; right: 40px; width: 40px; height: 35px;}
-
-QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}</string>
+     <string notr="true"/>
     </property>
     <property name="minimum">
      <double>0.250000000000000</double>
@@ -163,9 +155,9 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
     <property name="font">
      <font>
       <pointsize>16</pointsize>
-      <weight>75</weight>
-      <italic>true</italic>
-      <bold>true</bold>
+      <weight>50</weight>
+      <italic>false</italic>
+      <bold>false</bold>
      </font>
     </property>
     <property name="minimum">
@@ -222,9 +214,9 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
     <property name="font">
      <font>
       <pointsize>16</pointsize>
-      <weight>75</weight>
-      <italic>true</italic>
-      <bold>true</bold>
+      <weight>50</weight>
+      <italic>false</italic>
+      <bold>false</bold>
      </font>
     </property>
    </widget>
@@ -243,10 +235,7 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
      </font>
     </property>
     <property name="styleSheet">
-     <string notr="true">QCheckBox::indicator {
-     width: 40px;
-     height: 40px;
-}</string>
+     <string notr="true"/>
     </property>
     <property name="text">
      <string>Text Overlay
@@ -289,9 +278,9 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
     <property name="font">
      <font>
       <pointsize>14</pointsize>
-      <weight>75</weight>
-      <italic>true</italic>
-      <bold>true</bold>
+      <weight>50</weight>
+      <italic>false</italic>
+      <bold>false</bold>
      </font>
     </property>
    </widget>
@@ -506,9 +495,9 @@ Remove</string>
  </widget>
  <customwidgets>
   <customwidget>
-   <class>CamLineEdit</class>
-   <extends>QLineEdit</extends>
-   <header>camLineEdit.h</header>
+   <class>CamDoubleSpinBox</class>
+   <extends>QDoubleSpinBox</extends>
+   <header>camdoublespinbox.h</header>
   </customwidget>
   <customwidget>
    <class>CamSpinBox</class>
@@ -516,9 +505,9 @@ Remove</string>
    <header>camspinbox.h</header>
   </customwidget>
   <customwidget>
-   <class>CamDoubleSpinBox</class>
-   <extends>QDoubleSpinBox</extends>
-   <header>camdoublespinbox.h</header>
+   <class>CamLineEdit</class>
+   <extends>QLineEdit</extends>
+   <header>camLineEdit.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>

@@ -1,0 +1,354 @@
+/* All widget open in the fornt of CamMainWindow */
+QWidget
+{
+    background-color: #333;
+    color: #fff;
+}
+
+
+
+/* BUTTON */
+/* QPushButton on CamMainWindow */
+QDialog > QPushButton
+{
+    font-size: 16px;
+    background-color: #333;
+    color: #fff;
+    border: none;
+}
+QDialog > QPushButton:hover
+{
+    background-color: #555;
+}
+QDialog > QPushButton:disabled
+{
+    color: #aaa;
+}
+
+/* QPushButton of Other Widgets in GUI1 */
+QPushButton
+{
+    font-size: 16px;
+    background-color: #555;
+    color: #fff;
+    border: none;
+}
+QPushButton:hover
+{
+    background-color: #777;
+}
+QPushButton:disabled
+{
+    color: #aaa;
+}
+
+/* All QRadioButton in GUI1 */
+QRadioButton
+{
+    /* Content */
+    font-size: 16px;
+    /* Space between indicator and content */
+    spacing: 10px;
+}
+QRadioButton::indicator
+{
+    width:  35px;
+    height: 35px;
+}
+QRadioButton::indicator::unchecked
+{
+    image: url(:/qss/assets/images/radio-button-unchecked-white.svg.png);
+}
+QRadioButton::indicator::checked
+{
+    image: url(:/qss/assets/images/radio-button-checked-white.svg.png);
+}
+
+
+
+/* All Label in GUI1 */
+/* TO DO: font size may not be suitable for all widgets? */
+QLabel
+{
+    font-size: 16px;
+}
+
+
+
+/* All CheckBox in GUI1 */
+QCheckBox
+{
+    /* Content */
+    font-size: 16px;
+    /* Space between indicator and content */
+    spacing: 10px;
+}
+/* The Box(indicator) */
+QCheckBox:indicator
+{
+    width:  35px;
+    height: 35px;
+}
+/* unchecked indicator, representing by image */
+QCheckBox::indicator:unchecked
+{
+    image: url(:/qss/assets/images/checkbox-unchecked-white.svg.png);
+}
+/* checked indicator, representing by image */
+QCheckBox::indicator:checked
+{
+    image: url(:/qss/assets/images/checkbox-checked-white.svg.png);
+}
+
+
+
+/* SLIDER */
+/* QSlider in GUI1 */
+QSlider::groove:vertical
+{
+    background: #555;
+    width: 15px;
+    border: 1px solid #333;
+    border-radius: 7.5px;
+    margin: 13px;
+ }
+QSlider::handle:vertical
+{
+    image: url(:/qss/assets/images/handle-bars-dark-41x81+20.png);
+    margin: -20px -200px;
+    padding: -1px;
+ }
+
+/* PlaybackSlider of playbackwindow in Gui1 */
+
+
+/* TriggweSlider of Trigger Delay */
+QSlider::groove:horizontal
+{
+    background: #555;
+    height: 15px;
+    border: 1px solid #333;
+    border-radius: 7.5px;
+    margin: 13px;
+ }
+QSlider::handle:horizontal
+{
+    image: url(:/qss/assets/images/handle-bars-dark-81x41+20.png);
+    margin: -200px -20px;
+    padding: -1px;
+}
+QSlider::focus:pressed
+{
+    background-color: rgba(0, 0, 0, 0);
+}
+
+
+
+/* SPINBOX */
+/* All QSpinBox in GUI1 */
+QSpinBox
+{
+    /* Background color inside QSpinBox */
+    background-color: #555;
+    /* Content style inside QSpinBox */
+    font-size: 16px;
+    border: 1px solid #333;
+    padding-right: 0px;
+    padding-left: 10px;
+}
+QSpinBox:disabled
+{
+    color: #aaa;
+}
+QSpinBox::up-button, QSpinBox::down-button
+{
+    width: 0px;
+}
+
+/* All CamSpinBox in GUI1 */
+CamSpinBox
+{
+    /* Background color inside CamSpinBox */
+    background-color: #555;
+    /* Content style inside CamSpinBox */
+    font-size: 16px;
+    border: 1px solid #333;
+    padding-right: 0px;
+    padding-left: 10px;
+}
+CamSpinBox:disabled
+{
+    color: #aaa;
+}
+CamSpinBox::up-button, CamSpinBox::down-button
+{
+    width: 0px;
+}
+
+/* All CamDoubleSpinBox in GUI1 */
+CamDoubleSpinBox
+{
+    /* Background color inside CamDoubleSpinBox */
+    background-color: #555;
+    /* Content style inside CamDoubleSpinBox */
+    font-size: 16px;
+    border: 1px solid #333;
+    padding-right: 0px;
+    padding-left: 10px;
+}
+CamDoubleSpinBox:disabled
+{
+    color: #aaa;
+}
+CamDoubleSpinBox::up-button, CamDoubleSpinBox::down-button
+{
+    width: 0px;
+}
+
+/* All ColorDoubleSpinBox in GUI1 */
+ColorDoubleSpinBox
+{
+    /* Background color inside ColorSpinBox */
+    background-color: #555;
+    /* Content style inside ColorSpinBox */
+    font-size: 16px;
+    border: 1px solid #333;
+    padding-right: 0px;
+    padding-left: 10px;
+}
+ColorDoubleSpinBox:disabled
+{
+    color: #aaa;
+}
+ColorDoubleSpinBox::up-button, ColorDoubleSpinBox::down-button
+{
+    width: 0px;
+}
+
+
+
+/* All QComboBox in GUI1 */
+QComboBox
+{
+    background-color: #555;
+    font-size: 16px;
+    border: none;
+    padding-left: 10px;
+
+}
+QComboBox::drop-down
+{
+    subcontrol-orign: content;
+    width: 40px;
+    border: 0px solid #333;
+    border-left-width: 1px;
+    max-height: 100px;
+}
+QComboBox::down-arrow
+{
+    image: url(:qss/assets/images/wedge-down-white-enabled.png);
+}
+QComboBox QAbstractItemView
+{
+    font-size: 16px;
+    border: 1px solid #333;
+    background-color: #555;
+    selection-background-color: #777;
+}
+QComboBox QAbstractItemView::item
+{
+    margin: 1px 0;
+    padding: 10px;
+}
+QComboBox QScrollBar::vertical
+{
+    background: #777;
+    box-sizing: border-box;
+    border-left: 12px solid #555;
+    border-right: 12px solid #555;
+}
+QComboBox QScrollBar::handle::vertical
+{
+    image: url(:/qss/assets/images/handle-bars-dark-41x81+20.png);
+    margin: -15px;
+}
+QComboBox QScrollBar::add-line::vertical
+{
+    border:none;
+}
+QComboBox QScrollBar::sub-line::vertical
+{
+    border:none;
+}
+
+
+
+/* QFrame in GUI1 */
+QFrame#frame
+{
+    background-color: #999;
+    background-position: center;
+}
+
+QFrame#frameImage
+{
+    background-color: rgba(255, 255, 255, 100);
+}
+
+
+
+/* All QGroupBox in GUI1  */
+QGroupBox
+{
+    border: 1px solid #777;
+}
+
+
+
+/* QTabWidget in GUI1 (Util menu) */
+QTabWidget
+{
+
+}
+
+
+
+/* QDateTimeEdit in GUI1 (Util: time setting) */
+QDateTimeEdit
+{
+    background-color: #555;
+    font-size: 16px;
+    border: none;
+}
+QDateTimeEdit::drop-down
+{
+    subcontrol-orign: content;
+    width: 40px;
+    border: 0px solid #333;
+    border-left-width: 1px;
+    max-height: 100px;
+}
+QDateTimeEdit::down-arrow
+{
+    image: url(:qss/assets/images/wedge-down-white-enabled.png);
+}
+
+
+
+/* QTextEdit in GUI1 (Util: about) */
+QTextEdit
+{
+    background-color: #555;
+}
+
+
+
+/* All CamLineEdit in GUI1 */
+CamLineEdit
+{
+    background-color: #555;
+}
+
+
+
+

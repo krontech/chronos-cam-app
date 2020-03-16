@@ -1,3 +1,13 @@
 <RCC>
-    <qresource prefix="/new/prefix1"/>
+    <qresource prefix="/qss">
+        <file>newstylesheet.qss</file>
+        <file>assets/images/checkbox-unchecked-white.svg.png</file>
+        <file>assets/images/checkbox-checked-white.svg.png</file>
+        <file>assets/images/radio-button-unchecked-white.svg.png</file>
+        <file>assets/images/radio-button-checked-white.svg.png</file>
+        <file>assets/images/handle-bars-dark-41x81+20.png</file>
+        <file>assets/images/handle-bars-dark-61x156+40.png</file>
+        <file>assets/images/handle-bars-dark-81x41+20.png</file>
+        <file>assets/images/wedge-down-white-enabled.png</file>
+    </qresource>
 </RCC>

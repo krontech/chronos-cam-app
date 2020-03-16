@@ -49,7 +49,7 @@ void PlaybackSlider::setHighlightRegion(int start, int end)
 }
 
 void PlaybackSlider::paintEvent(QPaintEvent *ev) {
-	QStyleOptionSlider opt;
+	QStyleOptionSlider opt; 
 	int start;
 	int end;
 	initStyleOption(&opt);
