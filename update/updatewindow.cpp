@@ -40,6 +40,24 @@ UpdateWindow::UpdateWindow(QWidget *parent) :
 	setWindowFlags(Qt::Window /*| Qt::WindowStaysOnTopHint*/ | Qt::FramelessWindowHint);
 	recenterWidget(this);
 
+	/*
+	 * Check if we are in rescue mode, if so we may need to manually
+	 * start networking, since we will be in single-user mode without
+	 * networking.
+	 */
+	inRescueMode = system("systemctl is-active rescue.target") == 0;
+	if (inRescueMode) {
+		/* Check if eth0 is up */
+		FILE *fp = fopen("/sys/class/net/eth0/operstate", "r");
+		char buf[16] = {'\0'};
+		if (fp) {
+			fgets(buf, sizeof(buf), fp);
+			fclose(fp);
+		}
+		/* If the link is not up, start dhclient to bring it up */
+		if (strncmp(buf, "up", 2) != 0) system("dhclient -nw eth0");
+	}
+
 	/* Run a timer to scan the media devices for updates. */
 	mediaTimer = new QTimer(this);
 	connect(mediaTimer, SIGNAL(timeout()), this, SLOT(checkForMedia()));
@@ -206,7 +224,10 @@ void UpdateWindow::on_cmdReboot_clicked()
 void UpdateWindow::on_cmdQuit_clicked()
 {
 	int index = ui->comboGui->currentIndex();
-	if (index == 1) {
+	if (inRescueMode) {
+		system("shutdown -hr now");
+	}
+	else if (index == 1) {
 		system("service chronos-gui start");
 	}
 	else if (index == 2) {

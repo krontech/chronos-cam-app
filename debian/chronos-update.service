@@ -10,4 +10,5 @@ StandardOutput=journal+console
 StandardError=inherit
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=rescue.target
+

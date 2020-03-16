@@ -22,10 +22,6 @@
 #define FOCUS_PEAK_API_MED	0.67
 #define FOCUS_PEAK_API_HIGH	1.0
 
-struct CameraStatus {
-	char state[128];
-};
-
 typedef enum CameraRecordModes
 {
 	RECORD_MODE_NORMAL = 0,
@@ -65,18 +61,10 @@ typedef struct {
 	UInt32 timingClock;
 } SensorInfo_t;
 
-struct SensorWhiteBalance {
-    double red;
-    double green;
-    double blue;
-};
-
 class ControlNotify;
 
 class Control : public QObject {
     Q_OBJECT
-
-	friend class ControlParam;
 
 public:
 	/* Settings moved over from the VideoRecord class, into Video class, and then into Control */
@@ -115,27 +103,22 @@ public:
 	CameraErrortype startRecording(void);
 	CameraErrortype stopRecording(void);
 	CameraErrortype reboot(bool settings);
-	CameraErrortype testResolution(void);
-	CameraErrortype startAutoWhiteBalance(void);
-	CameraErrortype revertAutoWhiteBalance(void);
+	CameraErrortype startWhiteBalance(void);
 	CameraErrortype startCalibration(QString calType, bool saveCal=false);
 	CameraErrortype startCalibration(QStringList calTypes, bool saveCal=false);
 	CameraErrortype asyncCalibration(QStringList calTypes, bool saveCal=false);
 	CameraErrortype exportCalData(void);
 	CameraErrortype importCalData(void);
 
-	CameraErrortype status(CameraStatus *cs);
 	CameraErrortype availableKeys(void);
 	CameraErrortype availableCalls(void);
 	CameraErrortype getArray(QString parameter, UInt32 size, double *values);
 	CameraErrortype setArray(QString parameter, UInt32 size, const double *values);
 
-	CameraStatus getStatus(const char * lastState, const char * error);
 	CameraErrortype setResolution(FrameGeometry *geometry);
 
 	CameraErrortype getTiming(FrameGeometry *geometry, FrameTiming *timing);
 
-    CameraErrortype calibrate(void);
     CameraErrortype startRecord(void);
     CameraErrortype stopRecord(void);
     CameraErrortype getCalCapabilities(void);

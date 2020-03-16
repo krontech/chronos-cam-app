@@ -94,9 +94,6 @@ public:
 	bool focusPeakEnabled;
 
 	void setCCMatrix(const double *matrix);
-	int autoWhiteBalance(unsigned int x, unsigned int y);
-	void setFocusAid(bool enable);
-	bool getFocusAid();
 	int blackCalAllStdRes(bool factory = false, QProgressDialog *dialog = NULL);
 
 	void setBncDriveLevel(UInt32 level);

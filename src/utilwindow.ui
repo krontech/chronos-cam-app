@@ -32,7 +32,7 @@
     <enum>QTabWidget::East</enum>
    </property>
    <property name="currentIndex">
-    <number>0</number>
+    <number>3</number>
    </property>
    <widget class="QWidget" name="tabMain">
     <property name="styleSheet">
@@ -1591,9 +1591,9 @@ Software Update</string>
      <property name="geometry">
       <rect>
        <x>30</x>
-       <y>290</y>
+       <y>260</y>
        <width>591</width>
-       <height>151</height>
+       <height>181</height>
       </rect>
      </property>
      <property name="font">
@@ -1608,6 +1608,9 @@ Software Update</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
      </property>
     </widget>
    </widget>

@@ -132,6 +132,7 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	QString modelName;
 	QString serialNumber;
 	QString fpgaVersion;
+	QString pmicVersion;
 	const char *modelFullName = "Chronos 1.4";
 	char release[128];
 
@@ -139,6 +140,7 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	camera->cinst->getString("cameraModel", &modelName);
 	camera->cinst->getString("cameraSerial", &serialNumber);
 	camera->cinst->getString("cameraFpgaVersion", &fpgaVersion);
+	pmicVersion = camera->cinst->getProperty("pmicFirmwareVersion", "0").toString();
 
 	// Chop the version digits off the end of the camera model.
 	if (modelName.startsWith("CR14")) modelFullName = "Chronos 1.4";
@@ -162,7 +164,8 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	}
 #endif
 	aboutText.append(QString("Build: %1 (%2)\r\n").arg(CAMERA_APP_VERSION, git_version_str));
-	aboutText.append(QString("FPGA Revision: %1").arg(fpgaVersion));
+	aboutText.append(QString("FPGA Revision: %1\n").arg(fpgaVersion));
+	aboutText.append(QString("PMIC Firmware Version: %1\n").arg(pmicVersion));
 	ui->lblAbout->setText(aboutText);
 	
 	ui->cmdCloseApp->setVisible(false);
@@ -318,10 +321,9 @@ int UtilWindow::updateSoftware(char * updateLocation)
 	/* Start the update in the background and close the GUI in the foreground. */
 	runBackground(updateLocation);
 	QApplication::quit();
-
+#endif
 	/* We won't get here... */
 	return SUCCESS;
-#endif
 }
 
 bool copyFile(const char * fromfile, const char * tofile)
@@ -363,7 +365,6 @@ bool copyFile(const char * fromfile, const char * tofile)
 
 void UtilWindow::onUtilWindowTimer()
 {
-	struct statvfs fsInfoBuf;
 	if(!settingClock)
 	{
 		if(ui->dateTimeEdit->hasFocus())
@@ -413,11 +414,13 @@ void UtilWindow::onUtilWindowTimer()
 		double sensorTemp = camera->cinst->getProperty("sensorTemperature", 0.0).toDouble();
 		double systemTemp = camera->cinst->getProperty("systemTemperature", 0.0).toDouble();
 		double battVoltage = camera->cinst->getProperty("batteryVoltage", 0.0).toDouble();
+		QString lastShutdownReason = camera->cinst->getProperty("lastShutdownReason", "Unknown").toString();
 		QString status;
 
 		status = QString("Sensor Temperature: %1 C\n").arg(sensorTemp);
 		status.append(QString("System Temperature: %1 C\n").arg(systemTemp));
 		status.append(QString("Battery Voltage: %1 V\n").arg(battVoltage));
+		status.append(QString("Last Shutdown Reason: %1\n").arg(lastShutdownReason));
 		ui->lblStatus->setText(status);
 	}
 }
@@ -636,23 +639,41 @@ void UtilWindow::on_cmdSetSN_clicked()
 void UtilWindow::on_cmdExportCalData_clicked()
 {
 	QMessageBox::StandardButton reply;
-	reply = QMessageBox::question(this, "Calibration Data Export", "Begin flat field export?\r\nThe display may go blank and the camera will turn off after this process.\r\nWARNING: Any unsaved video in RAM will be lost.", QMessageBox::Yes|QMessageBox::No);
+	reply = QMessageBox::question(this, "Calibration Data Export", "Begin flat field export?\r\nWARNING: Any unsaved video in RAM will be lost.", QMessageBox::Yes|QMessageBox::No);
 	if(QMessageBox::Yes != reply)
 		return;
 
 	qDebug() << "### flat-field export";
 	camera->cinst->exportCalData();
+
+	/* Notify on completion */
+	QMessageBox msg;
+	msg.setText("Flat-field export complete.");
+	msg.setWindowTitle("Factory Calibration");
+	msg.setWindowFlags(Qt::WindowStaysOnTopHint);
+	msg.exec();
 }
 
 void UtilWindow::on_cmdImportCalData_clicked()
 {
 	QMessageBox::StandardButton reply;
+	QDir calDir ("/var/camera/cal");
+
 	reply = QMessageBox::question(this, "Calibration Data Import", "Begin calibration data import?\r\nAny previous cal data imports will be overwritten.", QMessageBox::Yes|QMessageBox::No);
 	if(QMessageBox::Yes != reply)
 		return;
 
 	qDebug() << "### flat-field import";
 	camera->cinst->importCalData();
+
+	/* Verify that factory_*.bin files are present in /var/camera/cal */
+	QStringList calFileList = calDir.entryList(QStringList() << "factory_*", QDir::Files);
+	reply = QMessageBox::question(this,"Calibration Data Import", QString("Import Complete. %1 files copied.\r\nReboot now?").arg(calFileList.count()), QMessageBox::Yes|QMessageBox::No);
+	if(QMessageBox::Yes == reply) {
+		system("shutdown -hr now");
+	} else {
+		return;
+	}
 }
 
 void UtilWindow::statErrorMessage(){
@@ -803,16 +824,23 @@ void UtilWindow::on_cmdRestoreCal_clicked()
 
 void UtilWindow::on_linePassword_textEdited(const QString &arg1)
 {
+	QString modelName;
+
 	if(0 == QString::compare(arg1, "4242"))
 	{
 		ui->cmdCloseApp->setVisible(true);
 		ui->cmdColumnGain->setVisible(true);
 		ui->cmdSetSN->setVisible(true);
 		ui->lineSerialNumber->setVisible(true);
-		ui->cmdExportCalData->setVisible(true);
-		ui->cmdImportCalData->setVisible(true);
 		ui->chkShowDebugControls->setVisible(true);
 		ui->chkFanDisable->setVisible(true);
+
+		//Only show cal export/import buttons for Chronos 2.1
+		camera->cinst->getString("cameraModel", &modelName);
+		if(modelName.startsWith("CR21")){
+			ui->cmdExportCalData->setVisible(true);
+			ui->cmdImportCalData->setVisible(true);
+		}
 	}
 }
 

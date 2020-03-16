@@ -58,7 +58,7 @@ public Q_SLOTS: // METHODS
 		return asyncCallWithArgumentList(QLatin1String("startFilesave"), argumentList);
 	}
 
-	inline QDBusPendingReply<QVariantMap> testResolution(const QVariantMap &args)
+	inline QDBusPendingReply<QVariantMap> getResolutionTimingLimits(const QVariantMap &args)
 	{
 		QList<QVariant> argumentList;
 		argumentList << qVariantFromValue(args);
@@ -72,11 +72,11 @@ public Q_SLOTS: // METHODS
 		return asyncCallWithArgumentList(QLatin1String("reboot"), argumentList);
 	}
 
-	inline QDBusPendingReply<QVariantMap> startAutoWhiteBalance(const QVariantMap &args)
+	inline QDBusPendingReply<QVariantMap> startWhiteBalance(const QVariantMap &args)
 	{
 		QList<QVariant> argumentList;
 		argumentList << qVariantFromValue(args);
-		return asyncCallWithArgumentList(QLatin1String("startAutoWhiteBalance"), argumentList);
+		return asyncCallWithArgumentList(QLatin1String("startWhiteBalance"), argumentList);
 	}
 
 	inline QDBusPendingReply<QVariantMap> get(const QStringList &names)
@@ -91,13 +91,6 @@ public Q_SLOTS: // METHODS
 		QList<QVariant> argumentList;
 		argumentList << qVariantFromValue(args);
 		return asyncCallWithArgumentList(QLatin1String("set"), argumentList);
-	}
-
-	inline QDBusPendingReply<QVariantMap> revertAutoWhiteBalance(const QVariantMap &args)
-	{
-		QList<QVariant> argumentList;
-		argumentList << qVariantFromValue(args);
-		return asyncCallWithArgumentList(QLatin1String("revertAutoWhiteBalance"), argumentList);
 	}
 
 	inline QDBusPendingReply<QVariantMap> startCalibration(const QVariantMap &args)
