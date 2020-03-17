@@ -487,8 +487,11 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>10</pointsize>
+     <pointsize>-1</pointsize>
     </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">font-size: 12px;</string>
    </property>
    <property name="text">
     <string>(Time from trigger to end of recording)</string>
@@ -505,8 +508,11 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>10</pointsize>
+     <pointsize>-1</pointsize>
     </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">font-size: 12px;</string>
    </property>
    <property name="text">
     <string>(Time from trigger to start of recording)</string>
@@ -541,8 +547,11 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>10</pointsize>
+     <pointsize>-1</pointsize>
     </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">font-size: 12px;</string>
    </property>
    <property name="text">
     <string>(Time from start of recording to trigger)</string>
@@ -626,6 +635,33 @@ Pre-rec Time</string>
 Defaults</string>
    </property>
   </widget>
+  <zorder>cmdCancel</zorder>
+  <zorder>cmdOK</zorder>
+  <zorder>horizontalSlider</zorder>
+  <zorder>lblRes_8</zorder>
+  <zorder>lblRes_9</zorder>
+  <zorder>cmdHundredPercent</zorder>
+  <zorder>cmdFiftyPercent</zorder>
+  <zorder>cmdZeroPercent</zorder>
+  <zorder>lblRes_10</zorder>
+  <zorder>lblRes_11</zorder>
+  <zorder>lblRes_12</zorder>
+  <zorder>spinPreRecSeconds</zorder>
+  <zorder>lblRes_13</zorder>
+  <zorder>lblRes_14</zorder>
+  <zorder>lblRes_15</zorder>
+  <zorder>lblRes_16</zorder>
+  <zorder>lblRes_17</zorder>
+  <zorder>lblRes_18</zorder>
+  <zorder>lblRes_19</zorder>
+  <zorder>lblRes_20</zorder>
+  <zorder>cmdMorePreRecTime</zorder>
+  <zorder>cmdResetToDefaults</zorder>
+  <zorder>spinPreSeconds</zorder>
+  <zorder>spinPostSeconds</zorder>
+  <zorder>spinPreRecFrames</zorder>
+  <zorder>spinPreFrames</zorder>
+  <zorder>spinPostFrames</zorder>
  </widget>
  <customwidgets>
   <customwidget>

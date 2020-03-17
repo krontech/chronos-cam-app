@@ -40,7 +40,7 @@
     <rect>
      <x>130</x>
      <y>430</y>
-     <width>71</width>
+     <width>61</width>
      <height>51</height>
     </rect>
    </property>
@@ -107,9 +107,9 @@
   <widget class="QPushButton" name="cmdSave">
    <property name="geometry">
     <rect>
-     <x>70</x>
+     <x>60</x>
      <y>370</y>
-     <width>111</width>
+     <width>131</width>
      <height>51</height>
     </rect>
    </property>
@@ -130,9 +130,9 @@
   <widget class="QPushButton" name="cmdSaveSettings">
    <property name="geometry">
     <rect>
-     <x>70</x>
+     <x>60</x>
      <y>310</y>
-     <width>111</width>
+     <width>131</width>
      <height>51</height>
     </rect>
    </property>

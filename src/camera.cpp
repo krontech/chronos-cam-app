@@ -635,6 +635,11 @@ void Camera::setAutoPowerMode(int newSetting)
 	cinst->setPropertyGroup(values);
 }
 
+void Camera::getGUIMode(void)
+{
+
+}
+
 void Camera::set_autoSave(bool state) {
 	QSettings appSettings;
 	autoSave = state;

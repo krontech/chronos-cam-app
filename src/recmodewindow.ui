@@ -68,16 +68,16 @@
     <enum>QFrame::Raised</enum>
    </property>
    <property name="currentIndex">
-    <number>2</number>
+    <number>0</number>
    </property>
    <widget class="QWidget" name="normalPage">
     <widget class="QPushButton" name="cmdMax">
      <property name="geometry">
       <rect>
        <x>280</x>
-       <y>55</y>
+       <y>60</y>
        <width>71</width>
-       <height>51</height>
+       <height>41</height>
       </rect>
      </property>
      <property name="font">
@@ -92,7 +92,7 @@
     <widget class="QLabel" name="lblNormal">
      <property name="geometry">
       <rect>
-       <x>-10</x>
+       <x>0</x>
        <y>0</y>
        <width>551</width>
        <height>31</height>
@@ -104,11 +104,11 @@
        <italic>false</italic>
       </font>
      </property>
+     <property name="styleSheet">
+      <string notr="true"/>
+     </property>
      <property name="text">
       <string>Records frames in a single or segmented buffer</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignHCenter|Qt::AlignTop</set>
      </property>
     </widget>
     <widget class="CamSpinBox" name="spinRecLengthFrames">
@@ -157,7 +157,7 @@
      <property name="geometry">
       <rect>
        <x>20</x>
-       <y>26</y>
+       <y>30</y>
        <width>241</width>
        <height>31</height>
       </rect>
@@ -205,7 +205,7 @@
      <property name="geometry">
       <rect>
        <x>20</x>
-       <y>106</y>
+       <y>110</y>
        <width>231</width>
        <height>31</height>
       </rect>
@@ -224,7 +224,7 @@
       <rect>
        <x>20</x>
        <y>200</y>
-       <width>221</width>
+       <width>241</width>
        <height>181</height>
       </rect>
      </property>
@@ -240,9 +240,9 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>100</y>
+        <y>110</y>
         <width>191</width>
-        <height>71</height>
+        <height>61</height>
        </rect>
       </property>
       <property name="font">
@@ -251,7 +251,11 @@
        </font>
       </property>
       <property name="text">
-       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Segment size:&lt;/p&gt;&lt;p&gt;1.000000s&lt;/p&gt;&lt;p&gt;(1500 frames)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;
+&lt;p style=&quot; font-size:16px;&quot;&gt;Segment size:&lt;/p&gt;
+&lt;p style=&quot; font-size:14px;&quot;&gt;1.000000s&lt;/p&gt;
+&lt;p style=&quot; font-size:14px;&quot;&gt;(1500 frames)&lt;/p&gt;
+&lt;/body&gt;&lt;/html&gt;</string>
       </property>
       <property name="alignment">
        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
@@ -304,7 +308,7 @@
        <rect>
         <x>10</x>
         <y>30</y>
-        <width>221</width>
+        <width>211</width>
         <height>17</height>
        </rect>
       </property>
@@ -323,10 +327,10 @@
     <widget class="QLabel" name="lblSegmented_2">
      <property name="geometry">
       <rect>
-       <x>-10</x>
+       <x>0</x>
        <y>0</y>
        <width>531</width>
-       <height>41</height>
+       <height>31</height>
       </rect>
      </property>
      <property name="font">
@@ -337,17 +341,14 @@
      <property name="text">
       <string>Frames are recorded only when the trigger input is active</string>
      </property>
-     <property name="alignment">
-      <set>Qt::AlignHCenter|Qt::AlignTop</set>
-     </property>
     </widget>
     <widget class="QGroupBox" name="groupBox_3">
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>30</y>
+       <y>40</y>
        <width>441</width>
-       <height>211</height>
+       <height>221</height>
       </rect>
      </property>
      <property name="title">
@@ -357,8 +358,8 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>20</y>
-        <width>321</width>
+        <y>30</y>
+        <width>381</width>
         <height>21</height>
        </rect>
       </property>
@@ -375,7 +376,7 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>50</y>
+        <y>60</y>
         <width>221</width>
         <height>21</height>
        </rect>
@@ -393,7 +394,7 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>130</y>
+        <y>140</y>
         <width>221</width>
         <height>21</height>
        </rect>
@@ -411,7 +412,7 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>74</y>
+        <y>80</y>
         <width>241</width>
         <height>41</height>
        </rect>
@@ -441,7 +442,7 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>154</y>
+        <y>160</y>
         <width>241</width>
         <height>41</height>
        </rect>
@@ -485,7 +486,7 @@
     <widget class="QLabel" name="lblSegmented_3">
      <property name="geometry">
       <rect>
-       <x>-10</x>
+       <x>0</x>
        <y>0</y>
        <width>551</width>
        <height>41</height>
@@ -500,15 +501,12 @@
       <string>A short burst of video is recorded, and played back in 
 slow motion, continuously</string>
      </property>
-     <property name="alignment">
-      <set>Qt::AlignHCenter|Qt::AlignTop</set>
-     </property>
     </widget>
     <widget class="QLabel" name="lblRes_9">
      <property name="geometry">
       <rect>
        <x>20</x>
-       <y>40</y>
+       <y>50</y>
        <width>291</width>
        <height>30</height>
       </rect>
@@ -670,7 +668,7 @@ slow motion, continuously</string>
      <property name="geometry">
       <rect>
        <x>310</x>
-       <y>40</y>
+       <y>50</y>
        <width>291</width>
        <height>30</height>
       </rect>
@@ -880,9 +878,9 @@ slow motion, continuously</string>
    </property>
    <property name="geometry">
     <rect>
-     <x>590</x>
+     <x>540</x>
      <y>260</y>
-     <width>181</width>
+     <width>211</width>
      <height>41</height>
     </rect>
    </property>
@@ -896,14 +894,14 @@ slow motion, continuously</string>
  </widget>
  <customwidgets>
   <customwidget>
-   <class>CamDoubleSpinBox</class>
-   <extends>QDoubleSpinBox</extends>
-   <header>camdoublespinbox.h</header>
-  </customwidget>
-  <customwidget>
    <class>CamSpinBox</class>
    <extends>QSpinBox</extends>
    <header>camspinbox.h</header>
+  </customwidget>
+  <customwidget>
+   <class>CamDoubleSpinBox</class>
+   <extends>QDoubleSpinBox</extends>
+   <header>camdoublespinbox.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>

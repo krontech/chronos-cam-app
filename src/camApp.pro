@@ -168,4 +168,6 @@ RESOURCES += \
 DISTFILES += \
     stylesheet.qss \
     data/newstylesheet.qss \
-    newstylesheet.qss
+    data/lightstylesheet.qss \
+    lightstylesheet.qss \
+    darkstylesheet.qss

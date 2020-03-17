@@ -187,6 +187,7 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	ui->chkUiOnLeft->setChecked(camera->getButtonsOnLeft());
 	ui->comboDisableUnsavedWarning->setCurrentIndex(camera->getUnsavedWarnEnable());
 	ui->comboAutoPowerMode->setCurrentIndex(camera->getAutoPowerMode());
+    ui->comboMode->setCurrentIndex(camera->getGUIMode());
 
     //Set QListView to change items in the combo box with qss
     ui->comboAutoPowerMode->setView(new QListView);
@@ -195,6 +196,10 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
     //Set QListView to change items in the combo box with qss
     ui->comboDisableUnsavedWarning->setView(new QListView);
     ui->comboDisableUnsavedWarning->view()->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+
+    //Set QListView to change items in the combo box with qss
+    ui->comboMode->setView(new QListView);
+    ui->comboMode->view()->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
 
 
 	/* Load the Samba network settings. */
@@ -1256,6 +1261,11 @@ void UtilWindow::on_comboDisableUnsavedWarning_currentIndexChanged(int index)
 void UtilWindow::on_comboAutoPowerMode_currentIndexChanged(int index)
 {
 	if (!openingWindow) camera->setAutoPowerMode(index);
+}
+
+void UtilWindow::on_comboMode_currentIndexChanged(int index)
+{
+    if (!openingWindow) camera->setGUIMode(index);
 }
 
 void UtilWindow::on_tabWidget_currentChanged(int index)

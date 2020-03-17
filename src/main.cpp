@@ -138,7 +138,7 @@ int main(int argc, char *argv[])
         //a.setStyleSheet(sheet);
         //fStyle.close();
     //}
-    QFile styleFile(":/qss/newstylesheet.qss");
+    QFile styleFile(":/qss/lightstylesheet.qss"); //":/qss/lightstylesheet.qss"
     styleFile.open(QFile::ReadOnly);
 
     QString style(styleFile.readAll());

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>599</width>
-    <height>447</height>
+    <height>431</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -28,7 +28,7 @@
      <x>10</x>
      <y>0</y>
      <width>575</width>
-     <height>181</height>
+     <height>171</height>
     </rect>
    </property>
    <property name="font">
@@ -44,7 +44,7 @@
      <rect>
       <x>10</x>
       <y>30</y>
-      <width>101</width>
+      <width>131</width>
       <height>17</height>
      </rect>
     </property>
@@ -57,7 +57,7 @@
      <rect>
       <x>10</x>
       <y>100</y>
-      <width>141</width>
+      <width>181</width>
       <height>17</height>
      </rect>
     </property>
@@ -178,7 +178,7 @@
      <rect>
       <x>200</x>
       <y>100</y>
-      <width>141</width>
+      <width>171</width>
       <height>17</height>
      </rect>
     </property>
@@ -226,7 +226,7 @@
       <x>390</x>
       <y>110</y>
       <width>171</width>
-      <height>61</height>
+      <height>51</height>
      </rect>
     </property>
     <property name="font">
@@ -251,8 +251,8 @@
     <rect>
      <x>10</x>
      <y>190</y>
-     <width>481</width>
-     <height>211</height>
+     <width>461</width>
+     <height>221</height>
     </rect>
    </property>
    <property name="font">
@@ -270,8 +270,8 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>40</y>
-      <width>460</width>
+      <y>50</y>
+      <width>441</width>
       <height>41</height>
      </rect>
     </property>
@@ -288,8 +288,8 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>150</y>
-      <width>251</width>
+      <y>160</y>
+      <width>341</width>
       <height>17</height>
      </rect>
     </property>
@@ -301,8 +301,8 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>20</y>
-      <width>101</width>
+      <y>30</y>
+      <width>141</width>
       <height>17</height>
      </rect>
     </property>
@@ -314,8 +314,8 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>170</y>
-      <width>445</width>
+      <y>180</y>
+      <width>441</width>
       <height>31</height>
      </rect>
     </property>
@@ -331,33 +331,12 @@
      <string>Vid</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="cmdRefresh">
-    <property name="enabled">
-     <bool>true</bool>
-    </property>
-    <property name="geometry">
-     <rect>
-      <x>110</x>
-      <y>0</y>
-      <width>81</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>13</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>Refresh</string>
-    </property>
-   </widget>
    <widget class="CamLineEdit" name="lineFoldername">
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>110</y>
-      <width>445</width>
+      <y>120</y>
+      <width>441</width>
       <height>31</height>
      </rect>
     </property>
@@ -377,8 +356,8 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>90</y>
-      <width>251</width>
+      <y>100</y>
+      <width>371</width>
       <height>17</height>
      </rect>
     </property>
@@ -390,9 +369,9 @@
   <widget class="QPushButton" name="cmdClose">
    <property name="geometry">
     <rect>
-     <x>500</x>
-     <y>340</y>
-     <width>91</width>
+     <x>490</x>
+     <y>360</y>
+     <width>101</width>
      <height>51</height>
     </rect>
    </property>
@@ -408,10 +387,10 @@
   <widget class="QPushButton" name="cmdUMount">
    <property name="geometry">
     <rect>
-     <x>500</x>
-     <y>230</y>
-     <width>91</width>
-     <height>41</height>
+     <x>490</x>
+     <y>210</y>
+     <width>101</width>
+     <height>51</height>
     </rect>
    </property>
    <property name="font">
@@ -492,12 +471,33 @@ Remove</string>
     <string>h264 Profile</string>
    </property>
   </widget>
+  <widget class="QPushButton" name="cmdRefresh">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="geometry">
+    <rect>
+     <x>490</x>
+     <y>280</y>
+     <width>101</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>13</pointsize>
+    </font>
+   </property>
+   <property name="text">
+    <string>Refresh</string>
+   </property>
+  </widget>
  </widget>
  <customwidgets>
   <customwidget>
-   <class>CamDoubleSpinBox</class>
-   <extends>QDoubleSpinBox</extends>
-   <header>camdoublespinbox.h</header>
+   <class>CamLineEdit</class>
+   <extends>QLineEdit</extends>
+   <header>camLineEdit.h</header>
   </customwidget>
   <customwidget>
    <class>CamSpinBox</class>
@@ -505,9 +505,9 @@ Remove</string>
    <header>camspinbox.h</header>
   </customwidget>
   <customwidget>
-   <class>CamLineEdit</class>
-   <extends>QLineEdit</extends>
-   <header>camLineEdit.h</header>
+   <class>CamDoubleSpinBox</class>
+   <extends>QDoubleSpinBox</extends>
+   <header>camdoublespinbox.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>

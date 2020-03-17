@@ -229,7 +229,7 @@
    <property name="geometry">
     <rect>
      <x>520</x>
-     <y>144</y>
+     <y>140</y>
      <width>16</width>
      <height>17</height>
     </rect>
@@ -373,9 +373,9 @@
   <widget class="QLabel" name="lblFPS">
    <property name="geometry">
     <rect>
-     <x>515</x>
+     <x>520</x>
      <y>300</y>
-     <width>41</width>
+     <width>31</width>
      <height>21</height>
     </rect>
    </property>
@@ -391,7 +391,7 @@
   <widget class="QLabel" name="lblSec">
    <property name="geometry">
     <rect>
-     <x>515</x>
+     <x>520</x>
      <y>350</y>
      <width>41</width>
      <height>21</height>
@@ -463,9 +463,9 @@
   <widget class="QLabel" name="lblSec_2">
    <property name="geometry">
     <rect>
-     <x>515</x>
+     <x>520</x>
      <y>435</y>
-     <width>41</width>
+     <width>31</width>
      <height>21</height>
     </rect>
    </property>
@@ -664,14 +664,14 @@ Delay</string>
  </widget>
  <customwidgets>
   <customwidget>
-   <class>CamSpinBox</class>
-   <extends>QSpinBox</extends>
-   <header>camspinbox.h</header>
-  </customwidget>
-  <customwidget>
    <class>CamLineEdit</class>
    <extends>QLineEdit</extends>
    <header>camLineEdit.h</header>
+  </customwidget>
+  <customwidget>
+   <class>CamSpinBox</class>
+   <extends>QSpinBox</extends>
+   <header>camspinbox.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>

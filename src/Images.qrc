@@ -1,6 +1,5 @@
 <RCC>
     <qresource prefix="/qss">
-        <file>newstylesheet.qss</file>
         <file>assets/images/checkbox-unchecked-white.svg.png</file>
         <file>assets/images/checkbox-checked-white.svg.png</file>
         <file>assets/images/radio-button-unchecked-white.svg.png</file>
@@ -9,5 +8,15 @@
         <file>assets/images/handle-bars-dark-61x156+40.png</file>
         <file>assets/images/handle-bars-dark-81x41+20.png</file>
         <file>assets/images/wedge-down-white-enabled.png</file>
+        <file>lightstylesheet.qss</file>
+        <file>assets/images/radio-button-unchecked-black.svg.png</file>
+        <file>assets/images/radio-button-checked-black.svg.png</file>
+        <file>assets/images/checkbox-checked-black.svg.png</file>
+        <file>assets/images/checkbox-unchecked-black.svg</file>
+        <file>assets/images/handle-bars-light-41x81+20.png</file>
+        <file>assets/images/handle-bars-light-81x41+20.png</file>
+        <file>assets/images/wedge-down-enabled-black.png</file>
+        <file>darkstylesheet.qss</file>
+        <file>assets/images/handle-bars-light-61x156+40.png</file>
     </qresource>
 </RCC>
