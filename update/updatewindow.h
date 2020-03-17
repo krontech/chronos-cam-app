@@ -38,10 +38,16 @@ private:
 	QTimer *mediaTimer;
 	QProcess *aptCheck;
 	int aptUpdateCount;
+
 	int inRescueMode;
+	QProcess *dhclient;
+	bool checkForNetwork();
 
 private slots:
 	void checkForMedia();
+
+	void dhclientFinished(int code, QProcess::ExitStatus status);
+	void dhclientError(QProcess::ProcessError err);
 
 	void started();
 	void finished(int code, QProcess::ExitStatus status);

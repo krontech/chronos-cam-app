@@ -46,18 +46,13 @@ UpdateWindow::UpdateWindow(QWidget *parent) :
 	 * networking.
 	 */
 	inRescueMode = system("systemctl is-active rescue.target") == 0;
-	if (inRescueMode) {
-		/* Check if eth0 is up */
-		FILE *fp = fopen("/sys/class/net/eth0/operstate", "r");
-		char buf[16] = {'\0'};
-		if (fp) {
-			fgets(buf, sizeof(buf), fp);
-			fclose(fp);
-		}
+	if (inRescueMode && !checkForNetwork()) {
 		/* If the link is not up, start dhclient to bring it up */
-		if (strncmp(buf, "up", 2) != 0) system("dhclient -nw eth0");
+		dhclient = new QProcess(this);
+		connect(dhclient, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(dhclientFinished(int, QProcess::ExitStatus)));
+		connect(dhclient, SIGNAL(error(QProcess::ProcessError)), this, SLOT(dhclientError(QProcess::ProcessError)));
+		dhclient->start("dhclient", QStringList("eth0"), QProcess::ReadOnly);
 	}
-
 	/* Run a timer to scan the media devices for updates. */
 	mediaTimer = new QTimer(this);
 	connect(mediaTimer, SIGNAL(timeout()), this, SLOT(checkForMedia()));
@@ -114,6 +109,17 @@ UpdateWindow::~UpdateWindow()
 	delete ui;
 }
 
+bool UpdateWindow::checkForNetwork()
+{
+	/* Check if eth0 is up */
+	FILE *fp = fopen("/sys/class/net/eth0/operstate", "r");
+	char buf[16] = {'\0'};
+	if (!fp) false;
+	fgets(buf, sizeof(buf), fp);
+	fclose(fp);
+	return strncmp(buf, "up", 2) == 0;
+}
+
 void UpdateWindow::checkForMedia()
 {
 	FILE* mtab = setmntent("/etc/mtab", "r");
@@ -161,6 +167,11 @@ void UpdateWindow::checkForMedia()
 
 	ui->comboMedia->setEnabled(ui->comboMedia->count() > 0);
 	ui->cmdApplyMedia->setEnabled(ui->comboMedia->count() > 0);
+
+	/* Check for network link (excluding recovery mode, which uses dhclient) */
+	if (!inRescueMode) {
+		ui->cmdApplyNetwork->setEnabled(checkForNetwork());
+	}
 }
 
 void UpdateWindow::updateClosed()
@@ -225,7 +236,12 @@ void UpdateWindow::on_cmdQuit_clicked()
 {
 	int index = ui->comboGui->currentIndex();
 	if (inRescueMode) {
-		system("shutdown -hr now");
+		/*
+		 * What is the *appropriate* way to exit rescue mode?
+		 * Attempting to reboot the system just results in the
+		 * system hanging on the recovery shell.
+		 */
+		system("killall -HUP sulogin");
 	}
 	else if (index == 1) {
 		system("service chronos-gui start");
@@ -249,6 +265,18 @@ void UpdateWindow::finished(int code, QProcess::ExitStatus status)
 void UpdateWindow::error(QProcess::ProcessError err)
 {
 	qDebug("apt check failed: %d", err);
+}
+
+void UpdateWindow::dhclientFinished(int code, QProcess::ExitStatus status)
+{
+	if ((status == QProcess::NormalExit) && (code == 0)) {
+		ui->cmdApplyNetwork->setEnabled(true);
+	}
+}
+
+void UpdateWindow::dhclientError(QProcess::ProcessError err)
+{
+	qDebug("dhclient failed: %d", err);
 }
 
 void UpdateWindow::readyReadStandardOutput()

@@ -43,6 +43,7 @@ private:
 	unsigned int repoCount;
 	unsigned int packageCount;
 	unsigned int downloadCount;
+	unsigned int downloadFail;
 	enum NetworkUpdateStates state;
 
 	virtual void handleStdout(QString msg);

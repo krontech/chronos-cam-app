@@ -35,6 +35,7 @@ NetworkUpdate::NetworkUpdate(QWidget *parent) : UpdateProgress(parent)
 	userReply = 0;
 	repoCount = 0;
 	packageCount = 0;
+	downloadFail = 0;
 	state = NETWORK_COUNT_REPOS;
 }
 
@@ -97,7 +98,13 @@ void NetworkUpdate::finished(int code, QProcess::ExitStatus status)
 		case NETWORK_UPDATE_LISTS:{
 			/* Ensure that the chronos-essential metapackage is installed. */
 			const char *checkpkg = "dpkg-query --show --showformat=\'${db:Status-Status}\n\' chronos-essential | grep ^installed";
-			if (system(checkpkg) == 0) {
+			if (downloadFail) {
+				QString prompt = QString("Failed to donwload package lists, please check internet connectivity");
+				userReply = QMessageBox::warning(this, "apt update", prompt, QMessageBox::Ok);
+				close();
+				return;
+			}
+			else if (system(checkpkg) == 0) {
 				/* Perform a dry-run to calculate the dist-upgrade. */
 				ui->progress->setValue(0);
 				ui->progress->setMaximum(100); /* Just a random guess for now... */
@@ -204,6 +211,10 @@ void NetworkUpdate::handleStdout(QString msg)
 		QString first = msg.section(QRegExp("[:\\s]+"), 0, 0);
 		if ((first == "Get") || (first == "Hit") || (first == "Ign")) {
 			stepProgress();
+		}
+		else if (first == "Err") {
+			stepProgress();
+			downloadFail++;
 		}
 		else if ((first == "Fetched") || (first == "Reading")) {
 			stepProgress();
