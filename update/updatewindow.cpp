@@ -87,25 +87,12 @@ UpdateWindow::UpdateWindow(QWidget *parent) :
 		}
 		releaseFile.close();
 	}
-
-	aptCheck = new QProcess(this);
-	connect(aptCheck, SIGNAL(started()), this, SLOT(started()));
-	connect(aptCheck, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(finished(int, QProcess::ExitStatus)));
-	connect(aptCheck, SIGNAL(error(QProcess::ProcessError)), this, SLOT(error(QProcess::ProcessError)));
-	connect(aptCheck, SIGNAL(readyReadStandardOutput()), this, SLOT(readyReadStandardOutput()));
-
-	/* Start a process to get the number of packages known for update. */
-	QStringList aptCheckArgs = {
-		"list", "--upgradable"
-	};
-	aptUpdateCount = 0;
-	aptCheck->start("apt", aptCheckArgs, QProcess::ReadOnly);
 }
 
 UpdateWindow::~UpdateWindow()
 {
+	if (inRescueMode) delete dhclient;
 	delete mediaTimer;
-	delete aptCheck;
 	delete ui;
 }
 
@@ -252,21 +239,6 @@ void UpdateWindow::on_cmdQuit_clicked()
 	QApplication::quit();
 }
 
-void UpdateWindow::started()
-{
-	qDebug("apt check started");
-}
-
-void UpdateWindow::finished(int code, QProcess::ExitStatus status)
-{
-	qDebug("apt check finished: %d", code);
-}
-
-void UpdateWindow::error(QProcess::ProcessError err)
-{
-	qDebug("apt check failed: %d", err);
-}
-
 void UpdateWindow::dhclientFinished(int code, QProcess::ExitStatus status)
 {
 	if ((status == QProcess::NormalExit) && (code == 0)) {
@@ -277,21 +249,4 @@ void UpdateWindow::dhclientFinished(int code, QProcess::ExitStatus status)
 void UpdateWindow::dhclientError(QProcess::ProcessError err)
 {
 	qDebug("dhclient failed: %d", err);
-}
-
-void UpdateWindow::readyReadStandardOutput()
-{
-	QString msg;
-	char buf[1024];
-	qint64 len;
-
-	aptCheck->setReadChannel(QProcess::StandardOutput);
-	len = aptCheck->readLine(buf, sizeof(buf));
-	if (len < 0) {
-		return;
-	}
-	msg = QString(buf).trimmed();
-
-	if (msg.contains("upgradable")) aptUpdateCount++;
-	qDebug() << "apt:" << msg;
 }

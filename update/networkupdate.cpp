@@ -231,15 +231,33 @@ void NetworkUpdate::handleStdout(QString msg)
 			downloadCount++;
 		}
 		else {
+			/* Parse the summary line to determine how many packages will be changed */
+			/* Format: %d upgraded, %d newly installed, %d to remove and %d not upgraded */
 			/* Look for the size of the calculated upgrade. */
-			QStringList list = msg.split(",");
-			QString::SectionFlags flags = QString::SectionSkipEmpty;
-			if (list.count() < 3) return;
+			QRegExp re("(\\d+)\\s+[,a-z\\s]+");
+			int pos = re.indexIn(msg);
+			QStringList list = re.capturedTexts();
+			unsigned int numUpgrade;
+			unsigned int numInstall;
+			unsigned int numRemove;
 
-			packageCount = list[0].section(whitespace, 0, 0, flags).toUInt();  /* %d upgraded */
-			packageCount += list[1].section(whitespace, 0, 0, flags).toUInt(); /* %d newly installed */
-			packageCount += list[2].section(whitespace, 0, 0, flags).toUInt(); /* %d to remove */
-			/* and %d not upgraded */
+			/* %d upgraded */
+			if (pos != 0) return;
+			numUpgrade = list[1].toUInt();
+			pos = re.indexIn(msg, pos + list[0].length());
+
+			/* %d newly installed */
+			if (pos < 0) return;
+			list = re.capturedTexts();
+			numInstall = list[1].toUInt();
+			pos = re.indexIn(msg, pos + list[0].length());
+
+			/* %d to remove */
+			if (pos < 0) return;
+			list = re.capturedTexts();
+			numRemove = list[1].toUInt();
+
+			packageCount = numUpgrade + numInstall + numRemove;
 		}
 	}
 	else if ((state == NETWORK_INSTALL_UPGRADE) || (state == NETWORK_INSTALL_METAPACKAGE)) {
