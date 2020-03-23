@@ -20,5 +20,7 @@
 #include <QWidget>
 
 void recenterWidget(QWidget *w);
+void startEncoder(void);
+void stopEncoder(void);
 
 #endif /* UTILS_H */

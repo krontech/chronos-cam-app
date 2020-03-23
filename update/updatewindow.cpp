@@ -87,10 +87,14 @@ UpdateWindow::UpdateWindow(QWidget *parent) :
 		}
 		releaseFile.close();
 	}
+
+	/* Launch a thread to handle inputs from the encoder wheel. */
+	startEncoder();
 }
 
 UpdateWindow::~UpdateWindow()
 {
+	stopEncoder();
 	if (inRescueMode) delete dhclient;
 	delete mediaTimer;
 	delete ui;
