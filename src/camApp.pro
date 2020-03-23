@@ -170,4 +170,5 @@ DISTFILES += \
     data/newstylesheet.qss \
     data/lightstylesheet.qss \
     lightstylesheet.qss \
-    darkstylesheet.qss
+    darkstylesheet.qss \
+    light3stylesheet.qss

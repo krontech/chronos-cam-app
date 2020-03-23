@@ -18,5 +18,6 @@
         <file>assets/images/wedge-down-enabled-black.png</file>
         <file>darkstylesheet.qss</file>
         <file>assets/images/handle-bars-light-61x156+40.png</file>
+        <file>light3stylesheet.qss</file>
     </qresource>
 </RCC>

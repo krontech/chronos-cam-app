@@ -138,12 +138,24 @@ int main(int argc, char *argv[])
         //a.setStyleSheet(sheet);
         //fStyle.close();
     //}
-    QFile styleFile(":/qss/lightstylesheet.qss"); //":/qss/lightstylesheet.qss"
-    styleFile.open(QFile::ReadOnly);
+/*
+    if (1)
+    {
+        QFile styleFile(":/qss/darkstylesheet.qss");
+        styleFile.open(QFile::ReadOnly);
 
-    QString style(styleFile.readAll());
-    a.setStyleSheet(style);
+        QString style(styleFile.readAll());
+        a.setStyleSheet(style);
+    }
+    else
+    {
+        QFile styleFile(":/qss/lightstylesheet.qss");
+        styleFile.open(QFile::ReadOnly);
 
+        QString style(styleFile.readAll());
+        a.setStyleSheet(style);
+    }
+*/
 	//Disable stdout buffering so prints work rather than just filling the buffer.
 //	setbuf(stdout, NULL);
 	

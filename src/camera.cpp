@@ -50,6 +50,9 @@ Camera::Camera()
 	recordingData.hasBeenSaved = true;
 	recordingData.hasBeenViewed = true;
 	unsavedWarnEnabled = getUnsavedWarnEnable();
+
+    guiMode = getGUIMode();
+
 	autoSave = appSettings.value("camera/autoSave", 0).toBool();
 	autoRecord = appSettings.value("camera/autoRecord", 0).toBool();
 	ButtonsOnLeft = getButtonsOnLeft();
@@ -169,6 +172,9 @@ CameraErrortype Camera::init(Video * vinstInst, Control * cinstInst)
 	{
 		setFocusPeakColor(2);	//set to cyan, if starts out set to black
 	}
+
+    int guiMode = getGUIMode();
+
 	return SUCCESS;
 }
 
@@ -635,9 +641,17 @@ void Camera::setAutoPowerMode(int newSetting)
 	cinst->setPropertyGroup(values);
 }
 
-void Camera::getGUIMode(void)
+int Camera::getGUIMode(void)
 {
+    QSettings appSettings;
+    return appSettings.value("camera/guiMode", 1).toInt();
+}
 
+void Camera::setGUIMode(int newSetting)
+{
+    QSettings appSettings;
+    guiMode = newSetting;
+    appSettings.setValue("camera/guiMode", newSetting);
 }
 
 void Camera::set_autoSave(bool state) {

@@ -1965,7 +1965,7 @@ Number</string>
      <property name="geometry">
       <rect>
        <x>410</x>
-       <y>80</y>
+       <y>90</y>
        <width>281</width>
        <height>41</height>
       </rect>
@@ -2030,7 +2030,7 @@ Calibration Data
      <property name="geometry">
       <rect>
        <x>410</x>
-       <y>30</y>
+       <y>40</y>
        <width>201</width>
        <height>41</height>
       </rect>
@@ -2085,7 +2085,7 @@ Calibration Data
      <property name="geometry">
       <rect>
        <x>410</x>
-       <y>130</y>
+       <y>140</y>
        <width>251</width>
        <height>41</height>
       </rect>

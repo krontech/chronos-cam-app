@@ -77,9 +77,7 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	ui->setupUi(this);
 	this->setWindowFlags(Qt::Dialog | Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
 	this->move(0,0);
-
 	camera = cameraInst;
-
 	settingClock = false;
 	ui->dateTimeEdit->setDateTime(QDateTime::currentDateTime());
 	timer = new QTimer(this);
@@ -97,6 +95,10 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	ui->comboFPColor->addItem("Magenta");
 	ui->comboFPColor->addItem("Yellow");
 	ui->comboFPColor->addItem("White");
+
+    ui->comboMode->addItem("Light");
+    ui->comboMode->addItem("Dark");
+
 	ui->comboFPColor->setCurrentIndex(camera->getFocusPeakColor() - 1);
 	ui->chkZebraEnable->setChecked(camera->getZebraEnable());
 	ui->chkShippingMode->setChecked(camera->cinst->getProperty("shippingMode", false).toBool());
@@ -1265,7 +1267,7 @@ void UtilWindow::on_comboAutoPowerMode_currentIndexChanged(int index)
 
 void UtilWindow::on_comboMode_currentIndexChanged(int index)
 {
-    if (!openingWindow) camera->setGUIMode(index);
+    camera->setGUIMode(index);
 }
 
 void UtilWindow::on_tabWidget_currentChanged(int index)

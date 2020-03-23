@@ -105,6 +105,8 @@ private slots:
 
 	void on_comboAutoPowerMode_currentIndexChanged(int index);
 
+    void on_comboMode_currentIndexChanged(int index);
+
 	void on_chkFanDisable_stateChanged(int arg1);
 
 	void on_cmdClose_2_clicked();

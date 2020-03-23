@@ -42,7 +42,6 @@ MainWindow::MainWindow(QWidget *parent) :
 	ui(new Ui::MainWindow)
 {
 	ui->setupUi(this);
-    this->setStyleSheet("backgroud-color: #333");
 }
 
 MainWindow::~MainWindow()

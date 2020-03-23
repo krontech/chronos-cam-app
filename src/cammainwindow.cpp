@@ -64,6 +64,23 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	interface = new UserInterface();
 	prompt = NULL;
 
+    if (camera->guiMode == 1)
+    {
+        QFile styleFile(":/qss/darkstylesheet.qss");
+        styleFile.open(QFile::ReadOnly);
+
+        QString style(styleFile.readAll());
+        this->setStyleSheet(style);
+    }
+    else
+    {
+        QFile styleFile(":/qss/lightstylesheet.qss");
+        styleFile.open(QFile::ReadOnly);
+
+        QString style(styleFile.readAll());
+        this->setStyleSheet(style);
+    }
+
 	//loop until control dBus is ready
 	UInt32 mem;
 	while (cinst->getInt("cameraMemoryGB", &mem))
