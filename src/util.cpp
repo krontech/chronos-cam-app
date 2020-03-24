@@ -131,7 +131,7 @@ QString buildSambaString()
 	QSettings appSettings;
 	QString mountString = "mount -t cifs -o ";
 
-	mountString.append("user=" + appSettings.value("network/smbUser", "").toString());
+	mountString.append("username=" + appSettings.value("network/smbUser", "").toString());
 	mountString.append(",password=" + appSettings.value("network/smbPassword", "").toString());
 	mountString.append(",noserverino ");
 	mountString.append(appSettings.value("network/smbShare", "").toString() + " " + SMB_STORAGE_MOUNT);
