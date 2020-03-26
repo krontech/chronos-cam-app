@@ -72,7 +72,7 @@ saveSettingsWindow::saveSettingsWindow(QWidget *parent, Camera * camInst) :
 		ui->lineFilename->setText(USE_AUTONAME_FOR_SAVE);
 	}
 	
-	refreshDriveList();
+	updateDrives();
 
 	ui->comboProfile->clear();
 	ui->comboProfile->addItem("Base");
@@ -137,7 +137,6 @@ saveSettingsWindow::saveSettingsWindow(QWidget *parent, Camera * camInst) :
 		ui->spinMaxBitrate->setEnabled(false);
 	}
 
-	driveCount = 0;
 	timer = new QTimer(this);
 	connect(timer, SIGNAL(timeout()), this, SLOT(updateDrives()));
 	timer->start(1000);
@@ -168,23 +167,21 @@ void saveSettingsWindow::on_cmdClose_clicked()
 	close();
 }
 
-void saveSettingsWindow::saveFileDirectory(){
-	//Keep the beginning of the combo box text (the path)
-	char str[100];
+void saveSettingsWindow::saveFileDirectory()
+{
+	int index = ui->comboDrive->currentIndex();
+	QSettings settings;
 	const char * path;
 
-	if(ui->comboDrive->isEnabled())
-	{
-		strcpy(str, ui->comboDrive->currentText().toStdString().c_str());
-
-		//Keep only the part before the first space (the actual path)
-		path = strtok(str, " ");
+	if(ui->comboDrive->isEnabled() && (index >= 0)) {
+		path = ui->comboDrive->itemData(index).toString().toAscii().constData();
 	}
-	else	//No valid paths available
+	else {
+		//No valid paths selected
 		path = "";
+	}
 
 	strcpy(camera->cinst->fileDirectory, path);
-	QSettings settings;
 	settings.setValue("recorder/fileDirectory", camera->cinst->fileDirectory);
 	settings.setValue("recorder/fileFolder", camera->cinst->fileFolder);
 }
@@ -205,146 +202,13 @@ void saveSettingsWindow::on_cmdUMount_clicked()
 		msg.exec();
 	}
 
-	refreshDriveList();
+	updateDrives();
 }
 
-//Find all mounted drives and populate the drive comboBox
-void saveSettingsWindow::refreshDriveList()
-{
-	QSettings settings;
-	FILE * fp;
-	FILE * mtab = setmntent("/etc/mtab", "r");
-	struct mntent* m;
-	struct mntent mnt;
-	char strings[4096];		//Temp buffer used by mntent
-	char model[256];		//Stores model name of sd* device
-	char vendor[256];		//Stores vendor of sd* device
-	char drive[1024];		//Stores string to be placed in combo box
-	UInt32 len;
-	bool setDefault = true;	//Revert to defaults if the prevDirectory was not found.
-	QString prevDirectory = settings.value("recorder/fileDirectory", QString(camera->cinst->fileDirectory)).toString();
-
-	okToSaveLocation = false;//prevent saving a new value while drive list is being updated
-	ui->comboDrive->clear();
-
-	//Check for mounted network shares shares
-	if (path_is_mounted(SMB_STORAGE_MOUNT)) {
-		ui->comboDrive->addItem(QString(SMB_STORAGE_MOUNT) + " (SMB share)");
-	}
-	if (path_is_mounted(NFS_STORAGE_MOUNT)) {
-		ui->comboDrive->addItem(QString(NFS_STORAGE_MOUNT) + " (NFS share)");
-	}
-
-	//Check for mounted local disks.
-	while ((m = getmntent_r(mtab, &mnt, strings, sizeof(strings))))
-	{
-		struct statfs fs;
-		if ((mnt.mnt_dir != NULL) && (statfs(mnt.mnt_dir, &fs) == 0))
-		{
-			ui->comboDrive->setEnabled(true);
-
-			//Find only SATA drives, SD cards, and USB drives.
-			if(strstr(mnt.mnt_dir, "/media/mmcblk1") ||
-					strstr(mnt.mnt_dir, "/media/sd"))
-			{
-				if(strstr(mnt.mnt_dir, "/media/sd"))
-				{	//If this is not an SD card (ie a "sd*") type, get the
-					char * mountPoint = mnt.mnt_dir + 7;	//Get the mounted name eg "sda1"
-					Int32 part;
-					char device[10];
-					strncpy(device, mountPoint, 3);		//keep only the "sda" (discard any numbers such as "sda1"
-					device[3] = '\0';					//Add null terminator
-					char modelPath[256];
-					char vendorPath[256];
-
-					//If there's a number following the block name, that's our partition number
-					if(*(mountPoint+3))
-						part = atoi(mountPoint + 3);
-					else
-						part = 1;
-
-					//Produce the paths to read the model and vendor strings
-					sprintf(modelPath, "/sys/block/%s/device/model", device);
-					sprintf(vendorPath, "/sys/block/%s/device/vendor", device);
-
-					//Read the model and vendor strings for this block device
-					fp = fopen(modelPath, "r");
-					if(fp)
-					{
-						len = fread(model, 1, 255, fp);
-						model[len] = '\0';
-						fclose(fp);
-					}
-					else
-						strcpy(model, "???");
-
-					fp = fopen(vendorPath, "r");
-					if(fp)
-					{
-						len = fread(vendor, 1, 255, fp);
-						vendor[len] = '\0';
-						fclose(fp);
-					}
-					else
-						strcpy(vendor, "???");
-
-					//remove all trailing whitespace and carrage returns
-					int i;
-					for(i = strlen(vendor) - 1; ' ' == vendor[i] || '\n' == vendor[i]; i--) {};	//Search back from the end and put a null at the first trailing space
-					vendor[i + 1] = '\0';
-
-					for(i = strlen(model) - 1; ' ' == model[i] || '\n' == model[i]; i--) {};	//Search back from the end and put a null at the first trailing space
-					model[i + 1] = '\0';
-
-					sprintf(drive, "%s (%s %s Partition %d)", mnt.mnt_dir, vendor, model, part);
-				}
-				else
-				{
-					Int32 part;
-
-					//If there's a number following the block name, that's our partition number
-					if(*(mnt.mnt_dir + 15))		//Find the first character after "/media/mmcblk1p"
-						part = atoi(mnt.mnt_dir + 15);
-					else
-						part = 1;
-					sprintf(drive, "%s (SD Card Partition %d)", mnt.mnt_dir, part);
-
-				}
-
-				ui->comboDrive->addItem(drive);
-
-				// If this drive matches the previous selection, select it.
-				if (strcmp(mnt.mnt_dir, prevDirectory.toAscii().data()) == 0) {
-					ui->comboDrive->setCurrentIndex(ui->comboDrive->count() - 1);
-					setDefault = false;
-				}
-
-				unsigned long long int size = fs.f_blocks * fs.f_bsize;
-				unsigned long long int free = fs.f_bfree * fs.f_bsize;
-				unsigned long long int avail = fs.f_bavail * fs.f_bsize;
-				printf("%s %s size=%lld free=%lld avail=%lld\n",
-				mnt.mnt_fsname, mnt.mnt_dir, size, free, avail);
-			}
-		}
-	}
-
-	endmntent(mtab);
-
-	if(ui->comboDrive->count() == 0)
-	{
-		ui->comboDrive->addItem("No storage devices detected");
-		ui->comboDrive->setEnabled(false);
-	}
-	else if (setDefault) {
-		ui->comboDrive->setCurrentIndex(0);
-		saveFileDirectory();
-	}
-	okToSaveLocation = true;
-}
 
 void saveSettingsWindow::on_cmdRefresh_clicked()
 {
-	refreshDriveList();
+	updateDrives();
 }
 
 /* Compute the bitrate for the saved file. */
@@ -401,34 +265,13 @@ void saveSettingsWindow::on_spinFramerate_valueChanged(int arg1)
 //Called by timer
 void saveSettingsWindow::updateDrives(void)
 {
-	FILE* mtab = setmntent("/etc/mtab", "r");
-	struct mntent* m;
-	struct mntent mnt;
-	char strings[4096];
-	UInt32 newDriveCount = 0;
-
-	while ((m = getmntent_r(mtab, &mnt, strings, sizeof(strings))))
-	{
-		struct statfs fs;
-		if ((mnt.mnt_dir != NULL) && (statfs(mnt.mnt_dir, &fs) == 0))
-		{
-			//Find only drives that are SD card or USB drives
-			if(strstr(mnt.mnt_dir, "/media/mmcblk1") ||
-					strstr(mnt.mnt_dir, "/media/sd"))
-			{
-				newDriveCount++;
-			}
-		}
+	QSettings settings;
+	QString selection = settings.value("recorder/fileDirectory", camera->cinst->fileDirectory).toString();
+	okToSaveLocation = false;
+	if (refreshDriveList(ui->comboDrive, selection)) {
+		saveFileDirectory();
 	}
-
-	endmntent(mtab);
-
-	if(newDriveCount != driveCount)
-		refreshDriveList();
-
-	driveCount = newDriveCount;
-
-
+	okToSaveLocation = true;
 }
 
 void saveSettingsWindow::on_lineFilename_textEdited(const QString &arg1)

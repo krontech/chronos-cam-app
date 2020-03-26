@@ -151,24 +151,20 @@ private slots:
 	void on_lineStaticGwPart4_editingFinished();
 	void on_chkUiOnLeft_clicked();
 
-	void updateDrives();
-
 private:
 	Ui::UtilWindow *ui;
 	Camera * camera;
 	QTimer * timer;
-	QTimer * liveRecPathTimer;
 	QIntValidator ipValidator;
 	bool settingClock;
 	bool openingWindow;
 	bool lineSmbPassword_wasEdited;
 	bool okToSaveLocation = false;
-	UInt32 driveCount;
 
 	void formatStorageDevice(const char *blkdev);
 	void statErrorMessage();
-	void refreshDriveList();
 	void saveFileDirectory();
+	void updateDrives();
 
 	void ipChunkChanged(QLineEdit *edit);
 };

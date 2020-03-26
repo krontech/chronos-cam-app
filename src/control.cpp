@@ -549,7 +549,7 @@ Control::Control() : iface("ca.krontech.chronos.control", "/ca/krontech/chronos/
 	// Set the default file path, or fall back to the MMC card.
 	for (i = 1; i <= 3; i++) {
 		sprintf(fileDirectory, "/media/sda%d", i);
-		if (path_is_mounted(fileDirectory)) {
+		if (pathIsMounted(fileDirectory)) {
 			break;
 		}
 	}

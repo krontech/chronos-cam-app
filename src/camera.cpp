@@ -116,7 +116,7 @@ CameraErrortype Camera::init(Video * vinstInst, Control * cinstInst)
 		bool fileDirFoundOnUSB = false;
 		for (i = 1; i <= 3; i++) {
 			sprintf(cinst->fileDirectory, "/media/sda%d", i);
-			if (path_is_mounted(cinst->fileDirectory)) {
+			if (pathIsMounted(cinst->fileDirectory)) {
 				fileDirFoundOnUSB = true;
 				break;
 			}
