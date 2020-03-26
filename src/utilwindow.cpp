@@ -393,8 +393,10 @@ void UtilWindow::onUtilWindowTimer()
 	}
 	/* If on the network tab, update the interface and network status. */
 	if (ui->tabWidget->currentWidget()  == ui->tabNetwork) {
+		QRegExp reInetAddr("(inet[6\\s]+addr:\\s*[0-9a-fA-F.:/]*)");
 		QString netText = runCommand("ifconfig eth0");
-		ui->lblNetStatus->setText(netText);
+		ui->lblNetStatus->setTextFormat(Qt::RichText);
+		ui->lblNetStatus->setText("<pre>" + netText.replace(reInetAddr, "<b>\\1</b>") + "</pre>");
 	}
 	/* Of on the about tab, update the temperature and battery voltage. */
 	if (ui->tabWidget->currentWidget() == ui->tabAbout) {
