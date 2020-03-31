@@ -130,6 +130,8 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	cinst->listen("state", this, SLOT(on_state_valueChanged(const QVariant &)));
 	cinst->listen("videoState", this, SLOT(on_videoState_valueChanged(const QVariant &)));
 	cinst->listen("exposurePeriod", this, SLOT(on_exposurePeriod_valueChanged(const QVariant &)));
+	cinst->listen("exposureMin", this, SLOT(on_exposureMin_valueChanged(const QVariant &)));
+	cinst->listen("exposureMax", this, SLOT(on_exposureMax_valueChanged(const QVariant &)));
 	cinst->listen("focusPeakingLevel", this, SLOT(on_focusPeakingLevel_valueChanged(const QVariant &)));
 
 	cinst->getArray("colorMatrix", 9, (double *)&camera->colorCalMatrix);
@@ -156,6 +158,20 @@ void CamMainWindow::on_exposurePeriod_valueChanged(const QVariant &value)
 {
 	apiUpdate = true;
 	ui->expSlider->setValue(value.toInt());
+	apiUpdate = false;
+}
+
+void CamMainWindow::on_exposureMax_valueChanged(const QVariant &value)
+{
+	apiUpdate = true;
+	ui->expSlider->setMaximum(value.toInt());
+	apiUpdate = false;
+}
+
+void CamMainWindow::on_exposureMin_valueChanged(const QVariant &value)
+{
+	apiUpdate = true;
+	ui->expSlider->setMinimum(value.toInt());
 	apiUpdate = false;
 }
 

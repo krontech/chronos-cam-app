@@ -86,6 +86,8 @@ private slots:
 	void on_state_valueChanged(const QVariant &value);
 	void on_videoState_valueChanged(const QVariant &value);
 	void on_exposurePeriod_valueChanged(const QVariant &value);
+	void on_exposureMax_valueChanged(const QVariant &value);
+	void on_exposureMin_valueChanged(const QVariant &value);
 	void on_focusPeakingLevel_valueChanged(const QVariant &value);
 
 	void buttonsEnabled(bool en);
