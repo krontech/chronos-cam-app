@@ -638,22 +638,31 @@ void CamMainWindow::updateBatteryData()
 //Update the status textbox with the current settings
 void CamMainWindow::updateCurrentSettingsLabel()
 {
+	QSettings appSettings;
 	UInt32 clock = camera->getSensorInfo().timingClock;
 
 	camera->cinst->getImagerSettings(&is);
 
 	double framePeriod = (double)is.period / clock;
 	double expPeriod = (double)is.exposure / clock;
-	int shutterAngle = (expPeriod * 360.0) / framePeriod;
 
 	char str[300];
 	char battStr[50];
 	char fpsString[30];
 	char expString[30];
+	char shString[30];
 
 	sprintf(fpsString, QString::number(1 / framePeriod).toAscii());
 	getSIText(expString, expPeriod, 4, DEF_SI_OPTS, 10);
-	shutterAngle = max(shutterAngle, 1); //to prevent 0 degrees from showing on the label if the current exposure is less than 1/360'th of the frame period.
+	if (appSettings.value("camera/fractionalExposure", false).toBool()) {
+		/* Show secondary exposure period as fractional time. */
+		strcpy(shString, "1/");
+		getSIText(shString+2, 1/expPeriod, 4, 0 /* no flags */, 0);
+	} else {
+		/* Show secondary exposure period as shutter angle. */
+		int shutterAngle = (expPeriod * 360.0) / framePeriod;
+		sprintf(shString, "%u\xb0", max(shutterAngle, 1)); /* Round up if less than zero degrees. */
+	}
 
 	if(batteryPresent)	//If battery present
 	{
@@ -664,7 +673,7 @@ void CamMainWindow::updateCurrentSettingsLabel()
 		sprintf(battStr, "No Batt");
 	}
 
-	sprintf(str, "%s\r\n%ux%u %sfps\r\nExp %ss (%u\xb0)", battStr, is.geometry.hRes, is.geometry.vRes, fpsString, expString, shutterAngle);
+	sprintf(str, "%s\r\n%ux%u %sfps\r\nExp %ss (%s)", battStr, is.geometry.hRes, is.geometry.vRes, fpsString, expString, shString);
 	ui->lblCurrent->setText(str);
 }
 
