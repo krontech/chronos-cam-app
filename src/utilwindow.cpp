@@ -34,6 +34,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/mount.h>
+#include <sys/vfs.h>
 #include <sys/sendfile.h>
 #include <mntent.h>
 #include <sys/statvfs.h>
@@ -185,6 +186,7 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 
 	ui->chkAutoSave->setChecked(camera->get_autoSave());
 	ui->chkAutoRecord->setChecked(camera->get_autoRecord());
+	ui->chkLiveRecord->setChecked(camera->get_liveRecord());
 	ui->chkDemoMode->setChecked(camera->get_demoMode());
 	ui->chkUiOnLeft->setChecked(camera->getButtonsOnLeft());
 
@@ -203,7 +205,6 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
     //Set QListView to change items in the combo box with qss
     ui->comboMode->setView(new QListView);
     ui->comboMode->view()->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-
 
 	/* Load the Samba network settings. */
 	ui->lineSmbUser->setText(appSettings.value("network/smbUser", "").toString());
@@ -263,8 +264,6 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	ui->lineStaticGwPart4->setValidator(&ipValidator);
 
 	openingWindow = false;
-
-	//ui->chkShowDebugControls->setChecked(!(appSettings.value("debug/hideDebug", true).toBool()));
 }
 
 UtilWindow::~UtilWindow()
@@ -381,6 +380,10 @@ void UtilWindow::onUtilWindowTimer()
 			ui->dateTimeEdit->setDateTime(QDateTime::currentDateTime());
 	}
 
+	/* If on the main tab, update the live record drive list */
+	if (ui->tabWidget->currentWidget() == ui->tabMain) {
+		updateDrives();
+	}
 	/* If on the storage tab, update the drive and network status. */
 	if (ui->tabWidget->currentWidget() == ui->tabStorage) {
 		struct stat st;
@@ -414,8 +417,10 @@ void UtilWindow::onUtilWindowTimer()
 	}
 	/* If on the network tab, update the interface and network status. */
 	if (ui->tabWidget->currentWidget()  == ui->tabNetwork) {
+		QRegExp reInetAddr("(inet[6\\s]+addr:\\s*[0-9a-fA-F.:/]*)");
 		QString netText = runCommand("ifconfig eth0");
-		ui->lblNetStatus->setText(netText);
+		ui->lblNetStatus->setTextFormat(Qt::RichText);
+		ui->lblNetStatus->setText("<pre>" + netText.replace(reInetAddr, "<b>\\1</b>") + "</pre>");
 	}
 	/* Of on the about tab, update the temperature and battery voltage. */
 	if (ui->tabWidget->currentWidget() == ui->tabAbout) {
@@ -1034,6 +1039,42 @@ void UtilWindow::on_chkShippingMode_clicked()
 	camera->cinst->setBool("shippingMode", state);
 }
 
+void UtilWindow::saveFileDirectory()
+{
+	int index = ui->liveRecordComboBox->currentIndex();
+	QSettings settings;
+	const char * path;
+
+	if(ui->liveRecordComboBox->isEnabled() && (index >= 0)) {
+		path = ui->liveRecordComboBox->itemData(index).toString().toAscii().constData();
+	}
+	else {
+		//No valid paths available
+		path = "";
+	}
+
+	strcpy(camera->vinst->liveRecFileDirectory, path);
+	settings.setValue("recorder/liveRecFileDirectory", camera->vinst->liveRecFileDirectory);
+}
+
+//When the number of drives connected changes, refresh the drive list
+void UtilWindow::updateDrives(void)
+{
+	QSettings settings;
+	QString selection = settings.value("recorder/liveRecFileDirectory", camera->vinst->liveRecFileDirectory).toString();
+	okToSaveLocation = false;
+	if (refreshDriveList(ui->liveRecordComboBox, selection)) {
+		saveFileDirectory();
+	}
+	okToSaveLocation = true;
+}
+
+
+void UtilWindow::on_chkLiveRecord_stateChanged(int arg1)
+{
+	camera->set_liveRecord(ui->chkLiveRecord->isChecked());
+}
+
 void UtilWindow::on_cmdDefaults_clicked()
 {
 	QMessageBox::StandardButton reply;
@@ -1394,7 +1435,7 @@ void UtilWindow::on_cmdSmbTest_clicked()
 						QMessageBox::Ok, this, Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint);
 	prompt.show();
 
-	if (path_is_mounted(SMB_STORAGE_MOUNT))
+	if (pathIsMounted(SMB_STORAGE_MOUNT))
 	{
 		QString mountPoint = SMB_STORAGE_MOUNT;
 		QString mountFile = mountPoint + "/text.txt";
@@ -1491,7 +1532,7 @@ void UtilWindow::on_cmdNfsTest_clicked()
 						QMessageBox::Ok, this, Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint);
 	prompt.show();
 
-	if (path_is_mounted(NFS_STORAGE_MOUNT)) {
+	if (pathIsMounted(NFS_STORAGE_MOUNT)) {
 		QString mountFile = QString(NFS_STORAGE_MOUNT) + "/testfile";
 		QFile file(mountFile);
 		if (file.open(QFile::WriteOnly))
@@ -1721,3 +1762,13 @@ void UtilWindow::on_cmdNetListConnections_clicked()
 	}
 }
 #endif
+
+void UtilWindow::on_chkUiOnLeft_clicked()
+{
+
+}
+
+void UtilWindow::on_liveRecordComboBox_currentIndexChanged(const QString &arg1)
+{
+	if(okToSaveLocation) saveFileDirectory();
+}

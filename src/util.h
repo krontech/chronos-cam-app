@@ -18,6 +18,7 @@
 #define UTIL_H
 
 #include <QString>
+#include <QComboBox>
 
 
 void delayms(int ms);
@@ -32,7 +33,7 @@ void delayms_events(int ms);
 
 bool checkAndCreateDir(const char * dir);
 
-int path_is_mounted(const char *path);
+bool pathIsMounted(const char *path);
 
 QString runCommand(QString command, int *status = NULL);
 void runBackground(const char *command);
@@ -41,5 +42,12 @@ QString buildSambaString();
 QString buildNfsString();
 bool isReachable(QString address);
 bool isExportingNfs(QString camIpAddress);
+
+/* Scan the mounted devices for media devices which we can save
+ * to and update the QComboBox with our findings. We can pass in
+ * a selected drive to be the default. This will return true if
+ * the selected drive changes, and false otherwise.
+ */
+bool refreshDriveList(QComboBox *combo, QString selection = QString());
 
 #endif // UTIL_H

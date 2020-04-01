@@ -109,8 +109,15 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 		msg.setText(errText);
 		msg.exec();
 	}
-	ui->cmdWB->setEnabled(camera->getIsColor());
 	ui->chkFocusAid->setChecked(camera->getFocusPeakEnable());
+
+	/* Get the initial white balance */
+	if (camera->getIsColor()) {
+		ui->cmdWB->setEnabled(true);
+		on_wbTemperature_valueChanged(camera->cinst->getProperty("wbTemperature"));
+	} else {
+		ui->cmdWB->setEnabled(false);
+	}
 
 	sw = new StatusWindow;
 
@@ -149,7 +156,10 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	cinst->listen("state", this, SLOT(on_state_valueChanged(const QVariant &)));
 	cinst->listen("videoState", this, SLOT(on_videoState_valueChanged(const QVariant &)));
 	cinst->listen("exposurePeriod", this, SLOT(on_exposurePeriod_valueChanged(const QVariant &)));
+	cinst->listen("exposureMin", this, SLOT(on_exposureMin_valueChanged(const QVariant &)));
+	cinst->listen("exposureMax", this, SLOT(on_exposureMax_valueChanged(const QVariant &)));
 	cinst->listen("focusPeakingLevel", this, SLOT(on_focusPeakingLevel_valueChanged(const QVariant &)));
+	cinst->listen("wbTemperature", this, SLOT(on_wbTemperature_valueChanged(const QVariant &)));
 
 	cinst->getArray("colorMatrix", 9, (double *)&camera->colorCalMatrix);
 
@@ -178,6 +188,20 @@ void CamMainWindow::on_exposurePeriod_valueChanged(const QVariant &value)
 	apiUpdate = false;
 }
 
+void CamMainWindow::on_exposureMax_valueChanged(const QVariant &value)
+{
+	apiUpdate = true;
+	ui->expSlider->setMaximum(value.toInt());
+	apiUpdate = false;
+}
+
+void CamMainWindow::on_exposureMin_valueChanged(const QVariant &value)
+{
+	apiUpdate = true;
+	ui->expSlider->setMinimum(value.toInt());
+	apiUpdate = false;
+}
+
 void CamMainWindow::on_focusPeakingLevel_valueChanged(const QVariant &value)
 {
 	apiUpdate = true;
@@ -185,6 +209,17 @@ void CamMainWindow::on_focusPeakingLevel_valueChanged(const QVariant &value)
 	apiUpdate = false;
 }
 
+void CamMainWindow::on_wbTemperature_valueChanged(const QVariant &value)
+{
+	int wbTempK = value.toInt();
+
+	if (!ui->cmdWB->isEnabled()) return; /* Do nothing on monochrome cameras */
+	if (wbTempK > 0) {
+		ui->cmdWB->setText(QString("White Bal\n%1\xb0K").arg(wbTempK));
+	} else {
+		ui->cmdWB->setText("White Bal\nCustom");
+	}
+}
 
 QMessageBox::StandardButton
 CamMainWindow::question(const QString &title, const QString &text, QMessageBox::StandardButtons buttons)
@@ -245,8 +280,8 @@ void CamMainWindow::on_cmdRec_clicked()
 			}
 
 			camera->startRecording();
+			if (camera->get_liveRecord()) vinst->liveRecord();
 			if (camera->get_autoSave()) autoSaveActive = true;
-
 		}
 	}
 }
@@ -477,11 +512,13 @@ void CamMainWindow::on_MainWindowTimer()
 						if(QMessageBox::Yes == question("Unsaved video in RAM", "Start recording anyway and discard the unsaved video in RAM?"))
 						{
 							camera->startRecording();
+							if (camera->get_liveRecord()) vinst->liveRecord();
 						}
 					}
 					else
 					{
 						camera->startRecording();
+						if (camera->get_liveRecord()) vinst->liveRecord();
 						if (camera->get_autoSave()) autoSaveActive = true;
 					}
 				}
@@ -639,22 +676,31 @@ void CamMainWindow::updateBatteryData()
 //Update the status textbox with the current settings
 void CamMainWindow::updateCurrentSettingsLabel()
 {
+	QSettings appSettings;
 	UInt32 clock = camera->getSensorInfo().timingClock;
 
 	camera->cinst->getImagerSettings(&is);
 
 	double framePeriod = (double)is.period / clock;
 	double expPeriod = (double)is.exposure / clock;
-	int shutterAngle = (expPeriod * 360.0) / framePeriod;
 
 	char str[300];
 	char battStr[50];
 	char fpsString[30];
 	char expString[30];
+	char shString[30];
 
 	sprintf(fpsString, QString::number(1 / framePeriod).toAscii());
 	getSIText(expString, expPeriod, 4, DEF_SI_OPTS, 10);
-	shutterAngle = max(shutterAngle, 1); //to prevent 0 degrees from showing on the label if the current exposure is less than 1/360'th of the frame period.
+	if (appSettings.value("camera/fractionalExposure", false).toBool()) {
+		/* Show secondary exposure period as fractional time. */
+		strcpy(shString, "1/");
+		getSIText(shString+2, 1/expPeriod, 4, 0 /* no flags */, 0);
+	} else {
+		/* Show secondary exposure period as shutter angle. */
+		int shutterAngle = (expPeriod * 360.0) / framePeriod;
+		sprintf(shString, "%u\xb0", max(shutterAngle, 1)); /* Round up if less than zero degrees. */
+	}
 
 	if(batteryPresent)	//If battery present
 	{
@@ -665,7 +711,7 @@ void CamMainWindow::updateCurrentSettingsLabel()
 		sprintf(battStr, "No Batt");
 	}
 
-	sprintf(str, "%s\r\n%ux%u %sfps\r\nExp %ss (%u\xb0)", battStr, is.geometry.hRes, is.geometry.vRes, fpsString, expString, shutterAngle);
+	sprintf(str, "%s\r\n%ux%u %sfps\r\nExp %ss (%s)", battStr, is.geometry.hRes, is.geometry.vRes, fpsString, expString, shString);
 	ui->lblCurrent->setText(str);
 }
 
