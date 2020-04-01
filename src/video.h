@@ -125,7 +125,6 @@ public:
 	UInt32 framerate;
 	UInt32 profile;
 	UInt32 level;
-	char liveRecFilename[1000] = "live";
 	char liveRecFileDirectory[1000];
 
 signals:

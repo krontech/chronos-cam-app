@@ -224,15 +224,14 @@ void Video::liveRecord(void)
 	QVariantMap args;
 	QDBusPendingReply<QVariantMap> reply;
 	QMessageBox msg;
-	bool enableLiveRec = true;
 	char errStr[200];
 	char savePath[2000] = "";
 
 	strcat(savePath, liveRecFileDirectory);
-	strcat(savePath, "/");
-	strcat(savePath, liveRecFilename);
+	strcat(savePath, "/live");
 
-	args.insert("liverecord", QVariant(enableLiveRec));
+	args.insert("liverecord", QVariant(true));
+	args.insert("multifile", QVariant(true));
 	args.insert("liverec_filename", QVariant(savePath));
 
 	pthread_mutex_lock(&mutex);
