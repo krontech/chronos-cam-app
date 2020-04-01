@@ -325,7 +325,7 @@ Settings</string>
    <property name="geometry">
     <rect>
      <x>0</x>
-     <y>0</y>
+     <y>10</y>
      <width>66</width>
      <height>17</height>
     </rect>

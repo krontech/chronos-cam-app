@@ -7,6 +7,8 @@ keyboardNumeric::keyboardNumeric(QWidget *parent) :
 {
 	ui->setupUi(this);
 
+
+
 	connect(qApp, SIGNAL(focusChanged(QWidget*,QWidget*)),
 			this, SLOT(saveFocusWidget(QWidget*,QWidget*)));
 

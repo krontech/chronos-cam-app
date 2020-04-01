@@ -84,7 +84,7 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	connect(timer, SIGNAL(timeout()), this, SLOT(onUtilWindowTimer()));
 	timer->start(500);
 
-	ui->tabWidget->setCurrentIndex(0);
+    ui->tabWidget->setCurrentIndex(0);
 
 	ui->chkFPEnable->setChecked(camera->getFocusPeakEnable());
 	//ui->comboFPColor->setEnabled(false);
@@ -187,6 +187,7 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	ui->chkAutoRecord->setChecked(camera->get_autoRecord());
 	ui->chkDemoMode->setChecked(camera->get_demoMode());
 	ui->chkUiOnLeft->setChecked(camera->getButtonsOnLeft());
+
 	ui->comboDisableUnsavedWarning->setCurrentIndex(camera->getUnsavedWarnEnable());
 	ui->comboAutoPowerMode->setCurrentIndex(camera->getAutoPowerMode());
     ui->comboMode->setCurrentIndex(camera->getGUIMode());
@@ -1267,7 +1268,22 @@ void UtilWindow::on_comboAutoPowerMode_currentIndexChanged(int index)
 
 void UtilWindow::on_comboMode_currentIndexChanged(int index)
 {
-    camera->setGUIMode(index);
+    if (!openingWindow)
+    {
+        camera->setGUIMode(index);
+    /*
+        QMessageBox::question(this,
+                              tr("GUI Mode Reset Message"),
+                              tr("New Mode will be applied after reboot. Reboot now?"),
+                              QMessageBox::Yes | QMessageBox::No,
+                              QMessageBox::Yes);
+                              */
+    }
+    /*
+    system("systemctl disable chronos-gui");
+    system("systemctl enable chronos-gui");
+    */
+    //runBackground("service chronos-gui restart");
 }
 
 void UtilWindow::on_tabWidget_currentChanged(int index)

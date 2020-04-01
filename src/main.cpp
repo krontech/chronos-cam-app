@@ -138,8 +138,9 @@ int main(int argc, char *argv[])
         //a.setStyleSheet(sheet);
         //fStyle.close();
     //}
-/*
-    if (1)
+
+
+    if(1)
     {
         QFile styleFile(":/qss/darkstylesheet.qss");
         styleFile.open(QFile::ReadOnly);
@@ -155,7 +156,8 @@ int main(int argc, char *argv[])
         QString style(styleFile.readAll());
         a.setStyleSheet(style);
     }
-*/
+
+
 	//Disable stdout buffering so prints work rather than just filling the buffer.
 //	setbuf(stdout, NULL);
 	
@@ -175,7 +177,7 @@ int main(int argc, char *argv[])
 	int displayPosition = (appSettings.value("camera/ButtonsOnLeft", false)).toBool() ? 0 : 600;
 	w.move(displayPosition,0);
 
-//	MainWindow w;
+//	MainWindow w (CamMainWindow);
 	w.show();
 	
 	return a.exec();

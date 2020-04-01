@@ -36,7 +36,7 @@ class CamMainWindow : public QDialog
 	Q_OBJECT
 
 public:
-	explicit CamMainWindow(QWidget *parent = 0);
+    explicit CamMainWindow(QWidget *parent = 0);
 	short getWindowsAlwaysOpen();
 	~CamMainWindow();
 

@@ -5,8 +5,6 @@ QWidget
     color: #fff;
 }
 
-
-
 /* BUTTON */
 /* QPushButton on CamMainWindow */
 QDialog > QPushButton
@@ -64,10 +62,16 @@ QPushButton
 QPushButton:hover
 {
     background-color: #777;
+    border: none;
 }
 QPushButton:disabled
 {
     color: #aaa;
+}
+QPushButton:focus
+{
+    background-color: #777;
+    border: none;
 }
 
 /* All QRadioButton in GUI1 */
@@ -77,6 +81,14 @@ QRadioButton
     font-size: 16px;
     /* Space between indicator and content */
     spacing: 10px;
+}
+QRadioButton:disabled
+{
+    color: #aaa;
+}
+QRadioButton:focus
+{
+    background-color: #777;
 }
 QRadioButton::indicator
 {
@@ -111,6 +123,14 @@ QCheckBox
     /* Space between indicator and content */
     spacing: 10px;
 }
+QCheckBox:disabled
+{
+    color: #aaa;
+}
+QCheckBox:focus
+{
+    border: 2px solid #777;
+}
 /* The Box(indicator) */
 QCheckBox:indicator
 {
@@ -132,6 +152,7 @@ QCheckBox::indicator:checked
 
 /* SLIDER */
 /* QSlider in GUI1 */
+
 QSlider::groove:vertical
 {
     background: #555;
@@ -140,6 +161,7 @@ QSlider::groove:vertical
     border-radius: 7.5px;
     margin: 13px;
  }
+
 QSlider::handle:vertical
 {
     image: url(:/qss/assets/images/handle-bars-dark-41x81+20.png);
@@ -184,6 +206,10 @@ QSpinBox
     padding-right: 0px;
     padding-left: 10px;
 }
+QSpinBox:focus
+{
+    background-color: #777;
+}
 QSpinBox:disabled
 {
     color: #aaa;
@@ -203,6 +229,10 @@ CamSpinBox
     border: 1px solid #333;
     padding-right: 0px;
     padding-left: 5px;
+}
+CamSpinBox:focus
+{
+    background-color: #777;
 }
 CamSpinBox:disabled
 {
@@ -224,6 +254,10 @@ CamDoubleSpinBox
     padding-right: 0px;
     padding-left: 5px;
 }
+CamDoubleSpinBox:focus
+{
+    background-color: #777;
+}
 CamDoubleSpinBox:disabled
 {
     color: #aaa;
@@ -244,6 +278,10 @@ ColorDoubleSpinBox
     padding-right: 0px;
     padding-left: 5px;
 }
+ColorDoubleSpinBox:focus
+{
+    background-color: #777;
+}
 ColorDoubleSpinBox:disabled
 {
     color: #aaa;
@@ -263,6 +301,14 @@ QComboBox
     border: none;
     padding-left: 10px;
 
+}
+QComboBox:focus
+{
+    background-color: #777;
+}
+QComboBox:disabled
+{
+    color: #aaa;
 }
 QComboBox::drop-down
 {
@@ -334,11 +380,15 @@ QGroupBox
 
 
 /* QTabWidget in GUI1 (Util menu) */
-QTabWidget
+QTabBar::tab
+{
+    width: 40px;
+    font-size: 13px;
+}
+QTabBar::tab:selected
 {
 
 }
-
 
 
 /* QDateTimeEdit in GUI1 (Util: time setting) */
@@ -347,6 +397,10 @@ QDateTimeEdit
     background-color: #555;
     font-size: 16px;
     border: none;
+}
+QDateTimeEdit:focus
+{
+    background-color: #777;
 }
 QDateTimeEdit::drop-down
 {
@@ -367,6 +421,10 @@ QDateTimeEdit::down-arrow
 QTextEdit
 {
     background-color: #555;
+}
+QTextEdit:focus
+{
+    border:none;
 }
 QTextEdit QScrollBar::vertical
 {
@@ -397,6 +455,47 @@ CamLineEdit
     background-color: #555;
     font-size: 16px;
     padding-left: 5px;
+}
+CamLineEdit:focus
+{
+    background-color: #777;
+    border: 1px solid #333;
+    border-radius: 3px;
+
+}
+CamLineEdit:disabled
+{
+    color: #aaa;
+}
+
+/* Information message box */
+QMessageBox
+{
+    border: 2px solid #777;
+}
+QMessageBox::icon
+{
+    image: url(:qss/assets/images/wedge-down-white-enabled.png);
+}
+
+QProgressDialog
+{
+    border: 2px solid #777;
+}
+QProgressDialog QPushButton
+{
+    font-size: 16px;
+    background-color: #555;
+    color: #fff;
+    border: none;
+}
+QProgressDialog QPushButton:hover
+{
+    background-color: #777;
+}
+QProgressDialog QPushButton:disabled
+{
+    color: #aaa;
 }
 
 

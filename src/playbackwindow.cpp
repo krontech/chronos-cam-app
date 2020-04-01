@@ -44,6 +44,7 @@ playbackWindow::playbackWindow(QWidget *parent, Camera * cameraInst, bool autosa
 	this->setWindowFlags(Qt::Dialog /*| Qt::WindowStaysOnTopHint*/ | Qt::FramelessWindowHint);
 
 	camera = cameraInst;
+
 	autoSaveFlag = autosave;
 	autoRecordFlag = camera->get_autoRecord();
 	this->move(camera->ButtonsOnLeft? 0:600, 0);

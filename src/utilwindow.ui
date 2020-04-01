@@ -18,9 +18,14 @@
     <rect>
      <x>10</x>
      <y>10</y>
-     <width>791</width>
+     <width>781</width>
      <height>461</height>
     </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>13</pointsize>
+    </font>
    </property>
    <property name="focusPolicy">
     <enum>Qt::NoFocus</enum>
@@ -32,7 +37,7 @@
     <enum>QTabWidget::East</enum>
    </property>
    <property name="currentIndex">
-    <number>0</number>
+    <number>2</number>
    </property>
    <widget class="QWidget" name="tabMain">
     <property name="styleSheet">
@@ -97,7 +102,7 @@
     <widget class="QPushButton" name="cmdClose">
      <property name="geometry">
       <rect>
-       <x>640</x>
+       <x>630</x>
        <y>390</y>
        <width>101</width>
        <height>51</height>
@@ -117,7 +122,7 @@
       <rect>
        <x>10</x>
        <y>10</y>
-       <width>731</width>
+       <width>721</width>
        <height>71</height>
       </rect>
      </property>
@@ -518,7 +523,7 @@
     <widget class="QPushButton" name="cmdClose_2">
      <property name="geometry">
       <rect>
-       <x>640</x>
+       <x>630</x>
        <y>390</y>
        <width>101</width>
        <height>51</height>
@@ -538,7 +543,7 @@
       <rect>
        <x>10</x>
        <y>10</y>
-       <width>411</width>
+       <width>391</width>
        <height>91</height>
       </rect>
      </property>
@@ -550,19 +555,19 @@
        <rect>
         <x>10</x>
         <y>25</y>
-        <width>121</width>
+        <width>111</width>
         <height>51</height>
        </rect>
       </property>
       <property name="text">
        <string>Backup
-Settings Data</string>
+Settings</string>
       </property>
      </widget>
      <widget class="QPushButton" name="cmdRestoreSettings">
       <property name="geometry">
        <rect>
-        <x>140</x>
+        <x>130</x>
         <y>25</y>
         <width>131</width>
         <height>51</height>
@@ -576,9 +581,9 @@ Settings</string>
      <widget class="QPushButton" name="cmdDefaults">
       <property name="geometry">
        <rect>
-        <x>280</x>
+        <x>270</x>
         <y>25</y>
-        <width>121</width>
+        <width>111</width>
         <height>51</height>
        </rect>
       </property>
@@ -591,7 +596,7 @@ to Defaults</string>
     <widget class="QGroupBox" name="gbCalData">
      <property name="geometry">
       <rect>
-       <x>430</x>
+       <x>420</x>
        <y>10</y>
        <width>311</width>
        <height>91</height>
@@ -634,7 +639,7 @@ Calibration Data</string>
       <rect>
        <x>10</x>
        <y>110</y>
-       <width>731</width>
+       <width>721</width>
        <height>91</height>
       </rect>
      </property>
@@ -653,8 +658,8 @@ Calibration Data</string>
       <property name="font">
        <font>
         <pointsize>16</pointsize>
-        <weight>75</weight>
-        <bold>true</bold>
+        <weight>50</weight>
+        <bold>false</bold>
        </font>
       </property>
       <property name="text">
@@ -674,8 +679,8 @@ Disk</string>
       <property name="font">
        <font>
         <pointsize>16</pointsize>
-        <weight>75</weight>
-        <bold>true</bold>
+        <weight>50</weight>
+        <bold>false</bold>
        </font>
       </property>
       <property name="text">
@@ -710,7 +715,7 @@ Disk</string>
       <rect>
        <x>10</x>
        <y>210</y>
-       <width>731</width>
+       <width>721</width>
        <height>91</height>
       </rect>
      </property>
@@ -729,8 +734,8 @@ Disk</string>
       <property name="font">
        <font>
         <pointsize>16</pointsize>
-        <weight>75</weight>
-        <bold>true</bold>
+        <weight>50</weight>
+        <bold>false</bold>
        </font>
       </property>
       <property name="text">
@@ -750,8 +755,8 @@ SD Card</string>
       <property name="font">
        <font>
         <pointsize>16</pointsize>
-        <weight>75</weight>
-        <bold>true</bold>
+        <weight>50</weight>
+        <bold>false</bold>
        </font>
       </property>
       <property name="text">
@@ -784,7 +789,7 @@ SD Card</string>
     <widget class="QPushButton" name="cmdSWUpdate">
      <property name="geometry">
       <rect>
-       <x>600</x>
+       <x>590</x>
        <y>310</y>
        <width>141</width>
        <height>61</height>
@@ -800,7 +805,7 @@ Software Update</string>
       <rect>
        <x>10</x>
        <y>310</y>
-       <width>581</width>
+       <width>571</width>
        <height>131</height>
       </rect>
      </property>
@@ -812,7 +817,7 @@ Software Update</string>
        <rect>
         <x>10</x>
         <y>20</y>
-        <width>561</width>
+        <width>551</width>
         <height>101</height>
        </rect>
       </property>
@@ -837,7 +842,7 @@ Software Update</string>
     <widget class="QPushButton" name="cmdClose_5">
      <property name="geometry">
       <rect>
-       <x>640</x>
+       <x>630</x>
        <y>390</y>
        <width>101</width>
        <height>51</height>
@@ -857,7 +862,7 @@ Software Update</string>
       <rect>
        <x>10</x>
        <y>9</y>
-       <width>471</width>
+       <width>461</width>
        <height>151</height>
       </rect>
      </property>
@@ -869,7 +874,7 @@ Software Update</string>
        <rect>
         <x>120</x>
         <y>30</y>
-        <width>341</width>
+        <width>331</width>
         <height>31</height>
        </rect>
       </property>
@@ -908,7 +913,7 @@ Software Update</string>
        <rect>
         <x>120</x>
         <y>70</y>
-        <width>181</width>
+        <width>171</width>
         <height>31</height>
        </rect>
       </property>
@@ -944,7 +949,7 @@ Software Update</string>
        <rect>
         <x>120</x>
         <y>110</y>
-        <width>181</width>
+        <width>171</width>
         <height>31</height>
        </rect>
       </property>
@@ -983,7 +988,7 @@ Software Update</string>
      <widget class="QPushButton" name="cmdSmbTest">
       <property name="geometry">
        <rect>
-        <x>310</x>
+        <x>300</x>
         <y>80</y>
         <width>71</width>
         <height>51</height>
@@ -1001,7 +1006,7 @@ Software Update</string>
      <widget class="QPushButton" name="cmdSmbApply">
       <property name="geometry">
        <rect>
-        <x>390</x>
+        <x>380</x>
         <y>80</y>
         <width>71</width>
         <height>51</height>
@@ -1022,7 +1027,7 @@ Software Update</string>
       <rect>
        <x>10</x>
        <y>170</y>
-       <width>471</width>
+       <width>461</width>
        <height>111</height>
       </rect>
      </property>
@@ -1055,7 +1060,7 @@ Software Update</string>
        <rect>
         <x>100</x>
         <y>30</y>
-        <width>201</width>
+        <width>191</width>
         <height>31</height>
        </rect>
       </property>
@@ -1071,7 +1076,7 @@ Software Update</string>
      <widget class="QPushButton" name="cmdNfsTest">
       <property name="geometry">
        <rect>
-        <x>310</x>
+        <x>300</x>
         <y>40</y>
         <width>71</width>
         <height>51</height>
@@ -1089,7 +1094,7 @@ Software Update</string>
      <widget class="QPushButton" name="cmdNfsApply">
       <property name="geometry">
        <rect>
-        <x>390</x>
+        <x>380</x>
         <y>40</y>
         <width>71</width>
         <height>51</height>
@@ -1109,7 +1114,7 @@ Software Update</string>
        <rect>
         <x>100</x>
         <y>70</y>
-        <width>201</width>
+        <width>191</width>
         <height>31</height>
        </rect>
       </property>
@@ -1149,7 +1154,7 @@ Software Update</string>
       <rect>
        <x>10</x>
        <y>290</y>
-       <width>621</width>
+       <width>611</width>
        <height>151</height>
       </rect>
      </property>
@@ -1159,9 +1164,9 @@ Software Update</string>
      <widget class="QLabel" name="lblNetStatus">
       <property name="geometry">
        <rect>
-        <x>10</x>
+        <x>0</x>
         <y>20</y>
-        <width>601</width>
+        <width>591</width>
         <height>121</height>
        </rect>
       </property>
@@ -1181,7 +1186,7 @@ Software Update</string>
     <widget class="QGroupBox" name="gbStaticIP">
      <property name="geometry">
       <rect>
-       <x>490</x>
+       <x>480</x>
        <y>10</y>
        <width>251</width>
        <height>271</height>
@@ -1573,7 +1578,7 @@ Software Update</string>
       <rect>
        <x>30</x>
        <y>20</y>
-       <width>591</width>
+       <width>581</width>
        <height>241</height>
       </rect>
      </property>
@@ -1594,7 +1599,7 @@ Software Update</string>
     <widget class="QPushButton" name="cmdClose_3">
      <property name="geometry">
       <rect>
-       <x>640</x>
+       <x>630</x>
        <y>390</y>
        <width>101</width>
        <height>51</height>
@@ -1614,7 +1619,7 @@ Software Update</string>
       <rect>
        <x>30</x>
        <y>260</y>
-       <width>591</width>
+       <width>581</width>
        <height>181</height>
       </rect>
      </property>
@@ -2008,7 +2013,7 @@ Calibration Data
     <widget class="QPushButton" name="cmdClose_4">
      <property name="geometry">
       <rect>
-       <x>640</x>
+       <x>630</x>
        <y>390</y>
        <width>101</width>
        <height>51</height>

@@ -59,25 +59,9 @@ RecSettingsWindow::RecSettingsWindow(QWidget *parent, Camera * cameraInst) :
 	connect(ui->cmdCancel, SIGNAL(clicked()), this, SLOT(close()));
 
 	camera = cameraInst;
+
 	sensor = camera->getSensorInfo();
 	camera->cinst->getImagerSettings(is);
-
-    if (camera->guiMode == 1)
-    {
-        QFile styleFile(":/qss/darkstylesheet.qss");
-        styleFile.open(QFile::ReadOnly);
-
-        QString style(styleFile.readAll());
-        this->setStyleSheet(style);
-    }
-    else
-    {
-        QFile styleFile(":/qss/lightstylesheet.qss");
-        styleFile.open(QFile::ReadOnly);
-
-        QString style(styleFile.readAll());
-        this->setStyleSheet(style);
-    }
 
 	/* Adjust the size of the preview window to match the sensor. */
 	if ((sensor.geometry.hRes * ui->frame->height()) > (sensor.geometry.vRes * ui->frame->width())) {

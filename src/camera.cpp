@@ -49,8 +49,8 @@ Camera::Camera()
 	recordingData.ignoreSegments = 0;
 	recordingData.hasBeenSaved = true;
 	recordingData.hasBeenViewed = true;
-	unsavedWarnEnabled = getUnsavedWarnEnable();
 
+	unsavedWarnEnabled = getUnsavedWarnEnable();
     guiMode = getGUIMode();
 
 	autoSave = appSettings.value("camera/autoSave", 0).toBool();
@@ -622,6 +622,19 @@ void Camera::setUnsavedWarnEnable(int newSetting){
 	appSettings.setValue("camera/unsavedWarn", newSetting);
 }
 
+int Camera::getGUIMode(void)
+{
+    QSettings appSettings;
+    return appSettings.value("camera/guiMode", 1).toInt();
+}
+
+void Camera::setGUIMode(int newSetting)
+{
+    QSettings appSettings;
+    guiMode = newSetting;
+    appSettings.setValue("camera/guiMode", newSetting);
+}
+
 int Camera::getAutoPowerMode(void)
 {
 	int mode = 0;
@@ -639,19 +652,6 @@ void Camera::setAutoPowerMode(int newSetting)
 	values.insert("powerOnWhenMainsConnected", QVariant((newSetting & 1) != 0));
 	values.insert("powerOffWhenMainsLost", QVariant((newSetting & 2) != 0));
 	cinst->setPropertyGroup(values);
-}
-
-int Camera::getGUIMode(void)
-{
-    QSettings appSettings;
-    return appSettings.value("camera/guiMode", 1).toInt();
-}
-
-void Camera::setGUIMode(int newSetting)
-{
-    QSettings appSettings;
-    guiMode = newSetting;
-    appSettings.setValue("camera/guiMode", newSetting);
 }
 
 void Camera::set_autoSave(bool state) {

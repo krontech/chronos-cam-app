@@ -57,14 +57,12 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	CameraErrortype retVal;
 	ui->setupUi(this);
 
-	camera = new Camera();
+    camera = new Camera();
 	vinst = new Video();
 	cinst = new Control();
 
-	interface = new UserInterface();
-	prompt = NULL;
 
-    if (camera->guiMode == 1)
+    if(camera->guiMode == 1)
     {
         QFile styleFile(":/qss/darkstylesheet.qss");
         styleFile.open(QFile::ReadOnly);
@@ -80,6 +78,10 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
         QString style(styleFile.readAll());
         this->setStyleSheet(style);
     }
+
+
+	interface = new UserInterface();
+	prompt = NULL;
 
 	//loop until control dBus is ready
 	UInt32 mem;
