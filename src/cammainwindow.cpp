@@ -90,8 +90,15 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 		msg.setText(errText);
 		msg.exec();
 	}
-	ui->cmdWB->setEnabled(camera->getIsColor());
 	ui->chkFocusAid->setChecked(camera->getFocusPeakEnable());
+
+	/* Get the initial white balance */
+	if (camera->getIsColor()) {
+		ui->cmdWB->setEnabled(true);
+		on_wbTemperature_valueChanged(camera->cinst->getProperty("wbTemperature"));
+	} else {
+		ui->cmdWB->setEnabled(false);
+	}
 
 	sw = new StatusWindow;
 
@@ -133,6 +140,7 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	cinst->listen("exposureMin", this, SLOT(on_exposureMin_valueChanged(const QVariant &)));
 	cinst->listen("exposureMax", this, SLOT(on_exposureMax_valueChanged(const QVariant &)));
 	cinst->listen("focusPeakingLevel", this, SLOT(on_focusPeakingLevel_valueChanged(const QVariant &)));
+	cinst->listen("wbTemperature", this, SLOT(on_wbTemperature_valueChanged(const QVariant &)));
 
 	cinst->getArray("colorMatrix", 9, (double *)&camera->colorCalMatrix);
 
@@ -182,6 +190,17 @@ void CamMainWindow::on_focusPeakingLevel_valueChanged(const QVariant &value)
 	apiUpdate = false;
 }
 
+void CamMainWindow::on_wbTemperature_valueChanged(const QVariant &value)
+{
+	int wbTempK = value.toInt();
+
+	if (!ui->cmdWB->isEnabled()) return; /* Do nothing on monochrome cameras */
+	if (wbTempK > 0) {
+		ui->cmdWB->setText(QString("White Bal\n%1\xb0K").arg(wbTempK));
+	} else {
+		ui->cmdWB->setText("White Bal\nCustom");
+	}
+}
 
 QMessageBox::StandardButton
 CamMainWindow::question(const QString &title, const QString &text, QMessageBox::StandardButtons buttons)
