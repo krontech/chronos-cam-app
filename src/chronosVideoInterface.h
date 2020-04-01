@@ -114,6 +114,13 @@ public Q_SLOTS: // METHODS
 		QList<QVariant> argumentList;
 		return asyncCallWithArgumentList(QLatin1String("status"), argumentList);
 	}
+
+	inline QDBusPendingReply<QVariantMap> set(const QVariantMap &values)
+	{
+		QList<QVariant> argumentList;
+		argumentList << qVariantFromValue(values);
+		return asyncCallWithArgumentList(QLatin1String("set"), argumentList);
+	}
 };
 
 namespace com {

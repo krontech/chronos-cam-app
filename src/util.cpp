@@ -235,7 +235,6 @@ bool refreshDriveList(QComboBox *combo, QString selection)
 	while ((m = getmntent_r(mtab, &mnt, strings, sizeof(strings)))) {
 		if (mnt.mnt_dir == NULL) continue;
 
-		qDebug("refreshDriveList: %s", mnt.mnt_dir);
 		/* Add mount entries for SATA and USB drives. */
 		if (strstr(mnt.mnt_dir, "/media/sd") == mnt.mnt_dir) {
 			//If this is not an SD card (ie a "sd*") type, get the mounted name eg "sda1"

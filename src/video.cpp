@@ -3,6 +3,9 @@
 #include <unistd.h>
 #include <QDebug>
 #include <QMessageBox>
+#include <QMouseEvent>
+#include <QFont>
+#include <QTime>
 #include <memory.h>
 #include <getopt.h>
 #include <string.h>
@@ -200,6 +203,22 @@ void Video::setZebra(bool zebra)
 	}
 }
 
+void Video::setZoom(double zoom)
+{
+	QVariantMap args;
+	QDBusPendingReply<QVariantMap> reply;
+	args.insert("videoZoom", QVariant(zoom));
+
+	pthread_mutex_lock(&mutex);
+	reply = iface.set(args);
+	pthread_mutex_unlock(&mutex);
+
+	if (reply.isError()) {
+		QDBusError err = reply.error();
+		fprintf(stderr, "Failed to configure video zoom: %s - %s\n", err.name().data(), err.message().toAscii().data());
+	}
+}
+
 void Video::liveRecord(void)
 {
 	QVariantMap args;
@@ -358,6 +377,11 @@ void Video::setDisplayPosition(bool videoOnRight)
 	displayWindowXOff = videoOnRight ? 200 : 0;
 	displayWindowYOff = 0;
 
+	/* Update the window size and position */
+	setGeometry(displayWindowXOff, displayWindowYOff, displayWindowXSize, displayWindowYSize);
+	text->setGeometry(0, 0, displayWindowXSize, 31);
+	show();
+
 	QVariantMap args;
 	QDBusPendingReply<QVariantMap> reply;
 	args.insert("hres", QVariant(displayWindowXSize));
@@ -396,18 +420,22 @@ void Video::segment(const QVariantMap &args)
 	emit newSegment(parseVideoStatus(args, &st));
 }
 
-Video::Video() : iface("ca.krontech.chronos.video", "/ca/krontech/chronos/video", QDBusConnection::systemBus())
+Video::Video() : QWidget(NULL),
+	iface("ca.krontech.chronos.video", "/ca/krontech/chronos/video", QDBusConnection::systemBus())
 {
 	QDBusConnection conn = iface.connection();
+	QPalette bgColor = palette();
 
 	pid = -1;
 	running = false;
+	text = new QLabel(this);
 
 	/* Default video geometry */
 	displayWindowXSize = 600;
 	displayWindowYSize = 480;
 	displayWindowXOff = 0;
 	displayWindowYOff = 0;
+	displayVideoZoom = false;
 
 	pthread_mutex_init(&mutex, NULL);
 
@@ -421,6 +449,62 @@ Video::Video() : iface("ca.krontech.chronos.video", "/ca/krontech/chronos/video"
 
 	/* Try to get the PID of the video pipeline. */
 	checkpid();
+
+	/* Update the window size and position */
+	setGeometry(displayWindowXOff, displayWindowYOff, displayWindowXSize, displayWindowYSize);
+	setWindowFlags(Qt::Dialog | Qt::WindowStaysOnBottomHint | Qt::FramelessWindowHint);
+
+	/* Position the status text at the top edge */
+	text->setGeometry(0, 0, displayWindowXSize, 31);
+	text->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
+	text->setFont(QFont("Sans Serif", 16, QFont::Bold));
+
+	/* Ensure that the background is transparent. */
+	bgColor.setColor(QPalette::Background, Qt::transparent);
+	setAutoFillBackground(true);
+	setPalette(bgColor);
+	show();
+
+	/* Start the click timer */
+	clickTimer.start();
+	clickX = clickY = 0;
+}
+
+void Video::mousePressEvent(QMouseEvent *ev)
+{
+	/* Gather the time and distance between clicks */
+	int dx = clickX - ev->x();
+	int dy = clickY - ev->y();
+	int dsq = (dx * dx) + (dy * dy);
+	int delay = clickTimer.restart();
+	clickX = ev->x();
+	clickY = ev->y();
+
+	/* If the distance is less than 32px, and time is less than 400ms, it's a doubleclick */
+	if ((dsq < (32*32)) && (delay < 400)) {
+		if (displayVideoZoom) {
+			setZoom(1.0);
+			setStatusText("");
+			displayVideoZoom = false;
+		} else {
+			setZoom(2.5);
+			setStatusText("Video zoom at 2.5x, doubletap to clear");
+			displayVideoZoom = true;
+		}
+	}
+}
+
+void Video::setStatusText(const QString &value)
+{
+	if (value.isEmpty()) {
+		text->setStyleSheet("QLabel { background-color : transparent; color : white; }");
+		text->setText("");
+	}
+	else {
+		text->setStyleSheet("QLabel { background-color : rgba(255,255,255,16); color : white; }");
+		text->setText(value);
+
+	}
 }
 
 Video::~Video()
