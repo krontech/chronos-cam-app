@@ -1312,19 +1312,8 @@ void UtilWindow::on_comboMode_currentIndexChanged(int index)
     if (!openingWindow)
     {
         camera->setGUIMode(index);
-    /*
-        QMessageBox::question(this,
-                              tr("GUI Mode Reset Message"),
-                              tr("New Mode will be applied after reboot. Reboot now?"),
-                              QMessageBox::Yes | QMessageBox::No,
-                              QMessageBox::Yes);
-                              */
+        qApp->quitOnLastWindowClosed();
     }
-    /*
-    system("systemctl disable chronos-gui");
-    system("systemctl enable chronos-gui");
-    */
-    //runBackground("service chronos-gui restart");
 }
 
 void UtilWindow::on_tabWidget_currentChanged(int index)

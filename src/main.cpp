@@ -41,6 +41,7 @@ extern "C" {
 
 #include "mainwindow.h"
 #include "cammainwindow.h"
+#include "utilwindow.h"
 #include <QApplication>
 #include <QWSServer>
 #include "linux/ti81xxfb.h"
@@ -55,6 +56,10 @@ extern "C" {
 #include "defines.h"
 
 #include "myinputpanelcontext.h"
+
+#include <iostream>
+
+using namespace std;
 
 volatile sig_atomic_t done = 0;
 
@@ -140,6 +145,8 @@ int main(int argc, char *argv[])
     //}
 
 
+
+/*
     if(1)
     {
         QFile styleFile(":/qss/darkstylesheet.qss");
@@ -156,7 +163,7 @@ int main(int argc, char *argv[])
         QString style(styleFile.readAll());
         a.setStyleSheet(style);
     }
-
+*/
 
 	//Disable stdout buffering so prints work rather than just filling the buffer.
 //	setbuf(stdout, NULL);
@@ -170,15 +177,37 @@ int main(int argc, char *argv[])
 	printf("testing print 2\n");
 	qDebug("Testing QDebug");
 //	fflush(stdout);
+
 	CamMainWindow w;
+
+
 	w.setWindowFlags(Qt::FramelessWindowHint);
 
 	QSettings appSettings;
 	int displayPosition = (appSettings.value("camera/ButtonsOnLeft", false)).toBool() ? 0 : 600;
+    int gui = appSettings.value("camera/guiMode", 1).toInt();
+
 	w.move(displayPosition,0);
+
+    if(gui == 1)
+    {
+        QFile styleFile(":/qss/darkstylesheet.qss");
+        styleFile.open(QFile::ReadOnly);
+
+        QString style(styleFile.readAll());
+        a.setStyleSheet(style);
+    }
+    else
+    {
+        QFile styleFile(":/qss/lightstylesheet.qss");
+        styleFile.open(QFile::ReadOnly);
+
+        QString style(styleFile.readAll());
+        a.setStyleSheet(style);
+    }
 
 //	MainWindow w (CamMainWindow);
 	w.show();
 	
-	return a.exec();
+    return a.exec();
 }

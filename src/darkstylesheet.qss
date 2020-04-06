@@ -5,6 +5,11 @@ QWidget
     color: #fff;
 }
 
+QMainWindow #MainWindow
+{
+    background-color: none;
+}
+
 /* BUTTON */
 /* QPushButton on CamMainWindow */
 QDialog > QPushButton
