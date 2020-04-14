@@ -32,6 +32,7 @@
 #include "ui_cammainwindow.h"
 #include "util.h"
 #include "whitebalancedialog.h"
+#include "expdialog.h"
 
 #include <time.h>
 #include <sys/types.h>
@@ -61,25 +62,6 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	vinst = new Video();
 	cinst = new Control();
 
-
-    if(camera->guiMode == 1)
-    {
-        QFile styleFile(":/qss/darkstylesheet.qss");
-        styleFile.open(QFile::ReadOnly);
-
-        QString style(styleFile.readAll());
-        this->setStyleSheet(style);
-    }
-    else
-    {
-        QFile styleFile(":/qss/lightstylesheet.qss");
-        styleFile.open(QFile::ReadOnly);
-
-        QString style(styleFile.readAll());
-        this->setStyleSheet(style);
-    }
-
-
 	interface = new UserInterface();
 	prompt = NULL;
 
@@ -96,6 +78,9 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	batteryVoltage = 0;
 	batteryPresent = false;
 	externalPower = false;
+
+    ed = NULL;
+    connect(ui->expButton, SIGNAL(clicked(bool)), this, SLOT(on_expbutton_clicked()));
 
 	interface->init();
 	retVal = camera->init(vinst, cinst);
@@ -274,7 +259,7 @@ void CamMainWindow::on_cmdRec_clicked()
 		{
 			//If there is unsaved video in RAM, prompt to start record.  unsavedWarnEnabled values: 0=always, 1=if not reviewed, 2=never
 			if(false == camera->recordingData.hasBeenSaved && (0 != camera->unsavedWarnEnabled && (2 == camera->unsavedWarnEnabled || !camera->recordingData.hasBeenViewed)))
-			{
+            {
 				if(QMessageBox::Yes != question("Unsaved video in RAM", "Start recording anyway and discard the unsaved video in RAM?"))
 					return;
 			}
@@ -336,7 +321,7 @@ void CamMainWindow::on_cmdRecSettings_clicked()
 	if (!okToStopLive()) return;
 
 	if(recording) {
-		if(QMessageBox::Yes != question("Stop recording?", "This action will stop recording; is this okay?"))
+        if(QMessageBox::Yes != question("Stop recording?", "This action will stop recording; is this okay?"))
 			return;
 		autoSaveActive = false;
 		camera->stopRecording();
@@ -353,10 +338,10 @@ void CamMainWindow::on_cmdFPNCal_clicked()//Black cal
 {
 	if (!okToStopLive()) return;
 
-	if(recording) {
-		if(QMessageBox::Yes != question("Stop recording?", "This action will stop recording and erase the video; is this okay?")) {
+    if(recording) {
+        if(QMessageBox::Yes != question("Stop recording?", "This action will stop recording and erase the video; is this okay?")) {
 			return;
-		}
+        }
 
 		autoSaveActive = false;
 		camera->stopRecording();
@@ -377,6 +362,7 @@ void CamMainWindow::on_cmdFPNCal_clicked()//Black cal
 		}
 	}
 
+    sw->setStyleSheet("color: black;");
 	sw->setText("Performing black calibration...");
 	sw->show();
 	QCoreApplication::processEvents();
@@ -645,13 +631,13 @@ void CamMainWindow::updateExpSliderLimits()
 	cinst->getInt("exposureMin", &expMin);
 	cinst->getInt("exposureMax", &expMax);
 
-	ui->expSlider->setMinimum(expMin);
-	ui->expSlider->setMaximum(expMax);
-	ui->expSlider->setValue(expCurrent);
+    ui->expSlider->setMinimum(expMin);
+    ui->expSlider->setMaximum(expMax);
+    ui->expSlider->setValue(expCurrent);
 
 	/* Do fine stepping in 1us increments */
-	ui->expSlider->setSingleStep(clock / 1000000);
-	ui->expSlider->setPageStep(clock / 1000000);
+    ui->expSlider->setSingleStep(clock / 1000000);
+    ui->expSlider->setPageStep(clock / 1000000);
 }
 
 //Update the battery data.
@@ -755,9 +741,9 @@ void CamMainWindow::on_cmdBkGndButton_clicked()
 	ui->cmdUtil->setVisible(true);
 
 	ui->cmdWB->setVisible(true);
-	ui->expSlider->setVisible(true);
+    ui->expSlider->setVisible(true);
 	ui->lblCurrent->setVisible(true);
-	ui->lblExp->setVisible(true);
+    ui->lblExp->setVisible(true);
 }
 
 void CamMainWindow::on_cmdDPCButton_clicked()
@@ -813,7 +799,7 @@ static int expSliderLog(unsigned int angle, int delta)
 
 void CamMainWindow::keyPressEvent(QKeyEvent *ev)
 {
-	UInt32 expPeriod = ui->expSlider->value();
+    UInt32 expPeriod = ui->expSlider->value();
 	UInt32 nextPeriod = expPeriod;
 	UInt32 framePeriod = expSliderFramePeriod;
 	int expAngle = (expPeriod * 360) / framePeriod;
@@ -821,7 +807,7 @@ void CamMainWindow::keyPressEvent(QKeyEvent *ev)
 	qDebug() << "framePeriod =" << framePeriod << " expPeriod =" << expPeriod;
 
 	switch (ev->key()) {
-	/* Up/Down moves the slider logarithmically */
+    /* Up/Down moves the slider logarithmically */
 	case Qt::Key_Up:
 		if (expAngle > 0) {
 			nextPeriod = (framePeriod * expSliderLog(expAngle, 1)) / 360;
@@ -842,7 +828,7 @@ void CamMainWindow::keyPressEvent(QKeyEvent *ev)
 		ui->expSlider->setValue(nextPeriod);
 		break;
 
-	/* PageUp/PageDown moves the slider linearly by degrees. */
+    /* PageUp/PageDown moves the slider linearly by degrees. */
 	case Qt::Key_PageUp:
 		ui->expSlider->setValue(expPeriod + ui->expSlider->singleStep());
 		break;
@@ -862,4 +848,18 @@ void CamMainWindow::buttonsEnabled(bool en)
 	ui->cmdIOSettings->setEnabled(en);
 	ui->cmdRecSettings->setEnabled(en);
 	QCoreApplication::processEvents();
+}
+
+void CamMainWindow::on_expbutton_clicked()
+{
+    if (ed)
+    {
+        delete ed;
+        ed = NULL;
+    }
+    else
+    {
+        ed = new ExpDialog(this);
+        ed->show();
+    }
 }

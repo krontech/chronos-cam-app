@@ -19,5 +19,9 @@
         <file>darkstylesheet.qss</file>
         <file>assets/images/handle-bars-light-61x156+40.png</file>
         <file>light3stylesheet.qss</file>
+        <file>assets/images/radio-button-unchecked-focus-white.png</file>
+        <file>assets/images/radio-button-checked-focus-white.png</file>
+        <file>assets/images/checkbox-unchecked-focus-white.png</file>
+        <file>assets/images/checkbox-checked-focus-white.png</file>
     </qresource>
 </RCC>

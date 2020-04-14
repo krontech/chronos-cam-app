@@ -37,7 +37,7 @@
     <enum>QTabWidget::East</enum>
    </property>
    <property name="currentIndex">
-    <number>0</number>
+    <number>1</number>
    </property>
    <widget class="QWidget" name="tabMain">
     <property name="styleSheet">
@@ -544,7 +544,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>280</y>
+       <y>290</y>
        <width>111</width>
        <height>51</height>
       </rect>

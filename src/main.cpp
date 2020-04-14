@@ -135,38 +135,9 @@ int main(int argc, char *argv[])
 	//QWSServer::setBackground(QBrush(Qt::black));
 	QWSServer::setBackground(QBrush(Qt::transparent));  // have not tested
 #endif
-	
-	// Load stylesheet from file, if one exists.
-    //QFile fStyle("stylesheet.qss");
-    //if (fStyle.open(QFile::ReadOnly)) {
-        //QString sheet = QLatin1String(fStyle.readAll());
-        //a.setStyleSheet(sheet);
-        //fStyle.close();
-    //}
-
-
-
-/*
-    if(1)
-    {
-        QFile styleFile(":/qss/darkstylesheet.qss");
-        styleFile.open(QFile::ReadOnly);
-
-        QString style(styleFile.readAll());
-        a.setStyleSheet(style);
-    }
-    else
-    {
-        QFile styleFile(":/qss/lightstylesheet.qss");
-        styleFile.open(QFile::ReadOnly);
-
-        QString style(styleFile.readAll());
-        a.setStyleSheet(style);
-    }
-*/
 
 	//Disable stdout buffering so prints work rather than just filling the buffer.
-//	setbuf(stdout, NULL);
+    //setbuf(stdout, NULL);
 	
 	//Set the minimum size of buttons and other UI interaction elements
 	QApplication::setGlobalStrut(QSize(40, 40));
@@ -179,8 +150,6 @@ int main(int argc, char *argv[])
 //	fflush(stdout);
 
 	CamMainWindow w;
-
-
 	w.setWindowFlags(Qt::FramelessWindowHint);
 
 	QSettings appSettings;
@@ -207,7 +176,7 @@ int main(int argc, char *argv[])
     }
 
 //	MainWindow w (CamMainWindow);
-	w.show();
+    w.show();
 	
     return a.exec();
 }

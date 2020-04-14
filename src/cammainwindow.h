@@ -26,6 +26,7 @@
 #include "statuswindow.h"
 #include "util.h"
 #include "camera.h"
+#include "expdialog.h"
 
 namespace Ui {
 class CamMainWindow;
@@ -93,6 +94,8 @@ private slots:
 
 	void buttonsEnabled(bool en);
 
+    void on_expbutton_clicked();
+
 
 private:
 	void updateCurrentSettingsLabel(void);
@@ -105,6 +108,7 @@ private:
 	Ui::CamMainWindow *ui;
 	UserInterface * interface;
 	StatusWindow * sw;
+    ExpDialog * ed;
 	QTimer *timer;
 	bool recording;
 	bool lastShutterButton;

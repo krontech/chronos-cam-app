@@ -25,6 +25,8 @@
 #include <QDBusInterface>
 #include <QProgressDialog>
 #include <QListView>
+#include <QApplication>
+#include <QProcess>
 
 #include <stdio.h>
 #include <fcntl.h>
@@ -76,7 +78,7 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	QString aboutText;
 
 	ui->setupUi(this);
-	this->setWindowFlags(Qt::Dialog | Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
+    this->setWindowFlags(Qt::Dialog | Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
 	this->move(0,0);
 	camera = cameraInst;
 	settingClock = false;
@@ -519,7 +521,7 @@ void UtilWindow::on_cmdBlackCalAll_clicked()
 		sprintf(text, "Black cal of all standard resolutions was successful");
 		msg.setText(text);
 		msg.setWindowTitle(title);
-		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
+        msg.setWindowFlags(Qt::WindowStaysOnTopHint);
 		msg.exec();
 	}
 }
@@ -754,7 +756,7 @@ void UtilWindow::on_cmdSaveCal_clicked()
 	if(0 != retVal)
 	{
 		sw.hide();
-		msg.setText("Error: tar command failed");
+        msg.setText("Error: File doesn't exit. Try unzip again.");
 		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
 		msg.exec();
 		return;
@@ -1034,7 +1036,7 @@ void UtilWindow::on_chkShippingMode_clicked()
 
 	if(state == TRUE){
 		QMessageBox::information(this, "Shipping Mode Enabled","On the next restart, the AC adapter must be plugged in to turn the camera on.", QMessageBox::Ok);
-	}
+    }
 
 	camera->cinst->setBool("shippingMode", state);
 }
@@ -1164,7 +1166,7 @@ void UtilWindow::on_cmdBackupSettings_clicked()
 	if(0 != retVal)
 	{
 		sw.hide();
-		msg.setText("Error: tar command failed");
+        msg.setText("Error: File doesn't exit. Try unzip again.");
 		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
 		msg.exec();
 		return;
@@ -1312,7 +1314,9 @@ void UtilWindow::on_comboMode_currentIndexChanged(int index)
     if (!openingWindow)
     {
         camera->setGUIMode(index);
-        qApp->quitOnLastWindowClosed();
+        qApp->closeAllWindows();
+        camera->cinst->reboot(true);
+
     }
 }
 
