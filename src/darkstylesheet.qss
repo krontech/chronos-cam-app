@@ -1,5 +1,5 @@
 /* All Widgets except MainWindow */
-QWidget#IOSettingsWindow, #keyboard, #keyboardNumeric, #playbackWindow, #ramWindow, #recModeWindow, #RecSettingsWindow, #SaveSettingsWindow,
+QWidget#IOSettingsWindow, #keyboard, #keyboardNumeric, #playbackWindow, #ramWindow, #recModeWindow, #RecSettingsWindow, #saveSettingsWindow,
        #triggerDelayWindow, #UtilWindow, #ExpDialog
 {
     background-color: #333;
@@ -428,6 +428,7 @@ QComboBox QScrollBar::sub-line::vertical
 /* QFrame in GUI1 */
 QFrame#frame
 {
+    image: url(:/qss/assets/images/frame-preview.png);
     background-color: #999;
     border: none;
     background-position: center;
@@ -473,7 +474,7 @@ QTabBar::tab
 
     border: 1px solid #555;
 
-    padding: 10px 0;
+    padding: 12.5px 0;
 }
 QTabBar::tab:selected
 {
@@ -486,7 +487,7 @@ QTabBar::tab:selected
     border: 1px solid #777;
     border-left: 0px;
 
-    padding: 10px 0;
+    padding: 12.5px 0;
 }
 
 

@@ -23,5 +23,6 @@
         <file>assets/images/radio-button-checked-focus-white.png</file>
         <file>assets/images/checkbox-unchecked-focus-white.png</file>
         <file>assets/images/checkbox-checked-focus-white.png</file>
+        <file>assets/images/frame-preview.png</file>
     </qresource>
 </RCC>

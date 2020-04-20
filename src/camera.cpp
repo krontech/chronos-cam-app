@@ -52,6 +52,7 @@ Camera::Camera()
 
 	unsavedWarnEnabled = getUnsavedWarnEnable();
     guiMode = getGUIMode();
+    expLabel = getExp();
 
 	autoSave = appSettings.value("camera/autoSave", 0).toBool();
 	autoRecord = appSettings.value("camera/autoRecord", 0).toBool();
@@ -177,6 +178,7 @@ CameraErrortype Camera::init(Video * vinstInst, Control * cinstInst)
 	}
 
     int guiMode = getGUIMode();
+    int expLable = getExp();
 
 	return SUCCESS;
 }
@@ -640,6 +642,19 @@ void Camera::setGUIMode(int newSetting)
     QSettings appSettings;
     guiMode = newSetting;
     appSettings.setValue("camera/guiMode", newSetting);
+}
+
+int Camera::getExp(void)
+{
+    QSettings appSettings;
+    return appSettings.value("camera/expLabel", 1).toInt();
+}
+
+void Camera::setExp(int newSetting)
+{
+    QSettings appSettings;
+    expLabel = newSetting;
+    appSettings.setValue("camera/expLabel", newSetting);
 }
 
 int Camera::getAutoPowerMode(void)

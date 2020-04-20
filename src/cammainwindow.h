@@ -26,7 +26,6 @@
 #include "statuswindow.h"
 #include "util.h"
 #include "camera.h"
-#include "expdialog.h"
 
 namespace Ui {
 class CamMainWindow;
@@ -91,11 +90,9 @@ private slots:
 	void on_exposureMin_valueChanged(const QVariant &value);
 	void on_focusPeakingLevel_valueChanged(const QVariant &value);
 	void on_wbTemperature_valueChanged(const QVariant &value);
+    void on_rsResolution_valueChanged(const QVariant &value);
 
 	void buttonsEnabled(bool en);
-
-    void on_expbutton_clicked();
-
 
 private:
 	void updateCurrentSettingsLabel(void);
@@ -108,7 +105,6 @@ private:
 	Ui::CamMainWindow *ui;
 	UserInterface * interface;
 	StatusWindow * sw;
-    ExpDialog * ed;
 	QTimer *timer;
 	bool recording;
 	bool lastShutterButton;

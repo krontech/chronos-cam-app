@@ -32,7 +32,6 @@
 #include "ui_cammainwindow.h"
 #include "util.h"
 #include "whitebalancedialog.h"
-#include "expdialog.h"
 
 #include <time.h>
 #include <sys/types.h>
@@ -78,9 +77,6 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	batteryVoltage = 0;
 	batteryPresent = false;
 	externalPower = false;
-
-    ed = NULL;
-    connect(ui->expButton, SIGNAL(clicked(bool)), this, SLOT(on_expbutton_clicked()));
 
 	interface->init();
 	retVal = camera->init(vinst, cinst);
@@ -145,6 +141,7 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	cinst->listen("exposureMax", this, SLOT(on_exposureMax_valueChanged(const QVariant &)));
 	cinst->listen("focusPeakingLevel", this, SLOT(on_focusPeakingLevel_valueChanged(const QVariant &)));
 	cinst->listen("wbTemperature", this, SLOT(on_wbTemperature_valueChanged(const QVariant &)));
+    cinst->listen("wbTemperature", this, SLOT(on_wbTemperature_valueChanged(const QVariant &)));
 
 	cinst->getArray("colorMatrix", 9, (double *)&camera->colorCalMatrix);
 
@@ -171,6 +168,7 @@ void CamMainWindow::on_exposurePeriod_valueChanged(const QVariant &value)
 	apiUpdate = true;
 	ui->expSlider->setValue(value.toInt());
 	apiUpdate = false;
+    updateCurrentSettingsLabel();
 }
 
 void CamMainWindow::on_exposureMax_valueChanged(const QVariant &value)
@@ -204,6 +202,13 @@ void CamMainWindow::on_wbTemperature_valueChanged(const QVariant &value)
 	} else {
 		ui->cmdWB->setText("White Bal\nCustom");
 	}
+}
+
+void CamMainWindow::on_rsResolution_valueChanged(const QVariant &value)
+{
+    int wbResolution = value.toInt();
+    ui->cmdRecSettings->setText(QString("Rec Settings\n%1\xb0K").arg(wbResolution));
+
 }
 
 QMessageBox::StandardButton
@@ -670,14 +675,18 @@ void CamMainWindow::updateCurrentSettingsLabel()
 	double framePeriod = (double)is.period / clock;
 	double expPeriod = (double)is.exposure / clock;
 
-	char str[300];
+    char str[300];
 	char battStr[50];
 	char fpsString[30];
 	char expString[30];
 	char shString[30];
 
+    int exp = appSettings.value("camera/expLabel", 1).toInt();
+
 	sprintf(fpsString, QString::number(1 / framePeriod).toAscii());
-	getSIText(expString, expPeriod, 4, DEF_SI_OPTS, 10);
+
+    getSIText(expString, expPeriod, 4, DEF_SI_OPTS, 10);
+
 	if (appSettings.value("camera/fractionalExposure", false).toBool()) {
 		/* Show secondary exposure period as fractional time. */
 		strcpy(shString, "1/");
@@ -687,7 +696,7 @@ void CamMainWindow::updateCurrentSettingsLabel()
 		int shutterAngle = (expPeriod * 360.0) / framePeriod;
 		sprintf(shString, "%u\xb0", max(shutterAngle, 1)); /* Round up if less than zero degrees. */
 	}
-
+/*
 	if(batteryPresent)	//If battery present
 	{
 		sprintf(battStr, "Batt %d%% %.2fV", (UInt32)batteryPercent, batteryVoltage);
@@ -696,10 +705,26 @@ void CamMainWindow::updateCurrentSettingsLabel()
 	{
 		sprintf(battStr, "No Batt");
 	}
+    */
 
-	sprintf(str, "%s\r\n%ux%u %sfps\r\nExp %ss (%s)", battStr, is.geometry.hRes, is.geometry.vRes, fpsString, expString, shString);
-	ui->lblCurrent->setText(str);
+    if (exp == 0)
+    {
+        sprintf(str, "%ux%u %sfps\r\nExposure %ss", is.geometry.hRes, is.geometry.vRes, fpsString, expString);
+    }
+    else if (exp == 1)
+    {
+        sprintf(str, "%ux%u %sfps\r\nExposure %s", is.geometry.hRes, is.geometry.vRes, fpsString, shString);
+    }
+    else
+    {
+        //sprintf(str, "%s\r\n%ux%u %sfps\r\nExposure %d%%", battStr, is.geometry.hRes, is.geometry.vRes, fpsString, percentage);
+    }
+
+    ui->lblCurrent->setText(str);
+
+
 }
+
 
 void CamMainWindow::on_cmdUtil_clicked()
 {
@@ -848,18 +873,4 @@ void CamMainWindow::buttonsEnabled(bool en)
 	ui->cmdIOSettings->setEnabled(en);
 	ui->cmdRecSettings->setEnabled(en);
 	QCoreApplication::processEvents();
-}
-
-void CamMainWindow::on_expbutton_clicked()
-{
-    if (ed)
-    {
-        delete ed;
-        ed = NULL;
-    }
-    else
-    {
-        ed = new ExpDialog(this);
-        ed->show();
-    }
 }

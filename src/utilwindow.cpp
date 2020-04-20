@@ -102,6 +102,10 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
     ui->comboMode->addItem("Light");
     ui->comboMode->addItem("Dark");
 
+    ui->ExpcomboBox->addItem("Fractional Time (us)");
+    ui->ExpcomboBox->addItem("Shutter Angle (\260)");
+    ui->ExpcomboBox->addItem("Percentage (%)");
+
 	ui->comboFPColor->setCurrentIndex(camera->getFocusPeakColor() - 1);
 	ui->chkZebraEnable->setChecked(camera->getZebraEnable());
 	ui->chkShippingMode->setChecked(camera->cinst->getProperty("shippingMode", false).toBool());
@@ -181,6 +185,8 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	ui->lineSerialNumber->setVisible(false);
 	ui->chkShowDebugControls->setVisible(false);
 	ui->chkFanDisable->setVisible(false);
+    ui->lblLiveRecord->setVisible(false);
+    ui->liveRecordComboBox->setVisible(false);
 
 	/* fan override is either [1.0,0.0] to set a PWM, or < 0 for auto. */
 	double fanOverride = camera->cinst->getProperty("fanOverride", -1).toDouble();
@@ -195,6 +201,7 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	ui->comboDisableUnsavedWarning->setCurrentIndex(camera->getUnsavedWarnEnable());
 	ui->comboAutoPowerMode->setCurrentIndex(camera->getAutoPowerMode());
     ui->comboMode->setCurrentIndex(camera->getGUIMode());
+    ui->ExpcomboBox->setCurrentIndex(camera->getExp());
 
     //Set QListView to change items in the combo box with qss
     ui->comboAutoPowerMode->setView(new QListView);
@@ -207,6 +214,12 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
     //Set QListView to change items in the combo box with qss
     ui->comboMode->setView(new QListView);
     ui->comboMode->view()->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+
+    ui->liveRecordComboBox->setView(new QListView);
+    ui->liveRecordComboBox->view()->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+
+    ui->ExpcomboBox->setView(new QListView);
+    ui->ExpcomboBox->view()->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
 
 	/* Load the Samba network settings. */
 	ui->lineSmbUser->setText(appSettings.value("network/smbUser", "").toString());
@@ -1075,6 +1088,17 @@ void UtilWindow::updateDrives(void)
 void UtilWindow::on_chkLiveRecord_stateChanged(int arg1)
 {
 	camera->set_liveRecord(ui->chkLiveRecord->isChecked());
+    if(ui->chkLiveRecord->isChecked())
+    {
+        ui->liveRecordComboBox->setVisible(true);
+        ui->lblLiveRecord->setVisible(true);
+
+    }
+    else
+    {
+        ui->liveRecordComboBox->setVisible(false);
+        ui->lblLiveRecord->setVisible(false);
+    }
 }
 
 void UtilWindow::on_cmdDefaults_clicked()
@@ -1317,6 +1341,14 @@ void UtilWindow::on_comboMode_currentIndexChanged(int index)
         qApp->closeAllWindows();
         camera->cinst->reboot(true);
 
+    }
+}
+
+void UtilWindow::on_ExpcomboBox_currentIndexChanged(int index)
+{
+    if (!openingWindow)
+    {
+        camera->setExp(index);
     }
 }
 

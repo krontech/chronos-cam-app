@@ -93,8 +93,7 @@ SOURCES += main.cpp\
     control.cpp \
     myinputpanel.cpp \
     eeprom.c \
-    networkconfig.cpp \
-    expdialog.cpp
+    networkconfig.cpp
 
 ## Generate version.cpp on every build
 versionTarget.target = version.cpp
@@ -145,8 +144,7 @@ HEADERS  += mainwindow.h \
     ui_myinputpanelform.h \
     control.h \
     eeprom.h \
-    networkconfig.h \
-    expdialog.h
+    networkconfig.h
 
 FORMS    += mainwindow.ui \
     cammainwindow.ui \
@@ -162,8 +160,7 @@ FORMS    += mainwindow.ui \
     triggerdelaywindow.ui \
     keyboardnumeric.ui \
     whitebalancedialog.ui \
-    colorwindow.ui \
-    expdialog.ui
+    colorwindow.ui
 
 RESOURCES += \
     Images.qrc
