@@ -81,6 +81,10 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
     ui->battery->setVisible(false);
     ui->battLabel->setVisible(false);
 
+    QPixmap pixmap(":/qss/assets/images/record.png");
+    QIcon ButtonIcon(pixmap);
+    ui->cmdRec->setIcon(ButtonIcon);
+
 	interface->init();
 	retVal = camera->init(vinst, cinst);
 
@@ -428,6 +432,10 @@ void CamMainWindow::on_state_valueChanged(const QVariant &value)
 		if (!camera->loopTimerEnabled)
 		{
 			ui->cmdRec->setText("Stop");
+
+            QPixmap pixmap(":/qss/assets/images/stop.png");
+            QIcon ButtonIcon(pixmap);
+            ui->cmdRec->setIcon(ButtonIcon);
 		}
 	}
 	else {
@@ -444,6 +452,9 @@ void CamMainWindow::on_state_valueChanged(const QVariant &value)
 		else
 		{
 			ui->cmdRec->setText("Record");
+            QPixmap pixmap(":/qss/assets/images/record.png");
+            QIcon ButtonIcon(pixmap);
+            ui->cmdRec->setIcon(ButtonIcon);
 		}
 		ui->cmdPlay->setEnabled(true);
 

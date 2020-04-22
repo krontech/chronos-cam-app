@@ -24,5 +24,7 @@
         <file>assets/images/checkbox-unchecked-focus-white.png</file>
         <file>assets/images/checkbox-checked-focus-white.png</file>
         <file>assets/images/frame-preview.png</file>
+        <file>assets/images/record.png</file>
+        <file>assets/images/stop.png</file>
     </qresource>
 </RCC>

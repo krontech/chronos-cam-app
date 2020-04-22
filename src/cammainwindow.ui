@@ -580,7 +580,7 @@ Aid</string>
     <rect>
      <x>0</x>
      <y>460</y>
-     <width>51</width>
+     <width>71</width>
      <height>21</height>
     </rect>
    </property>
@@ -604,7 +604,7 @@ Aid</string>
   <widget class="QLabel" name="VolLabel">
    <property name="geometry">
     <rect>
-     <x>60</x>
+     <x>80</x>
      <y>460</y>
      <width>71</width>
      <height>20</height>
