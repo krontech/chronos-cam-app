@@ -609,3 +609,16 @@ QProgressDialog > QPushButton:disabled
 
 
 
+QProgressBar {
+    border: 2px solid #555;
+    border-radius: 5px;
+    text-align: center;
+}
+
+QProgressBar::chunk {
+    border: 1px solid #fff;
+    border-radius: 3px;
+}
+
+
+

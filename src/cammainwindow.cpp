@@ -78,6 +78,9 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	batteryPresent = false;
 	externalPower = false;
 
+    ui->battery->setVisible(false);
+    ui->battLabel->setVisible(false);
+
 	interface->init();
 	retVal = camera->init(vinst, cinst);
 
@@ -696,16 +699,41 @@ void CamMainWindow::updateCurrentSettingsLabel()
 		int shutterAngle = (expPeriod * 360.0) / framePeriod;
 		sprintf(shString, "%u\xb0", max(shutterAngle, 1)); /* Round up if less than zero degrees. */
 	}
-/*
+
 	if(batteryPresent)	//If battery present
 	{
-		sprintf(battStr, "Batt %d%% %.2fV", (UInt32)batteryPercent, batteryVoltage);
+        ui->battery->setVisible(true);
+        ui->VolLabel->setVisible(true);
+        ui->battLabel->setVisible(false);
+
+        sprintf(battStr, "%.2fV", batteryVoltage);
+        ui->VolLabel->setText(battStr);
+
+        if (batteryPercent >= 30)
+        {
+            ui->battery->setStyleSheet("QProgressBar::chunk {background-color: #00ff00;}");
+        }
+        if (batteryPercent < 30 && batteryPercent > 10)
+        {
+            ui->battery->setStyleSheet("QProgressBar::chunk {background-color: orange;}");
+        }
+        if (batteryPercent <= 10)
+        {
+            ui->battery->setStyleSheet("QProgressBar::chunk {background-color: red;}");
+        }
+        ui->battery->setValue(batteryPercent);
+
 	}
 	else
 	{
+        ui->battLabel->setVisible(true);
+        ui->battery->setVisible(false);
+        ui->VolLabel->setVisible(false);
+
 		sprintf(battStr, "No Batt");
+        ui->battLabel->setText(battStr);
 	}
-    */
+
 
     if (exp == 0)
     {
@@ -768,6 +796,7 @@ void CamMainWindow::on_cmdBkGndButton_clicked()
 	ui->cmdWB->setVisible(true);
     ui->expSlider->setVisible(true);
 	ui->lblCurrent->setVisible(true);
+    ui->VolLabel->setVisible(true);
     ui->lblExp->setVisible(true);
 }
 
