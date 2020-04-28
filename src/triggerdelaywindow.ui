@@ -98,7 +98,7 @@
     <enum>Qt::NoFocus</enum>
    </property>
    <property name="styleSheet">
-    <string notr="true"/>
+    <string notr="true">background-color: none;</string>
    </property>
    <property name="orientation">
     <enum>Qt::Horizontal</enum>

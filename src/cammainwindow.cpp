@@ -205,6 +205,7 @@ void CamMainWindow::on_wbTemperature_valueChanged(const QVariant &value)
 
 	if (!ui->cmdWB->isEnabled()) return; /* Do nothing on monochrome cameras */
 	if (wbTempK > 0) {
+        ui->cmdWB->setStyleSheet("color: rgb(207, 244, 255);");
 		ui->cmdWB->setText(QString("White Bal\n%1\xb0K").arg(wbTempK));
 	} else {
 		ui->cmdWB->setText("White Bal\nCustom");
@@ -711,6 +712,28 @@ void CamMainWindow::updateCurrentSettingsLabel()
 		sprintf(shString, "%u\xb0", max(shutterAngle, 1)); /* Round up if less than zero degrees. */
 	}
 
+    FrameTiming timing;
+    double expMax = timing.exposureMax;
+
+    /*
+    void RecSettingsWindow::on_cmdExpMax_clicked()
+    {
+        FrameGeometry frameSize = getResolution();
+        FrameTiming timing;
+        UInt32 fPeriod = ui->linePeriod->siText() * sensor.timingClock;
+        UInt32 expPeriod = fPeriod;
+        char str[100];
+
+        frameSize.minFrameTime = ui->linePeriod->siText();
+        camera->cinst->getTiming(&frameSize, &timing);
+
+        if (expPeriod > timing.exposureMax) expPeriod = timing.exposureMax;
+        if (expPeriod < timing.exposureMin) expPeriod = timing.exposureMin;
+        getSIText(str, (double)expPeriod / sensor.timingClock, 10, DEF_SI_OPTS, 8);
+        ui->lineExp->setText(str);
+    }
+    */
+
 	if(batteryPresent)	//If battery present
 	{
         ui->battery->setVisible(true);
@@ -756,7 +779,7 @@ void CamMainWindow::updateCurrentSettingsLabel()
     }
     else
     {
-        //sprintf(str, "%s\r\n%ux%u %sfps\r\nExposure %d%%", battStr, is.geometry.hRes, is.geometry.vRes, fpsString, percentage);
+        sprintf(str, "%ux%u %sfps\r\nExposure %d%%", is.geometry.hRes, is.geometry.vRes, fpsString, expMax);
     }
 
     ui->lblCurrent->setText(str);

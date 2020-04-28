@@ -316,7 +316,7 @@ units</string>
        <x>500</x>
        <y>10</y>
        <width>241</width>
-       <height>371</height>
+       <height>291</height>
       </rect>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout">

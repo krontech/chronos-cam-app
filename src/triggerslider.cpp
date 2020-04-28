@@ -63,9 +63,9 @@ void TriggerSlider::paintEvent(QPaintEvent *ev) {
         end = groove_rect.width() * (double)highlightEnd / QSlider::maximum();
     }
 
-    QRect rect(groove_rect.left() + start, groove_rect.top(), end, groove_rect.height());
-    QPainter painter(this);
-    painter.fillRect(rect, QBrush(Qt::red));
+    //QRect rect(groove_rect.left() + start, groove_rect.top(), end, groove_rect.height());
+    //QPainter painter(this);
+    //painter.fillRect(rect, QBrush(Qt::red));
 
     QSlider::paintEvent(ev);
 }

@@ -168,7 +168,7 @@ int main(int argc, char *argv[])
     }
     else
     {
-        QFile styleFile(":/qss/lightstylesheet.qss");
+        QFile styleFile(":/qss/light3stylesheet.qss");
         styleFile.open(QFile::ReadOnly);
 
         QString style(styleFile.readAll());
