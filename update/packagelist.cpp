@@ -29,6 +29,11 @@ PackageList::PackageList(QWidget *parent) :
 		"--showformat=${db:Status-Abbrev} ${Package;-28} ${Version;-24} ${binary:Summary}\n", "-W"
 	};
 	process->start("dpkg-query", dpkgArgs);
+
+	/* Set edit focus so that the jog wheel works to scroll through packages. */
+#ifdef QT_KEYPAD_NAVIGATION
+	ui->text->setEditFocus(true);
+#endif
 }
 
 PackageList::~PackageList()

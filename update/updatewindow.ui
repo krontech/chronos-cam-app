@@ -233,6 +233,17 @@ Updates</string>
    </property>
   </widget>
  </widget>
+ <tabstops>
+  <tabstop>cmdQuit</tabstop>
+  <tabstop>cmdReboot</tabstop>
+  <tabstop>cmdListSoftware</tabstop>
+  <tabstop>cmdApplyGui</tabstop>
+  <tabstop>comboGui</tabstop>
+  <tabstop>cmdApplyNetwork</tabstop>
+  <tabstop>comboRelease</tabstop>
+  <tabstop>cmdApplyMedia</tabstop>
+  <tabstop>comboMedia</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

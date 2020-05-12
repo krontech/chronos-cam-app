@@ -22,7 +22,8 @@ SOURCES += main.cpp \
     utils.cpp \
     mediaupdate.cpp \
     networkupdate.cpp \
-    packagelist.cpp
+    packagelist.cpp \
+    encoder.cpp
 
 HEADERS  += \
     updateprogress.h \

@@ -46,18 +46,13 @@ UpdateWindow::UpdateWindow(QWidget *parent) :
 	 * networking.
 	 */
 	inRescueMode = system("systemctl is-active rescue.target") == 0;
-	if (inRescueMode) {
-		/* Check if eth0 is up */
-		FILE *fp = fopen("/sys/class/net/eth0/operstate", "r");
-		char buf[16] = {'\0'};
-		if (fp) {
-			fgets(buf, sizeof(buf), fp);
-			fclose(fp);
-		}
+	if (inRescueMode && !checkForNetwork()) {
 		/* If the link is not up, start dhclient to bring it up */
-		if (strncmp(buf, "up", 2) != 0) system("dhclient -nw eth0");
+		dhclient = new QProcess(this);
+		connect(dhclient, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(dhclientFinished(int, QProcess::ExitStatus)));
+		connect(dhclient, SIGNAL(error(QProcess::ProcessError)), this, SLOT(dhclientError(QProcess::ProcessError)));
+		dhclient->start("dhclient", QStringList("eth0"), QProcess::ReadOnly);
 	}
-
 	/* Run a timer to scan the media devices for updates. */
 	mediaTimer = new QTimer(this);
 	connect(mediaTimer, SIGNAL(timeout()), this, SLOT(checkForMedia()));
@@ -93,25 +88,27 @@ UpdateWindow::UpdateWindow(QWidget *parent) :
 		releaseFile.close();
 	}
 
-	aptCheck = new QProcess(this);
-	connect(aptCheck, SIGNAL(started()), this, SLOT(started()));
-	connect(aptCheck, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(finished(int, QProcess::ExitStatus)));
-	connect(aptCheck, SIGNAL(error(QProcess::ProcessError)), this, SLOT(error(QProcess::ProcessError)));
-	connect(aptCheck, SIGNAL(readyReadStandardOutput()), this, SLOT(readyReadStandardOutput()));
-
-	/* Start a process to get the number of packages known for update. */
-	QStringList aptCheckArgs = {
-		"list", "--upgradable"
-	};
-	aptUpdateCount = 0;
-	aptCheck->start("apt", aptCheckArgs, QProcess::ReadOnly);
+	/* Launch a thread to handle inputs from the encoder wheel. */
+	startEncoder();
 }
 
 UpdateWindow::~UpdateWindow()
 {
+	stopEncoder();
+	if (inRescueMode) delete dhclient;
 	delete mediaTimer;
-	delete aptCheck;
 	delete ui;
+}
+
+bool UpdateWindow::checkForNetwork()
+{
+	/* Check if eth0 is up */
+	FILE *fp = fopen("/sys/class/net/eth0/operstate", "r");
+	char buf[16] = {'\0'};
+	if (!fp) false;
+	fgets(buf, sizeof(buf), fp);
+	fclose(fp);
+	return strncmp(buf, "up", 2) == 0;
 }
 
 void UpdateWindow::checkForMedia()
@@ -161,6 +158,11 @@ void UpdateWindow::checkForMedia()
 
 	ui->comboMedia->setEnabled(ui->comboMedia->count() > 0);
 	ui->cmdApplyMedia->setEnabled(ui->comboMedia->count() > 0);
+
+	/* Check for network link (excluding recovery mode, which uses dhclient) */
+	if (!inRescueMode) {
+		ui->cmdApplyNetwork->setEnabled(checkForNetwork());
+	}
 }
 
 void UpdateWindow::updateClosed()
@@ -225,7 +227,12 @@ void UpdateWindow::on_cmdQuit_clicked()
 {
 	int index = ui->comboGui->currentIndex();
 	if (inRescueMode) {
-		system("shutdown -hr now");
+		/*
+		 * What is the *appropriate* way to exit rescue mode?
+		 * Attempting to reboot the system just results in the
+		 * system hanging on the recovery shell.
+		 */
+		system("killall -HUP sulogin");
 	}
 	else if (index == 1) {
 		system("service chronos-gui start");
@@ -236,34 +243,14 @@ void UpdateWindow::on_cmdQuit_clicked()
 	QApplication::quit();
 }
 
-void UpdateWindow::started()
+void UpdateWindow::dhclientFinished(int code, QProcess::ExitStatus status)
 {
-	qDebug("apt check started");
-}
-
-void UpdateWindow::finished(int code, QProcess::ExitStatus status)
-{
-	qDebug("apt check finished: %d", code);
-}
-
-void UpdateWindow::error(QProcess::ProcessError err)
-{
-	qDebug("apt check failed: %d", err);
-}
-
-void UpdateWindow::readyReadStandardOutput()
-{
-	QString msg;
-	char buf[1024];
-	qint64 len;
-
-	aptCheck->setReadChannel(QProcess::StandardOutput);
-	len = aptCheck->readLine(buf, sizeof(buf));
-	if (len < 0) {
-		return;
+	if ((status == QProcess::NormalExit) && (code == 0)) {
+		ui->cmdApplyNetwork->setEnabled(true);
 	}
-	msg = QString(buf).trimmed();
+}
 
-	if (msg.contains("upgradable")) aptUpdateCount++;
-	qDebug() << "apt:" << msg;
+void UpdateWindow::dhclientError(QProcess::ProcessError err)
+{
+	qDebug("dhclient failed: %d", err);
 }
