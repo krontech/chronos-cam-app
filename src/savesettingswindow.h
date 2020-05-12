@@ -67,14 +67,12 @@ private slots:
     void on_chkEnableOverlay_toggled(bool checked);
     
 private:
-	void refreshDriveList();
 	void updateBitrate();
 	void saveFileDirectory();
 	UInt32 getBitrate();
 
 	Ui::saveSettingsWindow *ui;
 	QTimer * timer;
-	UInt32 driveCount;
 	bool okToSaveLocation = false;
 	bool windowInitComplete;
 };

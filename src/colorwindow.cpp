@@ -10,23 +10,6 @@ ColorWindow::ColorWindow(QWidget *parent, Camera *cameraInst, const double *matr
 	camera = cameraInst;
 	ui->setupUi(this);
 
-    if (camera->guiMode == 1)
-    {
-        QFile styleFile(":/qss/darkstylesheet.qss");
-        styleFile.open(QFile::ReadOnly);
-
-        QString style(styleFile.readAll());
-        this->setStyleSheet(style);
-    }
-    else
-    {
-        QFile styleFile(":/qss/lightstylesheet.qss");
-        styleFile.open(QFile::ReadOnly);
-
-        QString style(styleFile.readAll());
-        this->setStyleSheet(style);
-    }
-
 	this->setWindowFlags(Qt::Window /*| Qt::WindowStaysOnTopHint*/ | Qt::FramelessWindowHint);
 	move(camera->ButtonsOnLeft ? (800 - width()) : 0, 0);
 

@@ -49,12 +49,15 @@ Camera::Camera()
 	recordingData.ignoreSegments = 0;
 	recordingData.hasBeenSaved = true;
 	recordingData.hasBeenViewed = true;
-	unsavedWarnEnabled = getUnsavedWarnEnable();
 
+	unsavedWarnEnabled = getUnsavedWarnEnable();
     guiMode = getGUIMode();
+    expLabel = getExp();
 
 	autoSave = appSettings.value("camera/autoSave", 0).toBool();
 	autoRecord = appSettings.value("camera/autoRecord", 0).toBool();
+	liveRecord = appSettings.value("camera/liveRecord", 0).toBool();
+
 	ButtonsOnLeft = getButtonsOnLeft();
 	UpsideDownDisplay = getUpsideDownDisplay();
 	strcpy(serialNumber, "Not_Set");
@@ -101,6 +104,7 @@ CameraErrortype Camera::init(Video * vinstInst, Control * cinstInst)
 	vinst->bitsPerPixel        = appSettings.value("recorder/bitsPerPixel", 0.7).toDouble();
 	vinst->maxBitrate          = appSettings.value("recorder/maxBitrate", 40.0).toDouble();
 	vinst->framerate           = appSettings.value("recorder/framerate", 60).toUInt();
+	strcpy(vinst->liveRecFileDirectory, appSettings.value("recorder/liveRecFileDirectory", "").toString().toAscii());
 	strcpy(cinst->filename,      appSettings.value("recorder/filename", "").toString().toAscii());
 	strcpy(cinst->fileDirectory, appSettings.value("recorder/fileDirectory", "").toString().toAscii());
 	strcpy(cinst->fileFolder,    appSettings.value("recorder/fileFolder", "").toString().toAscii());
@@ -116,7 +120,7 @@ CameraErrortype Camera::init(Video * vinstInst, Control * cinstInst)
 		bool fileDirFoundOnUSB = false;
 		for (i = 1; i <= 3; i++) {
 			sprintf(cinst->fileDirectory, "/media/sda%d", i);
-			if (path_is_mounted(cinst->fileDirectory)) {
+			if (pathIsMounted(cinst->fileDirectory)) {
 				fileDirFoundOnUSB = true;
 				break;
 			}
@@ -174,6 +178,7 @@ CameraErrortype Camera::init(Video * vinstInst, Control * cinstInst)
 	}
 
     int guiMode = getGUIMode();
+    int expLable = getExp();
 
 	return SUCCESS;
 }
@@ -294,7 +299,11 @@ Int32 Camera::stopRecording(void)
 		return CAMERA_NOT_RECORDING;
 
 	cinst->stopRecording();
+
 	//recording = false;
+
+	if (liveRecord)
+		vinst->stopRecording();
 
 	return SUCCESS;
 }
@@ -622,6 +631,32 @@ void Camera::setUnsavedWarnEnable(int newSetting){
 	appSettings.setValue("camera/unsavedWarn", newSetting);
 }
 
+int Camera::getGUIMode(void)
+{
+    QSettings appSettings;
+    return appSettings.value("camera/guiMode", 1).toInt();
+}
+
+void Camera::setGUIMode(int newSetting)
+{
+    QSettings appSettings;
+    guiMode = newSetting;
+    appSettings.setValue("camera/guiMode", newSetting);
+}
+
+int Camera::getExp(void)
+{
+    QSettings appSettings;
+    return appSettings.value("camera/expLabel", 1).toInt();
+}
+
+void Camera::setExp(int newSetting)
+{
+    QSettings appSettings;
+    expLabel = newSetting;
+    appSettings.setValue("camera/expLabel", newSetting);
+}
+
 int Camera::getAutoPowerMode(void)
 {
 	int mode = 0;
@@ -639,19 +674,6 @@ void Camera::setAutoPowerMode(int newSetting)
 	values.insert("powerOnWhenMainsConnected", QVariant((newSetting & 1) != 0));
 	values.insert("powerOffWhenMainsLost", QVariant((newSetting & 2) != 0));
 	cinst->setPropertyGroup(values);
-}
-
-int Camera::getGUIMode(void)
-{
-    QSettings appSettings;
-    return appSettings.value("camera/guiMode", 1).toInt();
-}
-
-void Camera::setGUIMode(int newSetting)
-{
-    QSettings appSettings;
-    guiMode = newSetting;
-    appSettings.setValue("camera/guiMode", newSetting);
 }
 
 void Camera::set_autoSave(bool state) {
@@ -675,6 +697,18 @@ void Camera::set_autoRecord(bool state) {
 bool Camera::get_autoRecord() {
 	QSettings appSettings;
 	return appSettings.value("camera/autoRecord", false).toBool();
+}
+
+
+void Camera::set_liveRecord(bool state) {
+	QSettings appSettings;
+	liveRecord = state;
+	appSettings.setValue("camera/liveRecord", state);
+}
+
+bool Camera::get_liveRecord() {
+	QSettings appSettings;
+	return appSettings.value("camera/liveRecord", false).toBool();
 }
 
 

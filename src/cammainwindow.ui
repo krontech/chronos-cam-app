@@ -130,7 +130,7 @@
      <x>100</x>
      <y>360</y>
      <width>101</width>
-     <height>61</height>
+     <height>51</height>
     </rect>
    </property>
    <property name="font">
@@ -300,10 +300,10 @@ Settings</string>
   <widget class="QLabel" name="lblCurrent">
    <property name="geometry">
     <rect>
-     <x>0</x>
+     <x>10</x>
      <y>420</y>
      <width>201</width>
-     <height>61</height>
+     <height>41</height>
     </rect>
    </property>
    <property name="font">
@@ -312,7 +312,7 @@ Settings</string>
     </font>
    </property>
    <property name="styleSheet">
-    <string notr="true"/>
+    <string notr="true">color:  rgb(207, 244, 255);</string>
    </property>
    <property name="text">
     <string>TextLabel</string>
@@ -324,9 +324,9 @@ Settings</string>
   <widget class="QLabel" name="lblExp">
    <property name="geometry">
     <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>66</width>
+     <x>10</x>
+     <y>10</y>
+     <width>61</width>
      <height>17</height>
     </rect>
    </property>
@@ -343,7 +343,7 @@ Settings</string>
      <x>0</x>
      <y>360</y>
      <width>101</width>
-     <height>61</height>
+     <height>51</height>
     </rect>
    </property>
    <property name="font">
@@ -510,6 +510,128 @@ Aid</string>
     <set>Qt::AlignHCenter|Qt::AlignTop</set>
    </property>
   </widget>
+  <widget class="Line" name="line">
+   <property name="geometry">
+    <rect>
+     <x>90</x>
+     <y>50</y>
+     <width>91</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
+   </property>
+  </widget>
+  <widget class="Line" name="line_2">
+   <property name="geometry">
+    <rect>
+     <x>90</x>
+     <y>110</y>
+     <width>91</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
+   </property>
+  </widget>
+  <widget class="Line" name="line_3">
+   <property name="geometry">
+    <rect>
+     <x>90</x>
+     <y>170</y>
+     <width>91</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
+   </property>
+  </widget>
+  <widget class="Line" name="line_4">
+   <property name="geometry">
+    <rect>
+     <x>90</x>
+     <y>230</y>
+     <width>91</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
+   </property>
+  </widget>
+  <widget class="Line" name="line_5">
+   <property name="geometry">
+    <rect>
+     <x>90</x>
+     <y>290</y>
+     <width>91</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
+   </property>
+  </widget>
+  <widget class="QProgressBar" name="battery">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>460</y>
+     <width>71</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="value">
+    <number>24</number>
+   </property>
+  </widget>
+  <widget class="QLabel" name="battLabel">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>460</y>
+     <width>81</width>
+     <height>17</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>TextLabel</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="VolLabel">
+   <property name="geometry">
+    <rect>
+     <x>90</x>
+     <y>460</y>
+     <width>71</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>11</pointsize>
+    </font>
+   </property>
+   <property name="text">
+    <string>TextLabel</string>
+   </property>
+  </widget>
+  <widget class="Line" name="line_6">
+   <property name="geometry">
+    <rect>
+     <x>90</x>
+     <y>370</y>
+     <width>21</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Vertical</enum>
+   </property>
+  </widget>
   <zorder>lblLiveRec</zorder>
   <zorder>cmdBkGndButton</zorder>
   <zorder>cmdRec</zorder>
@@ -517,7 +639,6 @@ Aid</string>
   <zorder>cmdFPNCal</zorder>
   <zorder>cmdIOSettings</zorder>
   <zorder>expSlider</zorder>
-  <zorder>lblCurrent</zorder>
   <zorder>cmdClose</zorder>
   <zorder>lblExp</zorder>
   <zorder>cmdUtil</zorder>
@@ -528,6 +649,16 @@ Aid</string>
   <zorder>lblLiveTimer</zorder>
   <zorder>cmdPlay</zorder>
   <zorder>cmdWB</zorder>
+  <zorder>line</zorder>
+  <zorder>line_2</zorder>
+  <zorder>line_3</zorder>
+  <zorder>line_4</zorder>
+  <zorder>line_5</zorder>
+  <zorder>lblCurrent</zorder>
+  <zorder>battery</zorder>
+  <zorder>battLabel</zorder>
+  <zorder>VolLabel</zorder>
+  <zorder>line_6</zorder>
  </widget>
  <resources/>
  <connections/>

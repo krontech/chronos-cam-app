@@ -13,23 +13,6 @@ triggerDelayWindow::triggerDelayWindow(QWidget *parent, Camera * cameraInst, Ima
 
 	camera = cameraInst;
 
-    if (camera->guiMode == 1)
-    {
-        QFile styleFile(":/qss/darkstylesheet.qss");
-        styleFile.open(QFile::ReadOnly);
-
-        QString style(styleFile.readAll());
-        this->setStyleSheet(style);
-    }
-    else
-    {
-        QFile styleFile(":/qss/lightstylesheet.qss");
-        styleFile.open(QFile::ReadOnly);
-
-        QString style(styleFile.readAll());
-        this->setStyleSheet(style);
-    }
-
 	is = settings;
 	period = (double)is->period / camera->getSensorInfo().timingClock;
 	if ((is->mode == RECORD_MODE_NORMAL) || (is->mode == RECORD_MODE_GATED_BURST)) {

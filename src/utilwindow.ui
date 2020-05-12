@@ -18,9 +18,14 @@
     <rect>
      <x>10</x>
      <y>10</y>
-     <width>791</width>
+     <width>781</width>
      <height>461</height>
     </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>13</pointsize>
+    </font>
    </property>
    <property name="focusPolicy">
     <enum>Qt::NoFocus</enum>
@@ -41,63 +46,10 @@
     <attribute name="title">
      <string>Main</string>
     </attribute>
-    <widget class="QGroupBox" name="groupBoxClock">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>330</y>
-       <width>391</width>
-       <height>81</height>
-      </rect>
-     </property>
-     <property name="title">
-      <string>Clock</string>
-     </property>
-     <widget class="QDateTimeEdit" name="dateTimeEdit">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>30</y>
-        <width>271</width>
-        <height>31</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>16</pointsize>
-        <weight>50</weight>
-        <bold>false</bold>
-       </font>
-      </property>
-      <property name="displayFormat">
-       <string>d MMM yyyy hh:mm:ss</string>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="cmdSetClock">
-      <property name="geometry">
-       <rect>
-        <x>300</x>
-        <y>20</y>
-        <width>81</width>
-        <height>51</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>16</pointsize>
-        <weight>50</weight>
-        <bold>false</bold>
-       </font>
-      </property>
-      <property name="text">
-       <string>Save</string>
-      </property>
-     </widget>
-    </widget>
     <widget class="QPushButton" name="cmdClose">
      <property name="geometry">
       <rect>
-       <x>640</x>
+       <x>630</x>
        <y>390</y>
        <width>101</width>
        <height>51</height>
@@ -117,8 +69,8 @@
       <rect>
        <x>10</x>
        <y>10</y>
-       <width>731</width>
-       <height>71</height>
+       <width>341</width>
+       <height>121</height>
       </rect>
      </property>
      <property name="title">
@@ -169,8 +121,8 @@
      <widget class="QRadioButton" name="radioFPSensLow">
       <property name="geometry">
        <rect>
-        <x>380</x>
-        <y>20</y>
+        <x>10</x>
+        <y>70</y>
         <width>91</width>
         <height>41</height>
        </rect>
@@ -193,8 +145,8 @@
      <widget class="QRadioButton" name="radioFPSensMed">
       <property name="geometry">
        <rect>
-        <x>490</x>
-        <y>20</y>
+        <x>110</x>
+        <y>70</y>
         <width>101</width>
         <height>41</height>
        </rect>
@@ -217,8 +169,8 @@
      <widget class="QRadioButton" name="radioFPSensHigh">
       <property name="geometry">
        <rect>
-        <x>600</x>
-        <y>20</y>
+        <x>220</x>
+        <y>70</y>
         <width>101</width>
         <height>41</height>
        </rect>
@@ -243,8 +195,8 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>90</y>
-       <width>411</width>
+       <y>230</y>
+       <width>211</width>
        <height>41</height>
       </rect>
      </property>
@@ -254,7 +206,8 @@
       </font>
      </property>
      <property name="text">
-      <string>Ask before discarding unsaved video in RAM</string>
+      <string>Ask before discarding
+unsaved video in RAM</string>
      </property>
      <property name="checked" stdset="0">
       <bool>true</bool>
@@ -263,9 +216,9 @@
     <widget class="QComboBox" name="comboDisableUnsavedWarning">
      <property name="geometry">
       <rect>
-       <x>10</x>
-       <y>140</y>
-       <width>261</width>
+       <x>210</x>
+       <y>230</y>
+       <width>251</width>
        <height>41</height>
       </rect>
      </property>
@@ -290,12 +243,250 @@
       </property>
      </item>
     </widget>
+    <widget class="QLabel" name="lblLiveRecord">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>370</y>
+       <width>121</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>15</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>Live Record
+Location</string>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="liveRecordComboBox">
+     <property name="geometry">
+      <rect>
+       <x>130</x>
+       <y>370</y>
+       <width>331</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>16</pointsize>
+       <italic>false</italic>
+      </font>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lblExpUnitsLabel">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>160</y>
+       <width>101</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>15</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>Exposure
+units</string>
+     </property>
+     <property name="checked" stdset="0">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="ExpcomboBox">
+     <property name="geometry">
+      <rect>
+       <x>110</x>
+       <y>160</y>
+       <width>241</width>
+       <height>41</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QWidget" name="verticalLayoutWidget">
+     <property name="geometry">
+      <rect>
+       <x>500</x>
+       <y>10</y>
+       <width>241</width>
+       <height>291</height>
+      </rect>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout">
+      <item>
+       <widget class="QCheckBox" name="chkAutoSave">
+        <property name="font">
+         <font>
+          <pointsize>16</pointsize>
+         </font>
+        </property>
+        <property name="styleSheet">
+         <string notr="true"/>
+        </property>
+        <property name="text">
+         <string>Auto Save</string>
+        </property>
+        <property name="tristate">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="verticalSpacer">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>20</width>
+          <height>40</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="chkDemoMode">
+        <property name="font">
+         <font>
+          <pointsize>16</pointsize>
+         </font>
+        </property>
+        <property name="styleSheet">
+         <string notr="true"/>
+        </property>
+        <property name="text">
+         <string>One-touch Playback</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="verticalSpacer_2">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>20</width>
+          <height>40</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="chkAutoRecord">
+        <property name="font">
+         <font>
+          <pointsize>16</pointsize>
+         </font>
+        </property>
+        <property name="styleSheet">
+         <string notr="true"/>
+        </property>
+        <property name="text">
+         <string>Auto Record</string>
+        </property>
+        <property name="tristate">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="verticalSpacer_3">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>20</width>
+          <height>40</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="chkZebraEnable">
+        <property name="font">
+         <font>
+          <pointsize>16</pointsize>
+         </font>
+        </property>
+        <property name="styleSheet">
+         <string notr="true"/>
+        </property>
+        <property name="text">
+         <string>Enable Zebras</string>
+        </property>
+        <property name="tristate">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="verticalSpacer_4">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>20</width>
+          <height>40</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="chkLiveRecord">
+        <property name="font">
+         <font>
+          <pointsize>16</pointsize>
+          <italic>false</italic>
+         </font>
+        </property>
+        <property name="styleSheet">
+         <string notr="true"/>
+        </property>
+        <property name="text">
+         <string>Live Record @60fps </string>
+        </property>
+        <property name="tristate">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+    <widget class="QLabel" name="label_5">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>300</y>
+       <width>111</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>15</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>Auto Power
+Mode</string>
+     </property>
+    </widget>
     <widget class="QComboBox" name="comboAutoPowerMode">
      <property name="geometry">
       <rect>
-       <x>440</x>
-       <y>140</y>
-       <width>261</width>
+       <x>130</x>
+       <y>300</y>
+       <width>331</width>
        <height>41</height>
       </rect>
      </property>
@@ -325,191 +516,6 @@
       </property>
      </item>
     </widget>
-    <widget class="QLabel" name="lblAutoPowerModeLabel">
-     <property name="geometry">
-      <rect>
-       <x>440</x>
-       <y>90</y>
-       <width>161</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <pointsize>15</pointsize>
-      </font>
-     </property>
-     <property name="text">
-      <string>Auto Power Mode</string>
-     </property>
-     <property name="checked" stdset="0">
-      <bool>true</bool>
-     </property>
-    </widget>
-    <widget class="QCheckBox" name="chkAutoRecord">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>200</y>
-       <width>144</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <pointsize>16</pointsize>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true"/>
-     </property>
-     <property name="text">
-      <string>Auto Record</string>
-     </property>
-     <property name="tristate">
-      <bool>false</bool>
-     </property>
-    </widget>
-    <widget class="QCheckBox" name="chkAutoSave">
-     <property name="geometry">
-      <rect>
-       <x>250</x>
-       <y>200</y>
-       <width>141</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <pointsize>16</pointsize>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true"/>
-     </property>
-     <property name="text">
-      <string>Auto Save</string>
-     </property>
-     <property name="tristate">
-      <bool>false</bool>
-     </property>
-    </widget>
-    <widget class="QCheckBox" name="chkZebraEnable">
-     <property name="geometry">
-      <rect>
-       <x>490</x>
-       <y>200</y>
-       <width>159</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <pointsize>16</pointsize>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true"/>
-     </property>
-     <property name="text">
-      <string>Enable Zebras</string>
-     </property>
-     <property name="tristate">
-      <bool>false</bool>
-     </property>
-    </widget>
-    <widget class="QCheckBox" name="chkDemoMode">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>260</y>
-       <width>142</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <pointsize>16</pointsize>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true"/>
-     </property>
-     <property name="text">
-      <string>Demo Mode</string>
-     </property>
-    </widget>
-    <widget class="QCheckBox" name="chkUiOnLeft">
-     <property name="geometry">
-      <rect>
-       <x>250</x>
-       <y>260</y>
-       <width>164</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <pointsize>16</pointsize>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true"/>
-     </property>
-     <property name="text">
-      <string>UI on Left Side</string>
-     </property>
-     <property name="tristate">
-      <bool>false</bool>
-     </property>
-    </widget>
-    <widget class="QCheckBox" name="chkUpsideDownDisplay">
-     <property name="geometry">
-      <rect>
-       <x>490</x>
-       <y>260</y>
-       <width>241</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <pointsize>16</pointsize>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true"/>
-     </property>
-     <property name="text">
-      <string>Upside-down Display</string>
-     </property>
-     <property name="tristate">
-      <bool>false</bool>
-     </property>
-    </widget>
-    <widget class="QGroupBox" name="Mode">
-     <property name="geometry">
-      <rect>
-       <x>420</x>
-       <y>330</y>
-       <width>181</width>
-       <height>81</height>
-      </rect>
-     </property>
-     <property name="title">
-      <string>GUI Mode</string>
-     </property>
-     <widget class="QComboBox" name="comboMode">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>30</y>
-        <width>161</width>
-        <height>41</height>
-       </rect>
-      </property>
-     </widget>
-    </widget>
    </widget>
    <widget class="QWidget" name="tabStorage">
     <attribute name="title">
@@ -518,7 +524,7 @@
     <widget class="QPushButton" name="cmdClose_2">
      <property name="geometry">
       <rect>
-       <x>640</x>
+       <x>630</x>
        <y>390</y>
        <width>101</width>
        <height>51</height>
@@ -538,7 +544,7 @@
       <rect>
        <x>10</x>
        <y>10</y>
-       <width>411</width>
+       <width>391</width>
        <height>91</height>
       </rect>
      </property>
@@ -550,19 +556,19 @@
        <rect>
         <x>10</x>
         <y>25</y>
-        <width>121</width>
+        <width>111</width>
         <height>51</height>
        </rect>
       </property>
       <property name="text">
        <string>Backup
-Settings Data</string>
+Settings</string>
       </property>
      </widget>
      <widget class="QPushButton" name="cmdRestoreSettings">
       <property name="geometry">
        <rect>
-        <x>140</x>
+        <x>130</x>
         <y>25</y>
         <width>131</width>
         <height>51</height>
@@ -576,9 +582,9 @@ Settings</string>
      <widget class="QPushButton" name="cmdDefaults">
       <property name="geometry">
        <rect>
-        <x>280</x>
+        <x>270</x>
         <y>25</y>
-        <width>121</width>
+        <width>111</width>
         <height>51</height>
        </rect>
       </property>
@@ -591,7 +597,7 @@ to Defaults</string>
     <widget class="QGroupBox" name="gbCalData">
      <property name="geometry">
       <rect>
-       <x>430</x>
+       <x>420</x>
        <y>10</y>
        <width>311</width>
        <height>91</height>
@@ -634,7 +640,7 @@ Calibration Data</string>
       <rect>
        <x>10</x>
        <y>110</y>
-       <width>731</width>
+       <width>721</width>
        <height>91</height>
       </rect>
      </property>
@@ -653,8 +659,8 @@ Calibration Data</string>
       <property name="font">
        <font>
         <pointsize>16</pointsize>
-        <weight>75</weight>
-        <bold>true</bold>
+        <weight>50</weight>
+        <bold>false</bold>
        </font>
       </property>
       <property name="text">
@@ -674,8 +680,8 @@ Disk</string>
       <property name="font">
        <font>
         <pointsize>16</pointsize>
-        <weight>75</weight>
-        <bold>true</bold>
+        <weight>50</weight>
+        <bold>false</bold>
        </font>
       </property>
       <property name="text">
@@ -710,7 +716,7 @@ Disk</string>
       <rect>
        <x>10</x>
        <y>210</y>
-       <width>731</width>
+       <width>721</width>
        <height>91</height>
       </rect>
      </property>
@@ -729,8 +735,8 @@ Disk</string>
       <property name="font">
        <font>
         <pointsize>16</pointsize>
-        <weight>75</weight>
-        <bold>true</bold>
+        <weight>50</weight>
+        <bold>false</bold>
        </font>
       </property>
       <property name="text">
@@ -750,8 +756,8 @@ SD Card</string>
       <property name="font">
        <font>
         <pointsize>16</pointsize>
-        <weight>75</weight>
-        <bold>true</bold>
+        <weight>50</weight>
+        <bold>false</bold>
        </font>
       </property>
       <property name="text">
@@ -784,7 +790,7 @@ SD Card</string>
     <widget class="QPushButton" name="cmdSWUpdate">
      <property name="geometry">
       <rect>
-       <x>600</x>
+       <x>590</x>
        <y>310</y>
        <width>141</width>
        <height>61</height>
@@ -800,7 +806,7 @@ Software Update</string>
       <rect>
        <x>10</x>
        <y>310</y>
-       <width>581</width>
+       <width>571</width>
        <height>131</height>
       </rect>
      </property>
@@ -812,7 +818,7 @@ Software Update</string>
        <rect>
         <x>10</x>
         <y>20</y>
-        <width>561</width>
+        <width>551</width>
         <height>101</height>
        </rect>
       </property>
@@ -837,7 +843,7 @@ Software Update</string>
     <widget class="QPushButton" name="cmdClose_5">
      <property name="geometry">
       <rect>
-       <x>640</x>
+       <x>630</x>
        <y>390</y>
        <width>101</width>
        <height>51</height>
@@ -857,7 +863,7 @@ Software Update</string>
       <rect>
        <x>10</x>
        <y>9</y>
-       <width>471</width>
+       <width>461</width>
        <height>151</height>
       </rect>
      </property>
@@ -869,7 +875,7 @@ Software Update</string>
        <rect>
         <x>120</x>
         <y>30</y>
-        <width>341</width>
+        <width>331</width>
         <height>31</height>
        </rect>
       </property>
@@ -908,7 +914,7 @@ Software Update</string>
        <rect>
         <x>120</x>
         <y>70</y>
-        <width>181</width>
+        <width>171</width>
         <height>31</height>
        </rect>
       </property>
@@ -944,7 +950,7 @@ Software Update</string>
        <rect>
         <x>120</x>
         <y>110</y>
-        <width>181</width>
+        <width>171</width>
         <height>31</height>
        </rect>
       </property>
@@ -983,7 +989,7 @@ Software Update</string>
      <widget class="QPushButton" name="cmdSmbTest">
       <property name="geometry">
        <rect>
-        <x>310</x>
+        <x>300</x>
         <y>80</y>
         <width>71</width>
         <height>51</height>
@@ -1001,7 +1007,7 @@ Software Update</string>
      <widget class="QPushButton" name="cmdSmbApply">
       <property name="geometry">
        <rect>
-        <x>390</x>
+        <x>380</x>
         <y>80</y>
         <width>71</width>
         <height>51</height>
@@ -1022,7 +1028,7 @@ Software Update</string>
       <rect>
        <x>10</x>
        <y>170</y>
-       <width>471</width>
+       <width>461</width>
        <height>111</height>
       </rect>
      </property>
@@ -1055,7 +1061,7 @@ Software Update</string>
        <rect>
         <x>100</x>
         <y>30</y>
-        <width>201</width>
+        <width>191</width>
         <height>31</height>
        </rect>
       </property>
@@ -1071,7 +1077,7 @@ Software Update</string>
      <widget class="QPushButton" name="cmdNfsTest">
       <property name="geometry">
        <rect>
-        <x>310</x>
+        <x>300</x>
         <y>40</y>
         <width>71</width>
         <height>51</height>
@@ -1089,7 +1095,7 @@ Software Update</string>
      <widget class="QPushButton" name="cmdNfsApply">
       <property name="geometry">
        <rect>
-        <x>390</x>
+        <x>380</x>
         <y>40</y>
         <width>71</width>
         <height>51</height>
@@ -1109,7 +1115,7 @@ Software Update</string>
        <rect>
         <x>100</x>
         <y>70</y>
-        <width>201</width>
+        <width>191</width>
         <height>31</height>
        </rect>
       </property>
@@ -1149,7 +1155,7 @@ Software Update</string>
       <rect>
        <x>10</x>
        <y>290</y>
-       <width>621</width>
+       <width>611</width>
        <height>151</height>
       </rect>
      </property>
@@ -1159,9 +1165,9 @@ Software Update</string>
      <widget class="QLabel" name="lblNetStatus">
       <property name="geometry">
        <rect>
-        <x>10</x>
+        <x>0</x>
         <y>20</y>
-        <width>601</width>
+        <width>591</width>
         <height>121</height>
        </rect>
       </property>
@@ -1173,6 +1179,9 @@ Software Update</string>
       <property name="text">
        <string/>
       </property>
+      <property name="textFormat">
+       <enum>Qt::AutoText</enum>
+      </property>
       <property name="alignment">
        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
       </property>
@@ -1181,7 +1190,7 @@ Software Update</string>
     <widget class="QGroupBox" name="gbStaticIP">
      <property name="geometry">
       <rect>
-       <x>490</x>
+       <x>480</x>
        <y>10</y>
        <width>251</width>
        <height>271</height>
@@ -1573,7 +1582,7 @@ Software Update</string>
       <rect>
        <x>30</x>
        <y>20</y>
-       <width>591</width>
+       <width>581</width>
        <height>241</height>
       </rect>
      </property>
@@ -1594,7 +1603,7 @@ Software Update</string>
     <widget class="QPushButton" name="cmdClose_3">
      <property name="geometry">
       <rect>
-       <x>640</x>
+       <x>630</x>
        <y>390</y>
        <width>101</width>
        <height>51</height>
@@ -1614,7 +1623,7 @@ Software Update</string>
       <rect>
        <x>30</x>
        <y>260</y>
-       <width>591</width>
+       <width>581</width>
        <height>181</height>
       </rect>
      </property>
@@ -1852,7 +1861,7 @@ Calibration</string>
     <widget class="QPushButton" name="cmdBlackCalAll">
      <property name="geometry">
       <rect>
-       <x>190</x>
+       <x>180</x>
        <y>90</y>
        <width>151</width>
        <height>61</height>
@@ -1871,7 +1880,7 @@ All Resolutions</string>
     <widget class="QPushButton" name="cmdCloseApp">
      <property name="geometry">
       <rect>
-       <x>190</x>
+       <x>180</x>
        <y>170</y>
        <width>151</width>
        <height>61</height>
@@ -1892,7 +1901,7 @@ Application</string>
       <rect>
        <x>140</x>
        <y>330</y>
-       <width>201</width>
+       <width>191</width>
        <height>51</height>
       </rect>
      </property>
@@ -1931,8 +1940,8 @@ Number</string>
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>40</y>
-       <width>331</width>
+       <y>30</y>
+       <width>321</width>
        <height>31</height>
       </rect>
      </property>
@@ -1952,7 +1961,7 @@ Number</string>
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>20</y>
+       <y>10</y>
        <width>191</width>
        <height>17</height>
       </rect>
@@ -1964,9 +1973,9 @@ Number</string>
     <widget class="QCheckBox" name="chkShowDebugControls">
      <property name="geometry">
       <rect>
-       <x>410</x>
-       <y>90</y>
-       <width>281</width>
+       <x>360</x>
+       <y>310</y>
+       <width>271</width>
        <height>41</height>
       </rect>
      </property>
@@ -2008,7 +2017,7 @@ Calibration Data
     <widget class="QPushButton" name="cmdClose_4">
      <property name="geometry">
       <rect>
-       <x>640</x>
+       <x>630</x>
        <y>390</y>
        <width>101</width>
        <height>51</height>
@@ -2029,8 +2038,8 @@ Calibration Data
      </property>
      <property name="geometry">
       <rect>
-       <x>410</x>
-       <y>40</y>
+       <x>360</x>
+       <y>260</y>
        <width>201</width>
        <height>41</height>
       </rect>
@@ -2050,7 +2059,7 @@ Calibration Data
     <widget class="QPushButton" name="cmdImportCalData">
      <property name="geometry">
       <rect>
-       <x>190</x>
+       <x>180</x>
        <y>250</y>
        <width>151</width>
        <height>61</height>
@@ -2084,8 +2093,8 @@ Calibration Data
      </property>
      <property name="geometry">
       <rect>
-       <x>410</x>
-       <y>140</y>
+       <x>360</x>
+       <y>360</y>
        <width>251</width>
        <height>41</height>
       </rect>
@@ -2104,6 +2113,131 @@ Calibration Data
      <property name="checkable">
       <bool>true</bool>
      </property>
+    </widget>
+    <widget class="QGroupBox" name="Mode">
+     <property name="geometry">
+      <rect>
+       <x>350</x>
+       <y>110</y>
+       <width>381</width>
+       <height>131</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string>GUI Mode</string>
+     </property>
+     <widget class="QComboBox" name="comboMode">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>30</y>
+        <width>171</width>
+        <height>41</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="chkUpsideDownDisplay">
+      <property name="geometry">
+       <rect>
+        <x>200</x>
+        <y>80</y>
+        <width>171</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>16</pointsize>
+       </font>
+      </property>
+      <property name="styleSheet">
+       <string notr="true"/>
+      </property>
+      <property name="text">
+       <string>Upside-down
+Display</string>
+      </property>
+      <property name="tristate">
+       <bool>false</bool>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="chkUiOnLeft">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>80</y>
+        <width>164</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>16</pointsize>
+       </font>
+      </property>
+      <property name="styleSheet">
+       <string notr="true"/>
+      </property>
+      <property name="text">
+       <string>UI on Left Side</string>
+      </property>
+      <property name="tristate">
+       <bool>false</bool>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QGroupBox" name="groupBoxClock">
+     <property name="geometry">
+      <rect>
+       <x>350</x>
+       <y>10</y>
+       <width>381</width>
+       <height>81</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string>Clock</string>
+     </property>
+     <widget class="QDateTimeEdit" name="dateTimeEdit">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>30</y>
+        <width>271</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>16</pointsize>
+        <weight>50</weight>
+        <bold>false</bold>
+       </font>
+      </property>
+      <property name="displayFormat">
+       <string>d MMM yyyy hh:mm:ss</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="cmdSetClock">
+      <property name="geometry">
+       <rect>
+        <x>290</x>
+        <y>20</y>
+        <width>81</width>
+        <height>51</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>16</pointsize>
+        <weight>50</weight>
+        <bold>false</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>Save</string>
+      </property>
+     </widget>
     </widget>
    </widget>
   </widget>
@@ -2139,15 +2273,12 @@ Calibration Data
   <tabstop>cmdRestoreSettings</tabstop>
   <tabstop>cmdBackupSettings</tabstop>
   <tabstop>cmdClose</tabstop>
-  <tabstop>comboAutoPowerMode</tabstop>
   <tabstop>comboDisableUnsavedWarning</tabstop>
   <tabstop>radioFPSensHigh</tabstop>
   <tabstop>radioFPSensMed</tabstop>
   <tabstop>radioFPSensLow</tabstop>
   <tabstop>comboFPColor</tabstop>
   <tabstop>chkFPEnable</tabstop>
-  <tabstop>cmdSetClock</tabstop>
-  <tabstop>dateTimeEdit</tabstop>
   <tabstop>cmdClose_5</tabstop>
   <tabstop>cmdNfsApply</tabstop>
   <tabstop>cmdNfsTest</tabstop>

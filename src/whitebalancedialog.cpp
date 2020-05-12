@@ -32,6 +32,7 @@ whiteBalanceDialog::whiteBalanceDialog(QWidget *parent, Camera * cameraInst) :
 	windowInitComplete = false;
 	ui->setupUi(this);
 	camera = cameraInst;
+
 	saveColor();
 
 	setWindowFlags(Qt::Dialog /*| Qt::WindowStaysOnTopHint*/ | Qt::FramelessWindowHint);

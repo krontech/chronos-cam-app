@@ -57,29 +57,12 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	CameraErrortype retVal;
 	ui->setupUi(this);
 
-	camera = new Camera();
+    camera = new Camera();
 	vinst = new Video();
 	cinst = new Control();
 
 	interface = new UserInterface();
 	prompt = NULL;
-
-    if (camera->guiMode == 1)
-    {
-        QFile styleFile(":/qss/darkstylesheet.qss");
-        styleFile.open(QFile::ReadOnly);
-
-        QString style(styleFile.readAll());
-        this->setStyleSheet(style);
-    }
-    else
-    {
-        QFile styleFile(":/qss/lightstylesheet.qss");
-        styleFile.open(QFile::ReadOnly);
-
-        QString style(styleFile.readAll());
-        this->setStyleSheet(style);
-    }
 
 	//loop until control dBus is ready
 	UInt32 mem;
@@ -95,6 +78,13 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	batteryPresent = false;
 	externalPower = false;
 
+    ui->battery->setVisible(false);
+    ui->battLabel->setVisible(false);
+
+    QPixmap pixmap(":/qss/assets/images/record.png");
+    QIcon ButtonIcon(pixmap);
+    ui->cmdRec->setIcon(ButtonIcon);
+
 	interface->init();
 	retVal = camera->init(vinst, cinst);
 
@@ -107,8 +97,15 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 		msg.setText(errText);
 		msg.exec();
 	}
-	ui->cmdWB->setEnabled(camera->getIsColor());
 	ui->chkFocusAid->setChecked(camera->getFocusPeakEnable());
+
+	/* Get the initial white balance */
+	if (camera->getIsColor()) {
+		ui->cmdWB->setEnabled(true);
+		on_wbTemperature_valueChanged(camera->cinst->getProperty("wbTemperature"));
+	} else {
+		ui->cmdWB->setEnabled(false);
+	}
 
 	sw = new StatusWindow;
 
@@ -147,7 +144,11 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	cinst->listen("state", this, SLOT(on_state_valueChanged(const QVariant &)));
 	cinst->listen("videoState", this, SLOT(on_videoState_valueChanged(const QVariant &)));
 	cinst->listen("exposurePeriod", this, SLOT(on_exposurePeriod_valueChanged(const QVariant &)));
+	cinst->listen("exposureMin", this, SLOT(on_exposureMin_valueChanged(const QVariant &)));
+	cinst->listen("exposureMax", this, SLOT(on_exposureMax_valueChanged(const QVariant &)));
 	cinst->listen("focusPeakingLevel", this, SLOT(on_focusPeakingLevel_valueChanged(const QVariant &)));
+	cinst->listen("wbTemperature", this, SLOT(on_wbTemperature_valueChanged(const QVariant &)));
+    cinst->listen("wbTemperature", this, SLOT(on_wbTemperature_valueChanged(const QVariant &)));
 
 	cinst->getArray("colorMatrix", 9, (double *)&camera->colorCalMatrix);
 
@@ -174,6 +175,21 @@ void CamMainWindow::on_exposurePeriod_valueChanged(const QVariant &value)
 	apiUpdate = true;
 	ui->expSlider->setValue(value.toInt());
 	apiUpdate = false;
+    updateCurrentSettingsLabel();
+}
+
+void CamMainWindow::on_exposureMax_valueChanged(const QVariant &value)
+{
+	apiUpdate = true;
+	ui->expSlider->setMaximum(value.toInt());
+	apiUpdate = false;
+}
+
+void CamMainWindow::on_exposureMin_valueChanged(const QVariant &value)
+{
+	apiUpdate = true;
+	ui->expSlider->setMinimum(value.toInt());
+	apiUpdate = false;
 }
 
 void CamMainWindow::on_focusPeakingLevel_valueChanged(const QVariant &value)
@@ -183,6 +199,25 @@ void CamMainWindow::on_focusPeakingLevel_valueChanged(const QVariant &value)
 	apiUpdate = false;
 }
 
+void CamMainWindow::on_wbTemperature_valueChanged(const QVariant &value)
+{
+	int wbTempK = value.toInt();
+
+	if (!ui->cmdWB->isEnabled()) return; /* Do nothing on monochrome cameras */
+	if (wbTempK > 0) {
+        ui->cmdWB->setStyleSheet("color: rgb(207, 244, 255);");
+		ui->cmdWB->setText(QString("White Bal\n%1\xb0K").arg(wbTempK));
+	} else {
+		ui->cmdWB->setText("White Bal\nCustom");
+	}
+}
+
+void CamMainWindow::on_rsResolution_valueChanged(const QVariant &value)
+{
+    int wbResolution = value.toInt();
+    ui->cmdRecSettings->setText(QString("Rec Settings\n%1\xb0K").arg(wbResolution));
+
+}
 
 QMessageBox::StandardButton
 CamMainWindow::question(const QString &title, const QString &text, QMessageBox::StandardButtons buttons)
@@ -237,14 +272,14 @@ void CamMainWindow::on_cmdRec_clicked()
 		{
 			//If there is unsaved video in RAM, prompt to start record.  unsavedWarnEnabled values: 0=always, 1=if not reviewed, 2=never
 			if(false == camera->recordingData.hasBeenSaved && (0 != camera->unsavedWarnEnabled && (2 == camera->unsavedWarnEnabled || !camera->recordingData.hasBeenViewed)))
-			{
+            {
 				if(QMessageBox::Yes != question("Unsaved video in RAM", "Start recording anyway and discard the unsaved video in RAM?"))
 					return;
 			}
 
 			camera->startRecording();
+			if (camera->get_liveRecord()) vinst->liveRecord();
 			if (camera->get_autoSave()) autoSaveActive = true;
-
 		}
 	}
 }
@@ -299,7 +334,7 @@ void CamMainWindow::on_cmdRecSettings_clicked()
 	if (!okToStopLive()) return;
 
 	if(recording) {
-		if(QMessageBox::Yes != question("Stop recording?", "This action will stop recording; is this okay?"))
+        if(QMessageBox::Yes != question("Stop recording?", "This action will stop recording; is this okay?"))
 			return;
 		autoSaveActive = false;
 		camera->stopRecording();
@@ -316,10 +351,10 @@ void CamMainWindow::on_cmdFPNCal_clicked()//Black cal
 {
 	if (!okToStopLive()) return;
 
-	if(recording) {
-		if(QMessageBox::Yes != question("Stop recording?", "This action will stop recording and erase the video; is this okay?")) {
+    if(recording) {
+        if(QMessageBox::Yes != question("Stop recording?", "This action will stop recording and erase the video; is this okay?")) {
 			return;
-		}
+        }
 
 		autoSaveActive = false;
 		camera->stopRecording();
@@ -340,6 +375,7 @@ void CamMainWindow::on_cmdFPNCal_clicked()//Black cal
 		}
 	}
 
+    sw->setStyleSheet("color: black;");
 	sw->setText("Performing black calibration...");
 	sw->show();
 	QCoreApplication::processEvents();
@@ -397,6 +433,10 @@ void CamMainWindow::on_state_valueChanged(const QVariant &value)
 		if (!camera->loopTimerEnabled)
 		{
 			ui->cmdRec->setText("Stop");
+
+            QPixmap pixmap(":/qss/assets/images/stop.png");
+            QIcon ButtonIcon(pixmap);
+            ui->cmdRec->setIcon(ButtonIcon);
 		}
 	}
 	else {
@@ -413,6 +453,9 @@ void CamMainWindow::on_state_valueChanged(const QVariant &value)
 		else
 		{
 			ui->cmdRec->setText("Record");
+            QPixmap pixmap(":/qss/assets/images/record.png");
+            QIcon ButtonIcon(pixmap);
+            ui->cmdRec->setIcon(ButtonIcon);
 		}
 		ui->cmdPlay->setEnabled(true);
 
@@ -475,11 +518,13 @@ void CamMainWindow::on_MainWindowTimer()
 						if(QMessageBox::Yes == question("Unsaved video in RAM", "Start recording anyway and discard the unsaved video in RAM?"))
 						{
 							camera->startRecording();
+							if (camera->get_liveRecord()) vinst->liveRecord();
 						}
 					}
 					else
 					{
 						camera->startRecording();
+						if (camera->get_liveRecord()) vinst->liveRecord();
 						if (camera->get_autoSave()) autoSaveActive = true;
 					}
 				}
@@ -606,13 +651,13 @@ void CamMainWindow::updateExpSliderLimits()
 	cinst->getInt("exposureMin", &expMin);
 	cinst->getInt("exposureMax", &expMax);
 
-	ui->expSlider->setMinimum(expMin);
-	ui->expSlider->setMaximum(expMax);
-	ui->expSlider->setValue(expCurrent);
+    ui->expSlider->setMinimum(expMin);
+    ui->expSlider->setMaximum(expMax);
+    ui->expSlider->setValue(expCurrent);
 
 	/* Do fine stepping in 1us increments */
-	ui->expSlider->setSingleStep(clock / 1000000);
-	ui->expSlider->setPageStep(clock / 1000000);
+    ui->expSlider->setSingleStep(clock / 1000000);
+    ui->expSlider->setPageStep(clock / 1000000);
 }
 
 //Update the battery data.
@@ -637,35 +682,95 @@ void CamMainWindow::updateBatteryData()
 //Update the status textbox with the current settings
 void CamMainWindow::updateCurrentSettingsLabel()
 {
+	QSettings appSettings;
 	UInt32 clock = camera->getSensorInfo().timingClock;
+    UInt32 expMax;
 
 	camera->cinst->getImagerSettings(&is);
+    cinst->getInt("exposureMax", &expMax);
 
 	double framePeriod = (double)is.period / clock;
-	double expPeriod = (double)is.exposure / clock;
-	int shutterAngle = (expPeriod * 360.0) / framePeriod;
+    double expPeriod = (double)is.exposure / clock;
 
-	char str[300];
+    int expPercent = (double)is.exposure / (double)expMax * 100;
+    //qDebug() << "expPercent =" << expPercent << " expPeriod =" << expPeriod;
+
+    char str[300];
+    //char maxString[100];
 	char battStr[50];
 	char fpsString[30];
 	char expString[30];
+	char shString[30];
+
+    int exp = appSettings.value("camera/expLabel", 1).toInt();
 
 	sprintf(fpsString, QString::number(1 / framePeriod).toAscii());
-	getSIText(expString, expPeriod, 4, DEF_SI_OPTS, 10);
-	shutterAngle = max(shutterAngle, 1); //to prevent 0 degrees from showing on the label if the current exposure is less than 1/360'th of the frame period.
+
+    getSIText(expString, expPeriod, 4, DEF_SI_OPTS, 10);
+
+	if (appSettings.value("camera/fractionalExposure", false).toBool()) {
+		/* Show secondary exposure period as fractional time. */
+		strcpy(shString, "1/");
+		getSIText(shString+2, 1/expPeriod, 4, 0 /* no flags */, 0);
+	} else {
+		/* Show secondary exposure period as shutter angle. */
+		int shutterAngle = (expPeriod * 360.0) / framePeriod;
+        sprintf(shString, "%u\xb0", max(shutterAngle, 1)); /* Round up if less than zero degrees. */
+	}
 
 	if(batteryPresent)	//If battery present
 	{
-		sprintf(battStr, "Batt %d%% %.2fV", (UInt32)batteryPercent, batteryVoltage);
+        ui->battery->setVisible(true);
+        ui->VolLabel->setVisible(true);
+        ui->battLabel->setVisible(false);
+
+        sprintf(battStr, "%.2fV", batteryVoltage);
+        ui->VolLabel->setText(battStr);
+
+        if (batteryPercent >= 30)
+        {
+            ui->battery->setStyleSheet("QProgressBar::chunk {background-color: #00ff00;}");
+        }
+        if (batteryPercent < 30 && batteryPercent > 10)
+        {
+            ui->battery->setStyleSheet("QProgressBar::chunk {background-color: orange;}");
+        }
+        if (batteryPercent <= 10)
+        {
+            ui->battery->setStyleSheet("QProgressBar::chunk {background-color: red;}");
+        }
+        ui->battery->setValue(batteryPercent);
+
 	}
 	else
 	{
+        ui->battLabel->setVisible(true);
+        ui->battery->setVisible(false);
+        ui->VolLabel->setVisible(false);
+
 		sprintf(battStr, "No Batt");
+        ui->battLabel->setText(battStr);
 	}
 
-	sprintf(str, "%s\r\n%ux%u %sfps\r\nExp %ss (%u\xb0)", battStr, is.geometry.hRes, is.geometry.vRes, fpsString, expString, shutterAngle);
-	ui->lblCurrent->setText(str);
+
+    if (exp == 0)
+    {
+        sprintf(str, "%ux%u %sfps\r\nExposure %ss", is.geometry.hRes, is.geometry.vRes, fpsString, expString);
+    }
+    else if (exp == 1)
+    {
+        sprintf(str, "%ux%u %sfps\r\nExposure %s", is.geometry.hRes, is.geometry.vRes, fpsString, shString);
+    }
+    else
+    {
+        sprintf(str, "%ux%u %sfps\r\nExposure %d%%", is.geometry.hRes, is.geometry.vRes, fpsString, expPercent); //%d%%
+    }
+
+    ui->lblCurrent->setText(str);
+
+
 }
+
 
 void CamMainWindow::on_cmdUtil_clicked()
 {
@@ -707,9 +812,10 @@ void CamMainWindow::on_cmdBkGndButton_clicked()
 	ui->cmdUtil->setVisible(true);
 
 	ui->cmdWB->setVisible(true);
-	ui->expSlider->setVisible(true);
+    ui->expSlider->setVisible(true);
 	ui->lblCurrent->setVisible(true);
-	ui->lblExp->setVisible(true);
+    ui->VolLabel->setVisible(true);
+    ui->lblExp->setVisible(true);
 }
 
 void CamMainWindow::on_cmdDPCButton_clicked()
@@ -765,15 +871,15 @@ static int expSliderLog(unsigned int angle, int delta)
 
 void CamMainWindow::keyPressEvent(QKeyEvent *ev)
 {
-	UInt32 expPeriod = ui->expSlider->value();
+    UInt32 expPeriod = ui->expSlider->value(); //set expPeriod (read from expSlider value)
 	UInt32 nextPeriod = expPeriod;
 	UInt32 framePeriod = expSliderFramePeriod;
-	int expAngle = (expPeriod * 360) / framePeriod;
+    int expAngle = (expPeriod * 360) / framePeriod; //minimum is 0
+    qDebug() << "framePeriod =" << framePeriod << " expPeriod =" << expPeriod;
 
-	qDebug() << "framePeriod =" << framePeriod << " expPeriod =" << expPeriod;
-
+    //expSlider has two cases (key up / key down -> exposure increase / derease)
 	switch (ev->key()) {
-	/* Up/Down moves the slider logarithmically */
+    /* Up/Down moves the slider logarithmically */
 	case Qt::Key_Up:
 		if (expAngle > 0) {
 			nextPeriod = (framePeriod * expSliderLog(expAngle, 1)) / 360;
@@ -782,6 +888,8 @@ void CamMainWindow::keyPressEvent(QKeyEvent *ev)
 			nextPeriod = expPeriod + ui->expSlider->singleStep();
 		}
 		ui->expSlider->setValue(nextPeriod);
+
+        updateCurrentSettingsLabel();
 		break;
 
 	case Qt::Key_Down:
@@ -792,9 +900,11 @@ void CamMainWindow::keyPressEvent(QKeyEvent *ev)
 			nextPeriod = expPeriod - ui->expSlider->singleStep();
 		}
 		ui->expSlider->setValue(nextPeriod);
+
+        updateCurrentSettingsLabel();
 		break;
 
-	/* PageUp/PageDown moves the slider linearly by degrees. */
+    /* PageUp/PageDown moves the slider linearly by degrees. */
 	case Qt::Key_PageUp:
 		ui->expSlider->setValue(expPeriod + ui->expSlider->singleStep());
 		break;

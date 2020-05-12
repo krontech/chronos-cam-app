@@ -41,6 +41,7 @@ extern "C" {
 
 #include "mainwindow.h"
 #include "cammainwindow.h"
+#include "utilwindow.h"
 #include <QApplication>
 #include <QWSServer>
 #include "linux/ti81xxfb.h"
@@ -55,6 +56,10 @@ extern "C" {
 #include "defines.h"
 
 #include "myinputpanelcontext.h"
+
+#include <iostream>
+
+using namespace std;
 
 volatile sig_atomic_t done = 0;
 
@@ -130,34 +135,9 @@ int main(int argc, char *argv[])
 	//QWSServer::setBackground(QBrush(Qt::black));
 	QWSServer::setBackground(QBrush(Qt::transparent));  // have not tested
 #endif
-	
-	// Load stylesheet from file, if one exists.
-    //QFile fStyle("stylesheet.qss");
-    //if (fStyle.open(QFile::ReadOnly)) {
-        //QString sheet = QLatin1String(fStyle.readAll());
-        //a.setStyleSheet(sheet);
-        //fStyle.close();
-    //}
-/*
-    if (1)
-    {
-        QFile styleFile(":/qss/darkstylesheet.qss");
-        styleFile.open(QFile::ReadOnly);
 
-        QString style(styleFile.readAll());
-        a.setStyleSheet(style);
-    }
-    else
-    {
-        QFile styleFile(":/qss/lightstylesheet.qss");
-        styleFile.open(QFile::ReadOnly);
-
-        QString style(styleFile.readAll());
-        a.setStyleSheet(style);
-    }
-*/
 	//Disable stdout buffering so prints work rather than just filling the buffer.
-//	setbuf(stdout, NULL);
+    //setbuf(stdout, NULL);
 	
 	//Set the minimum size of buttons and other UI interaction elements
 	QApplication::setGlobalStrut(QSize(40, 40));
@@ -168,15 +148,35 @@ int main(int argc, char *argv[])
 	printf("testing print 2\n");
 	qDebug("Testing QDebug");
 //	fflush(stdout);
+
 	CamMainWindow w;
 	w.setWindowFlags(Qt::FramelessWindowHint);
 
 	QSettings appSettings;
 	int displayPosition = (appSettings.value("camera/ButtonsOnLeft", false)).toBool() ? 0 : 600;
+    int gui = appSettings.value("camera/guiMode", 1).toInt();
+
 	w.move(displayPosition,0);
 
-//	MainWindow w;
-	w.show();
+    if(gui == 1)
+    {
+        QFile styleFile(":/qss/darkstylesheet.qss");
+        styleFile.open(QFile::ReadOnly);
+
+        QString style(styleFile.readAll());
+        a.setStyleSheet(style);
+    }
+    else
+    {
+        QFile styleFile(":/qss/light3stylesheet.qss");
+        styleFile.open(QFile::ReadOnly);
+
+        QString style(styleFile.readAll());
+        a.setStyleSheet(style);
+    }
+
+//	MainWindow w (CamMainWindow);
+    w.show();
 	
-	return a.exec();
+    return a.exec();
 }

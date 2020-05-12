@@ -14,6 +14,7 @@ recModeWindow::recModeWindow(QWidget *parent, Camera * cameraInst, ImagerSetting
     this->move(0,0);
 
     camera = cameraInst;
+
     is = settings;
 	sensor = camera->getSensorInfo();
 
