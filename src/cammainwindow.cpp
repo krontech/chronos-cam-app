@@ -684,13 +684,19 @@ void CamMainWindow::updateCurrentSettingsLabel()
 {
 	QSettings appSettings;
 	UInt32 clock = camera->getSensorInfo().timingClock;
+    UInt32 expMax;
 
 	camera->cinst->getImagerSettings(&is);
+    cinst->getInt("exposureMax", &expMax);
 
 	double framePeriod = (double)is.period / clock;
-	double expPeriod = (double)is.exposure / clock;
+    double expPeriod = (double)is.exposure / clock;
+
+    int expPercent = (double)is.exposure / (double)expMax * 100;
+    //qDebug() << "expPercent =" << expPercent << " expPeriod =" << expPeriod;
 
     char str[300];
+    //char maxString[100];
 	char battStr[50];
 	char fpsString[30];
 	char expString[30];
@@ -709,30 +715,8 @@ void CamMainWindow::updateCurrentSettingsLabel()
 	} else {
 		/* Show secondary exposure period as shutter angle. */
 		int shutterAngle = (expPeriod * 360.0) / framePeriod;
-		sprintf(shString, "%u\xb0", max(shutterAngle, 1)); /* Round up if less than zero degrees. */
+        sprintf(shString, "%u\xb0", max(shutterAngle, 1)); /* Round up if less than zero degrees. */
 	}
-
-    FrameTiming timing;
-    double expMax = timing.exposureMax;
-
-    /*
-    void RecSettingsWindow::on_cmdExpMax_clicked()
-    {
-        FrameGeometry frameSize = getResolution();
-        FrameTiming timing;
-        UInt32 fPeriod = ui->linePeriod->siText() * sensor.timingClock;
-        UInt32 expPeriod = fPeriod;
-        char str[100];
-
-        frameSize.minFrameTime = ui->linePeriod->siText();
-        camera->cinst->getTiming(&frameSize, &timing);
-
-        if (expPeriod > timing.exposureMax) expPeriod = timing.exposureMax;
-        if (expPeriod < timing.exposureMin) expPeriod = timing.exposureMin;
-        getSIText(str, (double)expPeriod / sensor.timingClock, 10, DEF_SI_OPTS, 8);
-        ui->lineExp->setText(str);
-    }
-    */
 
 	if(batteryPresent)	//If battery present
 	{
@@ -779,7 +763,7 @@ void CamMainWindow::updateCurrentSettingsLabel()
     }
     else
     {
-        sprintf(str, "%ux%u %sfps\r\nExposure %d%%", is.geometry.hRes, is.geometry.vRes, fpsString, expMax);
+        sprintf(str, "%ux%u %sfps\r\nExposure %d%%", is.geometry.hRes, is.geometry.vRes, fpsString, expPercent); //%d%%
     }
 
     ui->lblCurrent->setText(str);
@@ -887,13 +871,13 @@ static int expSliderLog(unsigned int angle, int delta)
 
 void CamMainWindow::keyPressEvent(QKeyEvent *ev)
 {
-    UInt32 expPeriod = ui->expSlider->value();
+    UInt32 expPeriod = ui->expSlider->value(); //set expPeriod (read from expSlider value)
 	UInt32 nextPeriod = expPeriod;
 	UInt32 framePeriod = expSliderFramePeriod;
-	int expAngle = (expPeriod * 360) / framePeriod;
+    int expAngle = (expPeriod * 360) / framePeriod; //minimum is 0
+    qDebug() << "framePeriod =" << framePeriod << " expPeriod =" << expPeriod;
 
-	qDebug() << "framePeriod =" << framePeriod << " expPeriod =" << expPeriod;
-
+    //expSlider has two cases (key up / key down -> exposure increase / derease)
 	switch (ev->key()) {
     /* Up/Down moves the slider logarithmically */
 	case Qt::Key_Up:
@@ -904,6 +888,8 @@ void CamMainWindow::keyPressEvent(QKeyEvent *ev)
 			nextPeriod = expPeriod + ui->expSlider->singleStep();
 		}
 		ui->expSlider->setValue(nextPeriod);
+
+        updateCurrentSettingsLabel();
 		break;
 
 	case Qt::Key_Down:
@@ -914,6 +900,8 @@ void CamMainWindow::keyPressEvent(QKeyEvent *ev)
 			nextPeriod = expPeriod - ui->expSlider->singleStep();
 		}
 		ui->expSlider->setValue(nextPeriod);
+
+        updateCurrentSettingsLabel();
 		break;
 
     /* PageUp/PageDown moves the slider linearly by degrees. */
