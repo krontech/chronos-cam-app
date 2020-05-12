@@ -15,6 +15,7 @@ Depends: ${shlibs:Depends}, ${misc:Depends},
          chronos-pwrutil,
          chronos-video,
          cifs-utils,
+	 nfs-common,
 	 dosfstools
 Description: User Interface for the Chronos Camera
  Qt4 user interface runs locally on the camera, and
