@@ -109,6 +109,7 @@ QRadioButton
     font-size: 16px;
     color: #fff;
     border: none;
+    outline: none;
     /* Space between indicator and content */
     spacing: 10px;
 }
@@ -116,10 +117,6 @@ QRadioButton:disabled
 {
     color: #aaa;
     border: none;
-}
-QRadioButton:focus
-{
-    font-style: italic;
 }
 /* Indicator Images */
 QRadioButton::indicator
@@ -166,6 +163,7 @@ QCheckBox
     font-size: 16px;
     color: #fff;
     border: none;
+    outline: none;
     /* Space between indicator and content */
     spacing: 10px;
 }
@@ -203,7 +201,6 @@ QCheckBox::indicator:checked:focus
 
 /* SLIDER */
 /* QSlider in GUI1 */
-
 QSlider::groove:vertical
 {
     background: #555;
@@ -211,7 +208,7 @@ QSlider::groove:vertical
     border: 1px solid #333;
     border-radius: 7.5px;
     margin: 13px;
- }
+}
 
 QSlider::handle:vertical
 {
@@ -220,7 +217,6 @@ QSlider::handle:vertical
     padding: -1px;
  }
 
-/* PlaybackSlider of playbackwindow in Gui1 */
 
 
 /* TriggweSlider of Trigger Delay */
@@ -238,10 +234,6 @@ QSlider::handle:horizontal
     margin: -200px -20px;
     padding: -1px;
 }
-/*QSlider::focus:pressed
-{
-    background-color: rgba(0, 0, 0, 0);
-}*/
 
 
 
@@ -395,6 +387,8 @@ QComboBox QAbstractItemView
     border: 1px solid #333;
     background-color: #555;
     selection-background-color: #777;
+    selection-color: #fff;
+
 }
 QComboBox QAbstractItemView::item
 {
@@ -573,12 +567,13 @@ CamLineEdit:disabled
     border: none;
 }
 
+
+
 /* Information message box */
 QMessageBox
 {
     border: 2px solid #777;
 }
-
 
 
 
