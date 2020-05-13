@@ -1,5 +1,19 @@
-/* All widget open in the fornt of CamMainWindow */
-QWidget
+/* All Widgets except MainWindow */
+QWidget#IOSettingsWindow, #keyboard, #keyboardNumeric, #playbackWindow, #ramWindow, #recModeWindow, #RecSettingsWindow, #saveSettingsWindow,
+       #triggerDelayWindow, #UtilWindow, #ExpDialog
+{
+    background-color: #fff;
+}
+
+QWidget#StatusWindow
+{
+    background-color: none;
+}
+
+
+
+/* All Dialogs CamMainWindow/ColorWindow/whiteBalanceDialog */
+QDialog
 {
     background-color: #fff;
     color: black;
@@ -8,7 +22,7 @@ QWidget
 
 
 /* BUTTON */
-/* QPushButton on CamMainWindow */
+/* QPushButton on CamMainWindow/ColorWindow/whiteBalanceDialog */
 QDialog > QPushButton
 {
     font-size: 16px;
@@ -19,10 +33,18 @@ QDialog > QPushButton
 QDialog > QPushButton:hover
 {
     background-color: #ddd;
+    border: none;
 }
 QDialog > QPushButton:disabled
 {
     color: #777;
+    border: none;
+}
+QDialog > QPushButton:focus
+{
+    background-color: #ddd;
+    border: none;
+    outline: none;
 }
 
 /* QPushButton for keyboard*/
@@ -31,11 +53,12 @@ QWidget#keyboard > QPushButton
     border: 1px solid #fff;
 }
 
+/* QPushButton (characters) on keyboardNumeric */
 QWidget#keyboardNumeric > QPushButton
 {
     border: 1px solid #fff;
 }
-/* direction buttons look better without border */
+/* Direction buttons look better without border */
 QWidget#keyboardNumeric > QPushButton#left
 {
     border: none;
@@ -57,37 +80,65 @@ QWidget#keyboardNumeric > QPushButton#down
 QPushButton
 {
     font-size: 16px;
-    background-color: #ddd;
+    background-color: #fff;
     color: black;
-    border: none;
+    border: 1px solid black;
 }
 QPushButton:hover
 {
     background-color: #bbb;
+    border: 1px solid black;
 }
 QPushButton:disabled
 {
     color: #777;
+    border: #777;
 }
+QPushButton:focus
+{
+    background-color: #bbb;
+    outline: none;
+
+}
+
 
 /* All QRadioButton in GUI1 */
 QRadioButton
 {
     /* Content */
     font-size: 16px;
+    color: black;
+    border: none;
+    outline: none;
     /* Space between indicator and content */
     spacing: 10px;
 }
+QRadioButton:disabled
+{
+    color: #777;
+    border: none;
+}
+/* Indicator Images */
 QRadioButton::indicator
 {
     width:  35px;
     height: 35px;
 }
+/* Unchecked */
 QRadioButton::indicator::unchecked
 {
     image: url(:/qss/assets/images/radio-button-unchecked-black.svg.png);
 }
+QRadioButton::indicator::unchecked:focus
+{
+    image: url(:/qss/assets/images/radio-button-unchecked-black.svg.png);
+}
+/* Checked */
 QRadioButton::indicator::checked
+{
+    image: url(:/qss/assets/images/radio-button-checked-black.svg.png);
+}
+QRadioButton::indicator::checked:focus
 {
     image: url(:/qss/assets/images/radio-button-checked-black.svg.png);
 }
@@ -99,6 +150,8 @@ QRadioButton::indicator::checked
 QLabel
 {
     font-size: 16px;
+    color: black;
+    border: none;
 }
 
 
@@ -108,8 +161,16 @@ QCheckBox
 {
     /* Content */
     font-size: 16px;
+    color: black;
+    border: none;
+    outline: none;
     /* Space between indicator and content */
     spacing: 10px;
+}
+QCheckBox:disabled
+{
+    color: #777;
+    border: none;
 }
 /* The Box(indicator) */
 QCheckBox:indicator
@@ -122,8 +183,16 @@ QCheckBox::indicator:unchecked
 {
     image: url(:/qss/assets/images/checkbox-unchecked-black.svg);
 }
+QCheckBox::indicator:unchecked:focus
+{
+    image: url(:/qss/assets/images/checkbox-unchecked-black.svg);
+}
 /* checked indicator, representing by image */
 QCheckBox::indicator:checked
+{
+    image: url(:/qss/assets/images/checkbox-checked-black.svg.png);
+}
+QCheckBox::indicator:checked:focus
 {
     image: url(:/qss/assets/images/checkbox-checked-black.svg.png);
 }
@@ -139,7 +208,8 @@ QSlider::groove:vertical
     border: 1px solid #fff;
     border-radius: 7.5px;
     margin: 13px;
- }
+}
+
 QSlider::handle:vertical
 {
     image: url(:/qss/assets/images/handle-bars-light-41x81+20.png);
@@ -147,7 +217,6 @@ QSlider::handle:vertical
     padding: -1px;
  }
 
-/* PlaybackSlider of playbackwindow in Gui1 */
 
 
 /* TriggweSlider of Trigger Delay */
@@ -158,16 +227,12 @@ QSlider::groove:horizontal
     border: 1px solid #fff;
     border-radius: 7.5px;
     margin: 13px;
- }
+}
 QSlider::handle:horizontal
 {
     image: url(:/qss/assets/images/handle-bars-light-81x41+20.png);
     margin: -200px -20px;
     padding: -1px;
-}
-QSlider::focus:pressed
-{
-    background-color: rgba(0, 0, 0, 0);
 }
 
 
@@ -177,16 +242,23 @@ QSlider::focus:pressed
 QSpinBox
 {
     /* Background color inside QSpinBox */
-    background-color: #ddd;
+    background-color: #fff;
     /* Content style inside QSpinBox */
     font-size: 16px;
+    color: black;
     border: 1px solid black;
     padding-right: 0px;
     padding-left: 10px;
 }
+QSpinBox:focus
+{
+    background-color: #bbb;
+    border: 1px solid black;
+}
 QSpinBox:disabled
 {
     color: #777;
+    border: 1px solid #777;
 }
 QSpinBox::up-button, QSpinBox::down-button
 {
@@ -197,16 +269,23 @@ QSpinBox::up-button, QSpinBox::down-button
 CamSpinBox
 {
     /* Background color inside CamSpinBox */
-    background-color: #ddd;
+    background-color: #fff;
     /* Content style inside CamSpinBox */
     font-size: 16px;
+    color: black;
     border: 1px solid black;
     padding-right: 0px;
     padding-left: 10px;
 }
+CamSpinBox:focus
+{
+    background-color: #bbb;
+    border: 1px solid black;
+}
 CamSpinBox:disabled
 {
     color: #777;
+    border: 1px solid #777;
 }
 CamSpinBox::up-button, CamSpinBox::down-button
 {
@@ -217,16 +296,23 @@ CamSpinBox::up-button, CamSpinBox::down-button
 CamDoubleSpinBox
 {
     /* Background color inside CamDoubleSpinBox */
-    background-color: #ddd;
+    background-color: #fff;
     /* Content style inside CamDoubleSpinBox */
     font-size: 16px;
+    color: black;
     border: 1px solid black;
     padding-right: 0px;
     padding-left: 10px;
 }
+CamDoubleSpinBox:focus
+{
+    background-color: #bbb;
+    border: 1px solid black;
+}
 CamDoubleSpinBox:disabled
 {
     color: #777;
+    border: 1px solid #777;
 }
 CamDoubleSpinBox::up-button, CamDoubleSpinBox::down-button
 {
@@ -237,16 +323,23 @@ CamDoubleSpinBox::up-button, CamDoubleSpinBox::down-button
 ColorDoubleSpinBox
 {
     /* Background color inside ColorSpinBox */
-    background-color: #ddd;
+    background-color: #fff;
     /* Content style inside ColorSpinBox */
     font-size: 16px;
+    color: black;
     border: 1px solid black;
     padding-right: 0px;
     padding-left: 10px;
 }
+ColorDoubleSpinBox:focus
+{
+    background-color: #bbb;
+    border: 1px solid black;
+}
 ColorDoubleSpinBox:disabled
 {
     color: #777;
+    border: 1px solid #777;
 }
 ColorDoubleSpinBox::up-button, ColorDoubleSpinBox::down-button
 {
@@ -258,11 +351,22 @@ ColorDoubleSpinBox::up-button, ColorDoubleSpinBox::down-button
 /* All QComboBox in GUI1 */
 QComboBox
 {
-    background-color: #ddd;
+    background-color: #fff;
     font-size: 16px;
+    color: black;
     border: 1px solid black;
     padding-left: 10px;
 
+}
+QComboBox:focus
+{
+    background-color: #bbb;
+    border: 1px solid black;
+}
+QComboBox:disabled
+{
+    color: #777;
+    border: 1px solid #777;
 }
 QComboBox::drop-down
 {
@@ -279,10 +383,12 @@ QComboBox::down-arrow
 QComboBox QAbstractItemView
 {
     font-size: 16px;
+    color: black;
     border: 1px solid black;
-    background-color: #ddd;
+    background-color: #fff;
     selection-background-color: #bbb;
     selection-color: black;
+    outline: none;
 }
 QComboBox QAbstractItemView::item
 {
@@ -293,8 +399,8 @@ QComboBox QScrollBar::vertical
 {
     background: #bbb;
     box-sizing: border-box;
-    border-left: 12px solid #ddd;
-    border-right: 12px solid #ddd;
+    border-left: 12px solid #fff;
+    border-right: 12px solid #fff;
 }
 QComboBox QScrollBar::handle::vertical
 {
@@ -315,13 +421,16 @@ QComboBox QScrollBar::sub-line::vertical
 /* QFrame in GUI1 */
 QFrame#frame
 {
+    image: url(:/qss/assets/images/frame-preview.png);
     background-color: #666;
+    border: 1px solid black;
     background-position: center;
 }
 
 QFrame#frameImage
 {
     background-color: rgba(255, 255, 255, 100);
+    border: none;
 }
 
 
@@ -330,6 +439,8 @@ QFrame#frameImage
 QGroupBox
 {
     border: 1px solid #333;
+    color: black;
+    border: 1px solid black;
 }
 
 
@@ -337,7 +448,39 @@ QGroupBox
 /* QTabWidget in GUI1 (Util menu) */
 QTabWidget
 {
+    background-color: #fff;
+    color: black;
+    border: none;
+}
+QTabWidget > QWidget
+{
+    border: 1px solid #bbb;
+    border-right: 0px;
+}
 
+QTabBar::tab
+{
+    width: 40px;
+    background-color: #fff;
+    font-size: 13px;
+    color: black;
+
+    border: 1px solid #ddd;
+
+    padding: 12.5px 0;
+}
+QTabBar::tab:selected
+{
+    width: 40px;
+    background-color: #fff;
+    font-size: 13px;
+    text-decoration: underline;
+    color: black;
+
+    border: 1px solid #bbb;
+    border-left: 0px;
+
+    padding: 12.5px 0;
 }
 
 
@@ -345,9 +488,15 @@ QTabWidget
 /* QDateTimeEdit in GUI1 (Util: time setting) */
 QDateTimeEdit
 {
-    background-color: #ddd;
+    background-color: #fff;
     font-size: 16px;
-    border: none;
+    color: black;
+    border: 1px solid black;
+}
+QDateTimeEdit:focus
+{
+    background-color: #ddd;
+    border: 1px solid black;
 }
 QDateTimeEdit::drop-down
 {
@@ -367,7 +516,13 @@ QDateTimeEdit::down-arrow
 /* QTextEdit in GUI1 (Util: about) */
 QTextEdit
 {
-    background-color: #ddd;
+    background-color: #fff;
+    color: black;
+    border: none;
+}
+QTextEdit:focus
+{
+    border:none;
 }
 QTextEdit QScrollBar::vertical
 {
@@ -395,8 +550,68 @@ QTextEdit QScrollBar::sub-line::vertical
 /* All CamLineEdit in GUI1 */
 CamLineEdit
 {
-    background-color: #ddd;
+    background-color: #fff;
+    font-size: 16px;
+    color: black;
     border: 1px solid black;
+    padding-left: 5px;
+}
+CamLineEdit:focus
+{
+    background-color: #bbb;
+    border: 1px solid black;
+}
+CamLineEdit:disabled
+{
+    color: #777;
+    border: 1px solid #777;
+}
+
+
+
+/* Information message box */
+QMessageBox
+{
+    border: 2px solid #bbb;
+}
+
+
+
+/* Progress Box */
+QProgressDialog
+{
+    border: 2px solid #bbb;
+}
+QProgressDialog > QPushButton
+{
+    font-size: 16px;
+    background-color: #ddd;
+    color: black;
+    border: 1px solid black;
+    padding: 5px;
+}
+QProgressDialog > QPushButton:hover
+{
+    background-color: #bbb;
+    border: 1px solid black;
+}
+QProgressDialog > QPushButton:disabled
+{
+    color: #777;
+    border: 1px solid #777;
+}
+
+
+
+QProgressBar {
+    border: 2px solid black;
+    border-radius: 5px;
+    text-align: center;
+}
+
+QProgressBar::chunk {
+    border: 1px solid #fff;
+    border-radius: 3px;
 }
 
 

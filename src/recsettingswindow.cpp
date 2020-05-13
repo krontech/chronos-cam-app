@@ -399,6 +399,15 @@ void RecSettingsWindow::clampExposure(FrameTiming *timing, UInt32 fPeriod)
 	getSIText(str, (double)expPeriod / sensor.timingClock, 10, DEF_SI_OPTS, 8);
 	ui->lineExp->setText(str);
 }
+/*
+void CamMainWindow::on_exposurePeriod_valueChanged(const QVariant &value)
+{
+    apiUpdate = true;
+    ui->expSlider->setValue(value.toInt());
+    apiUpdate = false;
+    updateCurrentSettingsLabel();
+}
+*/
 
 void RecSettingsWindow::on_cmdMax_clicked()
 {
