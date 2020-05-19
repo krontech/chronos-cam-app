@@ -312,7 +312,7 @@ Settings</string>
     </font>
    </property>
    <property name="styleSheet">
-    <string notr="true">color:  rgb(207, 244, 255);</string>
+    <string notr="true"/>
    </property>
    <property name="text">
     <string>TextLabel</string>

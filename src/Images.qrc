@@ -25,5 +25,6 @@
         <file>assets/images/record.png</file>
         <file>assets/images/stop.png</file>
         <file>lightstylesheet.qss</file>
+        <file>assets/images/handle-bars-dark-41x81.png</file>
     </qresource>
 </RCC>

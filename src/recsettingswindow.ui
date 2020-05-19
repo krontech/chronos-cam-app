@@ -116,9 +116,9 @@
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>20</y>
+     <y>40</y>
      <width>320</width>
-     <height>256</height>
+     <height>231</height>
     </rect>
    </property>
    <property name="styleSheet">
@@ -136,7 +136,7 @@
       <x>60</x>
       <y>50</y>
       <width>181</width>
-      <height>151</height>
+      <height>131</height>
      </rect>
     </property>
     <property name="styleSheet">

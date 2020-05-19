@@ -154,6 +154,16 @@ QLabel
     border: none;
 }
 
+QLabel#lblCurrent
+{
+    color:  rgb(54, 26, 176);
+}
+
+QLabel#lblNetStatus
+{
+    font-size: 15px;
+}
+
 
 
 /* All CheckBox in GUI1 */
@@ -205,7 +215,7 @@ QSlider::groove:vertical
 {
     background: #ddd;
     width: 15px;
-    border: 1px solid #fff;
+    border: 1px solid black;
     border-radius: 7.5px;
     margin: 13px;
 }
@@ -224,7 +234,7 @@ QSlider::groove:horizontal
 {
     background: #ddd;
     height: 15px;
-    border: 1px solid #fff;
+    border: 1px solid black;
     border-radius: 7.5px;
     margin: 13px;
 }
@@ -398,7 +408,6 @@ QComboBox QAbstractItemView::item
 QComboBox QScrollBar::vertical
 {
     background: #bbb;
-    box-sizing: border-box;
     border-left: 12px solid #fff;
     border-right: 12px solid #fff;
 }
@@ -454,7 +463,7 @@ QTabWidget
 }
 QTabWidget > QWidget
 {
-    border: 1px solid #bbb;
+    border: 1px solid black;
     border-right: 0px;
 }
 
@@ -465,7 +474,8 @@ QTabBar::tab
     font-size: 13px;
     color: black;
 
-    border: 1px solid #ddd;
+    border: 1px solid #aaa;
+    border-left: 1px solid black;
 
     padding: 12.5px 0;
 }
@@ -477,7 +487,7 @@ QTabBar::tab:selected
     text-decoration: underline;
     color: black;
 
-    border: 1px solid #bbb;
+    border: 1px solid black;
     border-left: 0px;
 
     padding: 12.5px 0;
@@ -510,6 +520,15 @@ QDateTimeEdit::down-arrow
 {
     image: url(:qss/assets/images/wedge-down-enabled-black.png);
 }
+/*
+QDateTimeEdit QAbstractItemView
+{
+    background-color: #fff;
+    color: black;
+    selection-background-color: #bbb;
+    selection-color: black;
+}
+*/
 
 
 
@@ -528,13 +547,13 @@ QTextEdit QScrollBar::vertical
 {
     background: #bbb;
     box-sizing: border-box;
-    border-left: 12px solid #ddd;
-    border-right: 12px solid #ddd;
+    border-left: 12px solid #fff;
+    border-right: 12px solid #fff;
 }
 QTextEdit QScrollBar::handle::vertical
 {
     image: url(:/qss/assets/images/handle-bars-light-41x81+20.png);
-    margin: -15px;
+    margin: -8px;
 }
 QTextEdit QScrollBar::add-line::vertical
 {

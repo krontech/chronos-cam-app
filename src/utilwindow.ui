@@ -37,7 +37,7 @@
     <enum>QTabWidget::East</enum>
    </property>
    <property name="currentIndex">
-    <number>0</number>
+    <number>5</number>
    </property>
    <widget class="QWidget" name="tabMain">
     <property name="styleSheet">
@@ -1165,7 +1165,7 @@ Software Update</string>
      <widget class="QLabel" name="lblNetStatus">
       <property name="geometry">
        <rect>
-        <x>0</x>
+        <x>10</x>
         <y>20</y>
         <width>591</width>
         <height>121</height>

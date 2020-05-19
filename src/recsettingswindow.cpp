@@ -69,7 +69,7 @@ RecSettingsWindow::RecSettingsWindow(QWidget *parent, Camera * cameraInst) :
 	} else {
 		previewScale = (sensor.geometry.vRes / ui->frame->height());
 	}
-	ui->frame->setFixedSize(sensor.geometry.hRes / previewScale, sensor.geometry.vRes / previewScale);
+    ui->frame->setFixedSize(sensor.geometry.hRes / previewScale, sensor.geometry.vRes / previewScale); //sensor.geometry.vRes / previewScale
 
 	ui->spinHRes->setSingleStep(sensor.hIncrement);
 	ui->spinHRes->setMinimum(sensor.hMinimum);
