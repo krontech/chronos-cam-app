@@ -301,7 +301,7 @@ Settings</string>
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>420</y>
+     <y>416</y>
      <width>201</width>
      <height>41</height>
     </rect>
@@ -579,7 +579,7 @@ Aid</string>
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>460</y>
+     <y>456</y>
      <width>71</width>
      <height>21</height>
     </rect>
@@ -592,7 +592,7 @@ Aid</string>
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>460</y>
+     <y>456</y>
      <width>81</width>
      <height>17</height>
     </rect>
@@ -605,7 +605,7 @@ Aid</string>
    <property name="geometry">
     <rect>
      <x>90</x>
-     <y>460</y>
+     <y>456</y>
      <width>71</width>
      <height>20</height>
     </rect>
@@ -641,7 +641,6 @@ Aid</string>
   <zorder>expSlider</zorder>
   <zorder>cmdClose</zorder>
   <zorder>lblExp</zorder>
-  <zorder>cmdUtil</zorder>
   <zorder>cmdDebugWnd</zorder>
   <zorder>cmdDPCButton</zorder>
   <zorder>cmdFocusBackground</zorder>
@@ -659,6 +658,7 @@ Aid</string>
   <zorder>battLabel</zorder>
   <zorder>VolLabel</zorder>
   <zorder>line_6</zorder>
+  <zorder>cmdUtil</zorder>
  </widget>
  <resources/>
  <connections/>

@@ -171,6 +171,9 @@ private:
 	void updateDrives();
 
 	void ipChunkChanged(QLineEdit *edit);
+
+    int pid;
+    pthread_mutex_t mutex;
 };
 
 #endif // UTILWINDOW_H

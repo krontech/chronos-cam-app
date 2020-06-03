@@ -205,7 +205,7 @@ void CamMainWindow::on_wbTemperature_valueChanged(const QVariant &value)
 
 	if (!ui->cmdWB->isEnabled()) return; /* Do nothing on monochrome cameras */
 	if (wbTempK > 0) {
-        ui->cmdWB->setStyleSheet("color: rgb(207, 244, 255);");
+        //ui->cmdWB->setStyleSheet("color: rgb(207, 244, 255);");
 		ui->cmdWB->setText(QString("White Bal\n%1\xb0K").arg(wbTempK));
 	} else {
 		ui->cmdWB->setText("White Bal\nCustom");

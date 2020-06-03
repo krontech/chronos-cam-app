@@ -101,6 +101,12 @@ QPushButton:focus
     outline: none;
 }
 
+QPushButton#cmdWB
+{
+    color: rgb(207, 244, 255);
+}
+
+
 
 /* All QRadioButton in GUI1 */
 QRadioButton
@@ -520,15 +526,12 @@ QDateTimeEdit::down-arrow
 {
     image: url(:qss/assets/images/wedge-down-white-enabled.png);
 }
-/*
 QDateTimeEdit QAbstractItemView
 {
-    background-color: #555;
-    color: #fff;
+    border: 1px solid #333;
     selection-background-color: #777;
     selection-color: #fff;
 }
-*/
 
 
 

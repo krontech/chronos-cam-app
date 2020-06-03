@@ -7,6 +7,8 @@ build-*-Release/
 chronos-cam-app_*.build
 chronos-cam-app_*.changes
 *.deb
+*.buildinfo
+*.ddeb
 
 ## Ignore common temporary files.
 .DS_Store

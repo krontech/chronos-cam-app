@@ -158,6 +158,7 @@ int main(int argc, char *argv[])
 
 	w.move(displayPosition,0);
 
+    //Set Stylesheet
     if(gui == 1)
     {
         QFile styleFile(":/qss/darkstylesheet.qss");

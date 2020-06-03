@@ -177,7 +177,6 @@ CameraErrortype Camera::init(Video * vinstInst, Control * cinstInst)
 		setFocusPeakColor(2);	//set to cyan, if starts out set to black
 	}
 
-    int guiMode = getGUIMode();
     int expLable = getExp();
 
 	return SUCCESS;

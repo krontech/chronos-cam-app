@@ -8,8 +8,6 @@
         <file>assets/images/handle-bars-dark-61x156+40.png</file>
         <file>assets/images/handle-bars-dark-81x41+20.png</file>
         <file>assets/images/wedge-down-white-enabled.png</file>
-        <file>assets/images/radio-button-unchecked-black.svg.png</file>
-        <file>assets/images/radio-button-checked-black.svg.png</file>
         <file>assets/images/checkbox-checked-black.svg.png</file>
         <file>assets/images/checkbox-unchecked-black.svg</file>
         <file>assets/images/handle-bars-light-41x81+20.png</file>
@@ -26,5 +24,13 @@
         <file>assets/images/stop.png</file>
         <file>lightstylesheet.qss</file>
         <file>assets/images/handle-bars-dark-41x81.png</file>
+        <file>assets/images/checkbox-unchecked-focus-black.png</file>
+        <file>assets/images/radio-button-unchecked-focus-black.png</file>
+        <file>assets/images/checkbox-checked-focus-black.png</file>
+        <file>assets/images/radio-button-checked-focus-black.png</file>
+        <file>assets/images/radio-button-unchecked-black.png</file>
+        <file>assets/images/radio-button-checked-black.png</file>
+        <file>assets/images/radio-button-checked-black.svg.png</file>
+        <file>assets/images/radio-button-unchecked-black.svg.png</file>
     </qresource>
 </RCC>
