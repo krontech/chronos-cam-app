@@ -657,8 +657,8 @@ Aid</string>
   <zorder>battery</zorder>
   <zorder>battLabel</zorder>
   <zorder>VolLabel</zorder>
-  <zorder>line_6</zorder>
   <zorder>cmdUtil</zorder>
+  <zorder>line_6</zorder>
  </widget>
  <resources/>
  <connections/>

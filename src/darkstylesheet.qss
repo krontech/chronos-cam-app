@@ -103,7 +103,7 @@ QPushButton:focus
 
 QPushButton#cmdWB
 {
-    color: rgb(207, 244, 255);
+    color: #2c96ff;
 }
 
 
@@ -162,7 +162,7 @@ QLabel
 
 QLabel#lblCurrent
 {
-    color:  rgb(207, 244, 255);
+    color: #2c96ff;
 }
 
 QLabel#lblNetStatus
