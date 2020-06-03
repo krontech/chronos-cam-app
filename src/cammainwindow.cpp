@@ -349,6 +349,7 @@ void CamMainWindow::on_cmdRecSettings_clicked()
 
 void CamMainWindow::on_cmdFPNCal_clicked()//Black cal
 {
+    ui->cmdFPNCal->setStyleSheet("background-color: #555");
 	if (!okToStopLive()) return;
 
     if(recording) {
@@ -383,6 +384,7 @@ void CamMainWindow::on_cmdFPNCal_clicked()//Black cal
 	camera->cinst->startCalibration({"analogCal", "blackCal"}, true);
 
 	sw->hide();
+    ui->cmdFPNCal->setStyleSheet("background-color: #333");
 }
 
 void CamMainWindow::on_cmdWB_clicked()
