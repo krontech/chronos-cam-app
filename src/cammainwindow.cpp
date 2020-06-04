@@ -205,7 +205,6 @@ void CamMainWindow::on_wbTemperature_valueChanged(const QVariant &value)
 
 	if (!ui->cmdWB->isEnabled()) return; /* Do nothing on monochrome cameras */
 	if (wbTempK > 0) {
-        //ui->cmdWB->setStyleSheet("color: rgb(207, 244, 255);");
 		ui->cmdWB->setText(QString("White Bal\n%1\xb0K").arg(wbTempK));
 	} else {
 		ui->cmdWB->setText("White Bal\nCustom");
@@ -817,7 +816,7 @@ void CamMainWindow::on_cmdBkGndButton_clicked()
     ui->expSlider->setVisible(true);
 	ui->lblCurrent->setVisible(true);
     ui->VolLabel->setVisible(true);
-    ui->lblExp->setVisible(true);
+    //ui->lblExp->setVisible(true);
 }
 
 void CamMainWindow::on_cmdDPCButton_clicked()

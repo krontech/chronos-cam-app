@@ -275,7 +275,7 @@ Settings</string>
   <widget class="QSlider" name="expSlider">
    <property name="geometry">
     <rect>
-     <x>5</x>
+     <x>7</x>
      <y>30</y>
      <width>51</width>
      <height>331</height>
@@ -324,7 +324,7 @@ Settings</string>
   <widget class="QLabel" name="lblExp">
    <property name="geometry">
     <rect>
-     <x>10</x>
+     <x>6</x>
      <y>10</y>
      <width>61</width>
      <height>17</height>

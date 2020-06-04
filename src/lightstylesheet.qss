@@ -101,11 +101,6 @@ QPushButton:focus
 
 }
 
-QPushButton#cmdWB
-{
-    color: rgb(54, 26, 176);
-}
-
 
 
 /* All QRadioButton in GUI1 */
@@ -403,7 +398,7 @@ QComboBox QAbstractItemView
     color: black;
     border: 1px solid black;
     background-color: #ddd;
-    selection-background-color: #bbb;
+    selection-background-color: #36b5ff;
     selection-color: black;
     outline: none;
 }

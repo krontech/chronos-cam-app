@@ -37,7 +37,7 @@
     <enum>QTabWidget::East</enum>
    </property>
    <property name="currentIndex">
-    <number>5</number>
+    <number>0</number>
    </property>
    <widget class="QWidget" name="tabMain">
     <property name="styleSheet">
@@ -283,7 +283,7 @@ Location</string>
       <rect>
        <x>10</x>
        <y>160</y>
-       <width>101</width>
+       <width>141</width>
        <height>41</height>
       </rect>
      </property>
@@ -293,8 +293,8 @@ Location</string>
       </font>
      </property>
      <property name="text">
-      <string>Exposure
-units</string>
+      <string>Exposure Unit
+Display</string>
      </property>
      <property name="checked" stdset="0">
       <bool>true</bool>
@@ -303,9 +303,9 @@ units</string>
     <widget class="QComboBox" name="ExpcomboBox">
      <property name="geometry">
       <rect>
-       <x>110</x>
+       <x>150</x>
        <y>160</y>
-       <width>241</width>
+       <width>311</width>
        <height>41</height>
       </rect>
      </property>
