@@ -2,7 +2,7 @@
 QWidget#IOSettingsWindow, #keyboard, #keyboardNumeric, #playbackWindow, #ramWindow, #recModeWindow, #RecSettingsWindow, #saveSettingsWindow,
        #triggerDelayWindow, #UtilWindow, #ExpDialog
 {
-    background-color: #f6f6f6;
+    background-color: #f4f4f4;
 }
 
 QWidget#StatusWindow
@@ -15,7 +15,7 @@ QWidget#StatusWindow
 /* All Dialogs CamMainWindow/ColorWindow/whiteBalanceDialog */
 QDialog
 {
-    background-color: #f6f6f6;
+    background-color: #f4f4f4;
     color: black;
 }
 
@@ -26,7 +26,7 @@ QDialog
 QDialog > QPushButton
 {
     font-size: 16px;
-    background-color: #f6f6f6;
+    background-color: #f4f4f4;
     color: black;
     border: none;
 }
@@ -464,7 +464,7 @@ QGroupBox
 /* QTabWidget in GUI1 (Util menu) */
 QTabWidget
 {
-    background-color: #f6f6f6;
+    background-color: #f4f4f4;
     color: black;
     border: none;
 }
@@ -489,7 +489,7 @@ QTabBar::tab
 QTabBar::tab:selected
 {
     width: 40px;
-    background-color: #f6f6f6;
+    background-color: #f4f4f4;
     font-size: 13px;
     text-decoration: underline;
     color: black;
