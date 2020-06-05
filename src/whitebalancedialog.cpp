@@ -4,6 +4,7 @@
 #include <QSettings>
 #include <QDebug>
 #include <QBitmap>
+#include <QListView>
 
 /* 32x32 Crosshair in PNG format */
 static const uint8_t crosshair32x32_png[] = {
@@ -31,6 +32,7 @@ whiteBalanceDialog::whiteBalanceDialog(QWidget *parent, Camera * cameraInst) :
 	windowInitComplete = false;
 	ui->setupUi(this);
 	camera = cameraInst;
+
 	saveColor();
 
 	setWindowFlags(Qt::Dialog /*| Qt::WindowStaysOnTopHint*/ | Qt::FramelessWindowHint);
@@ -97,6 +99,10 @@ whiteBalanceDialog::whiteBalanceDialog(QWidget *parent, Camera * cameraInst) :
 	}
 	appSettings.endArray();
 
+    //Set QListView to change items in the combo box with qss
+    ui->comboColor->setView(new QListView);
+    ui->comboColor->view()->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+
 	/* Get the wbTemperature and select the nearest preset. */
 	int diff = INT_MAX;
 	int wbIndex = 0;
@@ -111,6 +117,11 @@ whiteBalanceDialog::whiteBalanceDialog(QWidget *parent, Camera * cameraInst) :
 
 	windowInitComplete = true;
 	ui->comboWB->setCurrentIndex(wbIndex);
+
+    //Set QListView to change items in the combo box with qss
+    ui->comboWB->setView(new QListView);
+    ui->comboWB->view()->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+
 }
 
 whiteBalanceDialog::~whiteBalanceDialog()
@@ -220,6 +231,7 @@ void whiteBalanceDialog::applyWhiteBalance(void)
 void whiteBalanceDialog::on_cmdSetCustomWB_clicked()
 {
 	applyWhiteBalance();
+    ui->comboWB->setFocus();
 }
 
 void whiteBalanceDialog::on_cmdClose_clicked()
@@ -251,6 +263,7 @@ void whiteBalanceDialog::on_cmdResetCustomWB_clicked()
 	camera->cinst->setArray("wbCustomColor", 3, customWhiteBalOld);
 	camera->cinst->setInt("wbTemperature", 0);
 	ui->comboWB->setCurrentIndex(customWhiteBalIndex);
+    ui->comboWB->setFocus();
 }
 
 void whiteBalanceDialog::on_cmdMatrix_clicked()
@@ -259,8 +272,10 @@ void whiteBalanceDialog::on_cmdMatrix_clicked()
 	if (cw) {
 		delete cw;
 		cw = NULL;
-		crosshair->show();
+        //crosshair->show();
 		ui->cmdMatrix->setText(camera->ButtonsOnLeft ? "Matrix >>" : "<< Matrix");
+        ui->comboWB->setFocus();
+
 	}
 	/* Disable the crosshair and show the colour matrix window. */
 	else {
@@ -272,6 +287,7 @@ void whiteBalanceDialog::on_cmdMatrix_clicked()
 		connect(cw, SIGNAL(applyColorMatrix()), this, SLOT(applyColorMatrix()));
 		connect(cw, SIGNAL(applyWhiteBalance()), this, SLOT(applyWhiteBalance()));
 	}
+
 }
 
 void whiteBalanceDialog::saveColor(void)

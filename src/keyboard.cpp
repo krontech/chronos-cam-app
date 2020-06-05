@@ -22,6 +22,9 @@ keyboard::keyboard(QWidget *parent) :
 	ui(new Ui::keyboard)
 {
 	ui->setupUi(this);
+
+
+
 	capslock = shift = false;
 	setLowercase();
 

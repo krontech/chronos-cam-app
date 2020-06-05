@@ -21,7 +21,7 @@
     <rect>
      <x>10</x>
      <y>5</y>
-     <width>761</width>
+     <width>781</width>
      <height>151</height>
     </rect>
    </property>
@@ -43,31 +43,7 @@
    <widget class="QRadioButton" name="radioIO1FSOut">
     <property name="geometry">
      <rect>
-      <x>540</x>
-      <y>15</y>
-      <width>231</width>
-      <height>41</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>16</pointsize>
-     </font>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">QRadioButton::indicator {
-     width: 40px;
-     height: 40px;
-}</string>
-    </property>
-    <property name="text">
-     <string>Frame S&amp;ync Output</string>
-    </property>
-   </widget>
-   <widget class="QRadioButton" name="radioIO1TrigIn">
-    <property name="geometry">
-     <rect>
-      <x>150</x>
+      <x>550</x>
       <y>15</y>
       <width>211</width>
       <height>41</height>
@@ -79,10 +55,28 @@
      </font>
     </property>
     <property name="styleSheet">
-     <string notr="true">QRadioButton::indicator {
-     width: 40px;
-     height: 40px;
-}</string>
+     <string notr="true"/>
+    </property>
+    <property name="text">
+     <string>Frame S&amp;ync Output</string>
+    </property>
+   </widget>
+   <widget class="QRadioButton" name="radioIO1TrigIn">
+    <property name="geometry">
+     <rect>
+      <x>160</x>
+      <y>15</y>
+      <width>211</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>16</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true"/>
     </property>
     <property name="text">
      <string>Record End Trigger</string>
@@ -94,7 +88,7 @@
    <widget class="QRadioButton" name="radioIO1TriggeredShutter">
     <property name="geometry">
      <rect>
-      <x>150</x>
+      <x>160</x>
       <y>60</y>
       <width>211</width>
       <height>41</height>
@@ -106,10 +100,7 @@
      </font>
     </property>
     <property name="styleSheet">
-     <string notr="true">QRadioButton::indicator {
-     width: 40px;
-     height: 40px;
-}</string>
+     <string notr="true"/>
     </property>
     <property name="text">
      <string>E&amp;xposure Trigger</string>
@@ -118,17 +109,14 @@
    <widget class="QCheckBox" name="chkIO1Invert">
     <property name="geometry">
      <rect>
-      <x>370</x>
+      <x>380</x>
       <y>105</y>
       <width>97</width>
       <height>41</height>
      </rect>
     </property>
     <property name="styleSheet">
-     <string notr="true">QCheckBox::indicator {
-     width: 40px;
-     height: 40px;
-}</string>
+     <string notr="true"/>
     </property>
     <property name="text">
      <string>Invert</string>
@@ -137,7 +125,7 @@
    <widget class="QCheckBox" name="chkIO1Debounce">
     <property name="geometry">
      <rect>
-      <x>370</x>
+      <x>380</x>
       <y>60</y>
       <width>151</width>
       <height>41</height>
@@ -147,10 +135,7 @@
      <enum>Qt::StrongFocus</enum>
     </property>
     <property name="styleSheet">
-     <string notr="true">QCheckBox::indicator {
-     width: 40px;
-     height: 40px;
-}</string>
+     <string notr="true"/>
     </property>
     <property name="text">
      <string>Debounce</string>
@@ -159,17 +144,14 @@
    <widget class="QCheckBox" name="chkIO1WeakPull">
     <property name="geometry">
      <rect>
-      <x>540</x>
+      <x>550</x>
       <y>105</y>
-      <width>131</width>
+      <width>151</width>
       <height>41</height>
      </rect>
     </property>
     <property name="styleSheet">
-     <string notr="true">QCheckBox::indicator {
-     width: 40px;
-     height: 40px;
-}</string>
+     <string notr="true"/>
     </property>
     <property name="text">
      <string>1mA Pullup</string>
@@ -178,17 +160,14 @@
    <widget class="QCheckBox" name="chkIO1Pull">
     <property name="geometry">
      <rect>
-      <x>540</x>
+      <x>550</x>
       <y>60</y>
-      <width>141</width>
+      <width>151</width>
       <height>41</height>
      </rect>
     </property>
     <property name="styleSheet">
-     <string notr="true">QCheckBox::indicator {
-     width: 40px;
-     height: 40px;
-}</string>
+     <string notr="true"/>
     </property>
     <property name="text">
      <string>20mA Pullup</string>
@@ -197,9 +176,9 @@
    <widget class="QLabel" name="label">
     <property name="geometry">
      <rect>
-      <x>20</x>
+      <x>10</x>
       <y>40</y>
-      <width>66</width>
+      <width>81</width>
       <height>17</height>
      </rect>
     </property>
@@ -210,7 +189,7 @@
    <widget class="QRadioButton" name="radioIO1None">
     <property name="geometry">
      <rect>
-      <x>370</x>
+      <x>380</x>
       <y>15</y>
       <width>101</width>
       <height>41</height>
@@ -222,10 +201,7 @@
      </font>
     </property>
     <property name="styleSheet">
-     <string notr="true">QRadioButton::indicator {
-     width: 40px;
-     height: 40px;
-}</string>
+     <string notr="true"/>
     </property>
     <property name="text">
      <string>None</string>
@@ -234,7 +210,7 @@
    <widget class="QRadioButton" name="radioIO1ShutterGating">
     <property name="geometry">
      <rect>
-      <x>150</x>
+      <x>160</x>
       <y>105</y>
       <width>211</width>
       <height>41</height>
@@ -246,10 +222,7 @@
      </font>
     </property>
     <property name="styleSheet">
-     <string notr="true">QRadioButton::indicator {
-     width: 40px;
-     height: 40px;
-}</string>
+     <string notr="true"/>
     </property>
     <property name="text">
      <string>Sh&amp;utter Gating</string>
@@ -258,7 +231,7 @@
    <widget class="CamDoubleSpinBox" name="spinIO1Thresh">
     <property name="geometry">
      <rect>
-      <x>5</x>
+      <x>10</x>
       <y>60</y>
       <width>136</width>
       <height>41</height>
@@ -267,17 +240,13 @@
     <property name="font">
      <font>
       <pointsize>16</pointsize>
-      <weight>75</weight>
-      <italic>true</italic>
-      <bold>true</bold>
+      <weight>50</weight>
+      <italic>false</italic>
+      <bold>false</bold>
      </font>
     </property>
     <property name="styleSheet">
-     <string notr="true">QDoubleSpinBox { border: 3px outset grey;padding-right: 40px;}  
-
-QDoubleSpinBox::up-button { subcontrol-position: right; right: 40px; width: 40px; height: 35px;}
-
-QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}</string>
+     <string notr="true"/>
     </property>
     <property name="decimals">
      <number>2</number>
@@ -304,7 +273,7 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
     <rect>
      <x>10</x>
      <y>160</y>
-     <width>761</width>
+     <width>781</width>
      <height>151</height>
     </rect>
    </property>
@@ -326,7 +295,7 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
    <widget class="QRadioButton" name="radioIO2FSOut">
     <property name="geometry">
      <rect>
-      <x>540</x>
+      <x>550</x>
       <y>15</y>
       <width>211</width>
       <height>41</height>
@@ -338,10 +307,7 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
      </font>
     </property>
     <property name="styleSheet">
-     <string notr="true">QRadioButton::indicator {
-     width: 40px;
-     height: 40px;
-}</string>
+     <string notr="true"/>
     </property>
     <property name="text">
      <string>Frame Sync Output</string>
@@ -350,7 +316,7 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
    <widget class="QRadioButton" name="radioIO2TrigIn">
     <property name="geometry">
      <rect>
-      <x>150</x>
+      <x>160</x>
       <y>15</y>
       <width>211</width>
       <height>41</height>
@@ -362,10 +328,7 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
      </font>
     </property>
     <property name="styleSheet">
-     <string notr="true">QRadioButton::indicator {
-     width: 40px;
-     height: 40px;
-}</string>
+     <string notr="true"/>
     </property>
     <property name="text">
      <string>Record End Trigger</string>
@@ -377,17 +340,14 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
    <widget class="QCheckBox" name="chkIO2Invert">
     <property name="geometry">
      <rect>
-      <x>370</x>
+      <x>380</x>
       <y>105</y>
       <width>97</width>
       <height>41</height>
      </rect>
     </property>
     <property name="styleSheet">
-     <string notr="true">QCheckBox::indicator {
-     width: 40px;
-     height: 40px;
-}</string>
+     <string notr="true"/>
     </property>
     <property name="text">
      <string>Invert</string>
@@ -396,17 +356,14 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
    <widget class="QCheckBox" name="chkIO2Debounce">
     <property name="geometry">
      <rect>
-      <x>370</x>
+      <x>380</x>
       <y>60</y>
       <width>141</width>
       <height>41</height>
      </rect>
     </property>
     <property name="styleSheet">
-     <string notr="true">QCheckBox::indicator {
-     width: 40px;
-     height: 40px;
-}</string>
+     <string notr="true"/>
     </property>
     <property name="text">
      <string>Debounce</string>
@@ -415,17 +372,14 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
    <widget class="QCheckBox" name="chkIO2Pull">
     <property name="geometry">
      <rect>
-      <x>540</x>
+      <x>550</x>
       <y>60</y>
-      <width>141</width>
+      <width>161</width>
       <height>41</height>
      </rect>
     </property>
     <property name="styleSheet">
-     <string notr="true">QCheckBox::indicator {
-     width: 40px;
-     height: 40px;
-}</string>
+     <string notr="true"/>
     </property>
     <property name="text">
      <string>20mA Pullup</string>
@@ -434,9 +388,9 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
    <widget class="QLabel" name="label_2">
     <property name="geometry">
      <rect>
-      <x>20</x>
+      <x>10</x>
       <y>40</y>
-      <width>66</width>
+      <width>91</width>
       <height>17</height>
      </rect>
     </property>
@@ -447,7 +401,7 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
    <widget class="QRadioButton" name="radioIO2None">
     <property name="geometry">
      <rect>
-      <x>370</x>
+      <x>380</x>
       <y>15</y>
       <width>101</width>
       <height>41</height>
@@ -459,10 +413,7 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
      </font>
     </property>
     <property name="styleSheet">
-     <string notr="true">QRadioButton::indicator {
-     width: 40px;
-     height: 40px;
-}</string>
+     <string notr="true"/>
     </property>
     <property name="text">
      <string>None</string>
@@ -471,7 +422,7 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
    <widget class="QRadioButton" name="radioIO2TriggeredShutter">
     <property name="geometry">
      <rect>
-      <x>150</x>
+      <x>160</x>
       <y>60</y>
       <width>211</width>
       <height>41</height>
@@ -483,10 +434,7 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
      </font>
     </property>
     <property name="styleSheet">
-     <string notr="true">QRadioButton::indicator {
-     width: 40px;
-     height: 40px;
-}</string>
+     <string notr="true"/>
     </property>
     <property name="text">
      <string>Exposure &amp;Trigger</string>
@@ -495,7 +443,7 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
    <widget class="QRadioButton" name="radioIO2ShutterGating">
     <property name="geometry">
      <rect>
-      <x>150</x>
+      <x>160</x>
       <y>105</y>
       <width>211</width>
       <height>41</height>
@@ -507,10 +455,7 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
      </font>
     </property>
     <property name="styleSheet">
-     <string notr="true">QRadioButton::indicator {
-     width: 40px;
-     height: 40px;
-}</string>
+     <string notr="true"/>
     </property>
     <property name="text">
      <string>Shutter &amp;Gating</string>
@@ -519,7 +464,7 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
    <widget class="CamDoubleSpinBox" name="spinIO2Thresh">
     <property name="geometry">
      <rect>
-      <x>5</x>
+      <x>10</x>
       <y>60</y>
       <width>136</width>
       <height>41</height>
@@ -528,17 +473,13 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
     <property name="font">
      <font>
       <pointsize>16</pointsize>
-      <weight>75</weight>
-      <italic>true</italic>
-      <bold>true</bold>
+      <weight>50</weight>
+      <italic>false</italic>
+      <bold>false</bold>
      </font>
     </property>
     <property name="styleSheet">
-     <string notr="true">QDoubleSpinBox { border: 3px outset grey;padding-right: 40px;}  
-
-QDoubleSpinBox::up-button { subcontrol-position: right; right: 40px; width: 40px; height: 35px;}
-
-QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 35px;}</string>
+     <string notr="true"/>
     </property>
     <property name="decimals">
      <number>2</number>
@@ -560,10 +501,10 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
   <widget class="QPushButton" name="cmdOK">
    <property name="geometry">
     <rect>
-     <x>570</x>
-     <y>420</y>
+     <x>690</x>
+     <y>350</y>
      <width>98</width>
-     <height>41</height>
+     <height>51</height>
     </rect>
    </property>
    <property name="text">
@@ -576,7 +517,7 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
      <x>690</x>
      <y>420</y>
      <width>98</width>
-     <height>41</height>
+     <height>51</height>
     </rect>
    </property>
    <property name="text">
@@ -625,10 +566,7 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
      </rect>
     </property>
     <property name="styleSheet">
-     <string notr="true">QCheckBox::indicator {
-     width: 40px;
-     height: 40px;
-}</string>
+     <string notr="true"/>
     </property>
     <property name="text">
      <string>Invert</string>
@@ -644,10 +582,7 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
      </rect>
     </property>
     <property name="styleSheet">
-     <string notr="true">QCheckBox::indicator {
-     width: 40px;
-     height: 40px;
-}</string>
+     <string notr="true"/>
     </property>
     <property name="text">
      <string>Debounce</string>
@@ -669,10 +604,7 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
      </font>
     </property>
     <property name="styleSheet">
-     <string notr="true">QRadioButton::indicator {
-     width: 40px;
-     height: 40px;
-}</string>
+     <string notr="true"/>
     </property>
     <property name="text">
      <string>Record End Trigger</string>
@@ -694,10 +626,7 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
      </font>
     </property>
     <property name="styleSheet">
-     <string notr="true">QRadioButton::indicator {
-     width: 40px;
-     height: 40px;
-}</string>
+     <string notr="true"/>
     </property>
     <property name="text">
      <string>Exposure Trigger</string>
@@ -719,10 +648,7 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
      </font>
     </property>
     <property name="styleSheet">
-     <string notr="true">QRadioButton::indicator {
-     width: 40px;
-     height: 40px;
-}</string>
+     <string notr="true"/>
     </property>
     <property name="text">
      <string>Shutter Gating</string>
@@ -733,7 +659,7 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
      <rect>
       <x>230</x>
       <y>15</y>
-      <width>211</width>
+      <width>181</width>
       <height>41</height>
      </rect>
     </property>
@@ -744,10 +670,7 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
      </font>
     </property>
     <property name="styleSheet">
-     <string notr="true">QRadioButton::indicator {
-     width: 40px;
-     height: 40px;
-}</string>
+     <string notr="true"/>
     </property>
     <property name="text">
      <string>None</string>
@@ -763,7 +686,7 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
      <x>460</x>
      <y>420</y>
      <width>98</width>
-     <height>41</height>
+     <height>51</height>
     </rect>
    </property>
    <property name="text">
@@ -775,7 +698,7 @@ QDoubleSpinBox::down-button { subcontrol-position: right; width: 40px; height: 3
     <rect>
      <x>460</x>
      <y>330</y>
-     <width>91</width>
+     <width>131</width>
      <height>81</height>
     </rect>
    </property>

@@ -17,7 +17,7 @@
    <property name="geometry">
     <rect>
      <x>280</x>
-     <y>290</y>
+     <y>300</y>
      <width>241</width>
      <height>41</height>
     </rect>
@@ -37,9 +37,9 @@
    <property name="font">
     <font>
      <pointsize>16</pointsize>
-     <weight>75</weight>
-     <italic>true</italic>
-     <bold>true</bold>
+     <weight>50</weight>
+     <italic>false</italic>
+     <bold>false</bold>
     </font>
    </property>
    <property name="styleSheet">
@@ -89,7 +89,7 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>80</y>
+     <y>90</y>
      <width>771</width>
      <height>51</height>
     </rect>
@@ -98,24 +98,7 @@
     <enum>Qt::NoFocus</enum>
    </property>
    <property name="styleSheet">
-    <string notr="true">QSlider::groove:horizontal {
-    border: 1px solid #999999;
-    height: 8px; /* the groove expands to the size of the slider by default. by giving it a height, it has a fixed size */
-    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #B1B1B1, stop:1 #c4c4c4);
-    margin: 2px 0;
-}
-
-QSlider::focus:pressed{
-    background-color: rgba(0, 0, 0, 0); 
-}
-
-QSlider::handle:horizontal {
-    background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #b4b4b4, stop:1 #8f8f8f);
-    border: 1px solid #5c5c5c;
-    width: 60px;
-    margin: -20px 0; /* handle is placed by default on the contents rect of the groove. Expand outside the groove */
-    border-radius: 3px;
-}</string>
+    <string notr="true">background-color: none;</string>
    </property>
    <property name="orientation">
     <enum>Qt::Horizontal</enum>
@@ -131,7 +114,7 @@ QSlider::handle:horizontal {
    <property name="geometry">
     <rect>
      <x>280</x>
-     <y>214</y>
+     <y>220</y>
      <width>241</width>
      <height>41</height>
     </rect>
@@ -139,9 +122,9 @@ QSlider::handle:horizontal {
    <property name="font">
     <font>
      <pointsize>16</pointsize>
-     <weight>75</weight>
-     <italic>true</italic>
-     <bold>true</bold>
+     <weight>50</weight>
+     <italic>false</italic>
+     <bold>false</bold>
     </font>
    </property>
    <property name="styleSheet">
@@ -167,7 +150,7 @@ QSlider::handle:horizontal {
    <property name="geometry">
     <rect>
      <x>280</x>
-     <y>180</y>
+     <y>190</y>
      <width>241</width>
      <height>31</height>
     </rect>
@@ -185,7 +168,7 @@ QSlider::handle:horizontal {
    <property name="geometry">
     <rect>
      <x>280</x>
-     <y>260</y>
+     <y>270</y>
      <width>241</width>
      <height>31</height>
     </rect>
@@ -266,7 +249,7 @@ QSlider::handle:horizontal {
    <property name="geometry">
     <rect>
      <x>540</x>
-     <y>290</y>
+     <y>300</y>
      <width>241</width>
      <height>41</height>
     </rect>
@@ -286,9 +269,9 @@ QSlider::handle:horizontal {
    <property name="font">
     <font>
      <pointsize>16</pointsize>
-     <weight>75</weight>
-     <italic>true</italic>
-     <bold>true</bold>
+     <weight>50</weight>
+     <italic>false</italic>
+     <bold>false</bold>
     </font>
    </property>
    <property name="styleSheet">
@@ -302,7 +285,7 @@ QSlider::handle:horizontal {
    <property name="geometry">
     <rect>
      <x>540</x>
-     <y>130</y>
+     <y>140</y>
      <width>241</width>
      <height>31</height>
     </rect>
@@ -320,7 +303,7 @@ QSlider::handle:horizontal {
    <property name="geometry">
     <rect>
      <x>540</x>
-     <y>214</y>
+     <y>220</y>
      <width>241</width>
      <height>41</height>
     </rect>
@@ -328,9 +311,9 @@ QSlider::handle:horizontal {
    <property name="font">
     <font>
      <pointsize>16</pointsize>
-     <weight>75</weight>
-     <italic>true</italic>
-     <bold>true</bold>
+     <weight>50</weight>
+     <italic>false</italic>
+     <bold>false</bold>
     </font>
    </property>
    <property name="styleSheet">
@@ -353,7 +336,7 @@ QSlider::handle:horizontal {
    <property name="geometry">
     <rect>
      <x>540</x>
-     <y>260</y>
+     <y>270</y>
      <width>241</width>
      <height>31</height>
     </rect>
@@ -371,7 +354,7 @@ QSlider::handle:horizontal {
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>290</y>
+     <y>300</y>
      <width>241</width>
      <height>41</height>
     </rect>
@@ -391,9 +374,9 @@ QSlider::handle:horizontal {
    <property name="font">
     <font>
      <pointsize>16</pointsize>
-     <weight>75</weight>
-     <italic>true</italic>
-     <bold>true</bold>
+     <weight>50</weight>
+     <italic>false</italic>
+     <bold>false</bold>
     </font>
    </property>
    <property name="styleSheet">
@@ -407,7 +390,7 @@ QSlider::handle:horizontal {
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>180</y>
+     <y>190</y>
      <width>261</width>
      <height>31</height>
     </rect>
@@ -425,7 +408,7 @@ QSlider::handle:horizontal {
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>214</y>
+     <y>220</y>
      <width>241</width>
      <height>41</height>
     </rect>
@@ -433,9 +416,9 @@ QSlider::handle:horizontal {
    <property name="font">
     <font>
      <pointsize>16</pointsize>
-     <weight>75</weight>
-     <italic>true</italic>
-     <bold>true</bold>
+     <weight>50</weight>
+     <italic>false</italic>
+     <bold>false</bold>
     </font>
    </property>
    <property name="styleSheet">
@@ -461,7 +444,7 @@ QSlider::handle:horizontal {
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>260</y>
+     <y>270</y>
      <width>241</width>
      <height>31</height>
     </rect>
@@ -479,7 +462,7 @@ QSlider::handle:horizontal {
    <property name="geometry">
     <rect>
      <x>540</x>
-     <y>180</y>
+     <y>190</y>
      <width>241</width>
      <height>31</height>
     </rect>
@@ -497,15 +480,18 @@ QSlider::handle:horizontal {
    <property name="geometry">
     <rect>
      <x>540</x>
-     <y>160</y>
+     <y>170</y>
      <width>241</width>
      <height>21</height>
     </rect>
    </property>
    <property name="font">
     <font>
-     <pointsize>10</pointsize>
+     <pointsize>-1</pointsize>
     </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">font-size: 12px;</string>
    </property>
    <property name="text">
     <string>(Time from trigger to end of recording)</string>
@@ -515,15 +501,18 @@ QSlider::handle:horizontal {
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>160</y>
+     <y>170</y>
      <width>241</width>
      <height>21</height>
     </rect>
    </property>
    <property name="font">
     <font>
-     <pointsize>10</pointsize>
+     <pointsize>-1</pointsize>
     </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">font-size: 12px;</string>
    </property>
    <property name="text">
     <string>(Time from trigger to start of recording)</string>
@@ -533,7 +522,7 @@ QSlider::handle:horizontal {
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>130</y>
+     <y>140</y>
      <width>261</width>
      <height>31</height>
     </rect>
@@ -551,15 +540,18 @@ QSlider::handle:horizontal {
    <property name="geometry">
     <rect>
      <x>280</x>
-     <y>160</y>
+     <y>170</y>
      <width>241</width>
      <height>21</height>
     </rect>
    </property>
    <property name="font">
     <font>
-     <pointsize>10</pointsize>
+     <pointsize>-1</pointsize>
     </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">font-size: 12px;</string>
    </property>
    <property name="text">
     <string>(Time from start of recording to trigger)</string>
@@ -569,7 +561,7 @@ QSlider::handle:horizontal {
    <property name="geometry">
     <rect>
      <x>280</x>
-     <y>130</y>
+     <y>140</y>
      <width>241</width>
      <height>31</height>
     </rect>
@@ -605,7 +597,7 @@ QSlider::handle:horizontal {
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>360</y>
+     <y>370</y>
      <width>151</width>
      <height>91</height>
     </rect>
@@ -626,7 +618,7 @@ Pre-rec Time</string>
    <property name="geometry">
     <rect>
      <x>185</x>
-     <y>360</y>
+     <y>370</y>
      <width>151</width>
      <height>91</height>
     </rect>
@@ -643,17 +635,44 @@ Pre-rec Time</string>
 Defaults</string>
    </property>
   </widget>
+  <zorder>cmdCancel</zorder>
+  <zorder>cmdOK</zorder>
+  <zorder>horizontalSlider</zorder>
+  <zorder>lblRes_8</zorder>
+  <zorder>lblRes_9</zorder>
+  <zorder>cmdHundredPercent</zorder>
+  <zorder>cmdFiftyPercent</zorder>
+  <zorder>cmdZeroPercent</zorder>
+  <zorder>lblRes_10</zorder>
+  <zorder>lblRes_11</zorder>
+  <zorder>lblRes_12</zorder>
+  <zorder>spinPreRecSeconds</zorder>
+  <zorder>lblRes_13</zorder>
+  <zorder>lblRes_14</zorder>
+  <zorder>lblRes_15</zorder>
+  <zorder>lblRes_16</zorder>
+  <zorder>lblRes_17</zorder>
+  <zorder>lblRes_18</zorder>
+  <zorder>lblRes_19</zorder>
+  <zorder>lblRes_20</zorder>
+  <zorder>cmdMorePreRecTime</zorder>
+  <zorder>cmdResetToDefaults</zorder>
+  <zorder>spinPreSeconds</zorder>
+  <zorder>spinPostSeconds</zorder>
+  <zorder>spinPreRecFrames</zorder>
+  <zorder>spinPreFrames</zorder>
+  <zorder>spinPostFrames</zorder>
  </widget>
  <customwidgets>
-  <customwidget>
-   <class>CamDoubleSpinBox</class>
-   <extends>QDoubleSpinBox</extends>
-   <header>camdoublespinbox.h</header>
-  </customwidget>
   <customwidget>
    <class>CamSpinBox</class>
    <extends>QSpinBox</extends>
    <header>camspinbox.h</header>
+  </customwidget>
+  <customwidget>
+   <class>CamDoubleSpinBox</class>
+   <extends>QDoubleSpinBox</extends>
+   <header>camdoublespinbox.h</header>
   </customwidget>
   <customwidget>
    <class>TriggerSlider</class>

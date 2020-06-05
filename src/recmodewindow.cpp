@@ -2,6 +2,8 @@
 #include "ui_recmodewindow.h"
 #include "camera.h"
 
+#include <QListView>
+
 recModeWindow::recModeWindow(QWidget *parent, Camera * cameraInst, ImagerSettings_t * settings) :
     QWidget(parent),
     ui(new Ui::recModeWindow)
@@ -12,6 +14,7 @@ recModeWindow::recModeWindow(QWidget *parent, Camera * cameraInst, ImagerSetting
     this->move(0,0);
 
     camera = cameraInst;
+
     is = settings;
 	sensor = camera->getSensorInfo();
 
@@ -103,6 +106,11 @@ recModeWindow::recModeWindow(QWidget *parent, Camera * cameraInst, ImagerSetting
 		fps *= 2;
 	}
 	ui->comboPlaybackRate->setCurrentIndex(index);
+
+    //Set QListView to change items in the combo box with qss
+    ui->comboPlaybackRate->setView(new QListView);
+    ui->comboPlaybackRate->view()->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+
 
 	windowOpening = false;
 }

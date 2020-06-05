@@ -30,12 +30,12 @@ CamLineEdit::CamLineEdit(QWidget *parent) :
 
 void CamLineEdit::focusInEvent(QFocusEvent *e)
 {
-	QLineEdit::focusInEvent(e);
+    QLineEdit::focusInEvent(e);
 }
 
 void CamLineEdit::focusOutEvent(QFocusEvent *e)
 {
-	QLineEdit::focusOutEvent(e);
+    QLineEdit::focusOutEvent(e);
 	textIsSelected = false;
 }
 

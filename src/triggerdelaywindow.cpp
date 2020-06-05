@@ -12,6 +12,7 @@ triggerDelayWindow::triggerDelayWindow(QWidget *parent, Camera * cameraInst, Ima
 	this->move(0,0);
 
 	camera = cameraInst;
+
 	is = settings;
 	period = (double)is->period / camera->getSensorInfo().timingClock;
 	if ((is->mode == RECORD_MODE_NORMAL) || (is->mode == RECORD_MODE_GATED_BURST)) {

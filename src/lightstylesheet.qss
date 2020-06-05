@@ -1,0 +1,638 @@
+/* All Widgets except MainWindow */
+QWidget#IOSettingsWindow, #keyboard, #keyboardNumeric, #playbackWindow, #ramWindow, #recModeWindow, #RecSettingsWindow, #saveSettingsWindow,
+       #triggerDelayWindow, #UtilWindow
+{
+    background-color: #f4f4f4;
+}
+
+QWidget#StatusWindow
+{
+    background-color: none;
+}
+
+
+
+/* All Dialogs CamMainWindow/ColorWindow/whiteBalanceDialog */
+QDialog
+{
+    background-color: #f4f4f4;
+    color: black;
+}
+
+
+
+/* BUTTON */
+/* QPushButton on CamMainWindow/ColorWindow/whiteBalanceDialog */
+QDialog > QPushButton
+{
+    font-size: 16px;
+    background-color: #f4f4f4;
+    color: black;
+    border: none;
+}
+QDialog > QPushButton:pressed
+{
+    background-color: #ddd;
+    border: none;
+}
+QDialog > QPushButton:disabled
+{
+    color: #777;
+    border: none;
+}
+
+
+
+/* QPushButton for keyboard*/
+QWidget#keyboard > QPushButton
+{
+    border: 1px solid black;
+}
+
+/* QPushButton (characters) on keyboardNumeric */
+QWidget#keyboardNumeric > QPushButton
+{
+    border: 1px solid black;
+}
+/* Direction buttons look better without border */
+QWidget#keyboardNumeric > QPushButton#left
+{
+    border: none;
+}
+QWidget#keyboardNumeric > QPushButton#right
+{
+    border: none;
+}
+QWidget#keyboardNumeric > QPushButton#up
+{
+    border: none;
+}
+QWidget#keyboardNumeric > QPushButton#down
+{
+    border: none;
+}
+
+/* QPushButton of Other Widgets in GUI1 */
+QPushButton
+{
+    font-size: 16px;
+    background-color: #ddd;
+    color: black;
+    border: 1px solid black;
+}
+QPushButton:pressed
+{
+    background-color: #bbb;
+    border: 1px solid black;
+}
+QPushButton:disabled
+{
+    color: #777;
+    border: #777;
+}
+QPushButton:focus
+{
+    background-color: #bbb;
+    outline: none;
+
+}
+
+
+
+/* All QRadioButton in GUI1 */
+QRadioButton
+{
+    /* Content */
+    font-size: 16px;
+    color: black;
+    border: none;
+    outline: none;
+    /* Space between indicator and content */
+    spacing: 10px;
+}
+QRadioButton:disabled
+{
+    color: #777;
+    border: none;
+}
+/* Indicator Images */
+QRadioButton::indicator
+{
+    width:  35px;
+    height: 35px;
+}
+/* Unchecked */
+QRadioButton::indicator::unchecked
+{
+    image: url(:/qss/assets/images/radio-button-unchecked-black.png);
+}
+QRadioButton::indicator::unchecked:focus
+{
+    image: url(:/qss/assets/images/radio-button-unchecked-focus-black.png);
+}
+/* Checked */
+QRadioButton::indicator::checked
+{
+    image: url(:/qss/assets/images/radio-button-checked-black.png);
+}
+QRadioButton::indicator::checked:focus
+{
+    image: url(:/qss/assets/images/radio-button-checked-focus-black.png);
+}
+
+
+
+/* All Label in GUI1 */
+/* TO DO: font size may not be suitable for all widgets? */
+QLabel
+{
+    font-size: 16px;
+    color: black;
+    border: none;
+}
+
+QLabel#lblCurrent
+{
+    color:  rgb(54, 26, 176);
+}
+
+QLabel#lblNetStatus
+{
+    font-size: 15px;
+}
+
+
+
+/* All CheckBox in GUI1 */
+QCheckBox
+{
+    /* Content */
+    font-size: 16px;
+    color: black;
+    border: none;
+    outline: none;
+    /* Space between indicator and content */
+    spacing: 10px;
+}
+QCheckBox:disabled
+{
+    color: #777;
+    border: none;
+}
+/* The Box(indicator) */
+QCheckBox:indicator
+{
+    width:  35px;
+    height: 35px;
+    background-color: #ddd;
+}
+/* unchecked indicator, representing by image */
+QCheckBox::indicator:unchecked
+{
+    image: url(:/qss/assets/images/checkbox-unchecked-black.svg);
+}
+QCheckBox::indicator:unchecked:focus
+{
+    image: url(:/qss/assets/images/checkbox-unchecked-focus-black.png);
+}
+/* checked indicator, representing by image */
+QCheckBox::indicator:checked
+{
+    image: url(:/qss/assets/images/checkbox-checked-black.svg.png);
+}
+QCheckBox::indicator:checked:focus
+{
+    image: url(:/qss/assets/images/checkbox-checked-focus-black.png);
+}
+
+
+
+/* SLIDER */
+/* QSlider in GUI1 */
+QSlider::groove:vertical
+{
+    background: #ddd;
+    width: 15px;
+    border: 1px solid black;
+    border-radius: 7.5px;
+    margin: 13px;
+}
+
+QSlider::handle:vertical
+{
+    image: url(:/qss/assets/images/handle-bars-light-41x81+20.png);
+    margin: -20px -200px;
+    padding: -1px;
+ }
+
+
+
+/* TriggweSlider of Trigger Delay */
+QSlider::groove:horizontal
+{
+    background: #ddd;
+    height: 15px;
+    border: 1px solid black;
+    border-radius: 7.5px;
+    margin: 13px;
+}
+QSlider::handle:horizontal
+{
+    image: url(:/qss/assets/images/handle-bars-light-81x41+20.png);
+    margin: -200px -20px;
+    padding: -1px;
+}
+
+
+
+/* SPINBOX */
+/* All QSpinBox in GUI1 */
+QSpinBox
+{
+    /* Background color inside QSpinBox */
+    background-color: #ddd;
+    /* Content style inside QSpinBox */
+    font-size: 16px;
+    color: black;
+    border: 1px solid black;
+    padding-right: 0px;
+    padding-left: 10px;
+}
+QSpinBox:focus
+{
+    background-color: #bbb;
+    border: 1px solid black;
+}
+QSpinBox:disabled
+{
+    color: #777;
+    border: 1px solid #777;
+}
+QSpinBox::up-button, QSpinBox::down-button
+{
+    width: 0px;
+}
+
+/* All CamSpinBox in GUI1 */
+CamSpinBox
+{
+    /* Background color inside CamSpinBox */
+    background-color: #ddd;
+    /* Content style inside CamSpinBox */
+    font-size: 16px;
+    color: black;
+    border: 1px solid black;
+    padding-right: 0px;
+    padding-left: 10px;
+}
+CamSpinBox:focus
+{
+    background-color: #bbb;
+    border: 1px solid black;
+}
+CamSpinBox:disabled
+{
+    color: #777;
+    border: 1px solid #777;
+}
+CamSpinBox::up-button, CamSpinBox::down-button
+{
+    width: 0px;
+}
+
+/* All CamDoubleSpinBox in GUI1 */
+CamDoubleSpinBox
+{
+    /* Background color inside CamDoubleSpinBox */
+    background-color: #ddd;
+    /* Content style inside CamDoubleSpinBox */
+    font-size: 16px;
+    color: black;
+    border: 1px solid black;
+    padding-right: 0px;
+    padding-left: 10px;
+}
+CamDoubleSpinBox:focus
+{
+    background-color: #bbb;
+    border: 1px solid black;
+}
+CamDoubleSpinBox:disabled
+{
+    color: #777;
+    border: 1px solid #777;
+}
+CamDoubleSpinBox::up-button, CamDoubleSpinBox::down-button
+{
+    width: 0px;
+}
+
+/* All ColorDoubleSpinBox in GUI1 */
+ColorDoubleSpinBox
+{
+    /* Background color inside ColorSpinBox */
+    background-color: #ddd;
+    /* Content style inside ColorSpinBox */
+    font-size: 16px;
+    color: black;
+    border: 1px solid black;
+    padding-right: 0px;
+    padding-left: 10px;
+}
+ColorDoubleSpinBox:focus
+{
+    background-color: #bbb;
+    border: 1px solid black;
+}
+ColorDoubleSpinBox:disabled
+{
+    color: #777;
+    border: 1px solid #777;
+}
+ColorDoubleSpinBox::up-button, ColorDoubleSpinBox::down-button
+{
+    width: 0px;
+}
+
+
+
+/* All QComboBox in GUI1 */
+QComboBox
+{
+    background-color: #ddd;
+    font-size: 16px;
+    color: black;
+    border: 1px solid black;
+    padding-left: 10px;
+
+}
+QComboBox:focus
+{
+    background-color: #bbb;
+    border: 1px solid black;
+}
+QComboBox:disabled
+{
+    color: #777;
+    border: 1px solid #777;
+}
+QComboBox::drop-down
+{
+    subcontrol-orign: content;
+    width: 40px;
+    border: 0px solid black;
+    border-left-width: 1px;
+    max-height: 100px;
+}
+QComboBox::down-arrow
+{
+    image: url(:qss/assets/images/wedge-down-enabled-black.png);
+}
+QComboBox QAbstractItemView
+{
+    font-size: 16px;
+    color: black;
+    border: 1px solid black;
+    background-color: #ddd;
+    outline: none;
+}
+QComboBox QAbstractItemView::item
+{
+    padding: 10px 0;
+}
+QComboBox QAbstractItemView::item:selected
+{
+    background-color: #2990ff;
+    color: black;
+}
+QComboBox QScrollBar::vertical
+{
+    background: #bbb;
+    border-left: 12px solid #ddd;
+    border-right: 12px solid #ddd;
+    outline: 0px;
+}
+QComboBox QScrollBar::handle::vertical
+{
+    image: url(:/qss/assets/images/handle-bars-light-41x81+20.png);
+    margin: -15px;
+}
+QComboBox QScrollBar::add-line::vertical
+{
+    border:none;
+    outline: none;
+}
+QComboBox QScrollBar::sub-line::vertical
+{
+    border:none;
+    outline: none;
+}
+
+
+
+/* QFrame in GUI1 */
+QFrame#frame
+{
+    image: url(:/qss/assets/images/frame-preview.png);
+    background-color: #666;
+    border: 1px solid black;
+    background-position: center;
+}
+
+QFrame#frameImage
+{
+    background-color: rgba(255, 255, 255, 100);
+    border: none;
+}
+
+
+
+/* All QGroupBox in GUI1  */
+QGroupBox
+{
+    border: 1px solid #333;
+    color: black;
+    border: 1px solid black;
+}
+
+
+
+/* QTabWidget in GUI1 (Util menu) */
+QTabWidget
+{
+    background-color: #f4f4f4;
+    color: black;
+    border: none;
+}
+QTabWidget > QWidget
+{
+    border: 1px solid black;
+    border-right: 0px;
+}
+
+QTabBar::tab
+{
+    width: 40px;
+    background-color: #fff;
+    font-size: 13px;
+    color: black;
+
+    border: 1px solid #aaa;
+    border-left: 1px solid black;
+
+    padding: 12.5px 0;
+}
+QTabBar::tab:selected
+{
+    width: 40px;
+    background-color: #f4f4f4;
+    font-size: 13px;
+    text-decoration: underline;
+    color: black;
+
+    border: 1px solid black;
+    border-left: 0px;
+
+    padding: 12.5px 0;
+}
+
+
+
+/* QDateTimeEdit in GUI1 (Util: time setting) */
+QDateTimeEdit
+{
+    background-color: #ddd;
+    font-size: 16px;
+    color: black;
+    border: 1px solid black;
+}
+QDateTimeEdit:focus
+{
+    background-color: #ddd;
+    border: 1px solid black;
+}
+QDateTimeEdit::drop-down
+{
+    subcontrol-orign: content;
+    width: 40px;
+    border: 0px solid black;
+    border-left-width: 1px;
+    max-height: 100px;
+}
+QDateTimeEdit::down-arrow
+{
+    image: url(:qss/assets/images/wedge-down-enabled-black.png);
+}
+QDateTimeEdit QAbstractItemView
+{
+    border: 1px solid black;
+    selection-background-color: #bbb;
+    selection-color: black;
+}
+
+
+
+/* QTextEdit in GUI1 (Util: about) */
+QTextEdit
+{
+    background-color: #ddd;
+    color: black;
+    border: none;
+}
+QTextEdit:focus
+{
+    border:none;
+}
+QTextEdit QScrollBar::vertical
+{
+    background: #bbb;
+    box-sizing: border-box;
+    border-left: 12px solid #ddd;
+    border-right: 12px solid #ddd;
+}
+QTextEdit QScrollBar::handle::vertical
+{
+    image: url(:/qss/assets/images/handle-bars-light-41x81+20.png);
+    margin: -8px;
+}
+QTextEdit QScrollBar::add-line::vertical
+{
+    border:none;
+}
+QTextEdit QScrollBar::sub-line::vertical
+{
+    border:none;
+}
+
+
+
+/* All CamLineEdit in GUI1 */
+CamLineEdit
+{
+    background-color: #ddd;
+    font-size: 16px;
+    color: black;
+    border: 1px solid black;
+    padding-left: 5px;
+}
+CamLineEdit:focus
+{
+    background-color: #bbb;
+    border: 1px solid black;
+}
+CamLineEdit:disabled
+{
+    color: #777;
+    border: 1px solid #777;
+}
+
+
+
+/* Information message box */
+QMessageBox
+{
+    border: 2px solid #bbb;
+}
+
+
+
+/* Progress Box */
+QProgressDialog
+{
+    border: 2px solid #bbb;
+}
+QProgressDialog > QPushButton
+{
+    font-size: 16px;
+    background-color: #ddd;
+    color: black;
+    border: 1px solid black;
+    padding: 5px;
+}
+QProgressDialog > QPushButton:hover
+{
+    background-color: #bbb;
+    border: 1px solid black;
+}
+QProgressDialog > QPushButton:disabled
+{
+    color: #777;
+    border: 1px solid #777;
+}
+
+
+
+QProgressBar {
+    border: 2px solid black;
+    border-radius: 5px;
+    text-align: center;
+}
+
+QProgressBar::chunk {
+    border: 1px solid #fff;
+    border-radius: 3px;
+}
+
+
+
+

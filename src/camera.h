@@ -107,6 +107,12 @@ public:
 	int getAutoPowerMode(void);
 	void setAutoPowerMode(int newSetting);
 
+    int getGUIMode(void);
+    void setGUIMode(int newSetting);
+
+    int getExp(void);
+    void setExp(int newSetting);
+
 	char * getSerialNumber(void) {return serialNumber;}
 	void setSerialNumber(const char * sn) {strcpy(serialNumber, sn);}
 	bool getIsColor() {return isColor;}
@@ -171,6 +177,10 @@ public:
 
 	int unsavedWarnEnabled;
 	int autoPowerMode;
+
+    int guiMode;
+    int expLabel;
+
 	bool videoHasBeenReviewed;
 	bool autoSave;
 	int autoSavePercent;

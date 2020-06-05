@@ -166,4 +166,10 @@ RESOURCES += \
     Images.qrc
 
 DISTFILES += \
-    stylesheet.qss
+    stylesheet.qss \
+    data/newstylesheet.qss \
+    data/lightstylesheet.qss \
+    lightstylesheet.qss \
+    darkstylesheet.qss \
+    light3stylesheet.qss \
+    light3stylesheet.qss

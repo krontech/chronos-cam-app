@@ -24,6 +24,9 @@
 #include <QSettings>
 #include <QDBusInterface>
 #include <QProgressDialog>
+#include <QListView>
+#include <QApplication>
+#include <QProcess>
 
 #include <stdio.h>
 #include <fcntl.h>
@@ -75,18 +78,16 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	QString aboutText;
 
 	ui->setupUi(this);
-	this->setWindowFlags(Qt::Dialog | Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
+    this->setWindowFlags(Qt::Dialog | Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
 	this->move(0,0);
-
 	camera = cameraInst;
-
 	settingClock = false;
 	ui->dateTimeEdit->setDateTime(QDateTime::currentDateTime());
 	timer = new QTimer(this);
 	connect(timer, SIGNAL(timeout()), this, SLOT(onUtilWindowTimer()));
 	timer->start(500);
 
-	ui->tabWidget->setCurrentIndex(0);
+    ui->tabWidget->setCurrentIndex(0);
 
 	ui->chkFPEnable->setChecked(camera->getFocusPeakEnable());
 	//ui->comboFPColor->setEnabled(false);
@@ -97,9 +98,21 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	ui->comboFPColor->addItem("Magenta");
 	ui->comboFPColor->addItem("Yellow");
 	ui->comboFPColor->addItem("White");
+
+    ui->comboMode->addItem("Light");
+    ui->comboMode->addItem("Dark");
+
+    ui->ExpcomboBox->addItem("Fractional Time (us)");
+    ui->ExpcomboBox->addItem("Shutter Angle (\260)");
+    ui->ExpcomboBox->addItem("Percentage (%)");
+
 	ui->comboFPColor->setCurrentIndex(camera->getFocusPeakColor() - 1);
 	ui->chkZebraEnable->setChecked(camera->getZebraEnable());
 	ui->chkShippingMode->setChecked(camera->cinst->getProperty("shippingMode", false).toBool());
+
+    //Set QListView to change items in the combo box with qss
+    ui->comboFPColor->setView(new QListView);
+    ui->comboFPColor->view()->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
 
 	if (camera->focusPeakEnabled)
 	{
@@ -172,6 +185,8 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	ui->lineSerialNumber->setVisible(false);
 	ui->chkShowDebugControls->setVisible(false);
 	ui->chkFanDisable->setVisible(false);
+    ui->lblLiveRecord->setVisible(false);
+    ui->liveRecordComboBox->setVisible(false);
 
 	/* fan override is either [1.0,0.0] to set a PWM, or < 0 for auto. */
 	double fanOverride = camera->cinst->getProperty("fanOverride", -1).toDouble();
@@ -182,8 +197,29 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	ui->chkLiveRecord->setChecked(camera->get_liveRecord());
 	ui->chkDemoMode->setChecked(camera->get_demoMode());
 	ui->chkUiOnLeft->setChecked(camera->getButtonsOnLeft());
+
 	ui->comboDisableUnsavedWarning->setCurrentIndex(camera->getUnsavedWarnEnable());
 	ui->comboAutoPowerMode->setCurrentIndex(camera->getAutoPowerMode());
+    ui->comboMode->setCurrentIndex(camera->getGUIMode());
+    ui->ExpcomboBox->setCurrentIndex(camera->getExp());
+
+    //Set QListView to change items in the combo box with qss
+    ui->comboAutoPowerMode->setView(new QListView);
+    ui->comboAutoPowerMode->view()->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+
+    //Set QListView to change items in the combo box with qss
+    ui->comboDisableUnsavedWarning->setView(new QListView);
+    ui->comboDisableUnsavedWarning->view()->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+
+    //Set QListView to change items in the combo box with qss
+    ui->comboMode->setView(new QListView);
+    ui->comboMode->view()->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+
+    ui->liveRecordComboBox->setView(new QListView);
+    ui->liveRecordComboBox->view()->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+
+    ui->ExpcomboBox->setView(new QListView);
+    ui->ExpcomboBox->view()->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
 
 	/* Load the Samba network settings. */
 	ui->lineSmbUser->setText(appSettings.value("network/smbUser", "").toString());
@@ -498,7 +534,7 @@ void UtilWindow::on_cmdBlackCalAll_clicked()
 		sprintf(text, "Black cal of all standard resolutions was successful");
 		msg.setText(text);
 		msg.setWindowTitle(title);
-		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
+        msg.setWindowFlags(Qt::WindowStaysOnTopHint);
 		msg.exec();
 	}
 }
@@ -733,7 +769,7 @@ void UtilWindow::on_cmdSaveCal_clicked()
 	if(0 != retVal)
 	{
 		sw.hide();
-		msg.setText("Error: tar command failed");
+        msg.setText("Error: File doesn't exit. Try unzip again.");
 		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
 		msg.exec();
 		return;
@@ -1013,7 +1049,7 @@ void UtilWindow::on_chkShippingMode_clicked()
 
 	if(state == TRUE){
 		QMessageBox::information(this, "Shipping Mode Enabled","On the next restart, the AC adapter must be plugged in to turn the camera on.", QMessageBox::Ok);
-	}
+    }
 
 	camera->cinst->setBool("shippingMode", state);
 }
@@ -1052,6 +1088,17 @@ void UtilWindow::updateDrives(void)
 void UtilWindow::on_chkLiveRecord_stateChanged(int arg1)
 {
 	camera->set_liveRecord(ui->chkLiveRecord->isChecked());
+    if(ui->chkLiveRecord->isChecked())
+    {
+        ui->liveRecordComboBox->setVisible(true);
+        ui->lblLiveRecord->setVisible(true);
+
+    }
+    else
+    {
+        ui->liveRecordComboBox->setVisible(false);
+        ui->lblLiveRecord->setVisible(false);
+    }
 }
 
 void UtilWindow::on_cmdDefaults_clicked()
@@ -1143,7 +1190,7 @@ void UtilWindow::on_cmdBackupSettings_clicked()
 	if(0 != retVal)
 	{
 		sw.hide();
-		msg.setText("Error: tar command failed");
+        msg.setText("Error: File doesn't exit. Try unzip again.");
 		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
 		msg.exec();
 		return;
@@ -1284,6 +1331,25 @@ void UtilWindow::on_comboDisableUnsavedWarning_currentIndexChanged(int index)
 void UtilWindow::on_comboAutoPowerMode_currentIndexChanged(int index)
 {
 	if (!openingWindow) camera->setAutoPowerMode(index);
+}
+
+void UtilWindow::on_comboMode_currentIndexChanged(int index)
+{
+    if (!openingWindow)
+    {
+        camera->setGUIMode(index);
+        qApp->closeAllWindows();
+        camera->cinst->reboot(true);
+
+    }
+}
+
+void UtilWindow::on_ExpcomboBox_currentIndexChanged(int index)
+{
+    if (!openingWindow)
+    {
+        camera->setExp(index);
+    }
 }
 
 void UtilWindow::on_tabWidget_currentChanged(int index)

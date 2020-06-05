@@ -40,6 +40,7 @@
 #include <QTimer>
 #include <QDebug>
 #include <QSettings>
+#include <QListView>
 
 #define USE_AUTONAME_FOR_SAVE ""
 
@@ -59,7 +60,6 @@ saveSettingsWindow::saveSettingsWindow(QWidget *parent, Camera * camInst) :
 	ui->setupUi(this);
 	this->setWindowFlags(Qt::Dialog /*| Qt::WindowStaysOnTopHint*/ | Qt::FramelessWindowHint);
 	camera = camInst;
-
 	
 	ui->spinBitrate->setValue(settings.value("recorder/bitsPerPixel", camera->vinst->bitsPerPixel).toDouble());
 	ui->spinMaxBitrate->setValue(settings.value("recorder/maxBitrate", camera->vinst->maxBitrate).toDouble());
@@ -123,6 +123,10 @@ saveSettingsWindow::saveSettingsWindow(QWidget *parent, Camera * camInst) :
 	ui->comboSaveFormat->setCurrentIndex(settings.value("recorder/saveFormat", 0).toUInt());
 
 	ui->comboSaveFormat->setEnabled(true);
+
+    //Set QListView to change items in the combo box with qss
+    ui->comboSaveFormat->setView(new QListView);
+    ui->comboSaveFormat->view()->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
 	
 	ui->chkEnableOverlay->setChecked(settings.value("camera/overlayEnabled", false).toBool());
 

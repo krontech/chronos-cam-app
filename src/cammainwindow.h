@@ -36,7 +36,7 @@ class CamMainWindow : public QDialog
 	Q_OBJECT
 
 public:
-	explicit CamMainWindow(QWidget *parent = 0);
+    explicit CamMainWindow(QWidget *parent = 0);
 	short getWindowsAlwaysOpen();
 	~CamMainWindow();
 
@@ -90,9 +90,9 @@ private slots:
 	void on_exposureMin_valueChanged(const QVariant &value);
 	void on_focusPeakingLevel_valueChanged(const QVariant &value);
 	void on_wbTemperature_valueChanged(const QVariant &value);
+    void on_rsResolution_valueChanged(const QVariant &value);
 
 	void buttonsEnabled(bool en);
-
 
 private:
 	void updateCurrentSettingsLabel(void);

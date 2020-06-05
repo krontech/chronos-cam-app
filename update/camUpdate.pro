@@ -38,3 +38,6 @@ FORMS    += \
     updatewindow.ui \
     packagelist.ui
 
+DISTFILES += \
+    lightstylesheet.qss
+

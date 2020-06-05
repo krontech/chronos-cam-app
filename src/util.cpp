@@ -202,8 +202,7 @@ bool isExportingNfs(QString camIpAddress)
 }
 
 /* Run a shell command that may need to run in the background */
-void
-runBackground(const char *command)
+void runBackground(const char *command)
 {
 	int child = fork();
 	if (child == 0) {

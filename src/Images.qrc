@@ -1,3 +1,36 @@
 <RCC>
-    <qresource prefix="/new/prefix1"/>
+    <qresource prefix="/qss">
+        <file>assets/images/checkbox-unchecked-white.svg.png</file>
+        <file>assets/images/checkbox-checked-white.svg.png</file>
+        <file>assets/images/radio-button-unchecked-white.svg.png</file>
+        <file>assets/images/radio-button-checked-white.svg.png</file>
+        <file>assets/images/handle-bars-dark-41x81+20.png</file>
+        <file>assets/images/handle-bars-dark-61x156+40.png</file>
+        <file>assets/images/handle-bars-dark-81x41+20.png</file>
+        <file>assets/images/wedge-down-white-enabled.png</file>
+        <file>assets/images/checkbox-checked-black.svg.png</file>
+        <file>assets/images/checkbox-unchecked-black.svg</file>
+        <file>assets/images/handle-bars-light-41x81+20.png</file>
+        <file>assets/images/handle-bars-light-81x41+20.png</file>
+        <file>assets/images/wedge-down-enabled-black.png</file>
+        <file>darkstylesheet.qss</file>
+        <file>assets/images/handle-bars-light-61x156+40.png</file>
+        <file>assets/images/radio-button-unchecked-focus-white.png</file>
+        <file>assets/images/radio-button-checked-focus-white.png</file>
+        <file>assets/images/checkbox-unchecked-focus-white.png</file>
+        <file>assets/images/checkbox-checked-focus-white.png</file>
+        <file>assets/images/frame-preview.png</file>
+        <file>assets/images/record.png</file>
+        <file>assets/images/stop.png</file>
+        <file>lightstylesheet.qss</file>
+        <file>assets/images/handle-bars-dark-41x81.png</file>
+        <file>assets/images/checkbox-unchecked-focus-black.png</file>
+        <file>assets/images/radio-button-unchecked-focus-black.png</file>
+        <file>assets/images/checkbox-checked-focus-black.png</file>
+        <file>assets/images/radio-button-checked-focus-black.png</file>
+        <file>assets/images/radio-button-unchecked-black.png</file>
+        <file>assets/images/radio-button-checked-black.png</file>
+        <file>assets/images/radio-button-checked-black.svg.png</file>
+        <file>assets/images/radio-button-unchecked-black.svg.png</file>
+    </qresource>
 </RCC>
