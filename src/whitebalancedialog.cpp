@@ -231,6 +231,7 @@ void whiteBalanceDialog::applyWhiteBalance(void)
 void whiteBalanceDialog::on_cmdSetCustomWB_clicked()
 {
 	applyWhiteBalance();
+    ui->cmdClose->setFocus();
 }
 
 void whiteBalanceDialog::on_cmdClose_clicked()
@@ -262,6 +263,7 @@ void whiteBalanceDialog::on_cmdResetCustomWB_clicked()
 	camera->cinst->setArray("wbCustomColor", 3, customWhiteBalOld);
 	camera->cinst->setInt("wbTemperature", 0);
 	ui->comboWB->setCurrentIndex(customWhiteBalIndex);
+    ui->cmdClose->setFocus();
 }
 
 void whiteBalanceDialog::on_cmdMatrix_clicked()
@@ -278,11 +280,13 @@ void whiteBalanceDialog::on_cmdMatrix_clicked()
 		cw = new ColorWindow(this, camera);
 		cw->show();
 		crosshair->hide();
+        ui->cmdClose->setFocus();
 		ui->cmdMatrix->setText(camera->ButtonsOnLeft ? "Matrix <<" : ">> Matrix");
 
 		connect(cw, SIGNAL(applyColorMatrix()), this, SLOT(applyColorMatrix()));
 		connect(cw, SIGNAL(applyWhiteBalance()), this, SLOT(applyWhiteBalance()));
 	}
+
 }
 
 void whiteBalanceDialog::saveColor(void)

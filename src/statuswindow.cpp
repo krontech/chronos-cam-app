@@ -42,6 +42,7 @@ StatusWindow::~StatusWindow()
 
 void StatusWindow::setText(QString str)
 {
+    ui->label->setStyleSheet("color: black;");
 	ui->label->setText(str);
 	ui->label->adjustSize();
 	this->adjustSize();

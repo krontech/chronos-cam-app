@@ -348,7 +348,6 @@ void CamMainWindow::on_cmdRecSettings_clicked()
 
 void CamMainWindow::on_cmdFPNCal_clicked()//Black cal
 {
-    ui->cmdFPNCal->setStyleSheet("background-color: #555");
 	if (!okToStopLive()) return;
 
     if(recording) {
@@ -375,7 +374,6 @@ void CamMainWindow::on_cmdFPNCal_clicked()//Black cal
 		}
 	}
 
-    sw->setStyleSheet("color: black;");
 	sw->setText("Performing black calibration...");
 	sw->show();
 	QCoreApplication::processEvents();
@@ -383,7 +381,6 @@ void CamMainWindow::on_cmdFPNCal_clicked()//Black cal
 	camera->cinst->startCalibration({"analogCal", "blackCal"}, true);
 
 	sw->hide();
-    ui->cmdFPNCal->setStyleSheet("background-color: #333");
 }
 
 void CamMainWindow::on_cmdWB_clicked()
@@ -804,19 +801,18 @@ void CamMainWindow::updateCamMainWindowPosition(){
 
 void CamMainWindow::on_cmdBkGndButton_clicked()
 {
-	ui->chkFocusAid->setVisible(true);
-	ui->cmdFPNCal->setVisible(true);
-	ui->cmdIOSettings->setVisible(true);
-	ui->cmdPlay->setVisible(true);
-	ui->cmdRec->setVisible(true);
-	ui->cmdRecSettings->setVisible(true);
-	ui->cmdUtil->setVisible(true);
+    ui->chkFocusAid->setVisible(true);
+    ui->cmdFPNCal->setVisible(true);
+    ui->cmdIOSettings->setVisible(true);
+    ui->cmdPlay->setVisible(true);
+    ui->cmdRec->setVisible(true);
+    ui->cmdRecSettings->setVisible(true);
+    ui->cmdUtil->setVisible(true);
 
-	ui->cmdWB->setVisible(true);
+    ui->cmdWB->setVisible(true);
     ui->expSlider->setVisible(true);
-	ui->lblCurrent->setVisible(true);
+    ui->lblCurrent->setVisible(true);
     ui->VolLabel->setVisible(true);
-    //ui->lblExp->setVisible(true);
 }
 
 void CamMainWindow::on_cmdDPCButton_clicked()

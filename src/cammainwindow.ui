@@ -95,14 +95,18 @@
   <widget class="QPushButton" name="cmdClose">
    <property name="geometry">
     <rect>
-     <x>60</x>
+     <x>53</x>
      <y>250</y>
-     <width>41</width>
+     <width>33</width>
      <height>41</height>
     </rect>
    </property>
    <property name="focusPolicy">
     <enum>Qt::NoFocus</enum>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">font-size: 10px;
+border: 1px solid #777;</string>
    </property>
    <property name="text">
     <string>Close</string>
@@ -111,14 +115,18 @@
   <widget class="QPushButton" name="cmdDebugWnd">
    <property name="geometry">
     <rect>
-     <x>60</x>
+     <x>53</x>
      <y>310</y>
-     <width>41</width>
+     <width>33</width>
      <height>41</height>
     </rect>
    </property>
    <property name="focusPolicy">
     <enum>Qt::NoFocus</enum>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">font-size: 10px;
+border: 1px solid #777;</string>
    </property>
    <property name="text">
     <string>Debug</string>
@@ -156,9 +164,9 @@
    </property>
    <property name="geometry">
     <rect>
-     <x>70</x>
+     <x>80</x>
      <y>240</y>
-     <width>131</width>
+     <width>121</width>
      <height>61</height>
     </rect>
    </property>
@@ -179,9 +187,9 @@
   <widget class="QPushButton" name="cmdRecSettings">
    <property name="geometry">
     <rect>
-     <x>70</x>
+     <x>80</x>
      <y>0</y>
-     <width>131</width>
+     <width>121</width>
      <height>61</height>
     </rect>
    </property>
@@ -204,9 +212,9 @@ Settings</string>
   <widget class="QPushButton" name="cmdFPNCal">
    <property name="geometry">
     <rect>
-     <x>70</x>
+     <x>80</x>
      <y>120</y>
-     <width>131</width>
+     <width>121</width>
      <height>61</height>
     </rect>
    </property>
@@ -227,9 +235,9 @@ Settings</string>
   <widget class="QPushButton" name="cmdWB">
    <property name="geometry">
     <rect>
-     <x>70</x>
+     <x>80</x>
      <y>180</y>
-     <width>131</width>
+     <width>121</width>
      <height>61</height>
     </rect>
    </property>
@@ -251,9 +259,9 @@ Balance</string>
   <widget class="QPushButton" name="cmdIOSettings">
    <property name="geometry">
     <rect>
-     <x>70</x>
+     <x>80</x>
      <y>60</y>
-     <width>131</width>
+     <width>121</width>
      <height>61</height>
     </rect>
    </property>
@@ -300,7 +308,7 @@ Settings</string>
   <widget class="QLabel" name="lblCurrent">
    <property name="geometry">
     <rect>
-     <x>10</x>
+     <x>6</x>
      <y>416</y>
      <width>201</width>
      <height>41</height>
@@ -366,39 +374,21 @@ Settings</string>
     <bool>false</bool>
    </property>
   </widget>
-  <widget class="QPushButton" name="cmdBkGndButton">
+  <widget class="QPushButton" name="cmdDPCButton">
    <property name="geometry">
     <rect>
-     <x>-20</x>
-     <y>-20</y>
-     <width>241</width>
-     <height>531</height>
+     <x>53</x>
+     <y>190</y>
+     <width>33</width>
+     <height>41</height>
     </rect>
    </property>
    <property name="focusPolicy">
     <enum>Qt::NoFocus</enum>
    </property>
    <property name="styleSheet">
-    <string notr="true"/>
-   </property>
-   <property name="text">
-    <string/>
-   </property>
-   <property name="checkable">
-    <bool>false</bool>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="cmdDPCButton">
-   <property name="geometry">
-    <rect>
-     <x>60</x>
-     <y>190</y>
-     <width>41</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <property name="focusPolicy">
-    <enum>Qt::NoFocus</enum>
+    <string notr="true">font-size: 10px;
+border: 1px solid #777;</string>
    </property>
    <property name="text">
     <string>DPC</string>
@@ -410,9 +400,9 @@ Settings</string>
    </property>
    <property name="geometry">
     <rect>
-     <x>70</x>
+     <x>80</x>
      <y>300</y>
-     <width>131</width>
+     <width>121</width>
      <height>61</height>
     </rect>
    </property>
@@ -436,9 +426,9 @@ Settings</string>
   <widget class="QCheckBox" name="chkFocusAid">
    <property name="geometry">
     <rect>
-     <x>80</x>
+     <x>90</x>
      <y>300</y>
-     <width>111</width>
+     <width>101</width>
      <height>61</height>
     </rect>
    </property>
@@ -513,9 +503,9 @@ Aid</string>
   <widget class="Line" name="line">
    <property name="geometry">
     <rect>
-     <x>90</x>
+     <x>100</x>
      <y>50</y>
-     <width>91</width>
+     <width>81</width>
      <height>20</height>
     </rect>
    </property>
@@ -526,9 +516,9 @@ Aid</string>
   <widget class="Line" name="line_2">
    <property name="geometry">
     <rect>
-     <x>90</x>
+     <x>100</x>
      <y>110</y>
-     <width>91</width>
+     <width>81</width>
      <height>20</height>
     </rect>
    </property>
@@ -539,9 +529,9 @@ Aid</string>
   <widget class="Line" name="line_3">
    <property name="geometry">
     <rect>
-     <x>90</x>
+     <x>100</x>
      <y>170</y>
-     <width>91</width>
+     <width>81</width>
      <height>20</height>
     </rect>
    </property>
@@ -552,9 +542,9 @@ Aid</string>
   <widget class="Line" name="line_4">
    <property name="geometry">
     <rect>
-     <x>90</x>
+     <x>100</x>
      <y>230</y>
-     <width>91</width>
+     <width>81</width>
      <height>20</height>
     </rect>
    </property>
@@ -565,9 +555,9 @@ Aid</string>
   <widget class="Line" name="line_5">
    <property name="geometry">
     <rect>
-     <x>90</x>
+     <x>100</x>
      <y>290</y>
-     <width>91</width>
+     <width>81</width>
      <height>20</height>
     </rect>
    </property>
@@ -578,7 +568,7 @@ Aid</string>
   <widget class="QProgressBar" name="battery">
    <property name="geometry">
     <rect>
-     <x>10</x>
+     <x>6</x>
      <y>456</y>
      <width>71</width>
      <height>21</height>
@@ -591,7 +581,7 @@ Aid</string>
   <widget class="QLabel" name="battLabel">
    <property name="geometry">
     <rect>
-     <x>10</x>
+     <x>6</x>
      <y>456</y>
      <width>81</width>
      <height>17</height>
@@ -604,7 +594,7 @@ Aid</string>
   <widget class="QLabel" name="VolLabel">
    <property name="geometry">
     <rect>
-     <x>90</x>
+     <x>86</x>
      <y>456</y>
      <width>71</width>
      <height>20</height>
@@ -633,16 +623,12 @@ Aid</string>
    </property>
   </widget>
   <zorder>lblLiveRec</zorder>
-  <zorder>cmdBkGndButton</zorder>
   <zorder>cmdRec</zorder>
   <zorder>cmdRecSettings</zorder>
   <zorder>cmdFPNCal</zorder>
   <zorder>cmdIOSettings</zorder>
   <zorder>expSlider</zorder>
-  <zorder>cmdClose</zorder>
   <zorder>lblExp</zorder>
-  <zorder>cmdDebugWnd</zorder>
-  <zorder>cmdDPCButton</zorder>
   <zorder>cmdFocusBackground</zorder>
   <zorder>chkFocusAid</zorder>
   <zorder>lblLiveTimer</zorder>
@@ -659,6 +645,9 @@ Aid</string>
   <zorder>VolLabel</zorder>
   <zorder>cmdUtil</zorder>
   <zorder>line_6</zorder>
+  <zorder>cmdDPCButton</zorder>
+  <zorder>cmdClose</zorder>
+  <zorder>cmdDebugWnd</zorder>
  </widget>
  <resources/>
  <connections/>

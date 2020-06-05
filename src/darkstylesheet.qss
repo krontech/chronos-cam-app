@@ -1,6 +1,6 @@
 /* All Widgets except MainWindow */
 QWidget#IOSettingsWindow, #keyboard, #keyboardNumeric, #playbackWindow, #ramWindow, #recModeWindow, #RecSettingsWindow, #saveSettingsWindow,
-       #triggerDelayWindow, #UtilWindow, #ExpDialog
+       #triggerDelayWindow, #UtilWindow
 {
     background-color: #333;
 }
@@ -30,7 +30,7 @@ QDialog > QPushButton
     color: #fff;
     border: none;
 }
-QDialog > QPushButton:hover
+QDialog > QPushButton:pressed
 {
     background-color: #555;
     border: none;
@@ -40,12 +40,8 @@ QDialog > QPushButton:disabled
     color: #aaa;
     border: none;
 }
-QDialog > QPushButton:focus
-{
-    background-color: #555;
-    border: none;
-    outline: none;
-}
+
+
 
 /* QPushButton on keyboard */
 QWidget#keyboard > QPushButton
@@ -84,7 +80,7 @@ QPushButton
     color: #fff;
     border: none;
 }
-QPushButton:hover
+QPushButton:pressed
 {
     background-color: #777;
     border: none;
