@@ -184,6 +184,7 @@ QCheckBox:indicator
 {
     width:  35px;
     height: 35px;
+
 }
 /* unchecked indicator, representing by image */
 QCheckBox::indicator:unchecked
@@ -393,20 +394,23 @@ QComboBox QAbstractItemView
     color: #fff;
     border: 1px solid #333;
     background-color: #555;
-    selection-background-color: #36b5ff;
-    selection-color: black;
-
+    outline: none;
 }
 QComboBox QAbstractItemView::item
 {
-    margin: 1px 0;
-    padding: 10px;
+    padding: 10px 0;
+}
+QComboBox QAbstractItemView::item:selected
+{
+    background-color: #2990ff;
+    color: black;
 }
 QComboBox QScrollBar::vertical
 {
     background: #777;
     border-left: 12px solid #555;
     border-right: 12px solid #555;
+    outline: none;
 }
 QComboBox QScrollBar::handle::vertical
 {
@@ -415,11 +419,13 @@ QComboBox QScrollBar::handle::vertical
 }
 QComboBox QScrollBar::add-line::vertical
 {
-    border:none;
+    border: none;
+    outline: none;
 }
 QComboBox QScrollBar::sub-line::vertical
 {
-    border:none;
+    border: none;
+    outline: none;
 }
 
 
