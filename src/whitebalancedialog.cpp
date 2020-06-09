@@ -272,7 +272,7 @@ void whiteBalanceDialog::on_cmdMatrix_clicked()
 	if (cw) {
 		delete cw;
 		cw = NULL;
-        //crosshair->show();
+        crosshair->show();
 		ui->cmdMatrix->setText(camera->ButtonsOnLeft ? "Matrix >>" : "<< Matrix");
         ui->comboWB->setFocus();
 
@@ -281,7 +281,7 @@ void whiteBalanceDialog::on_cmdMatrix_clicked()
 	else {
 		cw = new ColorWindow(this, camera);
 		cw->show();
-		crosshair->hide();
+        crosshair->hide();
 		ui->cmdMatrix->setText(camera->ButtonsOnLeft ? "Matrix <<" : ">> Matrix");
 
 		connect(cw, SIGNAL(applyColorMatrix()), this, SLOT(applyColorMatrix()));
