@@ -405,24 +405,24 @@ QComboBox QAbstractItemView::item:selected
     background-color: #2990ff;
     color: black;
 }
-QComboBox QScrollBar::vertical
+QComboBox QScrollBar:vertical
 {
     background: #bbb;
     border-left: 12px solid #ddd;
     border-right: 12px solid #ddd;
-    outline: 0px;
+    outline: none;
 }
-QComboBox QScrollBar::handle::vertical
+QComboBox QScrollBar::handle:vertical
 {
     image: url(:/qss/assets/images/handle-bars-light-41x81+20.png);
     margin: -15px;
 }
-QComboBox QScrollBar::add-line::vertical
+QComboBox QScrollBar::add-line:vertical
 {
     border:none;
     outline: none;
 }
-QComboBox QScrollBar::sub-line::vertical
+QComboBox QScrollBar::sub-line:vertical
 {
     border:none;
     outline: none;
@@ -549,17 +549,18 @@ QTextEdit QScrollBar::vertical
     box-sizing: border-box;
     border-left: 12px solid #ddd;
     border-right: 12px solid #ddd;
+    outline: none;
 }
-QTextEdit QScrollBar::handle::vertical
+QTextEdit QScrollBar::handle:vertical
 {
     image: url(:/qss/assets/images/handle-bars-light-41x81+20.png);
     margin: -8px;
 }
-QTextEdit QScrollBar::add-line::vertical
+QTextEdit QScrollBar::add-line:vertical
 {
     border:none;
 }
-QTextEdit QScrollBar::sub-line::vertical
+QTextEdit QScrollBar::sub-line:vertical
 {
     border:none;
 }
