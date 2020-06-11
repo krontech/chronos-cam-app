@@ -61,14 +61,9 @@ UpdateWindow::UpdateWindow(QWidget *parent) :
 	/* Check which, if any of the GUIs are enabled. */
 	ui->comboGui->addItem("None (Headless)");
 	ui->comboGui->addItem("Chronos");
-	ui->comboGui->addItem("GUI2 (Experimental)");
 	if (system("systemctl is-enabled chronos-gui") == 0) {
 		ui->comboGui->setCurrentIndex(1);
-	}
-	else if (system("systemctl is-enabled chronos-gui2") == 0) {
-		ui->comboGui->setCurrentIndex(2);
-	}
-	else {
+	} else {
 		ui->comboGui->setCurrentIndex(0);
 	}
 	ui->cmdApplyGui->setEnabled(false);

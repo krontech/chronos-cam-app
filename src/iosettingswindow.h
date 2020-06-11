@@ -51,6 +51,8 @@ private slots:
 
 	void on_radioIO1FSOut_toggled(bool checked);
 
+	void on_radioIO1ToggleTrig_toggled(bool checked);
+
 	void on_radioIO2TriggeredShutter_toggled(bool checked);
 
 	void on_radioIO2ShutterGating_toggled(bool checked);
