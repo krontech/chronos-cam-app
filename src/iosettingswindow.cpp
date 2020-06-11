@@ -298,7 +298,13 @@ void IOSettingsWindow::setIoSettings()
 	values.insert("ioMappingStartRec", QVariant(startConfig));
 	values.insert("ioMappingStopRec", QVariant(stopConfig));
 	values.insert("ioMappingDelay", QVariant(delayConfig));
-	values.insert("ioDelayTime", QVariant(0));
+
+	/* Necessary delay to prevent toggle mode from immediately starting again after stopping */
+	if(ui->radioIO1ToggleTrig->isChecked()){
+		values.insert("ioDelayTime", QVariant(0.50));
+	} else {
+		values.insert("ioDelayTime", QVariant(0));
+	}
 
 	/* Apply the settings via D-Bus */
 	camera->cinst->setPropertyGroup(values);
