@@ -278,6 +278,9 @@
       <pointsize>16</pointsize>
      </font>
     </property>
+    <property name="focusPolicy">
+     <enum>Qt::StrongFocus</enum>
+    </property>
     <property name="styleSheet">
      <string notr="true"/>
     </property>
@@ -745,7 +748,7 @@
  </customwidgets>
  <tabstops>
   <tabstop>cmdCancel</tabstop>
-  <tabstop>cmdOK</tabstop>
+  <tabstop>radioIO1ToggleTrig</tabstop>
   <tabstop>cmdApply</tabstop>
   <tabstop>chkIO3Invert</tabstop>
   <tabstop>radioIO3ShutterGating</tabstop>
@@ -772,6 +775,7 @@
   <tabstop>radioIO1None</tabstop>
   <tabstop>radioIO1TrigIn</tabstop>
   <tabstop>spinIO1Thresh</tabstop>
+  <tabstop>cmdOK</tabstop>
  </tabstops>
  <resources/>
  <connections/>
