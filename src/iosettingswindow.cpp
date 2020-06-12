@@ -109,6 +109,10 @@ void IOSettingsWindow::setIoSettings()
 	QVariantMap io1config;
 	QVariantMap io2config;
 
+	QVariantMap startConfig;
+	QVariantMap stopConfig;
+	QVariantMap delayConfig;
+
 	int io1pull = 0;
 	int io2pull = 0;
 
@@ -132,14 +136,71 @@ void IOSettingsWindow::setIoSettings()
 	if (ui->radioIO3ShutterGating->isChecked()) nShGate++;
 
 	/* Prepare the combinatorial block. */
-	orConfig[0].insert("source", QVariant("none"));
-	orConfig[1].insert("source", QVariant("none"));
-	orConfig[2].insert("source", QVariant("none"));
-	andConfig.insert("source", QVariant("alwaysHigh"));
-	xorConfig.insert("source", QVariant("none"));
+	/* Special case for Toggle Trigger mode, which can start and stop recordings. */
+	if (ui->radioIO1ToggleTrig->isChecked()) {
+		orConfig[0].insert("source", QVariant("io1"));
+		orConfig[0].insert("debounce", QVariant(true));
+		orConfig[0].insert("invert", QVariant(true));
 
-	triggerConfig.insert("source", QVariant("none"));
-	shutterConfig.insert("source", QVariant("none"));
+		orConfig[1].insert("source", QVariant("none"));
+		orConfig[1].insert("debounce", QVariant(false));
+		orConfig[1].insert("invert", QVariant(false));
+
+		orConfig[2].insert("source", QVariant("none"));
+		orConfig[2].insert("debounce", QVariant(false));
+		orConfig[2].insert("invert", QVariant(false));
+
+		xorConfig.insert("source", QVariant("none"));
+		xorConfig.insert("debounce", QVariant(false));
+		xorConfig.insert("invert", QVariant(false));
+
+		andConfig.insert("source", QVariant("delay"));
+		andConfig.insert("debounce", QVariant(false));
+		andConfig.insert("invert", QVariant(false));
+
+		triggerConfig.insert("source", QVariant("io1"));
+		triggerConfig.insert("debounce", QVariant(true));
+		triggerConfig.insert("invert", QVariant(true));
+
+		shutterConfig.insert("source", QVariant("none"));
+		shutterConfig.insert("debounce", QVariant(false));
+		shutterConfig.insert("invert", QVariant(false));
+
+		startConfig.insert("source", QVariant("comb"));
+		startConfig.insert("debounce", QVariant(true));
+		startConfig.insert("invert", QVariant(false));
+
+		stopConfig.insert("source", QVariant("none"));
+		stopConfig.insert("debounce", QVariant(false));
+		stopConfig.insert("invert", QVariant(false));
+
+		delayConfig.insert("source", QVariant("recording"));
+		delayConfig.insert("debounce", QVariant(false));
+		delayConfig.insert("invert", QVariant(true));
+	}
+	else {
+		orConfig[0].insert("source", QVariant("none"));
+		orConfig[1].insert("source", QVariant("none"));
+		orConfig[2].insert("source", QVariant("none"));
+		andConfig.insert("source", QVariant("alwaysHigh"));
+		xorConfig.insert("source", QVariant("none"));
+
+		triggerConfig.insert("source", QVariant("none"));
+		shutterConfig.insert("source", QVariant("none"));
+
+		startConfig.insert("source", QVariant("none"));
+		startConfig.insert("debounce", QVariant(false));
+		startConfig.insert("invert", QVariant(false));
+
+		stopConfig.insert("source", QVariant("none"));
+		stopConfig.insert("debounce", QVariant(false));
+		stopConfig.insert("invert", QVariant(false));
+
+		delayConfig.insert("source", QVariant("none"));
+		delayConfig.insert("debounce", QVariant(false));
+		delayConfig.insert("invert", QVariant(false));
+	}
+
 
 	/* Prepare the combinatorial block for recording end trigger. */
 	if (nRecTrig > 1) {
@@ -168,6 +229,12 @@ void IOSettingsWindow::setIoSettings()
 		io1config.insert("drive", QVariant(2)); /* Force 20mA output when driving */
 		io1config.insert("source", "timingIo");
 	}
+	else if (ui->radioIO1ToggleTrig->isChecked()) {
+		io1config.insert("source", "alwaysHigh");
+		io1config.insert("debounce", QVariant(false));
+		io1config.insert("invert", QVariant(false));
+		io1config.insert("drive", QVariant(2));
+	}
 	else {
 		io1config.insert("source", "alwaysHigh");
 		io1config.insert("debounce", QVariant(false));
@@ -181,6 +248,12 @@ void IOSettingsWindow::setIoSettings()
 		io2config.insert("invert", QVariant(ui->chkIO2Invert->isChecked()));
 		io2config.insert("drive", QVariant(2)); /* Force 20mA output when driving */
 		io2config.insert("source", "timingIo");
+	}
+	else if (ui->radioIO1ToggleTrig->isChecked()) {
+		io2config.insert("source", "alwaysHigh");
+		io2config.insert("debounce", QVariant(false));
+		io2config.insert("invert", QVariant(false));
+		io2config.insert("drive", QVariant(0));
 	}
 	else {
 		io2config.insert("source", "alwaysHigh");
@@ -220,6 +293,18 @@ void IOSettingsWindow::setIoSettings()
 	values.insert("ioMappingIo2", QVariant(io2config));
 	values.insert("ioThresholdIo1", QVariant(ui->spinIO1Thresh->value()));
 	values.insert("ioThresholdIo2", QVariant(ui->spinIO2Thresh->value()));
+
+	/* Load extra parameters for the trigger toggle mode (trigger starts and stops recordings) */
+	values.insert("ioMappingStartRec", QVariant(startConfig));
+	values.insert("ioMappingStopRec", QVariant(stopConfig));
+	values.insert("ioMappingDelay", QVariant(delayConfig));
+
+	/* Necessary delay to prevent toggle mode from immediately starting again after stopping */
+	if(ui->radioIO1ToggleTrig->isChecked()){
+		values.insert("ioDelayTime", QVariant(0.50));
+	} else {
+		values.insert("ioDelayTime", QVariant(0));
+	}
 
 	/* Apply the settings via D-Bus */
 	camera->cinst->setPropertyGroup(values);
@@ -287,12 +372,19 @@ void IOSettingsWindow::getIoSettings()
 		"ioMappingIo2",
 		"ioThresholdIo1",
 		"ioThresholdIo2",
-		"exposureMode"
+		"exposureMode",
+		"ioMappingStartRec",
+		"ioMappingStopRec",
+		"ioMappingDelay",
+		"ioDelayTime"
 	};
 
 	QVariantMap orConfig[3];
 	QVariantMap triggerConfig;
 	QVariantMap shutterConfig;
+	QVariantMap startConfig;
+	QVariantMap stopConfig;
+	QVariantMap delayConfig;
 
 	QVariantMap io1config;
 	QVariantMap io2config;
@@ -306,6 +398,9 @@ void IOSettingsWindow::getIoSettings()
 	ioMapping["ioMappingCombOr3"].value<QDBusArgument>() >> orConfig[2];
 	ioMapping["ioMappingTrigger"].value<QDBusArgument>() >> triggerConfig;
 	ioMapping["ioMappingShutter"].value<QDBusArgument>() >> shutterConfig;
+	ioMapping["ioMappingStartRec"].value<QDBusArgument>() >> startConfig;
+	ioMapping["ioMappingStopRec"].value<QDBusArgument>() >> stopConfig;
+	ioMapping["ioMappingDelay"].value<QDBusArgument>() >> delayConfig;
 
 	ioMapping["ioMappingIo1"].value<QDBusArgument>() >> io1config;
 	ioMapping["ioMappingIo2"].value<QDBusArgument>() >> io2config;
@@ -355,7 +450,13 @@ void IOSettingsWindow::getIoSettings()
 		getIoTriggerConfig(orConfig[0]);
 		getIoTriggerConfig(orConfig[1]);
 		getIoTriggerConfig(orConfig[2]);
-	} else {
+	} else if (startConfig["source"].toString() == "comb" && delayConfig["source"].toString() == "recording") {
+		/* In this case, we're in the trigger toggle mode */
+		ui->radioIO1ToggleTrig->setChecked(true);
+		ui->chkIO1Debounce->setChecked(io1config["debounce"].toBool());
+		ui->chkIO1Invert->setChecked(io1config["invert"].toBool());
+	}
+	else {
 		getIoTriggerConfig(triggerConfig);
 	}
 
@@ -411,6 +512,11 @@ void IOSettingsWindow::on_radioIO1FSOut_toggled(bool checked)
 {
 	ui->chkIO1Pull->setEnabled(!checked);
 	ui->chkIO1WeakPull->setEnabled(!checked);
+}
+
+void IOSettingsWindow::on_radioIO1ToggleTrig_toggled(bool checked)
+{
+
 }
 
 void IOSettingsWindow::on_radioIO2FSOut_toggled(bool checked)
