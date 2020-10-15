@@ -1,6 +1,6 @@
 /* All Widgets except MainWindow */
 QWidget#IOSettingsWindow, #keyboard, #keyboardNumeric, #playbackWindow, #ramWindow, #recModeWindow, #RecSettingsWindow, #saveSettingsWindow,
-       #triggerDelayWindow, #UtilWindow
+       #triggerDelayWindow, #UtilWindow, #ExtBrowser
 {
     background-color: #333;
 }
