@@ -146,7 +146,9 @@ HEADERS  += mainwindow.h \
     control.h \
     eeprom.h \
     networkconfig.h \
-    extbrowser.h
+    extbrowser.h \
+    fileinfo.h \
+    fileinfomodel.h
 
 FORMS    += mainwindow.ui \
     cammainwindow.ui \
