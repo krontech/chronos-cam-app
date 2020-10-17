@@ -11,7 +11,8 @@ private:
     QList<FileInfo> m_data;
 public:
     FileInfoModel(
-            QObject* parent = {} )
+            QObject* parent = {}
+    )
         : QAbstractTableModel{parent}
     {}
 public:
@@ -26,7 +27,7 @@ public:
     columnCount(
             QModelIndex const& ) const override
     {
-        return 4;
+        return 5;
     }
 public:
     QVariant
@@ -34,22 +35,23 @@ public:
             QModelIndex const&  index,
             int                 role ) const override
     {
-       if (role != Qt::DisplayRole && role != Qt::EditRole)
-       {
-           return {};
-       }
-       const auto& file_info = m_data[index.row()];
-       switch (index.column())
-       {
-           case 0: return file_info.get_name();
-           case 1: return file_info.get_type();
-           case 2: return file_info.get_size();
-           case 3: return file_info.get_time();
-       };
+        if (role != Qt::DisplayRole && role != Qt::EditRole)
+        {
+            return {};
+        }
+        const auto& file_info = m_data[index.row()];
+        switch (index.column())
+        {
+            case 0: return QString("R");
+            case 1: return file_info.get_name();
+            case 2: return file_info.get_type();
+            case 3: return file_info.get_size();
+            case 4: return file_info.get_time();
+        };
 
-       assert( false );
+        assert( false );
 
-       return {};
+        return {};
     }
 public:
     QVariant
@@ -58,21 +60,22 @@ public:
             Qt::Orientation orientation,
             int             role) const override
     {
-       if (orientation != Qt::Horizontal || role != Qt::DisplayRole)
-       {
-           return {};
-       }
-       switch (section)
-       {
-           case 0: return "Name";
-           case 1: return "Type";
-           case 2: return "Size";
-           case 3: return "Time";
-       }
+        if (orientation != Qt::Horizontal || role != Qt::DisplayRole)
+        {
+            return {};
+        }
+        switch (section)
+        {
+            case 0: return "S";
+            case 1: return "Name";
+            case 2: return "Type";
+            case 3: return "Size";
+            case 4: return "Time";
+        }
 
-       assert( false );
+        assert( false );
 
-       return {};
+        return {};
     }
 public:
     void

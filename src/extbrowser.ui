@@ -85,15 +85,20 @@
     <string>0 files selected</string>
    </property>
   </widget>
-  <widget class="QTableView" name="tableView">
+  <widget class="QWidget" name="gridLayoutWidget">
    <property name="geometry">
     <rect>
-     <x>20</x>
-     <y>20</y>
-     <width>751</width>
-     <height>391</height>
+     <x>19</x>
+     <y>19</y>
+     <width>761</width>
+     <height>401</height>
     </rect>
    </property>
+   <layout class="QGridLayout" name="gridLayout">
+    <item row="0" column="0">
+     <widget class="QTableView" name="tableView"/>
+    </item>
+   </layout>
   </widget>
  </widget>
  <resources/>

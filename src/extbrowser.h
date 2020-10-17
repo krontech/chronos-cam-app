@@ -22,7 +22,6 @@ private slots:
 
 private:
     Ui::ExtBrowser* ui;
-    QTableView      m_view;
     FileInfoModel   m_model;
 };
 
