@@ -95,7 +95,8 @@ SOURCES += main.cpp\
     eeprom.c \
     networkconfig.cpp \
     extbrowser.cpp \
-    extbrowserdelegate.cpp
+    extbrowserdelegate.cpp \
+    extbrowserparser.cpp
 
 ## Generate version.cpp on every build
 versionTarget.target = version.cpp

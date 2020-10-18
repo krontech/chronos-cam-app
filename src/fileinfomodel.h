@@ -7,6 +7,7 @@
 
 class FileInfoModel : public QAbstractTableModel
 {
+    friend class ExtBrowserDelegate;
 private:
     QList<FileInfo> m_data;
 public:
@@ -27,7 +28,7 @@ public:
     columnCount(
             QModelIndex const& ) const override
     {
-        return 5;
+        return 4;
     }
 public:
     QVariant
@@ -42,16 +43,21 @@ public:
         const auto& file_info = m_data[index.row()];
         switch (index.column())
         {
-            case 0: return QString("R");
-            case 1: return file_info.get_name();
-            case 2: return file_info.get_type();
-            case 3: return file_info.get_size();
-            case 4: return file_info.get_time();
+            case 0: return file_info.get_name();
+            case 1: return file_info.get_file_type();
+            case 2: return file_info.get_size();
+            case 3: return file_info.get_time();
         };
 
         assert( false );
 
         return {};
+    }
+private:
+    QList<FileInfo> const&
+    get_data() const
+    {
+        return m_data;
     }
 public:
     QVariant
@@ -66,11 +72,10 @@ public:
         }
         switch (section)
         {
-            case 0: return "S";
-            case 1: return "Name";
-            case 2: return "Type";
-            case 3: return "Size";
-            case 4: return "Time";
+            case 0: return "Name";
+            case 1: return "Type";
+            case 2: return "Size";
+            case 3: return "Time";
         }
 
         assert( false );
@@ -79,21 +84,40 @@ public:
     }
 public:
     void
-    append(
-            FileInfo const& file_info )
+    set_data(
+            QList<FileInfo> const& data )
     {
-        beginInsertRows(
+        beginResetModel();
+
+        m_data = data;
+
+        endResetModel();
+
+        /*beginInsertRows(
             {},
             m_data.count(),
             m_data.count() );
        m_data.append( file_info );
-       endInsertRows();
+       endInsertRows();*/
     }
 public:
     Qt::ItemFlags
-    flags( const QModelIndex &index ) const override
+    flags(
+            const QModelIndex &index ) const override
     {
-        if ( 0==index.row() )
+        int const row = index.row();
+
+        if ( m_data.length() <= row )
+        {
+            return QAbstractTableModel::flags( index );
+        }
+
+        auto const fileinfo = m_data.at( row );
+
+        bool const is_file = fileinfo.is_file();
+
+        if (   (!is_file)
+             | (!fileinfo.is_valid()) )
         {
             //return Qt::NoItemFlags;
             return Qt::ItemIsSelectable;

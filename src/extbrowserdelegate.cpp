@@ -1,5 +1,6 @@
 #include <QtGui>
 #include "extbrowserdelegate.h"
+#include "fileinfomodel.h"
 
 #include <iostream>
 
@@ -14,7 +15,13 @@ void ExtBrowserDelegate::paint(QPainter *painter, const QStyleOptionViewItem &op
 /*    bool isSelected = option.state & QStyle::State_Selected;
     std::cout << "D" << index.row() << " " << index.column() << " " << isSelected << std::endl;*/
 
-    if( 0 != index.column() )
+    assert ( index.row() < m_model->get_data().length() );
+
+    auto const& file_info =
+        m_model->get_data().at( index.row() );
+
+    if(   ( 0 != index.column() )
+        | ( file_info.is_file() ) )
     {
         QItemDelegate::paint( painter, option, index );
         return;
@@ -25,10 +32,10 @@ void ExtBrowserDelegate::paint(QPainter *painter, const QStyleOptionViewItem &op
     int x,y,w,h;
     x = r.left();// + r.width() - 30;//the X coordinate
     y = r.top();//the Y coordinate
-    w = 30;//button width
+    w = 100;//button width
     h = 30;//button height
     button.rect = QRect(x,y,w,h);
-    button.text = "=^.^=";
+    button.text = file_info.get_name();
     button.state = QStyle::State_Enabled;
 
     QApplication::style()->drawControl( QStyle::CE_PushButton, &button, painter);
@@ -38,8 +45,9 @@ bool ExtBrowserDelegate::editorEvent(QEvent *event, QAbstractItemModel *model, c
 {
     //return QItemDelegate::editorEvent(event,model,option,index);
 
-    if( event->type() == QEvent::MouseButtonRelease
-            && 0==index.column() )
+    if( QEvent::MouseButtonRelease == event->type()
+        && 0==index.column()
+        && !m_model->get_data().at( index.row() ).is_file() )
     {
         QMouseEvent * e = (QMouseEvent *)event;
         int clickX = e->x();
@@ -49,7 +57,7 @@ bool ExtBrowserDelegate::editorEvent(QEvent *event, QAbstractItemModel *model, c
         int x,y,w,h;
         x = r.left();// + r.width() - 30;//the X coordinate
         y = r.top();//the Y coordinate
-        w = 30;//button width
+        w = 100;//button width
         h = 30;//button height
 
         if( clickX > x && clickX < x + w )
@@ -68,3 +76,8 @@ bool ExtBrowserDelegate::editorEvent(QEvent *event, QAbstractItemModel *model, c
     return true;
 }
 
+void ExtBrowserDelegate::set_model( FileInfoModel const*const model )
+{
+    m_model = model;
+
+}
