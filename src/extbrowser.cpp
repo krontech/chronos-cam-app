@@ -15,16 +15,25 @@ ExtBrowser::ExtBrowser(QWidget *parent) :
     m_model.append({    "sloMo34File",      "mp4",  "1.3GB", "Oct5,17:24"});
     m_model.append({    "lastFile",         "mp4",  "932MB", "Nov1,12:00"});
 
-    ui->tableView->setModel( &m_model );
-
-    const auto rows_count = m_model.rowCount( QModelIndex{} );
-
-    for( int i=0; i<rows_count; i++ )
+    /*struct stat st;
+    while (stat("/dev/sda", &st) == 0)
     {
-        auto item = m_model.index( i, 0 );
-        QCheckBox* check_box = new QCheckBox("Add");
-        ui->tableView->setIndexWidget(item, check_box);
-    }
+        if (!S_ISBLK(st.st_mode))
+        {
+            break;
+        }
+
+        diskText = runCommand("ls -BghopqQt --group-directories-first /media/mmcblklpl");
+        break;
+    }*/
+
+    //const QString diskText = runCommand("ls -BghopqQt --group-directories-first /media/mmcblklpl");
+
+    ui->tableView->setModel( &m_model );
+    ui->tableView->setItemDelegate( &m_delegate );
+
+    ui->tableView->setSelectionBehavior( QAbstractItemView::SelectRows );
+    ui->tableView->setSelectionMode( QAbstractItemView::MultiSelection );
 }
 
 ExtBrowser::~ExtBrowser()
@@ -32,17 +41,7 @@ ExtBrowser::~ExtBrowser()
     delete ui;
 }
 
-#include <iostream>
-
 void ExtBrowser::on_pushButton_clicked()
 {
-    std::cout<< "DINO" << std::endl;
-
-    const QCheckBox* chkbox = qobject_cast<const QCheckBox*>( ui->tableView->indexWidget( ui->tableView->model()->index(0,0) ) );
-    if ( nullptr != chkbox )
-        std::cout<< chkbox->isChecked() << std::endl;
-
-    std::cout<< "DINO" << std::endl;
-
     close();
 }

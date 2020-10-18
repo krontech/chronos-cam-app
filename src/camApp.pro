@@ -94,7 +94,8 @@ SOURCES += main.cpp\
     myinputpanel.cpp \
     eeprom.c \
     networkconfig.cpp \
-    extbrowser.cpp
+    extbrowser.cpp \
+    extbrowserdelegate.cpp
 
 ## Generate version.cpp on every build
 versionTarget.target = version.cpp
@@ -148,7 +149,8 @@ HEADERS  += mainwindow.h \
     networkconfig.h \
     extbrowser.h \
     fileinfo.h \
-    fileinfomodel.h
+    fileinfomodel.h \
+    extbrowserdelegate.h
 
 FORMS    += mainwindow.ui \
     cammainwindow.ui \

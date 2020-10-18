@@ -89,6 +89,18 @@ public:
        m_data.append( file_info );
        endInsertRows();
     }
+public:
+    Qt::ItemFlags
+    flags( const QModelIndex &index ) const override
+    {
+        if ( 0==index.row() )
+        {
+            //return Qt::NoItemFlags;
+            return Qt::ItemIsSelectable;
+
+        }
+        return QAbstractTableModel::flags( index );
+    }
 };
 
 #endif // FILEINFOMODEL
