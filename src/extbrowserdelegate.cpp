@@ -20,7 +20,8 @@ void ExtBrowserDelegate::paint(QPainter *painter, const QStyleOptionViewItem &op
         m_model->get_data().at( index.row() );
 
     if(   ( 0 != index.column() )
-        | ( file_info.is_file() ) )
+        | ( file_info.is_file() )
+        | ( !file_info.is_valid() ))
     {
         QItemDelegate::paint( painter, option, index );
         return;
@@ -49,7 +50,8 @@ bool ExtBrowserDelegate::editorEvent(QEvent *event, QAbstractItemModel *model, c
 
     if( QEvent::MouseButtonRelease == event->type()
         && 0==index.column()
-        && !file_info.is_file() )
+        && !file_info.is_file()
+        && file_info.is_valid() )
     {
         QMouseEvent * e = (QMouseEvent *)event;
         int clickX = e->x();

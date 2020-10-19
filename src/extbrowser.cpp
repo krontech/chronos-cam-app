@@ -107,7 +107,7 @@ ExtBrowser::move_to_folder_and_get_contents(
     std::string const command =
          (QString{ "ls -BghopqQt --group-directories-first" }
         + " "
-        + QString{"/media/mmcblk1p1/"} + path
+        + QString{"\"/media/mmcblk1p1/"} + path + QChar('\"')
         ).toStdString();
 
     int status{0};
