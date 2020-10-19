@@ -3,7 +3,6 @@
 #include "fileinfomodel.h"
 #include "extbrowser.h"
 #include "movedirection.h"
-#include "extbrowserparser.h"
 
 ExtBrowserDelegate::ExtBrowserDelegate(QObject *parent)
     : QItemDelegate(parent)
@@ -75,17 +74,9 @@ bool ExtBrowserDelegate::editorEvent(QEvent *event, QAbstractItemModel *model, c
                     assert ( file_info.is_folder() );
                 }
 
-                QString const ls_output =
-                    m_browser->move_to_folder_and_get_contents(
-                        direction,
-                        file_info.get_name() );
-
-                auto const model_data =
-                    parse_ls_output(
-                        ls_output,
-                        m_browser->is_at_root() );
-
-                m_model->set_data( model_data );
+                m_browser->setup_path_and_model_data(
+                    direction,
+                    file_info.get_name() );
             }
         return true;
     }

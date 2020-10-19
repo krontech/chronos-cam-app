@@ -16,34 +16,48 @@ class ExtBrowser : public QWidget
     Q_OBJECT
 
 public:
-    explicit ExtBrowser(QWidget *parent = 0);
+    enum class BrowserMode : unsigned int {
+        folder_selector,
+        file_browser
+    };
+public:
+    explicit
+    ExtBrowser(
+            BrowserMode const mode,
+            QWidget*          parent = 0);
     ~ExtBrowser();
 
 private:
     void
     update_current_path(
             QStringList& new_path );
-public:
+private:
     QString
     move_to_folder_and_get_contents(
             MoveDirection   const   direction,
             QString         const&  folder_to_descend_to = QString{} );
-public:
+private:
     bool
     is_at_root() const
     {
-        return 0 == current_path.length();
+        return 0 == m_current_path.length();
     }
+public:
+    void
+    setup_path_and_model_data(
+            MoveDirection const     direction,
+            QString       const&    file_name = QString{} );
 
 private slots:
-    void on_pushButton_clicked();
+    void on_extBrowserCloseButton_clicked();
 
 private:
     Ui::ExtBrowser*     ui;
     FileInfoModel       m_model;
     ExtBrowserDelegate  m_delegate;
 private:
-    QStringList         current_path;
+    QStringList         m_current_path;
+    BrowserMode const   m_mode;
 };
 
 #endif // EXTBROWSER_H

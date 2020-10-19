@@ -145,7 +145,8 @@ compute_file_time(
 QList<FileInfo>
 parse_ls_output(
         QString const&  ls_output,
-        bool    const   is_root )
+        bool    const   is_root,
+        bool    const   hide_regular_files )
 {
     QList<FileInfo> ret;
 
@@ -199,6 +200,11 @@ parse_ls_output(
                 {   file_name,
                     is_valid} );
 
+            continue;
+        }
+
+        if ( hide_regular_files )
+        {
             continue;
         }
 

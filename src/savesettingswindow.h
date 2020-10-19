@@ -66,6 +66,8 @@ private slots:
 
     void on_chkEnableOverlay_toggled(bool checked);
     
+    void on_cmdPlayOpenExtBrowser_clicked();
+
 private:
 	void updateBitrate();
 	void saveFileDirectory();

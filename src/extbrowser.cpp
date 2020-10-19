@@ -87,7 +87,7 @@ void
 ExtBrowser::update_current_path(
         QStringList& new_path )
 {
-    current_path.swap( new_path );
+    m_current_path.swap( new_path );
 }
 
 QString
@@ -99,7 +99,7 @@ ExtBrowser::move_to_folder_and_get_contents(
 
     QString const path =
         assemble_path(
-            current_path,
+            m_current_path,
             new_path,
             folder_to_descend_to,
             direction );
@@ -128,27 +128,54 @@ ExtBrowser::move_to_folder_and_get_contents(
     return ls_output;
 }
 
-ExtBrowser::ExtBrowser(QWidget *parent) :
-    QWidget(parent),
-    ui(new Ui::ExtBrowser)
+void
+ExtBrowser::setup_path_and_model_data(
+        MoveDirection const direction,
+        QString const& file_name )
+{
+    QString const ls_output =
+        move_to_folder_and_get_contents(
+            direction,
+            file_name );
+
+    auto const model_data =
+        parse_ls_output(
+            ls_output,
+            is_at_root(),
+            BrowserMode::folder_selector == m_mode );
+
+    m_model.set_data( model_data );
+}
+
+ExtBrowser::ExtBrowser(
+        BrowserMode const mode,
+        QWidget*          parent
+    )
+        :   QWidget (parent)
+        ,   ui      (new Ui::ExtBrowser)
+        ,   m_mode  (mode)
 {
     ui->setupUi(this);
+
+    if ( BrowserMode::file_browser == m_mode )
+    {
+        ui->extBrowserSelectButton->hide();
+    }
+
+    if ( BrowserMode::folder_selector == m_mode )
+    {
+        ui->extBrowserCloseButton->setText( "Cancel" );
+        ui->extBrowserDeleteSelectedButton->hide();
+        ui->extBrowserDeselectAllButton->hide();
+        ui->extBrowserSelectedCountLabel->hide();
+    }
+
     this->setWindowFlags(Qt::Dialog | Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
     this->move(0,0);
 
-    {
-        QString const ls_output =
-            move_to_folder_and_get_contents( MoveDirection::stay );
+    assert ( true == is_at_root() );
 
-        assert ( true == is_at_root() );
-
-        auto const model_data =
-            parse_ls_output(
-                ls_output,
-                true );
-
-        m_model.set_data( model_data );
-    }
+    setup_path_and_model_data( MoveDirection::stay );
 
     ui->tableView->setModel( &m_model );
 
@@ -167,7 +194,7 @@ ExtBrowser::~ExtBrowser()
     delete ui;
 }
 
-void ExtBrowser::on_pushButton_clicked()
+void ExtBrowser::on_extBrowserCloseButton_clicked()
 {
     close();
 }

@@ -1801,7 +1801,7 @@ void UtilWindow::on_liveRecordComboBox_currentIndexChanged(const QString &arg1)
 
 void UtilWindow::on_cmdUtilOpenExtBrowser_clicked()
 {
-    ExtBrowser* w = new ExtBrowser();
+    ExtBrowser* w = new ExtBrowser( ExtBrowser::BrowserMode::file_browser );
 
     w->setAttribute( Qt::WA_DeleteOnClose );
     w->show();

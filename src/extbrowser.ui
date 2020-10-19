@@ -13,7 +13,7 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <widget class="QPushButton" name="pushButton">
+  <widget class="QPushButton" name="extBrowserCloseButton">
    <property name="geometry">
     <rect>
      <x>700</x>
@@ -31,10 +31,10 @@
     <string>Close</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="pushButton_2">
+  <widget class="QPushButton" name="extBrowserSelectButton">
    <property name="geometry">
     <rect>
-     <x>580</x>
+     <x>570</x>
      <y>430</y>
      <width>91</width>
      <height>41</height>
@@ -49,12 +49,12 @@
     <string>Select</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="pushButton_3">
+  <widget class="QPushButton" name="extBrowserDeleteSelectedButton">
    <property name="geometry">
     <rect>
      <x>10</x>
      <y>430</y>
-     <width>181</width>
+     <width>91</width>
      <height>41</height>
     </rect>
    </property>
@@ -64,13 +64,13 @@
     </font>
    </property>
    <property name="text">
-    <string>Delete Selected</string>
+    <string>Delete</string>
    </property>
   </widget>
-  <widget class="QLabel" name="label">
+  <widget class="QLabel" name="extBrowserSelectedCountLabel">
    <property name="geometry">
     <rect>
-     <x>250</x>
+     <x>330</x>
      <y>430</y>
      <width>241</width>
      <height>41</height>
@@ -99,6 +99,24 @@
      <widget class="QTableView" name="tableView"/>
     </item>
    </layout>
+  </widget>
+  <widget class="QPushButton" name="extBrowserDeselectAllButton">
+   <property name="geometry">
+    <rect>
+     <x>150</x>
+     <y>430</y>
+     <width>141</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>16</pointsize>
+    </font>
+   </property>
+   <property name="text">
+    <string>Deselect All</string>
+   </property>
   </widget>
  </widget>
  <resources/>
