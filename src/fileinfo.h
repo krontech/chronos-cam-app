@@ -95,6 +95,18 @@ public:
     }
 public:
     bool
+    is_folder() const
+    {
+        return Type::folder == m_type;
+    }
+public:
+    bool
+    is_up_link() const
+    {
+        return Type::up_link == m_type;
+    }
+public:
+    bool
     is_valid() const
     {
         return m_is_valid;

@@ -151,7 +151,9 @@ HEADERS  += mainwindow.h \
     extbrowser.h \
     fileinfo.h \
     fileinfomodel.h \
-    extbrowserdelegate.h
+    extbrowserdelegate.h \
+    movedirection.h \
+    extbrowserparser.h
 
 FORMS    += mainwindow.ui \
     cammainwindow.ui \

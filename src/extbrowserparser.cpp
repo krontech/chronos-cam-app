@@ -149,6 +149,11 @@ parse_ls_output(
 {
     QList<FileInfo> ret;
 
+    if ( 0 == ls_output.length() )
+    {
+        return ret;
+    }
+
     add_shortcut_to_parent_folder(
         is_root,
         ret );
