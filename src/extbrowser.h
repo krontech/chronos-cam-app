@@ -50,6 +50,7 @@ public:
 
 private slots:
     void on_extBrowserCloseButton_clicked();
+    void on_selection_changed(const QItemSelection &, const QItemSelection &);
 
 private:
     Ui::ExtBrowser*     ui;

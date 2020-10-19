@@ -187,6 +187,12 @@ ExtBrowser::ExtBrowser(
 
     ui->tableView->setSelectionBehavior( QAbstractItemView::SelectRows );
     ui->tableView->setSelectionMode( QAbstractItemView::MultiSelection );
+
+    connect(
+        ui->tableView->selectionModel(),
+        SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
+        SLOT(on_selection_changed(const QItemSelection &, const QItemSelection &))
+    );
 }
 
 ExtBrowser::~ExtBrowser()
@@ -197,4 +203,18 @@ ExtBrowser::~ExtBrowser()
 void ExtBrowser::on_extBrowserCloseButton_clicked()
 {
     close();
+}
+
+void ExtBrowser::on_selection_changed(
+        const QItemSelection& sel,
+        const QItemSelection& desel )
+{
+    auto const selection_model = ui->tableView->selectionModel();
+    auto const index_list      = selection_model->selectedRows();
+
+    int const number_of_selected_elements = index_list.length();
+
+    QString const text = QString::number( number_of_selected_elements ) + " files selected";
+
+    ui->extBrowserSelectedCountLabel->setText( text );
 }
