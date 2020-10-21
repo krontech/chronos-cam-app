@@ -45,7 +45,7 @@ private:
     QString
     move_to_folder_and_get_contents(
             MoveDirection   const   direction,
-            QString         const&  folder_to_descend_to = QString{} );
+            QString         const&  folder_to_descend_to = {} );
 private:
     DeviceAndPathState
     get_state(
@@ -57,7 +57,7 @@ public:
     void
     setup_path_and_model_data(
             MoveDirection const     direction,
-            QString                 file_name = QString{} );
+            QString                 file_name = {} );
 
 private slots:
     void on_extBrowserCloseButton_clicked();

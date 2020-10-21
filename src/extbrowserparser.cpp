@@ -112,12 +112,35 @@ compute_file_type(
 
     if ( -1 == last_ix )
     {
-        return "?";
+        return {};
     }
 
-    return
+    QString const extension =
         file_name.right(
             file_name.length() - last_ix - 1 );
+
+    if ( "mp4" == extension )
+    {
+        return "H.264";
+    }
+
+    if ( "raw" == extension )
+    {
+        return "RAW";
+    }
+
+    if ( "dng" == extension )
+    {
+        return "DNG";
+    }
+
+    if ( "tiff" == extension )
+    {
+        return "TIFF";
+    }
+
+    return {};
+
 }
 
 static
