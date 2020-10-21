@@ -291,9 +291,9 @@ get_current_time_as_string()
     QTime const t = QTime::currentTime();
 
     QString const time_str =
-         QString::number( t.hour() )
+         QString::number( t.hour() ).rightJustified( 2, '0' )
         +QChar(':')
-        +QString::number( t.minute() );
+        +QString::number( t.minute() ).rightJustified( 2, '0' );
 
     return time_str;
 }
