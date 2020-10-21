@@ -149,10 +149,11 @@ ExtBrowser::move_to_folder_and_get_contents(
             command.c_str(),
             &status );
 
-    if ( -1 == status )
+    if (   (-1 == status)
+        || ls_output.isEmpty() )
     {
         /// TODO : Failed getting data!
-        return {};
+        throw "ls failed";
     }
 
     update_current_path( new_path );
@@ -205,72 +206,82 @@ ExtBrowser::setup_path_and_model_data(
         MoveDirection const  direction,
         QString              file_name )
 {
-    DeviceAndPathState const state =
-        get_state( direction );
-
-    QList<FileInfo> model_data;
-
-    switch( state )
+    try
     {
-        case DeviceAndPathState::ascend_from_device:
-        {
-            m_current_device = {};
-        }
+        DeviceAndPathState const state =
+            get_state( direction );
 
-        case DeviceAndPathState::list_devices:
-        {
-            auto const storage_devices =
-                get_storage_devices();
+        QList<FileInfo> model_data;
 
-            for( int i=0; i<storage_devices.size(); ++i )
+        switch( state )
+        {
+            case DeviceAndPathState::ascend_from_device:
             {
-                model_data.append(
-                    {   storage_devices.at(i).label,
-                        true });
+                m_current_device = {};
             }
 
-            break;
-        }
-
-        case DeviceAndPathState::descend_to_device:
-        {
-            auto const storage_devices =
-                get_storage_devices();
-
-            for( int i=0; i<storage_devices.size(); ++i )
+            case DeviceAndPathState::list_devices:
             {
-                auto const device = storage_devices.at(i);
-                if ( device.label == file_name )
+                auto const storage_devices =
+                    get_storage_devices();
+
+                for( int i=0; i<storage_devices.size(); ++i )
                 {
-                    m_current_device = device;
-                    break;
+                    model_data.append(
+                        {   storage_devices.at(i).label,
+                            true });
                 }
+
+                break;
             }
 
-            file_name.clear();
+            case DeviceAndPathState::descend_to_device:
+            {
+                auto const storage_devices =
+                    get_storage_devices();
+
+                for( int i=0; i<storage_devices.size(); ++i )
+                {
+                    auto const device = storage_devices.at(i);
+                    if ( device.label == file_name )
+                    {
+                        m_current_device = device;
+                        break;
+                    }
+                }
+
+                file_name.clear();
+            }
+
+            case DeviceAndPathState::browse_device:
+            {
+                QString const ls_output =
+                    move_to_folder_and_get_contents(
+                        direction,
+                        file_name );
+
+                model_data =
+                    parse_ls_output(
+                        ls_output,
+                        BrowserMode::folder_selector == m_mode );
+
+                break;
+            }
+
+            default: assert ( false );
         }
 
-        case DeviceAndPathState::browse_device:
-        {
-            QString const ls_output =
-                move_to_folder_and_get_contents(
-                    direction,
-                    file_name );
+        m_model.set_data( model_data );
 
-            model_data =
-                parse_ls_output(
-                    ls_output,
-                    BrowserMode::folder_selector == m_mode );
-
-            break;
-        }
-
-        default: assert ( false );
+        update_path_label();
     }
+    catch(...)
+    {
+        m_current_path      = {};
+        m_current_device    = {};
 
-    m_model.set_data( model_data );
-
-    update_path_label();
+        setup_path_and_model_data( MoveDirection::list );
+    }
 }
 
 static
