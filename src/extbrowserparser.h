@@ -15,5 +15,9 @@ QList<StorageDevice_Info>
 parse_lsblk_output(
         QString const& lsblk_output );
 
+void
+get_network_shares(
+        QList<StorageDevice_Info>& storage_devices );
+
 #endif // EXTBROWSERPARSER_H
 

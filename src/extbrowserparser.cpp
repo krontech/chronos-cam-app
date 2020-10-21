@@ -1,13 +1,11 @@
-
-
 #include <QList>
 #include <QString>
 #include <QStringList>
 #include <cassert>
+#include <mntent.h>
 #include "fileinfo.h"
 #include "storagedevice_info.h"
-
-#define EXTBROWSER_EXTRA_CHECKS
+#include "defines.h"
 
 static
 void
@@ -249,11 +247,11 @@ QList<StorageDevice_Info>
 parse_lsblk_output(
         QString const& lsblk_output )
 {
-    QList<StorageDevice_Info> ret;
+    QList<StorageDevice_Info> storage_devices;
 
     if ( 0 == lsblk_output.length() )
     {
-        return ret;
+        return storage_devices;
     }
 
     auto const output_lines =
@@ -265,7 +263,7 @@ parse_lsblk_output(
 
     assert ( 0 < line_count );
 
-    ret.reserve( line_count );
+    storage_devices.reserve( line_count );
 
     for(
         int i = 0;
@@ -290,18 +288,84 @@ parse_lsblk_output(
         {
             QString const& storage_label = tokens.at(2);
 
-            ret.append(
+            storage_devices.append(
                 {   mount_folder,
                     storage_label } );
 
             continue;
         }
 
-        ret.append(
+        QString prefix;
+
+        if ( mount_folder.startsWith( "/media/mmcblk") )
+        {
+            prefix = "SD_";
+        }
+
+        if ( mount_folder.startsWith( "/media/sd") )
+        {
+            prefix = "SATA_";
+        }
+
+        storage_devices.append(
             {   mount_folder,
-                QString{"SD_"}+storage_capacity } );
+                prefix + storage_capacity } );
     }
 
-    return ret;
+    return storage_devices;
+}
+
+#include <iostream>
+
+void
+get_network_shares(
+        QList<StorageDevice_Info>& storage_devices )
+{
+//    FILE * fp;
+    FILE * mtab = setmntent("/etc/mtab", "r");
+    struct mntent* m;
+    struct mntent mnt;
+    char strings[4096];		//Temp buffer used by mntent
+
+    //Check for mounted local disks.
+    while ((m = getmntent_r(mtab, &mnt, strings, sizeof(strings))))
+    {
+        if (mnt.mnt_dir == NULL) continue;
+
+        /* It might also be a network share. */
+        if (   (0 == strcmp(mnt.mnt_dir, SMB_STORAGE_MOUNT))
+            || (0 == strcmp(mnt.mnt_dir, NFS_STORAGE_MOUNT)))
+        {
+            QString const fsname{ mnt.mnt_fsname };
+
+            auto const ix =
+                fsname.indexOf( QChar{'/'}, 2 );
+
+            if ( -1 == ix )
+            {
+                continue;
+            }
+
+            QString label;
+
+            if ( 1 < (fsname.length() - ix) )
+            {
+                label = fsname.right( fsname.length() - ix - 1 );
+            }
+            else
+            {
+                label = "network";
+            }
+
+            storage_devices.append(
+                {   mnt.mnt_dir,
+                    label } );
+        }
+        else {
+            continue;
+        }
+    }
+
+    endmntent(mtab);
 }
 

@@ -90,7 +90,7 @@ assemble_path(
 
 static
 QList<StorageDevice_Info>
-get_storage_devices()
+get_nonnetwork_storage_devices()
 {
     std::string const command{ "lsblk -inpr -o mountpoint,size,label | grep \"/media/\"" };
 
@@ -107,8 +107,18 @@ get_storage_devices()
         return {};
     }
 
-    QList<StorageDevice_Info> const storage_devices =
-            parse_lsblk_output( lsblk_output );
+    return
+        parse_lsblk_output( lsblk_output );
+}
+
+static
+QList<StorageDevice_Info>
+get_storage_devices()
+{
+    QList<StorageDevice_Info> storage_devices =
+            get_nonnetwork_storage_devices();
+
+    get_network_shares( storage_devices );
 
     return storage_devices;
 }
@@ -380,7 +390,19 @@ void ExtBrowser::on_selection_changed(
 
     ui->extBrowserSelectedCountLabel->setText( text );
 
-    ui->extBrowserOpenButton->setEnabled( 1 == number_of_selected_elements );
+    if ( 1 == number_of_selected_elements )
+    {
+        auto const row = index_list.at(0).row();
+
+        auto const& file_info =
+            m_model.get_data().at( row );
+        ui->extBrowserOpenButton->setEnabled( false == file_info.is_file() );
+    }
+    else
+    {
+        ui->extBrowserOpenButton->setEnabled( false );
+    }
+
     ui->extBrowserDeselectAllButton->setEnabled( 0 != number_of_selected_elements );
 }
 
