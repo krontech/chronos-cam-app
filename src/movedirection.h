@@ -4,7 +4,7 @@
 enum class MoveDirection : unsigned int {
     descend,
     ascend,
-    stay
+    list
 };
 
 #endif // MOVEDIRECTION

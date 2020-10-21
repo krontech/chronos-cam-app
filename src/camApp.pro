@@ -153,7 +153,8 @@ HEADERS  += mainwindow.h \
     fileinfomodel.h \
     extbrowserdelegate.h \
     movedirection.h \
-    extbrowserparser.h
+    extbrowserparser.h \
+    storagedevice_info.h
 
 FORMS    += mainwindow.ui \
     cammainwindow.ui \

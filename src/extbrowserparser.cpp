@@ -5,20 +5,17 @@
 #include <QStringList>
 #include <cassert>
 #include "fileinfo.h"
+#include "storagedevice_info.h"
 
 #define EXTBROWSER_EXTRA_CHECKS
 
 static
 void
 add_shortcut_to_parent_folder(
-        bool           const is_root,
         QList<FileInfo>&     ret )
 {
-    if ( false == is_root )
-    {
-        ret.append(
-            FileInfo::make_shortcut_to_parent_folder() );
-    }
+    ret.append(
+        FileInfo::make_shortcut_to_parent_folder() );
 }
 
 static
@@ -145,7 +142,6 @@ compute_file_time(
 QList<FileInfo>
 parse_ls_output(
         QString const&  ls_output,
-        bool    const   is_root,
         bool    const   hide_regular_files )
 {
     QList<FileInfo> ret;
@@ -156,7 +152,6 @@ parse_ls_output(
     }
 
     add_shortcut_to_parent_folder(
-        is_root,
         ret );
 
     auto const output_lines =
@@ -198,7 +193,7 @@ parse_ls_output(
         {
             ret.append(
                 {   file_name,
-                    is_valid} );
+                    is_valid } );
 
             continue;
         }
@@ -214,6 +209,74 @@ parse_ls_output(
                 compute_file_size( tokens ),
                 compute_file_time( tokens ),
                 is_valid });
+    }
+
+    return ret;
+}
+
+static
+bool
+has_label(
+        int const tokens_count )
+{
+    return 3 == tokens_count;
+}
+
+QList<StorageDevice_Info>
+parse_lsblk_output(
+        QString const& lsblk_output )
+{
+    QList<StorageDevice_Info> ret;
+
+    if ( 0 == lsblk_output.length() )
+    {
+        return ret;
+    }
+
+    auto const output_lines =
+        lsblk_output.split(
+            QChar{'\n'},
+            QString::SkipEmptyParts );
+
+    auto const line_count = output_lines.size();
+
+    assert ( 0 < line_count );
+
+    ret.reserve( line_count );
+
+    for(
+        int i = 0;
+        i < line_count;
+        ++i )
+    {
+        auto const current_line = output_lines.at( i );
+
+        auto const tokens =
+            current_line.split(
+                QChar(' '),
+                QString::SkipEmptyParts );
+
+        auto const tokens_count = tokens.size();
+
+        assert ( 2 <= tokens_count && 3 >= tokens_count );
+
+        QString const& mount_folder     = tokens.at(0);
+        QString const& storage_capacity = tokens.at(1);
+
+        if ( has_label( tokens_count ) )
+        {
+            QString const& storage_label = tokens.at(2);
+
+            ret.append(
+                {   mount_folder,
+                    storage_label } );
+
+            continue;
+        }
+
+        ret.append(
+            {   mount_folder,
+                QString{"SD_"}+storage_capacity } );
     }
 
     return ret;

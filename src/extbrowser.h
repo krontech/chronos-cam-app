@@ -3,9 +3,11 @@
 
 #include <QWidget>
 #include <QTableView>
+#include <QTimer>
 #include "fileinfomodel.h"
 #include "extbrowserdelegate.h"
 #include "movedirection.h"
+#include "storagedevice_info.h"
 
 namespace Ui {
 class ExtBrowser;
@@ -14,6 +16,14 @@ class ExtBrowser;
 class ExtBrowser : public QWidget
 {
     Q_OBJECT
+
+private:
+    enum class DeviceAndPathState : unsigned int {
+        list_devices,
+        descend_to_device,
+        ascend_from_device,
+        browse_device
+    };
 
 public:
     enum class BrowserMode : unsigned int {
@@ -37,20 +47,22 @@ private:
             MoveDirection   const   direction,
             QString         const&  folder_to_descend_to = QString{} );
 private:
-    bool
-    is_at_root() const
-    {
-        return 0 == m_current_path.length();
-    }
+    DeviceAndPathState
+    get_state(
+            MoveDirection const  direction);
+private:
+    void
+    update_path_label();
 public:
     void
     setup_path_and_model_data(
             MoveDirection const     direction,
-            QString       const&    file_name = QString{} );
+            QString                 file_name = QString{} );
 
 private slots:
     void on_extBrowserCloseButton_clicked();
     void on_selection_changed(const QItemSelection &, const QItemSelection &);
+    void on_timer_tick();
 
 private:
     Ui::ExtBrowser*     ui;
@@ -58,7 +70,9 @@ private:
     ExtBrowserDelegate  m_delegate;
 private:
     QStringList         m_current_path;
+    StorageDevice_Info  m_current_device;
     BrowserMode const   m_mode;
+    QTimer* const       m_timer;
 };
 
 #endif // EXTBROWSER_H

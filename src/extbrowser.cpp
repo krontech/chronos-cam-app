@@ -1,4 +1,5 @@
 #include <QCheckBox>
+#include <QTime>
 #include "extbrowser.h"
 #include "ui_extbrowser.h"
 #include "util.h"
@@ -12,10 +13,12 @@ assemble_path_down(
         QStringList      &  new_path,
         QString     const&  folder_to_descend_to )
 {
-    assert ( folder_to_descend_to.length() );
-
     new_path = current_path;
-    new_path.append( folder_to_descend_to );
+
+    if ( 0 != folder_to_descend_to.length() )
+    {
+        new_path.append( folder_to_descend_to );
+    }
 
     return
           new_path.join( "/" );
@@ -40,7 +43,7 @@ assemble_path_up(
 
 static
 QString
-assemble_path_stay(
+assemble_path_list(
         QStringList const&  current_path,
         QStringList      &  new_path )
 {
@@ -73,14 +76,41 @@ assemble_path(
                     current_path,
                     new_path );
 
-        case MoveDirection::stay:
+        case MoveDirection::list:
             return
-                assemble_path_stay(
+                assemble_path_list(
                     current_path,
                     new_path );
     }
 
-    assert (true);
+    assert (false);
+
+    return {};
+}
+
+static
+QList<StorageDevice_Info>
+get_storage_devices()
+{
+    std::string const command{ "lsblk -inpr -o mountpoint,size,label | grep \"/media/\"" };
+
+    int status{0};
+
+    QString const lsblk_output =
+        runCommand(
+            command.c_str(),
+            &status );
+
+    if ( -1 == status )
+    {
+        /// TODO : Failed getting data!
+        return {};
+    }
+
+    QList<StorageDevice_Info> const storage_devices =
+            parse_lsblk_output( lsblk_output );
+
+    return storage_devices;
 }
 
 void
@@ -104,10 +134,12 @@ ExtBrowser::move_to_folder_and_get_contents(
             folder_to_descend_to,
             direction );
 
+    assert ( !m_current_device.mount_folder.isEmpty() );
+
     std::string const command =
          (QString{ "ls -BghopqQt --group-directories-first" }
-        + " "
-        + QString{"\"/media/mmcblk1p1/"} + path + QChar('\"')
+        + " \""
+        + m_current_device.mount_folder + QChar{'/'} + path + QChar('\"')
         ).toStdString();
 
     int status{0};
@@ -128,23 +160,131 @@ ExtBrowser::move_to_folder_and_get_contents(
     return ls_output;
 }
 
+ExtBrowser::DeviceAndPathState
+ExtBrowser::get_state(
+        MoveDirection const  direction)
+{
+    if ( m_current_device.mount_folder.isEmpty() )
+    {
+        if ( MoveDirection::list == direction )
+        {
+            return DeviceAndPathState::list_devices;
+        }
+
+        return DeviceAndPathState::descend_to_device;
+    }
+
+    if (   (m_current_path.isEmpty())
+         & (MoveDirection::ascend == direction) )
+    {
+        return DeviceAndPathState::ascend_from_device;
+    }
+
+    return DeviceAndPathState::browse_device;
+}
+
+void
+ExtBrowser::update_path_label()
+{
+    QString folder_path;
+    if ( 0 < m_current_path.size() )
+    {
+        folder_path =
+              QString{'/'}
+            + m_current_path.join( "/" );
+    }
+
+    ui->extBrowserPathLabel->setText(
+          QString{'/'}
+        + m_current_device.label
+        + folder_path );
+}
+
 void
 ExtBrowser::setup_path_and_model_data(
-        MoveDirection const direction,
-        QString const& file_name )
+        MoveDirection const  direction,
+        QString              file_name )
 {
-    QString const ls_output =
-        move_to_folder_and_get_contents(
-            direction,
-            file_name );
+    DeviceAndPathState const state =
+        get_state( direction );
 
-    auto const model_data =
-        parse_ls_output(
-            ls_output,
-            is_at_root(),
-            BrowserMode::folder_selector == m_mode );
+    QList<FileInfo> model_data;
+
+    switch( state )
+    {
+        case DeviceAndPathState::ascend_from_device:
+        {
+            m_current_device = {};
+        }
+
+        case DeviceAndPathState::list_devices:
+        {
+            auto const storage_devices =
+                get_storage_devices();
+
+            for( int i=0; i<storage_devices.size(); ++i )
+            {
+                model_data.append(
+                    {   storage_devices.at(i).label,
+                        true });
+            }
+
+            break;
+        }
+
+        case DeviceAndPathState::descend_to_device:
+        {
+            auto const storage_devices =
+                get_storage_devices();
+
+            for( int i=0; i<storage_devices.size(); ++i )
+            {
+                auto const device = storage_devices.at(i);
+                if ( device.label == file_name )
+                {
+                    m_current_device = device;
+                    break;
+                }
+            }
+
+            file_name.clear();
+        }
+
+        case DeviceAndPathState::browse_device:
+        {
+            QString const ls_output =
+                move_to_folder_and_get_contents(
+                    direction,
+                    file_name );
+
+            model_data =
+                parse_ls_output(
+                    ls_output,
+                    BrowserMode::folder_selector == m_mode );
+
+            break;
+        }
+
+        default: assert ( false );
+    }
 
     m_model.set_data( model_data );
+
+    update_path_label();
+}
+
+static
+QString
+get_current_time_as_string()
+{
+    QTime const t = QTime::currentTime();
+
+    QString const time_str =
+         QString::number( t.hour() )
+        +QChar(':')
+        +QString::number( t.minute() );
+
+    return time_str;
 }
 
 ExtBrowser::ExtBrowser(
@@ -154,8 +294,14 @@ ExtBrowser::ExtBrowser(
         :   QWidget (parent)
         ,   ui      (new Ui::ExtBrowser)
         ,   m_mode  (mode)
+        ,   m_timer (new QTimer(this))
 {
     ui->setupUi(this);
+
+    connect(m_timer, SIGNAL(timeout()), this, SLOT(on_timer_tick()));
+    ui->extBrowserClock->setSegmentStyle(QLCDNumber::Flat);
+    ui->extBrowserClock->display( get_current_time_as_string() );
+    m_timer->start(1000);
 
     if ( BrowserMode::file_browser == m_mode )
     {
@@ -173,9 +319,9 @@ ExtBrowser::ExtBrowser(
     this->setWindowFlags(Qt::Dialog | Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
     this->move(0,0);
 
-    assert ( true == is_at_root() );
+    assert ( m_current_device.mount_folder.isEmpty() );
 
-    setup_path_and_model_data( MoveDirection::stay );
+    setup_path_and_model_data( MoveDirection::list );
 
     ui->tableView->setModel( &m_model );
 
@@ -197,6 +343,8 @@ ExtBrowser::ExtBrowser(
 
 ExtBrowser::~ExtBrowser()
 {
+    m_timer->stop();
+    delete m_timer;
     delete ui;
 }
 
@@ -217,4 +365,9 @@ void ExtBrowser::on_selection_changed(
     QString const text = QString::number( number_of_selected_elements ) + " files selected";
 
     ui->extBrowserSelectedCountLabel->setText( text );
+}
+
+void ExtBrowser::on_timer_tick()
+{
+    ui->extBrowserClock->display( get_current_time_as_string() );
 }
