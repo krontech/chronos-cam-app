@@ -243,6 +243,57 @@ has_label(
     return 3 == tokens_count;
 }
 
+static
+QString
+compute_name_string_for_unnamed_HD(
+        QString const& mount_point )
+{
+    std::string const device = mount_point.mid( 7, 3 ).toStdString();
+
+    unsigned int len;
+    char model[256];		//Stores model name of sd* device
+    char vendor[256];		//Stores vendor of sd* device
+    char modelPath[256];
+    char vendorPath[256];
+
+    //Produce the paths to read the model and vendor strings
+    sprintf(modelPath, "/sys/block/%s/device/model", device.c_str() );
+    sprintf(vendorPath, "/sys/block/%s/device/vendor", device.c_str() );
+
+    //Read the model and vendor strings for this block device
+    FILE * fp = fopen(modelPath, "r");
+    if(fp)
+    {
+        len = fread(model, 1, 255, fp);
+        model[len] = '\0';
+        fclose(fp);
+    }
+    else
+        model[0] = '\0';
+
+    fp = fopen(vendorPath, "r");
+    if(fp)
+    {
+        len = fread(vendor, 1, 255, fp);
+        vendor[len] = '\0';
+        fclose(fp);
+    }
+    else
+        vendor[0] = '\0';
+
+    //remove all trailing whitespace and carrage returns
+    int i;
+    for(i = strlen(vendor) - 1; ' ' == vendor[i] || '\n' == vendor[i]; i--) {};	//Search back from the end and put a null at the first trailing space
+    vendor[i + 1] = '\0';
+
+    for(i = strlen(model) - 1; ' ' == model[i] || '\n' == model[i]; i--) {};	//Search back from the end and put a null at the first trailing space
+    model[i + 1] = '\0';
+
+    QString const label = QString{vendor} + QChar{' '} + QString{model};
+
+    return label;
+}
+
 QList<StorageDevice_Info>
 parse_lsblk_output(
         QString const& lsblk_output )
@@ -304,7 +355,15 @@ parse_lsblk_output(
 
         if ( mount_folder.startsWith( "/media/sd") )
         {
-            prefix = "SATA_";
+            QString const generated_label = compute_name_string_for_unnamed_HD( mount_folder );
+
+            if ( 1 >= generated_label.length() )
+            {
+                prefix = "HD_";
+            } else
+            {
+                prefix = generated_label + QChar{' '};
+            }
         }
 
         storage_devices.append(
