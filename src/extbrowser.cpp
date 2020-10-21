@@ -206,7 +206,7 @@ ExtBrowser::update_path_label()
     }
 
     ui->extBrowserPathLabel->setText(
-          QString{'/'}
+          QString{"Path: /"}
         + m_current_device.label
         + folder_path );
 }
@@ -331,8 +331,7 @@ ExtBrowser::ExtBrowser(
     ui->setupUi(this);
 
     connect(m_timer, SIGNAL(timeout()), this, SLOT(on_timer_tick()));
-    ui->extBrowserClock->setSegmentStyle(QLCDNumber::Flat);
-    ui->extBrowserClock->display( get_current_time_as_string() );
+    ui->extBrowserClock->setText( QString{"Current time: "} + get_current_time_as_string() );
     m_timer->start(1000);
 
     ui->extBrowserOpenButton->setEnabled( false );
@@ -419,7 +418,7 @@ void ExtBrowser::on_selection_changed(
 
 void ExtBrowser::on_timer_tick()
 {
-    ui->extBrowserClock->display( get_current_time_as_string() );
+    ui->extBrowserClock->setText( QString{"Current time: "} + get_current_time_as_string() );
 }
 
 void ExtBrowser::on_extBrowserOpenButton_clicked()
