@@ -285,6 +285,15 @@ ExtBrowser::setup_path_and_model_data_impl (
 }
 
 void
+ExtBrowser::clear_selection()
+{
+    ui->tableView->clearSelection();
+    ui->extBrowserSelectedCountLabel->setText( "0 files selected" );
+    ui->extBrowserOpenButton->setEnabled( false );
+    ui->extBrowserDeselectAllButton->setEnabled( false );
+}
+
+void
 ExtBrowser::setup_path_and_model_data(
         MoveDirection const  direction,
         QString              file_name )
@@ -303,6 +312,8 @@ ExtBrowser::setup_path_and_model_data(
         /// this call should never throw!
         setup_path_and_model_data_impl( MoveDirection::list );
     }
+
+    clear_selection();
 }
 
 static
@@ -406,6 +417,7 @@ void ExtBrowser::on_selection_changed(
 
         auto const& file_info =
             m_model.get_data().at( row );
+
         ui->extBrowserOpenButton->setEnabled( false == file_info.is_file() );
     }
     else

@@ -93,13 +93,6 @@ public:
         m_data = data;
 
         endResetModel();
-
-        /*beginInsertRows(
-            {},
-            m_data.count(),
-            m_data.count() );
-       m_data.append( file_info );
-       endInsertRows();*/
     }
 public:
     Qt::ItemFlags
@@ -115,15 +108,16 @@ public:
 
         auto const fileinfo = m_data.at( row );
 
-        bool const is_file = fileinfo.is_file();
-
-        /*if (   (!is_file)
-             | (!fileinfo.is_valid()) )
+        /// make invalid items unselectable
+        if ( !fileinfo.is_valid() )
         {
-            //return Qt::NoItemFlags;
-            return Qt::ItemIsSelectable;
+            /// Has to be NoItemFlags; can't be ItemIsSelectable
+            /// because it doesn't work when user drag selects through
+            /// invalid item.
+            return Qt::NoItemFlags;
 
-        }*/
+        }
+
         return QAbstractTableModel::flags( index );
     }
 };
