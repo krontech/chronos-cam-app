@@ -291,6 +291,7 @@ ExtBrowser::clear_selection()
     ui->extBrowserSelectedCountLabel->setText( "0 files selected" );
     ui->extBrowserOpenButton->setEnabled( false );
     ui->extBrowserDeselectAllButton->setEnabled( false );
+    ui->extBrowserDeleteSelectedButton->setEnabled( false );
 }
 
 void
@@ -347,6 +348,7 @@ ExtBrowser::ExtBrowser(
 
     ui->extBrowserOpenButton->setEnabled( false );
     ui->extBrowserDeselectAllButton->setEnabled( false );
+    ui->extBrowserDeleteSelectedButton->setEnabled( false );
 
     if ( BrowserMode::file_browser == m_mode )
     {
@@ -426,6 +428,28 @@ void ExtBrowser::on_selection_changed(
     }
 
     ui->extBrowserDeselectAllButton->setEnabled( 0 != number_of_selected_elements );
+
+
+    for(
+        int i=0;
+        i < number_of_selected_elements;
+        ++i )
+    {
+        auto const row = index_list.at(i).row();
+
+        auto const& file_info =
+            m_model.get_data().at( row );
+
+        assert ( file_info.is_valid() );
+
+        if ( file_info.is_up_link() )
+        {
+            ui->extBrowserDeleteSelectedButton->setEnabled( false );
+            return;
+        }
+    }
+
+    ui->extBrowserDeleteSelectedButton->setEnabled( 0 != number_of_selected_elements && false == m_current_device.mount_folder.isEmpty() );
 }
 
 void ExtBrowser::on_timer_tick()
@@ -462,3 +486,66 @@ void ExtBrowser::on_extBrowserDeselectAllButton_clicked()
 {
     ui->tableView->clearSelection();
 }
+
+void ExtBrowser::on_extBrowserDeleteSelectedButton_clicked()
+{
+    auto const selection_model = ui->tableView->selectionModel();
+    auto const index_list      = selection_model->selectedRows();
+
+    int const number_of_selected_elements = index_list.length();
+
+    assert ( 0 < number_of_selected_elements );
+    assert ( false == m_current_device.mount_folder.isEmpty() );
+
+    QString folder_path;
+    if ( 0 < m_current_path.size() )
+    {
+        folder_path =
+              QString{'/'}
+            + m_current_path.join( "/" );
+    }
+
+    QString const directory_path =
+          m_current_device.mount_folder
+        + folder_path
+        + QChar{'/'};
+
+    std::string const directory_path_std = directory_path.toStdString();
+
+    std::string command{ "rm -fr " };
+
+    for(
+        int i=0;
+        i < number_of_selected_elements;
+        ++i )
+    {
+        auto const row = index_list.at(i).row();
+
+        auto const& file_info =
+            m_model.get_data().at( row );
+
+        assert ( file_info.is_valid() );
+        assert ( false == file_info.is_up_link() );
+
+        command += '\"';
+        command += directory_path_std;
+        command += file_info.get_name().toStdString();
+        command += "\" ";
+    }
+
+    int status{0};
+
+    QString const rm_output =
+        runCommand(
+            command.c_str(),
+            &status );
+
+    if ( -1 == status )
+    {
+        /// TODO : Failed deleting files!
+    }
+
+    setup_path_and_model_data(
+        MoveDirection::list );
+}
+

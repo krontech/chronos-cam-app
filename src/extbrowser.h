@@ -73,6 +73,7 @@ private slots:
     void on_timer_tick();
     void on_extBrowserOpenButton_clicked();
     void on_extBrowserDeselectAllButton_clicked();
+    void on_extBrowserDeleteSelectedButton_clicked();
 
 private:
     Ui::ExtBrowser*     ui;
