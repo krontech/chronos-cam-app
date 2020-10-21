@@ -121,7 +121,7 @@ compute_file_type(
 
     if ( "mp4" == extension )
     {
-        return "H.264";
+        return "MPEG-4";
     }
 
     if ( "raw" == extension )

@@ -314,6 +314,9 @@ ExtBrowser::ExtBrowser(
     ui->extBrowserClock->display( get_current_time_as_string() );
     m_timer->start(1000);
 
+    ui->extBrowserOpenButton->setEnabled( false );
+    ui->extBrowserDeselectAllButton->setEnabled( false );
+
     if ( BrowserMode::file_browser == m_mode )
     {
         ui->extBrowserSelectButton->hide();
@@ -336,11 +339,11 @@ ExtBrowser::ExtBrowser(
 
     ui->tableView->setModel( &m_model );
 
-    m_delegate.set_model(
+    /*m_delegate.set_model(
         &m_model,
         this );
 
-    ui->tableView->setItemDelegate( &m_delegate );
+    ui->tableView->setItemDelegate( &m_delegate );*/
 
     ui->tableView->setSelectionBehavior( QAbstractItemView::SelectRows );
     ui->tableView->setSelectionMode( QAbstractItemView::MultiSelection );
@@ -376,9 +379,42 @@ void ExtBrowser::on_selection_changed(
     QString const text = QString::number( number_of_selected_elements ) + " files selected";
 
     ui->extBrowserSelectedCountLabel->setText( text );
+
+    ui->extBrowserOpenButton->setEnabled( 1 == number_of_selected_elements );
+    ui->extBrowserDeselectAllButton->setEnabled( 0 != number_of_selected_elements );
 }
 
 void ExtBrowser::on_timer_tick()
 {
     ui->extBrowserClock->display( get_current_time_as_string() );
+}
+
+void ExtBrowser::on_extBrowserOpenButton_clicked()
+{
+    auto const selection_model = ui->tableView->selectionModel();
+    auto const index_list      = selection_model->selectedRows();
+
+    assert ( 1 == index_list.length() );
+
+    auto const row = index_list.at(0).row();
+
+    auto const& file_info =
+        m_model.get_data().at( row );
+
+    MoveDirection direction = MoveDirection::descend;
+    if ( file_info.is_up_link() )
+    {
+        direction = MoveDirection::ascend;
+    } else {
+        assert ( file_info.is_folder() );
+    }
+
+    setup_path_and_model_data(
+        direction,
+        file_info.get_name() );
+}
+
+void ExtBrowser::on_extBrowserDeselectAllButton_clicked()
+{
+    ui->tableView->clearSelection();
 }

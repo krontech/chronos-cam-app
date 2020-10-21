@@ -63,11 +63,13 @@ private slots:
     void on_extBrowserCloseButton_clicked();
     void on_selection_changed(const QItemSelection &, const QItemSelection &);
     void on_timer_tick();
+    void on_extBrowserOpenButton_clicked();
+    void on_extBrowserDeselectAllButton_clicked();
 
 private:
     Ui::ExtBrowser*     ui;
     FileInfoModel       m_model;
-    ExtBrowserDelegate  m_delegate;
+//    ExtBrowserDelegate  m_delegate;
 private:
     QStringList         m_current_path;
     StorageDevice_Info  m_current_device;

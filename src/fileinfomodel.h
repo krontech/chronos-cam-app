@@ -7,6 +7,7 @@
 
 class FileInfoModel : public QAbstractTableModel
 {
+    friend class ExtBrowser;
     friend class ExtBrowserDelegate;
 private:
     QList<FileInfo> m_data;
@@ -116,13 +117,13 @@ public:
 
         bool const is_file = fileinfo.is_file();
 
-        if (   (!is_file)
+        /*if (   (!is_file)
              | (!fileinfo.is_valid()) )
         {
             //return Qt::NoItemFlags;
             return Qt::ItemIsSelectable;
 
-        }
+        }*/
         return QAbstractTableModel::flags( index );
     }
 };
