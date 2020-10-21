@@ -53,6 +53,11 @@ private:
 private:
     void
     update_path_label();
+private:
+    void
+    setup_path_and_model_data_impl (
+            MoveDirection const  direction,
+            QString              file_name = {} );
 public:
     void
     setup_path_and_model_data(

@@ -315,19 +315,15 @@ parse_lsblk_output(
     return storage_devices;
 }
 
-#include <iostream>
-
 void
 get_network_shares(
         QList<StorageDevice_Info>& storage_devices )
 {
-//    FILE * fp;
     FILE * mtab = setmntent("/etc/mtab", "r");
     struct mntent* m;
     struct mntent mnt;
     char strings[4096];		//Temp buffer used by mntent
 
-    //Check for mounted local disks.
     while ((m = getmntent_r(mtab, &mnt, strings, sizeof(strings))))
     {
         if (mnt.mnt_dir == NULL) continue;

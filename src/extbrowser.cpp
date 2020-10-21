@@ -212,85 +212,96 @@ ExtBrowser::update_path_label()
 }
 
 void
+ExtBrowser::setup_path_and_model_data_impl (
+        MoveDirection const  direction,
+        QString              file_name )
+{
+    DeviceAndPathState const state =
+        get_state( direction );
+
+    QList<FileInfo> model_data;
+
+    switch( state )
+    {
+        case DeviceAndPathState::ascend_from_device:
+        {
+            m_current_device = {};
+        }
+
+        case DeviceAndPathState::list_devices:
+        {
+            auto const storage_devices =
+                get_storage_devices();
+
+            for( int i=0; i<storage_devices.size(); ++i )
+            {
+                model_data.append(
+                    {   storage_devices.at(i).label,
+                        true });
+            }
+
+            break;
+        }
+
+        case DeviceAndPathState::descend_to_device:
+        {
+            auto const storage_devices =
+                get_storage_devices();
+
+            for( int i=0; i<storage_devices.size(); ++i )
+            {
+                auto const device = storage_devices.at(i);
+                if ( device.label == file_name )
+                {
+                    m_current_device = device;
+                    break;
+                }
+            }
+
+            file_name.clear();
+        }
+
+        case DeviceAndPathState::browse_device:
+        {
+            QString const ls_output =
+                move_to_folder_and_get_contents(
+                    direction,
+                    file_name );
+
+            model_data =
+                parse_ls_output(
+                    ls_output,
+                    BrowserMode::folder_selector == m_mode );
+
+            break;
+        }
+
+        default: assert ( false );
+    }
+
+    m_model.set_data( model_data );
+
+    update_path_label();
+}
+
+void
 ExtBrowser::setup_path_and_model_data(
         MoveDirection const  direction,
         QString              file_name )
 {
     try
     {
-        DeviceAndPathState const state =
-            get_state( direction );
-
-        QList<FileInfo> model_data;
-
-        switch( state )
-        {
-            case DeviceAndPathState::ascend_from_device:
-            {
-                m_current_device = {};
-            }
-
-            case DeviceAndPathState::list_devices:
-            {
-                auto const storage_devices =
-                    get_storage_devices();
-
-                for( int i=0; i<storage_devices.size(); ++i )
-                {
-                    model_data.append(
-                        {   storage_devices.at(i).label,
-                            true });
-                }
-
-                break;
-            }
-
-            case DeviceAndPathState::descend_to_device:
-            {
-                auto const storage_devices =
-                    get_storage_devices();
-
-                for( int i=0; i<storage_devices.size(); ++i )
-                {
-                    auto const device = storage_devices.at(i);
-                    if ( device.label == file_name )
-                    {
-                        m_current_device = device;
-                        break;
-                    }
-                }
-
-                file_name.clear();
-            }
-
-            case DeviceAndPathState::browse_device:
-            {
-                QString const ls_output =
-                    move_to_folder_and_get_contents(
-                        direction,
-                        file_name );
-
-                model_data =
-                    parse_ls_output(
-                        ls_output,
-                        BrowserMode::folder_selector == m_mode );
-
-                break;
-            }
-
-            default: assert ( false );
-        }
-
-        m_model.set_data( model_data );
-
-        update_path_label();
+        setup_path_and_model_data_impl(
+            direction,
+            file_name );
     }
     catch(...)
     {
         m_current_path      = {};
         m_current_device    = {};
 
-        setup_path_and_model_data( MoveDirection::list );
+        /// this call should never throw!
+        setup_path_and_model_data_impl( MoveDirection::list );
     }
 }
 
