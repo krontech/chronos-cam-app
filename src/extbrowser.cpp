@@ -1,5 +1,6 @@
 #include <QCheckBox>
 #include <QTime>
+#include <QMessageBox>
 #include "extbrowser.h"
 #include "ui_extbrowser.h"
 #include "util.h"
@@ -543,6 +544,20 @@ void ExtBrowser::on_extBrowserDeleteSelectedButton_clicked()
     }
 
     command += ";sync";
+
+    QMessageBox::StandardButton const reply =
+        QMessageBox::question(
+            this,
+            "Warning!",
+                  QString{"Are you sure you want to delete "}
+                + QString::number(number_of_selected_elements)
+                + " files?",
+            QMessageBox::Yes|QMessageBox::No);
+
+    if ( QMessageBox::Yes != reply )
+    {
+        return;
+    }
 
     int status{0};
 
