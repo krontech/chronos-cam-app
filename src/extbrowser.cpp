@@ -542,17 +542,14 @@ void ExtBrowser::on_extBrowserDeleteSelectedButton_clicked()
         command += "\" ";
     }
 
+    command += ";sync";
+
     int status{0};
 
     QString const rm_output =
         runCommand(
             command.c_str(),
             &status );
-
-    if ( -1 == status )
-    {
-        /// TODO : Failed deleting files!
-    }
 
     setup_path_and_model_data(
         MoveDirection::list );
