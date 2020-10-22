@@ -315,6 +315,9 @@ ExtBrowser::setup_path_and_model_data(
     }
 
     clear_selection();
+
+    bool const is_root_folder = m_current_device.mount_folder.isEmpty();
+    ui->extBrowserSelectButton->setEnabled( ! is_root_folder );
 }
 
 static
@@ -332,13 +335,17 @@ get_current_time_as_string()
 }
 
 ExtBrowser::ExtBrowser(
-        BrowserMode const mode,
-        QWidget*          parent
+        BrowserMode const       mode,
+        Camera*                 camInst,
+        Ui::saveSettingsWindow* ui_ssw,
+        QWidget*                parent
     )
-        :   QWidget (parent)
-        ,   ui      (new Ui::ExtBrowser)
-        ,   m_mode  (mode)
-        ,   m_timer (new QTimer(this))
+        :   QWidget                 (parent)
+        ,   ui                      (new Ui::ExtBrowser)
+        ,   camera                  (camInst)
+        ,   ui_save_settings_window (ui_ssw)
+        ,   m_mode                  (mode)
+        ,   m_timer                 (new QTimer(this))
 {
     ui->setupUi(this);
 
@@ -349,6 +356,7 @@ ExtBrowser::ExtBrowser(
     ui->extBrowserOpenButton->setEnabled( false );
     ui->extBrowserDeselectAllButton->setEnabled( false );
     ui->extBrowserDeleteSelectedButton->setEnabled( false );
+    ui->extBrowserSelectButton->setEnabled( false );
 
     if ( BrowserMode::file_browser == m_mode )
     {
@@ -429,7 +437,6 @@ void ExtBrowser::on_selection_changed(
 
     ui->extBrowserDeselectAllButton->setEnabled( 0 != number_of_selected_elements );
 
-
     for(
         int i=0;
         i < number_of_selected_elements;
@@ -449,7 +456,9 @@ void ExtBrowser::on_selection_changed(
         }
     }
 
-    ui->extBrowserDeleteSelectedButton->setEnabled( 0 != number_of_selected_elements && false == m_current_device.mount_folder.isEmpty() );
+    bool const is_root_folder = m_current_device.mount_folder.isEmpty();
+
+    ui->extBrowserDeleteSelectedButton->setEnabled( 0 != number_of_selected_elements && (! is_root_folder) );
 }
 
 void ExtBrowser::on_timer_tick()
@@ -549,3 +558,66 @@ void ExtBrowser::on_extBrowserDeleteSelectedButton_clicked()
         MoveDirection::list );
 }
 
+
+void ExtBrowser::on_extBrowserSelectButton_clicked()
+{
+    assert ( 0 != camera );
+    assert ( 0 != ui_save_settings_window );
+
+    QSettings settings;
+
+    {
+        auto const storage_device   = m_current_device;
+        auto&      combo_device     = *ui_save_settings_window->comboDrive;
+        int  const combo_size       = combo_device.count();
+
+        int index = 0;
+
+        for(
+            ;
+            index < combo_size;
+            ++index )
+        {
+            QString const item = combo_device.itemText( index );
+            if ( item.startsWith( storage_device.mount_folder+QChar{' '} ) )
+            {
+                break;
+            }
+        }
+
+        if ( index >= combo_size )
+        {
+            return;
+        }
+
+        combo_device.setCurrentIndex( index );
+
+        const char * path;
+
+        if(combo_device.isEnabled() && (index >= 0)) {
+            path = combo_device.itemData(index).toString().toAscii().constData();
+        }
+        else {
+            //No valid paths selected
+            path = "";
+        }
+
+        strcpy(camera->cinst->fileDirectory, path);
+        settings.setValue("recorder/fileDirectory", camera->cinst->fileDirectory);
+    }
+
+    {
+        QString const folder_path =
+              m_current_path.join( "/" )
+            + "/";
+
+        std::string const folder_path_std = folder_path.toStdString();
+
+        ui_save_settings_window->lineFoldername->setText( folder_path );
+
+        strcpy(camera->cinst->fileFolder, folder_path_std.c_str());
+        settings.setValue("recorder/fileFolder", camera->cinst->fileFolder);
+    }
+
+    close();
+}

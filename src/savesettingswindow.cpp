@@ -374,7 +374,10 @@ void saveSettingsWindow::updateOverlayCheckboxCheckable(){
 
 void saveSettingsWindow::on_cmdPlayOpenExtBrowser_clicked()
 {
-    ExtBrowser* w = new ExtBrowser( ExtBrowser::BrowserMode::folder_selector );
+    ExtBrowser* w = new ExtBrowser(
+        ExtBrowser::BrowserMode::folder_selector,
+        camera,
+        ui );
 
     w->setAttribute( Qt::WA_DeleteOnClose );
     w->show();

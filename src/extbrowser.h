@@ -1,6 +1,8 @@
 #ifndef EXTBROWSER_H
 #define EXTBROWSER_H
 
+#include "camera.h"
+
 #include <QWidget>
 #include <QTableView>
 #include <QTimer>
@@ -8,6 +10,7 @@
 #include "extbrowserdelegate.h"
 #include "movedirection.h"
 #include "storagedevice_info.h"
+#include "ui_savesettingswindow.h"
 
 namespace Ui {
 class ExtBrowser;
@@ -33,8 +36,10 @@ public:
 public:
     explicit
     ExtBrowser(
-            BrowserMode const mode,
-            QWidget*          parent = 0);
+            BrowserMode const       mode,
+            Camera*                 camInst = 0,
+            Ui::saveSettingsWindow* ui = 0,
+            QWidget*                parent = 0);
     ~ExtBrowser();
 
 private:
@@ -74,16 +79,19 @@ private slots:
     void on_extBrowserOpenButton_clicked();
     void on_extBrowserDeselectAllButton_clicked();
     void on_extBrowserDeleteSelectedButton_clicked();
+    void on_extBrowserSelectButton_clicked();
 
 private:
-    Ui::ExtBrowser*     ui;
-    FileInfoModel       m_model;
+    Ui::ExtBrowser*         ui;
+    FileInfoModel           m_model;
 //    ExtBrowserDelegate  m_delegate;
+    Camera*                 camera;
+    Ui::saveSettingsWindow* ui_save_settings_window;
 private:
-    QStringList         m_current_path;
-    StorageDevice_Info  m_current_device;
-    BrowserMode const   m_mode;
-    QTimer* const       m_timer;
+    QStringList             m_current_path;
+    StorageDevice_Info      m_current_device;
+    BrowserMode const       m_mode;
+    QTimer* const           m_timer;
 };
 
 #endif // EXTBROWSER_H
