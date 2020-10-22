@@ -380,6 +380,11 @@ ExtBrowser::ExtBrowser(
     setup_path_and_model_data( MoveDirection::list );
 
     ui->tableView->setModel( &m_model );
+    ui->tableView->verticalHeader()->hide();
+    ui->tableView->setColumnWidth( 0, 400 );
+    ui->tableView->setColumnWidth( 1, 100 );
+    ui->tableView->setColumnWidth( 2,  90 );
+    ui->tableView->setColumnWidth( 3, 110 );
 
     /*m_delegate.set_model(
         &m_model,
