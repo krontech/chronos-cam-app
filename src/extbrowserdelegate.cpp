@@ -19,9 +19,9 @@ void ExtBrowserDelegate::paint(QPainter *painter, const QStyleOptionViewItem &op
         QRect r = option.rect; //getting the rect of the cell
         int x,y,w,h;
         x = r.left();
-        y = r.top();
-        w = 60; // button width
-        h = 40; // button height
+        y = r.top()+10;
+        w = 30; // button width
+        h = 20; // button height
 
         painter->save();
 
