@@ -12,85 +12,40 @@ ExtBrowserDelegate::ExtBrowserDelegate(QObject *parent)
 
 void ExtBrowserDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
-/*    bool isSelected = option.state & QStyle::State_Selected;
-    std::cout << "D" << index.row() << " " << index.column() << " " << isSelected << std::endl;*/
-
     auto const& file_info =
         m_model->get_data().at( index.row() );
 
-    if(   ( 0 != index.column() )
-        | ( file_info.is_file() )
-        | ( !file_info.is_valid() ))
+    if(   ( 1 == index.column() )
+        & ( !file_info.is_file() ) )
     {
-        QItemDelegate::paint( painter, option, index );
+        QRect r = option.rect;//getting the rect of the cell
+        int x,y,w,h;
+        x = r.left();
+        y = r.top();
+        w = 60; // button width
+        h = 40; // button height
+
+        painter->save();
+
+            painter->drawImage(
+                QRect(x,y,w,h),
+                file_info.is_folder()
+                ?
+                    folder_icon
+                :
+                    folder_icon_up);
+
+        painter->restore();
+
         return;
     }
 
-    QStyleOptionButton button;
-    QRect r = option.rect;//getting the rect of the cell
-    int x,y,w,h;
-    x = r.left();// + r.width() - 30;//the X coordinate
-    y = r.top();//the Y coordinate
-    w = 100;//button width
-    h = 30;//button height
-    button.rect = QRect(x,y,w,h);
-    button.text = file_info.get_name();
-    button.state = QStyle::State_Enabled;
-
-    QApplication::style()->drawControl( QStyle::CE_PushButton, &button, painter);
-}
-
-bool ExtBrowserDelegate::editorEvent(QEvent *event, QAbstractItemModel *model, const QStyleOptionViewItem &option, const QModelIndex &index)
-{
-    //return QItemDelegate::editorEvent(event,model,option,index);
-
-    auto const& file_info =
-        m_model->get_data().at( index.row() );
-
-    if( QEvent::MouseButtonRelease == event->type()
-        && 0==index.column()
-        && !file_info.is_file()
-        && file_info.is_valid() )
-    {
-        QMouseEvent * e = (QMouseEvent *)event;
-        int clickX = e->x();
-        int clickY = e->y();
-
-        QRect r = option.rect;//getting the rect of the cell
-        int x,y,w,h;
-        x = r.left();// + r.width() - 30;//the X coordinate
-        y = r.top();//the Y coordinate
-        w = 100;//button width
-        h = 30;//button height
-
-        if( clickX > x && clickX < x + w )
-            if( clickY > y && clickY < y + h )
-            {
-                MoveDirection direction = MoveDirection::descend;
-                if ( file_info.is_up_link() )
-                {
-                    direction = MoveDirection::ascend;
-                } else {
-                    assert ( file_info.is_folder() );
-                }
-
-                m_browser->setup_path_and_model_data(
-                    direction,
-                    file_info.get_name() );
-            }
-        return true;
-    }
-
-    return QItemDelegate::editorEvent(event,model,option,index);
-
-    return true;
+    QItemDelegate::paint( painter, option, index );
 }
 
 void
 ExtBrowserDelegate::set_model(
-        FileInfoModel* const model,
-        ExtBrowser*    const browser )
+        FileInfoModel* const model )
 {
     m_model     = model;
-    m_browser   = browser;
 }

@@ -84,7 +84,7 @@ private slots:
 private:
     Ui::ExtBrowser*         ui;
     FileInfoModel           m_model;
-//    ExtBrowserDelegate  m_delegate;
+    ExtBrowserDelegate      m_delegate;
     Camera*                 camera;
     Ui::saveSettingsWindow* ui_save_settings_window;
 private:

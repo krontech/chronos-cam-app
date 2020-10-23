@@ -381,16 +381,23 @@ ExtBrowser::ExtBrowser(
 
     ui->tableView->setModel( &m_model );
     ui->tableView->verticalHeader()->hide();
-    ui->tableView->setColumnWidth( 0, 400 );
-    ui->tableView->setColumnWidth( 1, 100 );
-    ui->tableView->setColumnWidth( 2,  90 );
-    ui->tableView->setColumnWidth( 3, 110 );
+    ui->tableView->setColumnWidth( 0, 430 );
+    ui->tableView->setColumnWidth( 1,  80 );
+    ui->tableView->setColumnWidth( 2,  80 );
+    ui->tableView->setColumnWidth( 3, 125 );
 
-    /*m_delegate.set_model(
-        &m_model,
-        this );
+    m_delegate.set_model(
+        &m_model );
 
-    ui->tableView->setItemDelegate( &m_delegate );*/
+    ui->tableView->setAlternatingRowColors(true);
+    ui->tableView->setHorizontalScrollBarPolicy( Qt::ScrollBarAlwaysOff );
+    ui->tableView->setShowGrid(false);
+
+    QHeaderView* verticalHeader = ui->tableView->verticalHeader();
+    verticalHeader->setResizeMode(QHeaderView::Fixed);
+    verticalHeader->setDefaultSectionSize(40);
+
+    ui->tableView->setItemDelegate( &m_delegate );
 
     ui->tableView->setSelectionBehavior( QAbstractItemView::SelectRows );
     ui->tableView->setSelectionMode( QAbstractItemView::MultiSelection );

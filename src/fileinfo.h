@@ -45,7 +45,7 @@ public:
 private:
     explicit
     FileInfo()
-        :   m_name      ("Up")
+        :   m_name      ("..")
         ,   m_type      (Type::up_link)
         ,   m_is_valid  (true)
     {}

@@ -636,5 +636,27 @@ QProgressBar::chunk {
 }
 
 
+QTableView {
+    background-color:#eee;
+    alternate-background-color:#e7e7e7;
+    color:black;
+    font-size:16px;
+    border:none;
+    outline:none;
+}
+QTableView QScrollBar::vertical
+{
+    background: #bbb;
+    box-sizing: border-box;
+    border-left: 12px solid #ddd;
+    border-right: 12px solid #ddd;
+    outline: none;
+}
+QTableView QHeaderView {
+    background-color:#fff;
+    color:#666;
+    font-size:14px;
+}
+
 
 
