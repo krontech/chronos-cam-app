@@ -6,9 +6,9 @@
 #include "util.h"
 #include "extbrowserparser.h"
 
-/// methods
+/// Assembles path to the descending folder
 static
-QString
+void
 assemble_path_down(
         QStringList const&  current_path,
         QStringList      &  new_path,
@@ -20,13 +20,13 @@ assemble_path_down(
     {
         new_path.append( folder_to_descend_to );
     }
-
-    return
-          new_path.join( "/" );
 }
 
+/// Assembles path to the ascending folder
+///
+/// Folder to ascend to is the last folder in the current_path.
 static
-QString
+void
 assemble_path_up(
         QStringList const&  current_path,
         QStringList      &  new_path )
@@ -37,23 +37,23 @@ assemble_path_up(
 
     new_path = current_path;
     new_path.pop_back();
-
-    return
-          new_path.join( "/" );
 }
 
+/// Assembles path to the current folder
 static
-QString
+void
 assemble_path_list(
         QStringList const&  current_path,
         QStringList      &  new_path )
 {
     new_path = current_path;
-
-    return
-          new_path.join( "/" );
 }
 
+/// Assembles path to the target folder
+///
+/// Returns the path as a string and fills the new_path
+/// list, but doesn't update current_path; that will happen
+/// later only if 'ls' system call doesn't fail.
 static
 QString
 assemble_path(
@@ -64,31 +64,41 @@ assemble_path(
 {
     switch( direction )
     {
+        /// folder has been opened
         case MoveDirection::descend:
-            return
-                assemble_path_down(
-                    current_path,
-                    new_path,
-                    folder_to_descend_to );
+            assemble_path_down(
+                current_path,
+                new_path,
+                folder_to_descend_to );
+            break;
 
+        /// up link has been opened
         case MoveDirection::ascend:
-            return
-                assemble_path_up(
-                    current_path,
-                    new_path );
+            assemble_path_up(
+                current_path,
+                new_path );
+            break;
 
+        /// just listing the contents of the current folder
         case MoveDirection::list:
-            return
-                assemble_path_list(
-                    current_path,
-                    new_path );
+            assemble_path_list(
+                current_path,
+                new_path );
+            break;
+
+        default:
+            assert (false);
     }
 
-    assert (false);
-
-    return {};
+    return
+        new_path.join( "/" );
 }
 
+/// Gets block storage devices (USB and eSATA external drives and SD cards)
+///
+/// This must not fail; there's no real handling. And this function
+/// doesn't throw. If things do go wrong nothing particulary bad will
+/// happen - no devices will be listed.
 static
 QList<StorageDevice_Info>
 get_nonnetwork_storage_devices()
@@ -112,6 +122,7 @@ get_nonnetwork_storage_devices()
         parse_lsblk_output( lsblk_output );
 }
 
+/// Get all storage devices - block devices and network devices
 static
 QList<StorageDevice_Info>
 get_storage_devices()
@@ -227,6 +238,8 @@ ExtBrowser::setup_path_and_model_data_impl (
         case DeviceAndPathState::ascend_from_device:
         {
             m_current_device = {};
+
+            /// fallthrough
         }
 
         case DeviceAndPathState::list_devices:
@@ -260,6 +273,8 @@ ExtBrowser::setup_path_and_model_data_impl (
             }
 
             file_name.clear();
+
+            /// fallthrough
         }
 
         case DeviceAndPathState::browse_device:
@@ -321,6 +336,7 @@ ExtBrowser::setup_path_and_model_data(
     ui->extBrowserSelectButton->setEnabled( ! is_root_folder );
 }
 
+/// Formats the current time as a string
 static
 QString
 get_current_time_as_string()
@@ -341,19 +357,21 @@ ExtBrowser::ExtBrowser(
         Ui::saveSettingsWindow* ui_ssw,
         QWidget*                parent
     )
-        :   QWidget                 (parent)
-        ,   ui                      (new Ui::ExtBrowser)
-        ,   camera                  (camInst)
-        ,   ui_save_settings_window (ui_ssw)
-        ,   m_mode                  (mode)
-        ,   m_timer                 (new QTimer(this))
+    :   QWidget                 (parent)
+    ,   ui                      (new Ui::ExtBrowser)
+    ,   camera                  (camInst)
+    ,   ui_save_settings_window (ui_ssw)
+    ,   m_mode                  (mode)
+    ,   m_timer                 (new QTimer(this))
 {
     ui->setupUi(this);
 
+    /// setup clock
     connect(m_timer, SIGNAL(timeout()), this, SLOT(on_timer_tick()));
     ui->extBrowserClock->setText( QString{"Current time: "} + get_current_time_as_string() );
     m_timer->start(1000);
 
+    /// enable/disable GUI elements depending on the mode (folder selection / browsing)
     ui->extBrowserOpenButton->setEnabled( false );
     ui->extBrowserDeselectAllButton->setEnabled( false );
     ui->extBrowserDeleteSelectedButton->setEnabled( false );
@@ -372,22 +390,23 @@ ExtBrowser::ExtBrowser(
         ui->extBrowserSelectedCountLabel->hide();
     }
 
+    /// window setup
     this->setWindowFlags(Qt::Dialog | Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
     this->move(0,0);
 
     assert ( m_current_device.mount_folder.isEmpty() );
 
+    /// fill model data
     setup_path_and_model_data( MoveDirection::list );
 
     ui->tableView->setModel( &m_model );
+
+    /// style the table
     ui->tableView->verticalHeader()->hide();
     ui->tableView->setColumnWidth( 0, 430 );
     ui->tableView->setColumnWidth( 1,  80 );
     ui->tableView->setColumnWidth( 2,  80 );
     ui->tableView->setColumnWidth( 3, 125 );
-
-    m_delegate.set_model(
-        &m_model );
 
     ui->tableView->setAlternatingRowColors(true);
     ui->tableView->setHorizontalScrollBarPolicy( Qt::ScrollBarAlwaysOff );
@@ -397,8 +416,13 @@ ExtBrowser::ExtBrowser(
     verticalHeader->setResizeMode(QHeaderView::Fixed);
     verticalHeader->setDefaultSectionSize(40);
 
+    /// set model and delegate
+    m_delegate.set_model(
+        &m_model );
+
     ui->tableView->setItemDelegate( &m_delegate );
 
+    /// setup selection behaviour
     ui->tableView->setSelectionBehavior( QAbstractItemView::SelectRows );
     ui->tableView->setSelectionMode( QAbstractItemView::MultiSelection );
 
@@ -450,6 +474,8 @@ void ExtBrowser::on_selection_changed(
 
     ui->extBrowserDeselectAllButton->setEnabled( 0 != number_of_selected_elements );
 
+    /// if any of the items selected is the 'Up folder'
+    /// disable the delete button
     for(
         int i=0;
         i < number_of_selected_elements;
@@ -536,6 +562,7 @@ void ExtBrowser::on_extBrowserDeleteSelectedButton_clicked()
 
     std::string command{ "rm -fr " };
 
+    /// format the delete command
     for(
         int i=0;
         i < number_of_selected_elements;
@@ -555,8 +582,10 @@ void ExtBrowser::on_extBrowserDeleteSelectedButton_clicked()
         command += "\" ";
     }
 
+    /// need to flush the storage buffers
     command += ";sync";
 
+    /// query user for confirmation
     QMessageBox::StandardButton const reply =
         QMessageBox::question(
             this,
@@ -573,6 +602,8 @@ void ExtBrowser::on_extBrowserDeleteSelectedButton_clicked()
 
     int status{0};
 
+    /// Delete files.
+    /// It doesn't matter if it fails.
     QString const rm_output =
         runCommand(
             command.c_str(),
@@ -587,9 +618,11 @@ void ExtBrowser::on_extBrowserSelectButton_clicked()
 {
     assert ( 0 != camera );
     assert ( 0 != ui_save_settings_window );
+    assert ( ! m_current_device.mount_folder.isEmpty() );
 
     QSettings settings;
 
+    /// select the device
     {
         auto const storage_device   = m_current_device;
         auto&      combo_device     = *ui_save_settings_window->comboDrive;
@@ -597,6 +630,7 @@ void ExtBrowser::on_extBrowserSelectButton_clicked()
 
         int index = 0;
 
+        /// find the index of the current device in the comboBox list
         for(
             ;
             index < combo_size;
@@ -630,6 +664,7 @@ void ExtBrowser::on_extBrowserSelectButton_clicked()
         settings.setValue("recorder/fileDirectory", camera->cinst->fileDirectory);
     }
 
+    /// select the folder
     {
         QString const folder_path =
               m_current_path.join( "/" )

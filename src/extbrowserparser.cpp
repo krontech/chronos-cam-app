@@ -7,6 +7,7 @@
 #include "storagedevice_info.h"
 #include "defines.h"
 
+/// Add 'Up' link to the files listing.
 static
 void
 add_shortcut_to_parent_folder(
@@ -16,6 +17,7 @@ add_shortcut_to_parent_folder(
         FileInfo::make_shortcut_to_parent_folder() );
 }
 
+/// Due to flags passed to 'ls' folders end with '/'
 static
 bool
 check_if_folder(
@@ -26,6 +28,10 @@ check_if_folder(
     return QChar('/') == line.at( line.size()-1 );
 }
 
+/// Remove '"' from beginning/end of file names
+/// and '/' from the end of folder names.
+///
+/// Due to flags passed to 'ls' file names are enveloped in quotes.
 static
 void
 trim_string(
@@ -58,6 +64,8 @@ trim_string(
             1 );
 }
 
+/// Join the space separated parts of file name and trim
+/// the resulting string.
 static
 QString
 compute_file_name(
@@ -91,6 +99,8 @@ compute_file_name(
     return ret;
 }
 
+/// Handles unicode characters by marking them as invalid.
+/// Unicode is NOT SUPPORTED!
 static
 bool
 check_if_filename_valid(
@@ -100,6 +110,7 @@ check_if_filename_valid(
         -1 == file_name.indexOf( QChar('?') );
 }
 
+/// Hardcoded pretty names for Chronos supported file types.
 static
 QString
 compute_file_type(
@@ -149,6 +160,7 @@ compute_file_size(
     return tokens.at( 2 );
 }
 
+/// formats file time string
 static
 QString
 compute_file_time(
@@ -160,6 +172,25 @@ compute_file_time(
         +tokens.at( 5 );
 }
 
+/// Example ls output:
+///
+/// total 576M
+/// drwxr-xr-x 2  16K Oct 18  2020 "folder of tiffs"/
+/// drwxr-xr-x 3  16K Oct 18  2020 "nested_folder"/
+/// drwxr-xr-x 2  16K Oct 18  2020 "empty_folder"/
+/// -rwxr-xr-x 1 4.9K Oct 18  2020 "vid_2020-09-11_23-24_25.mp4"
+/// -rwxr-xr-x 1 4.9K Oct 18  2020 "vid_2020-09-23_07-19_01.mp4"
+/// -rwxr-xr-x 1 4.9K Oct 18  2020 "vid_2020-09-23_10-33_11.mp4"
+/// -rwxr-xr-x 1    0 Oct 18  2020 "unredable.mp4"
+/// -r-xr-xr-x 1    0 Oct 18  2020 "undeletable.mp4"
+/// -rwxr-xr-x 1    0 Oct 18  2020 "???.mp4"
+/// -rwxr-xr-x 1    0 Oct 18  2020 "???.mp4"
+/// -rwxr-xr-x 1   12 Oct 18  2020 "spaces in name.mp4"
+/// -rwxr-xr-x 1   18 Oct 18  2020 "another_file"
+/// -rwxr-xr-x 1    5 Oct 18  2020 "someFile.txt"
+/// -rwxr-xr-x 1 115M May  5 16:53 "vid_2015-05-05_16-52-04.mp4"
+/// -rwxr-xr-x 1 199M May  5 16:38 "vid_2015-05-05_16-36-25.mp4"
+/// -rwxr-xr-x 1 263M May  5 16:27 "vid_2015-05-05_16-24-30.mp4"
 QList<FileInfo>
 parse_ls_output(
         QString const&  ls_output,
@@ -243,6 +274,9 @@ has_label(
     return 3 == tokens_count;
 }
 
+/// External USB and eSATA drives might not have label. This function
+/// generates informative name for the drive containing drive vandor,
+/// model and partition size.
 static
 QString
 compute_name_string_for_unnamed_HD(
@@ -251,16 +285,16 @@ compute_name_string_for_unnamed_HD(
     std::string const device = mount_point.mid( 7, 3 ).toStdString();
 
     unsigned int len;
-    char model[256];		//Stores model name of sd* device
-    char vendor[256];		//Stores vendor of sd* device
+    char model[256];
+    char vendor[256];
     char modelPath[256];
     char vendorPath[256];
 
-    //Produce the paths to read the model and vendor strings
+    // Produce the paths to read the model and vendor strings
     sprintf(modelPath, "/sys/block/%s/device/model", device.c_str() );
     sprintf(vendorPath, "/sys/block/%s/device/vendor", device.c_str() );
 
-    //Read the model and vendor strings for this block device
+    // Read the model and vendor strings for this block device
     FILE * fp = fopen(modelPath, "r");
     if(fp)
     {
@@ -294,12 +328,18 @@ compute_name_string_for_unnamed_HD(
     return label;
 }
 
+/// Example lsblk output:
+///
+/// /media/mmcblk1p1 14.7G SANJAYSSD
+/// /media/mmcblk1p2 9.7G AnotherP
+/// /media/mmcblk1p3 5.4G
 QList<StorageDevice_Info>
 parse_lsblk_output(
         QString const& lsblk_output )
 {
     QList<StorageDevice_Info> storage_devices;
 
+    /// we might have no devices connected; that's legal
     if ( 0 == lsblk_output.length() )
     {
         return storage_devices;
@@ -381,13 +421,12 @@ get_network_shares(
     FILE * mtab = setmntent("/etc/mtab", "r");
     struct mntent* m;
     struct mntent mnt;
-    char strings[4096];		//Temp buffer used by mntent
+    char strings[4096];
 
     while ((m = getmntent_r(mtab, &mnt, strings, sizeof(strings))))
     {
         if (mnt.mnt_dir == NULL) continue;
 
-        /* It might also be a network share. */
         if (   (0 == strcmp(mnt.mnt_dir, SMB_STORAGE_MOUNT))
             || (0 == strcmp(mnt.mnt_dir, NFS_STORAGE_MOUNT)))
         {

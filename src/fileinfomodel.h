@@ -41,7 +41,7 @@ public:
         {
             return {};
         }
-        const auto& file_info = m_data[index.row()];
+        auto const& file_info = m_data[index.row()];
         switch (index.column())
         {
             case 0: return file_info.get_name();

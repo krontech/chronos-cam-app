@@ -6,6 +6,8 @@
 #include "fileinfo.h"
 #include "storagedevice_info.h"
 
+/// Parses the string containing the output of 'ls' system call.
+/// @hide_regular_files: In folder selection mode only folders are shown.
 QList<FileInfo>
 parse_ls_output(
         QString const&  ls_output,

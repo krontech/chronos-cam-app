@@ -1,9 +1,14 @@
 #ifndef FILEINFO
 #define FILEINFO
 
+#include <QString>
+
+/// Holds display information about item of table view; device, file, folder, move-to-folder-up-link.
 class FileInfo final
 {
 private:
+    /// Types of representable files.
+    /// Devices are treated as folders.
     enum class Type : unsigned int {
         file,
         folder,
@@ -12,13 +17,14 @@ private:
 
 private:
     QString    m_name{};
-    QString    m_file_type{};
-    QString    m_size{};
+    QString    m_file_type{};   /// Type of the regular file (MPEEMPEG-4, TIFF, DNG...)
+    QString    m_size{};        /// Last modification time of the file.
     QString    m_time{};
-    Type       m_type;
-    bool       m_is_valid;
+    Type       m_type;          /// Type of the item this instance represents (file, folder, up-link).
+    bool       m_is_valid;      /// Files/Folders with unicode names are NOT SUPPORTED.
 
 public:
+    /// Regular file constructor
     FileInfo(
             QString const&  name,
             QString const&  type,
@@ -34,6 +40,7 @@ public:
         ,   m_is_valid  (is_valid)
     {}
 public:
+    /// Folder constructor
     FileInfo(
             QString const&  name,
             bool    const   is_valid
@@ -43,6 +50,7 @@ public:
         ,   m_is_valid  (is_valid)
     {}
 private:
+    /// Up-link constructor
     explicit
     FileInfo()
         :   m_name      ("..")
@@ -51,6 +59,8 @@ private:
     {}
 
 public:
+    /// Up-link constructor has no parameters but
+    /// we don't want default constructor to create up-link.
     static
     FileInfo
     make_shortcut_to_parent_folder()

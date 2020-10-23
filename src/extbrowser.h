@@ -21,6 +21,12 @@ class ExtBrowser : public QWidget
     Q_OBJECT
 
 private:
+    /// The state of the device/folder/direction combo.
+    /// Devices are presented as a folder, although they are not,
+    /// and some special handling is needed when crossing the boundary.
+    ///
+    /// Two members need to be updated: m_current_device and m_current_path.
+    /// This enum helps simplify the state keeping.
     enum class DeviceAndPathState : unsigned int {
         list_devices,
         descend_to_device,
@@ -29,11 +35,21 @@ private:
     };
 
 public:
+    /// External storage browser is configurable (but not extendable).
+    /// It comes in the modes: folder selection mode (for picking
+    /// device/folder) and browsing mode (for confirming the data was
+    /// actually written to storage and deleting files).
     enum class BrowserMode : unsigned int {
         folder_selector,
         file_browser
     };
 public:
+    /// Constructor
+    ///
+    /// The mode of the external storage browser is selected by arguments
+    /// passed to the constructor; only mode argument -> browsing mode.
+    /// Add to that camera instance and saveSettingsWindow ui -> folder
+    /// selection mode.
     explicit
     ExtBrowser(
             BrowserMode const       mode,
@@ -43,30 +59,52 @@ public:
     ~ExtBrowser();
 
 private:
+    /// After all system calls have been complited successfully,
+    /// update the current path.
     void
     update_current_path(
             QStringList& new_path );
 private:
+    /// Get the contents of the folder (as a string containing
+    /// the output of 'ls' system call) and possibly move to a
+    /// different folder.
+    ///
+    /// This method might throw if 'ls' fails.
     QString
     move_to_folder_and_get_contents(
             MoveDirection   const   direction,
             QString         const&  folder_to_descend_to = {} );
 private:
+    /// Get the state of the device/folder/direction combo.
+    /// Devices are presented as a folder, although they are not,
+    /// and some special handling is needed when crossing the boundary.
     DeviceAndPathState
     get_state(
             MoveDirection const  direction);
 private:
+    /// Updates the 'path' label on the GUI
     void
     update_path_label();
 private:
+    /// When current folder is changed the selection releated GUI elements
+    /// are not updated automatically. This method does it manually.
     void
     clear_selection();
 private:
+    /// Updates current device/folder (based on input) and fills model data
+    /// with the contents of the current folder.
+    ///
+    /// May throw.
     void
     setup_path_and_model_data_impl (
             MoveDirection const  direction,
             QString              file_name = {} );
 public:
+    /// Updates current device/folder (based on input) and fills model data
+    /// with the contents of the current folder.
+    ///
+    /// Never throws. On 'ls' failure (which might happen if the current device
+    /// is ejected mid browsing) resets to the 'top' and lists devices.
     void
     setup_path_and_model_data(
             MoveDirection const     direction,

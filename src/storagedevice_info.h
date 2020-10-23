@@ -3,6 +3,7 @@
 
 #include <QString>
 
+/// Information about the storage device
 class StorageDevice_Info
 {
 public:

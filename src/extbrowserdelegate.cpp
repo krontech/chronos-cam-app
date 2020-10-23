@@ -1,24 +1,22 @@
 #include <QtGui>
 #include "extbrowserdelegate.h"
 #include "fileinfomodel.h"
-#include "extbrowser.h"
-#include "movedirection.h"
 
 ExtBrowserDelegate::ExtBrowserDelegate(QObject *parent)
     : QItemDelegate(parent)
 {
 }
 
-
 void ExtBrowserDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
     auto const& file_info =
         m_model->get_data().at( index.row() );
 
+    /// if it's 'file type' column and it's a folder draw the icons
     if(   ( 1 == index.column() )
         & ( !file_info.is_file() ) )
     {
-        QRect r = option.rect;//getting the rect of the cell
+        QRect r = option.rect; //getting the rect of the cell
         int x,y,w,h;
         x = r.left();
         y = r.top();
