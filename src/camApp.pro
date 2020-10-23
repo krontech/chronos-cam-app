@@ -93,7 +93,10 @@ SOURCES += main.cpp\
     control.cpp \
     myinputpanel.cpp \
     eeprom.c \
-    networkconfig.cpp
+    networkconfig.cpp \
+    extbrowser.cpp \
+    extbrowserdelegate.cpp \
+    extbrowserparser.cpp
 
 ## Generate version.cpp on every build
 versionTarget.target = version.cpp
@@ -144,7 +147,14 @@ HEADERS  += mainwindow.h \
     ui_myinputpanelform.h \
     control.h \
     eeprom.h \
-    networkconfig.h
+    networkconfig.h \
+    extbrowser.h \
+    fileinfo.h \
+    fileinfomodel.h \
+    extbrowserdelegate.h \
+    movedirection.h \
+    extbrowserparser.h \
+    storagedevice_info.h
 
 FORMS    += mainwindow.ui \
     cammainwindow.ui \
@@ -160,7 +170,8 @@ FORMS    += mainwindow.ui \
     triggerdelaywindow.ui \
     keyboardnumeric.ui \
     whitebalancedialog.ui \
-    colorwindow.ui
+    colorwindow.ui \
+    extbrowser.ui
 
 RESOURCES += \
     Images.qrc

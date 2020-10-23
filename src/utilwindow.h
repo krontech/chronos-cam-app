@@ -155,6 +155,8 @@ private slots:
 	void on_lineStaticGwPart4_editingFinished();
 	void on_chkUiOnLeft_clicked();
 
+    void on_cmdUtilOpenExtBrowser_clicked();
+
 private:
 	Ui::UtilWindow *ui;
 	Camera * camera;
