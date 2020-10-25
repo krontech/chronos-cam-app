@@ -666,9 +666,13 @@ void ExtBrowser::on_extBrowserSelectButton_clicked()
 
     /// select the folder
     {
-        QString const folder_path =
-              m_current_path.join( "/" )
-            + "/";
+        QString folder_path =
+              m_current_path.join( "/" );
+
+        if ( ! folder_path.isEmpty() )
+        {
+            folder_path += QChar{'/'};
+        }
 
         std::string const folder_path_std = folder_path.toStdString();
 
