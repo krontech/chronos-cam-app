@@ -17,7 +17,6 @@
 #include <QList>
 #include <QString>
 #include <QStringList>
-#include <cassert>
 #include <mntent.h>
 #include "fileinfo.h"
 #include "storagedevice_info.h"
@@ -39,7 +38,7 @@ bool
 check_if_folder(
         QString const& line )
 {
-    assert( 0 < line.size() );
+    Q_ASSERT ( 0 < line.size() );
 
     return QChar('/') == line.at( line.size()-1 );
 }
@@ -54,8 +53,8 @@ trim_string(
         QString&    ret,
         bool const  is_folder )
 {
-    assert ( 0 < ret.length() );
-    assert ( QChar('"') == ret.at( 0 ) );
+    Q_ASSERT ( 0 < ret.length() );
+    Q_ASSERT ( QChar('"') == ret.at( 0 ) );
 
     ret = ret.remove( 0, 1 );
 
@@ -63,13 +62,13 @@ trim_string(
 
     if ( is_folder )
     {
-    assert (  1 < ret_length );
-    assert (  QChar('/')==ret.at(ret_length-1) && QChar('"')==ret.at(ret_length-2) );
+    Q_ASSERT (  1 < ret_length );
+    Q_ASSERT (  QChar('/')==ret.at(ret_length-1) && QChar('"')==ret.at(ret_length-2) );
     }
     else
     {
-    assert ( 0 < ret_length );
-    assert ( QChar('"')==ret.at(ret_length-1) );
+    Q_ASSERT ( 0 < ret_length );
+    Q_ASSERT ( QChar('"')==ret.at(ret_length-1) );
     }
 
     ret.chop(
@@ -90,9 +89,9 @@ compute_file_name(
 {
     auto const line_length = line.length();
 
-    assert ( 7 <= line_length );
-    assert ( 0 < line.at(6).size() );
-    assert ( QChar('"') == line.at(6).at(0) );
+    Q_ASSERT ( 7 <= line_length );
+    Q_ASSERT ( 0 < line.at(6).size() );
+    Q_ASSERT ( QChar('"') == line.at(6).at(0) );
 
     auto const line_length_m1 = line_length - 1;
 
@@ -229,8 +228,8 @@ parse_ls_output(
 
     auto const line_count = output_lines.size();
 
-    assert ( 0 < line_count );
-    assert ( output_lines.at(0).startsWith( "total", Qt::CaseInsensitive ) );
+    Q_ASSERT ( 0 < line_count );
+    Q_ASSERT ( output_lines.at(0).startsWith( "total", Qt::CaseInsensitive ) );
 
     ret.reserve( line_count - 1 );
 
@@ -368,7 +367,7 @@ parse_lsblk_output(
 
     auto const line_count = output_lines.size();
 
-    assert ( 0 < line_count );
+    Q_ASSERT ( 0 < line_count );
 
     storage_devices.reserve( line_count );
 
@@ -386,7 +385,7 @@ parse_lsblk_output(
 
         auto const tokens_count = tokens.size();
 
-        assert ( 2 <= tokens_count && 3 >= tokens_count );
+        Q_ASSERT ( 2 <= tokens_count && 3 >= tokens_count );
 
         QString const& mount_folder     = tokens.at(0);
         QString const& storage_capacity = tokens.at(1);

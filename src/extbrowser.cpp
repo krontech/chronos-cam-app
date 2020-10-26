@@ -49,7 +49,7 @@ assemble_path_up(
 {
     auto const current_path_length = current_path.length();
 
-    assert ( 0 < current_path_length );
+    Q_ASSERT ( 0 < current_path_length );
 
     new_path = current_path;
     new_path.pop_back();
@@ -103,7 +103,7 @@ assemble_path(
             break;
 
         default:
-            assert (false);
+            Q_ASSERT (false);
     }
 
     return
@@ -172,7 +172,7 @@ ExtBrowser::move_to_folder_and_get_contents(
             folder_to_descend_to,
             direction );
 
-    assert ( !m_current_device.mount_folder.isEmpty() );
+    Q_ASSERT ( !m_current_device.mount_folder.isEmpty() );
 
     std::string const command =
          (QString{ "ls -BghopqQt --group-directories-first" }
@@ -308,7 +308,7 @@ ExtBrowser::setup_path_and_model_data_impl (
             break;
         }
 
-        default: assert ( false );
+        default: Q_ASSERT ( false );
     }
 
     m_model.set_data( model_data );
@@ -410,7 +410,7 @@ ExtBrowser::ExtBrowser(
     this->setWindowFlags(Qt::Dialog | Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
     this->move(0,0);
 
-    assert ( m_current_device.mount_folder.isEmpty() );
+    Q_ASSERT ( m_current_device.mount_folder.isEmpty() );
 
     /// fill model data
     setup_path_and_model_data( MoveDirection::list );
@@ -502,7 +502,7 @@ void ExtBrowser::on_selection_changed(
         auto const& file_info =
             m_model.get_data().at( row );
 
-        assert ( file_info.is_valid() );
+        Q_ASSERT ( file_info.is_valid() );
 
         if ( file_info.is_up_link() )
         {
@@ -526,7 +526,7 @@ void ExtBrowser::on_extBrowserOpenButton_clicked()
     auto const selection_model = ui->tableView->selectionModel();
     auto const index_list      = selection_model->selectedRows();
 
-    assert ( 1 == index_list.length() );
+    Q_ASSERT ( 1 == index_list.length() );
 
     auto const row = index_list.at(0).row();
 
@@ -538,7 +538,7 @@ void ExtBrowser::on_extBrowserOpenButton_clicked()
     {
         direction = MoveDirection::ascend;
     } else {
-        assert ( file_info.is_folder() );
+        Q_ASSERT ( file_info.is_folder() );
     }
 
     setup_path_and_model_data(
@@ -558,8 +558,8 @@ void ExtBrowser::on_extBrowserDeleteSelectedButton_clicked()
 
     int const number_of_selected_elements = index_list.length();
 
-    assert ( 0 < number_of_selected_elements );
-    assert ( false == m_current_device.mount_folder.isEmpty() );
+    Q_ASSERT ( 0 < number_of_selected_elements );
+    Q_ASSERT ( false == m_current_device.mount_folder.isEmpty() );
 
     QString folder_path;
     if ( 0 < m_current_path.size() )
@@ -589,8 +589,8 @@ void ExtBrowser::on_extBrowserDeleteSelectedButton_clicked()
         auto const& file_info =
             m_model.get_data().at( row );
 
-        assert ( file_info.is_valid() );
-        assert ( false == file_info.is_up_link() );
+        Q_ASSERT ( file_info.is_valid() );
+        Q_ASSERT ( false == file_info.is_up_link() );
 
         command += '\"';
         command += directory_path_std;
@@ -632,9 +632,9 @@ void ExtBrowser::on_extBrowserDeleteSelectedButton_clicked()
 
 void ExtBrowser::on_extBrowserSelectButton_clicked()
 {
-    assert ( 0 != camera );
-    assert ( 0 != ui_save_settings_window );
-    assert ( ! m_current_device.mount_folder.isEmpty() );
+    Q_ASSERT ( 0 != camera );
+    Q_ASSERT ( 0 != ui_save_settings_window );
+    Q_ASSERT ( ! m_current_device.mount_folder.isEmpty() );
 
     QSettings settings;
 

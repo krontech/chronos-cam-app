@@ -19,7 +19,6 @@
  ****************************************************************************/
 
 #include <QAbstractTableModel>
-#include <cassert>
 #include "fileinfo.h"
 
 class FileInfoModel : public QAbstractTableModel
@@ -67,7 +66,7 @@ public:
             case 3: return file_info.get_time();
         };
 
-        assert( false );
+        Q_ASSERT ( false );
 
         return {};
     }
@@ -96,7 +95,7 @@ public:
             case 3: return "Time";
         }
 
-        assert( false );
+        Q_ASSERT ( false );
 
         return {};
     }
