@@ -27,6 +27,7 @@
 #include "ui_savesettingswindow.h"
 #include "util.h"
 #include "video.h"
+#include "extbrowser.h"
 
 #include <cstring>
 
@@ -369,4 +370,15 @@ void saveSettingsWindow::updateOverlayCheckboxCheckable(){
 	else
 		ui->chkEnableOverlay->setEnabled(false);
 
+}
+
+void saveSettingsWindow::on_cmdPlayOpenExtBrowser_clicked()
+{
+    ExtBrowser* w = new ExtBrowser(
+        ExtBrowser::BrowserMode::folder_selector,
+        camera,
+        ui );
+
+    w->setAttribute( Qt::WA_DeleteOnClose );
+    w->show();
 }

@@ -1,5 +1,8 @@
+#ifndef EXTBROWSERDELEGATE_H
+#define EXTBROWSERDELEGATE_H
+
 /****************************************************************************
- *  Copyright (C) 2013-2017 Kron Technologies Inc <http://www.krontech.ca>. *
+ *  Copyright (C) 2013-2020 Kron Technologies Inc <http://www.krontech.ca>. *
  *                                                                          *
  *  This program is free software: you can redistribute it and/or modify    *
  *  it under the terms of the GNU General Public License as published by    *
@@ -14,22 +17,31 @@
  *  You should have received a copy of the GNU General Public License       *
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.   *
  ****************************************************************************/
-#ifndef DEFINES_H
-#define DEFINES_H
 
-#define RAM_SPD_I2C_BUS_FILE		"/dev/i2c-1"
-#define RAM_SPD_I2C_ADDRESS_STICK_0 0x50
-#define RAM_SPD_I2C_ADDRESS_STICK_1 0x51
-#define CAMERA_EEPROM_I2C_ADDR		0x54
 
-#define SERIAL_NUMBER_OFFSET	0
-#define SERIAL_NUMBER_MAX_LEN	32		//Maximum number of characters in serial number
+#include <QItemDelegate>
+#include <QImage>
 
-#define CAMERA_APP_VERSION		"0.5.1"
-#define ACCEPTABLE_FPGA_VERSION	3
+class FileInfoModel;
+class ExtBrowser;
 
-// Network Storage Paths
-#define NFS_STORAGE_MOUNT	"/media/nfs"
-#define SMB_STORAGE_MOUNT	"/media/smb"
+class ExtBrowserDelegate : public QItemDelegate
+{
+    Q_OBJECT
 
-#endif // DEFINES_H
+private:
+    FileInfoModel*  m_model;
+private:
+    QImage const folder_icon   {":/qss/assets/images/folder_icon.png"};
+    QImage const folder_icon_up{":/qss/assets/images/folder_icon_up.png"};
+
+public:
+    ExtBrowserDelegate(QObject *parent = 0);
+    void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
+public:
+    void
+    set_model(
+        FileInfoModel* const model );
+};
+
+#endif // EXTBROWSERDELEGATE_H
