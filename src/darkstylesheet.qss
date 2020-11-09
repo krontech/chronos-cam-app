@@ -161,6 +161,11 @@ QLabel#lblNetStatus
     font-size: 15px;
 }
 
+QLable#lblCurrentFrame
+{
+    font-size: 14pt;
+}
+
 
 
 /* All CheckBox in GUI1 */
