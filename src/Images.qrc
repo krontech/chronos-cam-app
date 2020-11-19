@@ -32,5 +32,7 @@
         <file>assets/images/radio-button-checked-black.png</file>
         <file>assets/images/radio-button-checked-black.svg.png</file>
         <file>assets/images/radio-button-unchecked-black.svg.png</file>
+        <file>assets/images/folder_icon.png</file>
+        <file>assets/images/folder_icon_up.png</file>
     </qresource>
 </RCC>

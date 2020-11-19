@@ -388,7 +388,7 @@
    <property name="geometry">
     <rect>
      <x>490</x>
-     <y>210</y>
+     <y>195</y>
      <width>101</width>
      <height>51</height>
     </rect>
@@ -478,7 +478,7 @@ Remove</string>
    <property name="geometry">
     <rect>
      <x>490</x>
-     <y>280</y>
+     <y>250</y>
      <width>101</width>
      <height>51</height>
     </rect>
@@ -492,8 +492,31 @@ Remove</string>
     <string>Refresh</string>
    </property>
   </widget>
+  <widget class="QPushButton" name="cmdPlayOpenExtBrowser">
+   <property name="geometry">
+    <rect>
+     <x>490</x>
+     <y>305</y>
+     <width>101</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>13</pointsize>
+    </font>
+   </property>
+   <property name="text">
+    <string>Pick Folder</string>
+   </property>
+  </widget>
  </widget>
  <customwidgets>
+  <customwidget>
+   <class>CamDoubleSpinBox</class>
+   <extends>QDoubleSpinBox</extends>
+   <header>camdoublespinbox.h</header>
+  </customwidget>
   <customwidget>
    <class>CamLineEdit</class>
    <extends>QLineEdit</extends>
@@ -503,11 +526,6 @@ Remove</string>
    <class>CamSpinBox</class>
    <extends>QSpinBox</extends>
    <header>camspinbox.h</header>
-  </customwidget>
-  <customwidget>
-   <class>CamDoubleSpinBox</class>
-   <extends>QDoubleSpinBox</extends>
-   <header>camdoublespinbox.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>

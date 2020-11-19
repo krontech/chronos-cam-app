@@ -98,6 +98,8 @@ playbackWindow::playbackWindow(QWidget *parent, Camera * cameraInst, bool autosa
 	} else {
 		strcpy(camera->cinst->filename, appSettings.value("recorder/filename", "").toString().toAscii());
 	}
+
+    ui->lblFrame->setText("Current Frame");
 	
 }
 
@@ -481,8 +483,13 @@ void playbackWindow::keyPressEvent(QKeyEvent *ev)
 void playbackWindow::updateStatusText()
 {
 	char text[100];
-	sprintf(text, "Frame %d/%d\r\nMark start %d\r\nMark end %d", playFrame + 1, totalFrames, markInFrame, markOutFrame);
+    sprintf(text, "Mark start %d\r\nMark end %d", markInFrame, markOutFrame);
+    //sprintf(text, "Frame %d/%d\r\nMark start %d\r\nMark end %d", playFrame + 1, totalFrames, markInFrame, markOutFrame);
 	ui->lblInfo->setText(text);
+
+    char frame[30];
+    sprintf(frame, "  %d/%d", playFrame + 1, totalFrames);
+    ui->lblCurrentFrame->setText(frame);
 }
 
 void playbackWindow::updateSWText(){

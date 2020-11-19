@@ -78,6 +78,12 @@ whiteBalanceDialog::whiteBalanceDialog(QWidget *parent, Camera * cameraInst) :
 		customWhiteBalOld[2] = -1.0;
 	}
 
+    if (!camera->getIsColor())
+    {
+        ui->comboColor->setEnabled(false);
+        ui->cmdMatrix->setEnabled(false);
+    }
+
 	/* Load Color Matrix presets */
 	for (int i = 0; i < sizeof(camera->ccmPresets)/sizeof(camera->ccmPresets[0]); i++) {
 		ui->comboColor->addItem(camera->ccmPresets[i].name);

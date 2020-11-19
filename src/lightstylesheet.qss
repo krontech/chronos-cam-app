@@ -1,6 +1,6 @@
 /* All Widgets except MainWindow */
 QWidget#IOSettingsWindow, #keyboard, #keyboardNumeric, #playbackWindow, #ramWindow, #recModeWindow, #RecSettingsWindow, #saveSettingsWindow,
-       #triggerDelayWindow, #UtilWindow
+       #triggerDelayWindow, #UtilWindow, #ExtBrowser
 {
     background-color: #f4f4f4;
 }
@@ -159,6 +159,11 @@ QLabel#lblCurrent
 QLabel#lblNetStatus
 {
     font-size: 15px;
+}
+
+QLable#lblCurrentFrame
+{
+    font-size: 14pt;
 }
 
 
@@ -635,6 +640,28 @@ QProgressBar::chunk {
     border-radius: 3px;
 }
 
+
+QTableView {
+    background-color:#eee;
+    alternate-background-color:#e7e7e7;
+    color:black;
+    font-size:16px;
+    border:none;
+    outline:none;
+}
+QTableView QScrollBar::vertical
+{
+    background: #bbb;
+    box-sizing: border-box;
+    border-left: 12px solid #ddd;
+    border-right: 12px solid #ddd;
+    outline: none;
+}
+QTableView QHeaderView {
+    background-color:#fff;
+    color:#666;
+    font-size:14px;
+}
 
 
 

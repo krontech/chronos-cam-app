@@ -17,6 +17,7 @@
 #include "utilwindow.h"
 #include "ui_utilwindow.h"
 #include "statuswindow.h"
+#include "extbrowser.h"
 
 #include <QDebug>
 #include <QMessageBox>
@@ -1796,4 +1797,12 @@ void UtilWindow::on_chkUiOnLeft_clicked()
 void UtilWindow::on_liveRecordComboBox_currentIndexChanged(const QString &arg1)
 {
 	if(okToSaveLocation) saveFileDirectory();
+}
+
+void UtilWindow::on_cmdUtilOpenExtBrowser_clicked()
+{
+    ExtBrowser* w = new ExtBrowser( ExtBrowser::BrowserMode::file_browser );
+
+    w->setAttribute( Qt::WA_DeleteOnClose );
+    w->show();
 }
