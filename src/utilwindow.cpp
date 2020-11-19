@@ -153,8 +153,16 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	pmicVersion = camera->cinst->getProperty("pmicFirmwareVersion", "0").toString();
 
 	// Chop the version digits off the end of the camera model.
-	if (modelName.startsWith("CR14")) modelFullName = "Chronos 1.4";
-	else if (modelName.startsWith("CR21")) modelFullName = "Chronos 2.1";
+    if (modelName.startsWith("CR14"))
+    {
+        modelFullName = "Chronos 1.4";
+        ui->cmdExportCalData->setVisible(false);
+    }
+    else if (modelName.startsWith("CR21"))
+    {
+        modelFullName = "Chronos 2.1";
+        ui->cmdExportCalData->setVisible(true);
+    }
 
 	aboutText.sprintf("Camera Model: %s, %s, %dGB\r\n", modelFullName, (camera->getIsColor() ? "Color" : "Monochrome"), ramSizeGB);
 	aboutText.append(QString("Serial Number: %1\r\n").arg(serialNumber));
@@ -181,7 +189,6 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	ui->cmdCloseApp->setVisible(false);
 	ui->cmdColumnGain->setVisible(false);
 	ui->cmdSetSN->setVisible(false);
-	ui->cmdExportCalData->setVisible(false);
 	ui->cmdImportCalData->setVisible(false);
 	ui->lineSerialNumber->setVisible(false);
 	ui->chkShowDebugControls->setVisible(false);
@@ -867,7 +874,6 @@ void UtilWindow::on_linePassword_textEdited(const QString &arg1)
 		//Only show cal export/import buttons for Chronos 2.1
 		camera->cinst->getString("cameraModel", &modelName);
 		if(modelName.startsWith("CR21")){
-			ui->cmdExportCalData->setVisible(true);
 			ui->cmdImportCalData->setVisible(true);
 		}
 	}

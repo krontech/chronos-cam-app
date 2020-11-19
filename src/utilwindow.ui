@@ -37,7 +37,7 @@
     <enum>QTabWidget::East</enum>
    </property>
    <property name="currentIndex">
-    <number>3</number>
+    <number>5</number>
    </property>
    <widget class="QWidget" name="tabMain">
     <property name="styleSheet">
@@ -1861,7 +1861,7 @@ p, li { white-space: pre-wrap; }
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>170</y>
+       <y>230</y>
        <width>151</width>
        <height>61</height>
       </rect>
@@ -1880,7 +1880,7 @@ Calibration</string>
      <property name="geometry">
       <rect>
        <x>180</x>
-       <y>90</y>
+       <y>80</y>
        <width>151</width>
        <height>61</height>
       </rect>
@@ -1899,7 +1899,7 @@ All Resolutions</string>
      <property name="geometry">
       <rect>
        <x>180</x>
-       <y>170</y>
+       <y>230</y>
        <width>151</width>
        <height>61</height>
       </rect>
@@ -1918,7 +1918,7 @@ Application</string>
      <property name="geometry">
       <rect>
        <x>140</x>
-       <y>330</y>
+       <y>390</y>
        <width>191</width>
        <height>51</height>
       </rect>
@@ -1939,7 +1939,7 @@ Application</string>
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>330</y>
+       <y>390</y>
        <width>111</width>
        <height>51</height>
       </rect>
@@ -2016,7 +2016,7 @@ Number</string>
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>90</y>
+       <y>80</y>
        <width>151</width>
        <height>61</height>
       </rect>
@@ -2077,8 +2077,8 @@ Calibration Data
     <widget class="QPushButton" name="cmdImportCalData">
      <property name="geometry">
       <rect>
-       <x>180</x>
-       <y>250</y>
+       <x>10</x>
+       <y>310</y>
        <width>151</width>
        <height>61</height>
       </rect>
@@ -2091,9 +2091,9 @@ Calibration Data
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>250</y>
-       <width>151</width>
-       <height>61</height>
+       <y>160</y>
+       <width>321</width>
+       <height>51</height>
       </rect>
      </property>
      <property name="font">
@@ -2102,7 +2102,7 @@ Calibration Data
       </font>
      </property>
      <property name="text">
-      <string>Export Cal Data</string>
+      <string>Calculate Column Calibration</string>
      </property>
     </widget>
     <widget class="QCheckBox" name="chkFanDisable">

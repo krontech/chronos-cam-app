@@ -487,7 +487,7 @@ CameraErrortype Control::exportCalData(void)
 		fprintf(stderr, "Failed - exportCalData: %s - %s\n", err.name().data(), err.message().toAscii().data());
 	}
 
-	return waitAsyncComplete(reply, 180000);
+    return waitAsyncComplete(reply, 300000);
 }
 
 CameraErrortype Control::importCalData(void)
