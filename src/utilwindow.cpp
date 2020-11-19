@@ -187,7 +187,6 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	ui->lblAbout->setText(aboutText);
 	
 	ui->cmdCloseApp->setVisible(false);
-	ui->cmdColumnGain->setVisible(false);
 	ui->cmdSetSN->setVisible(false);
 	ui->cmdImportCalData->setVisible(false);
 	ui->lineSerialNumber->setVisible(false);
@@ -471,39 +470,6 @@ void UtilWindow::on_cmdSetClock_clicked()
 
 	if(retval == -1)
 		qDebug() << "Couldn't set time, errorno =" << errno;
-}
-
-void UtilWindow::on_cmdColumnGain_clicked()
-{
-	StatusWindow sw;
-	Int32 retVal;
-	char text[100];
-
-	sw.setText("Performing column gain calibration. Please wait...");
-	sw.show();
-	QCoreApplication::processEvents();
-
-	//Turn on calibration light
-	camera->setBncDriveLevel((1 << 1));	//Turn on output drive
-
-	if(SUCCESS != retVal)
-	{
-		sw.hide();
-		QMessageBox msg;
-		sprintf(text, "Error during gain calibration, error %d: %s", retVal, errorCodeString(retVal));
-		msg.setText(text);
-		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
-		msg.exec();
-	}
-	else
-	{
-		sw.hide();
-		QMessageBox msg;
-		sprintf(text, "Column gain calibration was successful");
-		msg.setText(text);
-		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
-		msg.exec();
-	}
 }
 
 void UtilWindow::on_cmdBlackCalAll_clicked()
@@ -865,7 +831,6 @@ void UtilWindow::on_linePassword_textEdited(const QString &arg1)
 	if(0 == QString::compare(arg1, "4242"))
 	{
 		ui->cmdCloseApp->setVisible(true);
-		ui->cmdColumnGain->setVisible(true);
 		ui->cmdSetSN->setVisible(true);
 		ui->lineSerialNumber->setVisible(true);
 		ui->chkShowDebugControls->setVisible(true);

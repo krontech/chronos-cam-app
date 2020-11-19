@@ -45,7 +45,7 @@ private slots:
 
 	void on_cmdSetClock_clicked();
 
-	void on_cmdColumnGain_clicked();
+    //void on_cmdColumnGain_clicked();
 
 	void on_cmdBlackCalAll_clicked();
 

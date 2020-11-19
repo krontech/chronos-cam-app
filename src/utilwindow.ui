@@ -1857,30 +1857,11 @@ p, li { white-space: pre-wrap; }
     <attribute name="title">
      <string>Factory</string>
     </attribute>
-    <widget class="QPushButton" name="cmdColumnGain">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>230</y>
-       <width>151</width>
-       <height>61</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <pointsize>16</pointsize>
-      </font>
-     </property>
-     <property name="text">
-      <string>Column Gain
-Calibration</string>
-     </property>
-    </widget>
     <widget class="QPushButton" name="cmdBlackCalAll">
      <property name="geometry">
       <rect>
        <x>180</x>
-       <y>80</y>
+       <y>90</y>
        <width>151</width>
        <height>61</height>
       </rect>
@@ -1899,7 +1880,7 @@ All Resolutions</string>
      <property name="geometry">
       <rect>
        <x>180</x>
-       <y>230</y>
+       <y>240</y>
        <width>151</width>
        <height>61</height>
       </rect>
@@ -1918,7 +1899,7 @@ Application</string>
      <property name="geometry">
       <rect>
        <x>140</x>
-       <y>390</y>
+       <y>320</y>
        <width>191</width>
        <height>51</height>
       </rect>
@@ -1939,7 +1920,7 @@ Application</string>
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>390</y>
+       <y>320</y>
        <width>111</width>
        <height>51</height>
       </rect>
@@ -2016,7 +1997,7 @@ Number</string>
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>80</y>
+       <y>90</y>
        <width>151</width>
        <height>61</height>
       </rect>
@@ -2078,7 +2059,7 @@ Calibration Data
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>310</y>
+       <y>240</y>
        <width>151</width>
        <height>61</height>
       </rect>
@@ -2091,7 +2072,7 @@ Calibration Data
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>160</y>
+       <y>170</y>
        <width>321</width>
        <height>51</height>
       </rect>
@@ -2102,7 +2083,7 @@ Calibration Data
       </font>
      </property>
      <property name="text">
-      <string>Calculate Column Calibration</string>
+      <string>Column Gain Calibration</string>
      </property>
     </widget>
     <widget class="QCheckBox" name="chkFanDisable">
@@ -2274,7 +2255,6 @@ Display</string>
   <tabstop>cmdSetSN</tabstop>
   <tabstop>cmdCloseApp</tabstop>
   <tabstop>cmdBlackCalAll</tabstop>
-  <tabstop>cmdColumnGain</tabstop>
   <tabstop>cmdRevertCalData</tabstop>
   <tabstop>chkShippingMode</tabstop>
   <tabstop>linePassword</tabstop>
