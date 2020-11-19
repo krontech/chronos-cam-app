@@ -2068,7 +2068,7 @@ Calibration Data
       <string>Import Cal Data</string>
      </property>
     </widget>
-    <widget class="QPushButton" name="cmdExportCalData">
+    <widget class="QPushButton" name="cmdColumnGain">
      <property name="geometry">
       <rect>
        <x>10</x>

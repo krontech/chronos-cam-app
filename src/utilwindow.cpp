@@ -156,12 +156,12 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
     if (modelName.startsWith("CR14"))
     {
         modelFullName = "Chronos 1.4";
-        ui->cmdExportCalData->setVisible(false);
+        ui->cmdColumnGain->setVisible(false);
     }
     else if (modelName.startsWith("CR21"))
     {
         modelFullName = "Chronos 2.1";
-        ui->cmdExportCalData->setVisible(true);
+        ui->cmdColumnGain->setVisible(true);
     }
 
 	aboutText.sprintf("Camera Model: %s, %s, %dGB\r\n", modelFullName, (camera->getIsColor() ? "Color" : "Monochrome"), ramSizeGB);
@@ -638,7 +638,7 @@ void UtilWindow::on_cmdSetSN_clicked()
 	camera->writeSerialNumber(camera->getSerialNumber());
 }
 
-void UtilWindow::on_cmdExportCalData_clicked()
+void UtilWindow::on_cmdColumnGain_clicked()
 {
 	QMessageBox::StandardButton reply;
 	reply = QMessageBox::question(this, "Calibration Data Export", "Begin flat field export?\r\nWARNING: Any unsaved video in RAM will be lost.", QMessageBox::Yes|QMessageBox::No);
