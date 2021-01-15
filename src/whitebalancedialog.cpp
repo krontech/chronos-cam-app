@@ -85,12 +85,28 @@ whiteBalanceDialog::whiteBalanceDialog(QWidget *parent, Camera * cameraInst) :
     }
 
 	/* Load Color Matrix presets */
-	for (int i = 0; i < sizeof(camera->ccmPresets)/sizeof(camera->ccmPresets[0]); i++) {
-		ui->comboColor->addItem(camera->ccmPresets[i].name);
-		if (ccmName == camera->ccmPresets[i].name) {
-			ui->comboColor->setCurrentIndex(i);
-		}
-	}
+    QString modelName;
+    // Check if the camera is a 2.1 or not
+    camera->cinst->getString("cameraModel", &modelName);
+    if(modelName.startsWith("CR21"))
+    {
+        for (int i = 0; i < sizeof(camera->ccmPresets21)/sizeof(camera->ccmPresets21[0]); i++) {
+            ui->comboColor->addItem(camera->ccmPresets21[i].name);
+            if (ccmName == camera->ccmPresets21[i].name) {
+                ui->comboColor->setCurrentIndex(i);
+            }
+        }
+    }
+    else
+    {
+        for (int i = 0; i < sizeof(camera->ccmPresets14)/sizeof(camera->ccmPresets14[0]); i++) {
+            ui->comboColor->addItem(camera->ccmPresets14[i].name);
+            if (ccmName == camera->ccmPresets14[i].name) {
+                ui->comboColor->setCurrentIndex(i);
+            }
+        }
+    }
+
 
 	/* Load Custom Matrix */
 	if (appSettings.beginReadArray("colorMatrix") >= 9) {
@@ -100,7 +116,10 @@ whiteBalanceDialog::whiteBalanceDialog(QWidget *parent, Camera * cameraInst) :
 		}
 		ui->comboColor->addItem(ccmCustom.name);
 		if (ccmName == ccmCustom.name) {
-			ui->comboColor->setCurrentIndex(sizeof(camera->ccmPresets)/sizeof(camera->ccmPresets[0]));
+            if(modelName.startsWith("CR21"))
+                ui->comboColor->setCurrentIndex(sizeof(camera->ccmPresets21)/sizeof(camera->ccmPresets21[0]));
+            else
+                ui->comboColor->setCurrentIndex(sizeof(camera->ccmPresets14)/sizeof(camera->ccmPresets14[0]));
 		}
 	}
 	appSettings.endArray();
@@ -150,11 +169,25 @@ void whiteBalanceDialog::on_comboColor_currentIndexChanged(int index)
 	QSettings appSettings;
 	const ColorMatrix_t *choice;
 
-	if (index < sizeof(camera->ccmPresets)/sizeof(camera->ccmPresets[0])) {
-		choice = &camera->ccmPresets[index];
-	} else {
-		choice = &ccmCustom;
-	}
+    QString modelName;
+    // Check if the camera is a 2.1 or not
+    camera->cinst->getString("cameraModel", &modelName);
+    if(modelName.startsWith("CR21")) // 2.1
+    {
+        if (index < sizeof(camera->ccmPresets21)/sizeof(camera->ccmPresets21[0])) {
+            choice = &camera->ccmPresets21[index];
+        } else {
+            choice = &ccmCustom;
+        }
+    }
+    else // 1.4
+    {
+        if (index < sizeof(camera->ccmPresets14)/sizeof(camera->ccmPresets14[0])) {
+            choice = &camera->ccmPresets14[index];
+        } else {
+            choice = &ccmCustom;
+        }
+    }
 
 	memcpy(camera->colorCalMatrix, choice->matrix, sizeof(choice->matrix));
 	camera->setCCMatrix(camera->colorCalMatrix);

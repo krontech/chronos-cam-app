@@ -641,17 +641,26 @@ void UtilWindow::on_cmdSetSN_clicked()
 void UtilWindow::on_cmdColumnGain_clicked()
 {
 	QMessageBox::StandardButton reply;
-	reply = QMessageBox::question(this, "Calibration Data Export", "Begin flat field export?\r\nWARNING: Any unsaved video in RAM will be lost.", QMessageBox::Yes|QMessageBox::No);
+    reply = QMessageBox::question(this, "Column gain calibration", "Begin on-camera calibration?\r\nThis will take ~5 minutes.\r\nWARNING: Any unsaved video in RAM will be lost.", QMessageBox::Yes|QMessageBox::No);
 	if(QMessageBox::Yes != reply)
 		return;
 
-	qDebug() << "### flat-field export";
-	camera->cinst->exportCalData();
+    QMessageBox calibratingBox;
+    calibratingBox.setText("Computing column gain calibration... (this should take ~5 minutes)");
+    calibratingBox.setWindowTitle("On-Camera Calibration");
+    calibratingBox.setWindowFlags(Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint); // on top, and no title-bar
+    calibratingBox.setStandardButtons(0); // no buttons
+    calibratingBox.setModal(true); // should not be able to click somewhere else
+    calibratingBox.show(); // display the message (non-blocking)
+
+    qDebug() << "### start computing column gains";
+    camera->cinst->exportCalData();
+    calibratingBox.close(); // close the message that displayed while running
 
 	/* Notify on completion */
 	QMessageBox msg;
-	msg.setText("Flat-field export complete.");
-	msg.setWindowTitle("Factory Calibration");
+    msg.setText("Column gain calibration complete.");
+    msg.setWindowTitle("On-Camera Calibration");
 	msg.setWindowFlags(Qt::WindowStaysOnTopHint);
 	msg.exec();
 }

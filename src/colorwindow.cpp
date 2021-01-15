@@ -75,7 +75,13 @@ void ColorWindow::setMatrix(const double *matrix)
 
 void ColorWindow::on_ccmDefault_clicked(void)
 {
-	setMatrix(camera->ccmPresets[0].matrix);
+    QString modelName;
+    // Check if the camera is a 2.1 or not
+    camera->cinst->getString("cameraModel", &modelName);
+    if(modelName.startsWith("CR21"))
+        setMatrix(camera->ccmPresets21[0].matrix); // default for 2.1 camera
+    else
+        setMatrix(camera->ccmPresets14[0].matrix); // default for 1.4 camera
 }
 
 void ColorWindow::on_ccmIdentity_clicked(void)

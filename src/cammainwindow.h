@@ -41,7 +41,7 @@ public:
 	~CamMainWindow();
 
 public slots:
-	void updateCamMainWindowPosition();
+    void updateCamMainWindowPosition();
 
 private slots:
 	void on_cmdClose_clicked();
@@ -93,6 +93,7 @@ private slots:
     void on_rsResolution_valueChanged(const QVariant &value);
 
 	void buttonsEnabled(bool en);
+    void checkForCalibration(void);
 
 private:
 	void updateCurrentSettingsLabel(void);

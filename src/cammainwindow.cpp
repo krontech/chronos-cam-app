@@ -154,6 +154,8 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 
 	/* Go into live display after initialization */
 	camera->setPlayMode(false);
+
+    QTimer::singleShot(500, this, SLOT(checkForCalibration())); // wait a moment, then check for calibration at startup
 }
 
 CamMainWindow::~CamMainWindow()
@@ -163,6 +165,46 @@ CamMainWindow::~CamMainWindow()
 
 	delete ui;
 	delete camera;
+}
+
+void CamMainWindow::checkForCalibration() // see if the camera has been calibrated or not
+{
+    QString modelName;
+
+    //Only check for on-camera calibration if the camera is a 2.1
+    camera->cinst->getString("cameraModel", &modelName);
+    if(modelName.startsWith("CR21")){
+        qDebug() << "Checking for onCamera calibration files";
+        struct stat tempBuf;
+         // check if calibration data is not already on the camera (if it has not been calibrated)
+        if(stat ("/var/camera/cal/onCam_colGain_G1_WT66.bin", &tempBuf) != 0)
+        {
+            QMessageBox::StandardButton reply;
+            reply = QMessageBox::question(this, "Column gain calibration", "This camera has not been calibrated.\r\nWould you like to calibrate it now?\r\nNote: this will take ~5 minutes.", QMessageBox::Yes|QMessageBox::No);
+            if(QMessageBox::Yes == reply) // yes
+            {
+                QMessageBox calibratingBox;
+                calibratingBox.setText("\r\nComputing column gain calibration... (this should take ~5 minutes)");
+                calibratingBox.setWindowTitle("On-Camera Calibration");
+                calibratingBox.setWindowFlags(Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint); // on top, and no title-bar
+                calibratingBox.setStandardButtons(0); // no buttons
+                calibratingBox.setModal(true); // should not be able to click somewhere else
+                calibratingBox.show(); // display the message (non-blocking)
+
+                qDebug() << "### starting on-camera column gain calibration";
+                camera->cinst->exportCalData();
+                calibratingBox.close(); // close the message that displayed while running
+
+                 // Notify on completion
+                QMessageBox msg;
+                msg.setText("Column gain calibration complete.");
+                msg.setWindowTitle("On-Camera Calibration");
+                msg.setWindowFlags(Qt::WindowStaysOnTopHint);
+                msg.exec();
+            }
+        }
+    }
+
 }
 
 void CamMainWindow::on_videoState_valueChanged(const QVariant &value)
