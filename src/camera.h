@@ -176,39 +176,37 @@ public:
     };
 
      const ColorMatrix_t ccmPresets21[6] = {
-        { "D55 ACES (WPP)", {
+        { "ACESWPP/D55", { // D55 ACES (WPP)
         +2.20691,     -0.86351,     -0.23999,
         -0.37569,     1.63493,     -0.27217,
         0.01404,     -0.91139,     1.72075,
           }
         },
-        { "D55 ColorChecker SG (WPP)", {
+        { "CCSGWPP/D55)", { // D55 ColorChecker SG (WPP)
         2.14923,     -0.78854,     -0.25728,
         -0.38481,     1.61877,     -0.24689,
         -0.03149,     -0.79188,     1.64677,
           }
         },
-        { "D55 ColorChecker (WPP)", {
+        { "CCWPP/D55", { // D55 ColorChecker (WPP)
         2.14273,     -0.84163,     -0.19769,
         -0.35453,     1.59709,     -0.25549,
         0.01880,     -0.90337,     1.70796,
           }
         },
-
-
-        { "D55 ACES (colorimetric)", {
+        { "ACESCOL/D55", { // D55 ACES (colorimetric)
         2.16011,     -0.84114,     -0.24797,
         -0.37585,     1.63170,     -0.28407,
         0.01196,     -0.87992,     1.66459,
           }
         },
-        { "D55 ColorChecker SG (colorimetric)", {
+        { "CCSGCOL/D55", { // D55 ColorChecker SG (colorimetric)
         2.14742,     -0.79065,     -0.25671,
         -0.38035,     1.60688,     -0.24961,
         -0.03068,     -0.79129,     1.64231,
           }
         },
-        { "D55 ColorChecker (colorimetric)", {
+        { "CCCOL/D55", { // D55 ColorChecker (colorimetric)
         2.13090,     -0.84484,     -0.19729,
         -0.34678,     1.57121,     -0.25444,
         0.02047,     -0.89946,     1.69285,
