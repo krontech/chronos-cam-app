@@ -45,8 +45,6 @@ private slots:
 
 	void on_cmdSetClock_clicked();
 
-	void on_cmdColumnGain_clicked();
-
 	void on_cmdBlackCalAll_clicked();
 
 	void on_cmdCloseApp_clicked();
@@ -67,7 +65,7 @@ private slots:
 
 	void on_cmdSetSN_clicked();
 
-	void on_cmdExportCalData_clicked();
+    void on_cmdColumnGain_clicked();
 
 	void on_cmdImportCalData_clicked();
 

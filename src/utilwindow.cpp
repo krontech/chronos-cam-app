@@ -153,8 +153,16 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	pmicVersion = camera->cinst->getProperty("pmicFirmwareVersion", "0").toString();
 
 	// Chop the version digits off the end of the camera model.
-	if (modelName.startsWith("CR14")) modelFullName = "Chronos 1.4";
-	else if (modelName.startsWith("CR21")) modelFullName = "Chronos 2.1";
+    if (modelName.startsWith("CR14"))
+    {
+        modelFullName = "Chronos 1.4";
+        ui->cmdColumnGain->setVisible(false);
+    }
+    else if (modelName.startsWith("CR21"))
+    {
+        modelFullName = "Chronos 2.1";
+        ui->cmdColumnGain->setVisible(true);
+    }
 
 	aboutText.sprintf("Camera Model: %s, %s, %dGB\r\n", modelFullName, (camera->getIsColor() ? "Color" : "Monochrome"), ramSizeGB);
 	aboutText.append(QString("Serial Number: %1\r\n").arg(serialNumber));
@@ -179,9 +187,7 @@ UtilWindow::UtilWindow(QWidget *parent, Camera * cameraInst) :
 	ui->lblAbout->setText(aboutText);
 	
 	ui->cmdCloseApp->setVisible(false);
-	ui->cmdColumnGain->setVisible(false);
 	ui->cmdSetSN->setVisible(false);
-	ui->cmdExportCalData->setVisible(false);
 	ui->cmdImportCalData->setVisible(false);
 	ui->lineSerialNumber->setVisible(false);
 	ui->chkShowDebugControls->setVisible(false);
@@ -466,39 +472,6 @@ void UtilWindow::on_cmdSetClock_clicked()
 		qDebug() << "Couldn't set time, errorno =" << errno;
 }
 
-void UtilWindow::on_cmdColumnGain_clicked()
-{
-	StatusWindow sw;
-	Int32 retVal;
-	char text[100];
-
-	sw.setText("Performing column gain calibration. Please wait...");
-	sw.show();
-	QCoreApplication::processEvents();
-
-	//Turn on calibration light
-	camera->setBncDriveLevel((1 << 1));	//Turn on output drive
-
-	if(SUCCESS != retVal)
-	{
-		sw.hide();
-		QMessageBox msg;
-		sprintf(text, "Error during gain calibration, error %d: %s", retVal, errorCodeString(retVal));
-		msg.setText(text);
-		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
-		msg.exec();
-	}
-	else
-	{
-		sw.hide();
-		QMessageBox msg;
-		sprintf(text, "Column gain calibration was successful");
-		msg.setText(text);
-		msg.setWindowFlags(Qt::WindowStaysOnTopHint);
-		msg.exec();
-	}
-}
-
 void UtilWindow::on_cmdBlackCalAll_clicked()
 {
 	QString title = QString("Factory Black Calibration");
@@ -665,20 +638,29 @@ void UtilWindow::on_cmdSetSN_clicked()
 	camera->writeSerialNumber(camera->getSerialNumber());
 }
 
-void UtilWindow::on_cmdExportCalData_clicked()
+void UtilWindow::on_cmdColumnGain_clicked()
 {
 	QMessageBox::StandardButton reply;
-	reply = QMessageBox::question(this, "Calibration Data Export", "Begin flat field export?\r\nWARNING: Any unsaved video in RAM will be lost.", QMessageBox::Yes|QMessageBox::No);
+    reply = QMessageBox::question(this, "Column gain calibration", "Begin on-camera calibration?\r\nThis will take ~5 minutes.\r\nWARNING: Any unsaved video in RAM will be lost.", QMessageBox::Yes|QMessageBox::No);
 	if(QMessageBox::Yes != reply)
 		return;
 
-	qDebug() << "### flat-field export";
-	camera->cinst->exportCalData();
+    QMessageBox calibratingBox;
+    calibratingBox.setText("Computing column gain calibration... (this should take ~5 minutes)");
+    calibratingBox.setWindowTitle("On-Camera Calibration");
+    calibratingBox.setWindowFlags(Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint); // on top, and no title-bar
+    calibratingBox.setStandardButtons(0); // no buttons
+    calibratingBox.setModal(true); // should not be able to click somewhere else
+    calibratingBox.show(); // display the message (non-blocking)
+
+    qDebug() << "### start computing column gains";
+    camera->cinst->exportCalData();
+    calibratingBox.close(); // close the message that displayed while running
 
 	/* Notify on completion */
 	QMessageBox msg;
-	msg.setText("Flat-field export complete.");
-	msg.setWindowTitle("Factory Calibration");
+    msg.setText("Column gain calibration complete.");
+    msg.setWindowTitle("On-Camera Calibration");
 	msg.setWindowFlags(Qt::WindowStaysOnTopHint);
 	msg.exec();
 }
@@ -858,7 +840,6 @@ void UtilWindow::on_linePassword_textEdited(const QString &arg1)
 	if(0 == QString::compare(arg1, "4242"))
 	{
 		ui->cmdCloseApp->setVisible(true);
-		ui->cmdColumnGain->setVisible(true);
 		ui->cmdSetSN->setVisible(true);
 		ui->lineSerialNumber->setVisible(true);
 		ui->chkShowDebugControls->setVisible(true);
@@ -867,7 +848,6 @@ void UtilWindow::on_linePassword_textEdited(const QString &arg1)
 		//Only show cal export/import buttons for Chronos 2.1
 		camera->cinst->getString("cameraModel", &modelName);
 		if(modelName.startsWith("CR21")){
-			ui->cmdExportCalData->setVisible(true);
 			ui->cmdImportCalData->setVisible(true);
 		}
 	}
