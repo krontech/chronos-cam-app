@@ -112,7 +112,7 @@ void Video::setStatus(VideoState state) {
     case VIDEO_STATE_PLAYBACK:
         args.insert("filesave", QVariant(false));
         args.insert("liverecord", QVariant(false));
-        args.insert("playback", QVariant(true));
+        args.insert("playback", QVariant(TRUE));
         qDebug() << "Set playback to true";
         break;
     default:
@@ -124,7 +124,7 @@ void Video::setStatus(VideoState state) {
     }
 
     pthread_mutex_lock(&mutex);
-    reply = iface.status();
+    reply = iface.playback(args);
     reply.waitForFinished();
     pthread_mutex_unlock(&mutex);
 
@@ -165,6 +165,8 @@ void Video::setPosition(unsigned int position)
 	reply = iface.playback(args);
 	reply.waitForFinished();
 	pthread_mutex_unlock(&mutex);
+
+    qDebug() << reply.value();
 
 	if (reply.isError()) {
 		QDBusError err = reply.error();
