@@ -87,6 +87,8 @@ private:
 	UInt32 markOutFrame;
 	UInt32 totalFrames;
 	UInt32 playFrame;
+    UInt32 formerFrame;
+    UInt32 currentFrame;
 	bool playLoop;
 	QTimer * timer;
 	QTimer * saveDoneTimer;

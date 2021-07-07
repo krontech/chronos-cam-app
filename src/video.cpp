@@ -79,16 +79,60 @@ VideoState Video::getStatus(VideoStatus *st)
 	reply = iface.status();
 	reply.waitForFinished();
 	pthread_mutex_unlock(&mutex);
+
 	if (reply.isError()) {
 		/* TODO: Error handling */
 		return VIDEO_STATE_LIVEDISPLAY;
 	}
 
 	map = reply.value();
+
 	if (!st) return parseVideoState(map);
 
 	parseVideoStatus(map, st);
 	return st->state;
+}
+
+void Video::setStatus(VideoState state) {
+    VideoStatus st;
+    getStatus(&st);
+    qDebug() << "current state:" << st.state;
+
+
+    QVariantMap args;
+    QDBusPendingReply<QVariantMap> reply;
+
+    switch (state) {
+    case VIDEO_STATE_FILESAVE:
+        args.insert("filesave", QVariant(true));
+        args.insert("liverecord", QVariant(false));
+        args.insert("playback", QVariant(false));
+        qDebug() << "Set filesave to true";
+        break;
+    case VIDEO_STATE_PLAYBACK:
+        args.insert("filesave", QVariant(false));
+        args.insert("liverecord", QVariant(false));
+        args.insert("playback", QVariant(true));
+        qDebug() << "Set playback to true";
+        break;
+    default:
+        args.insert("filesave", QVariant(false));
+        args.insert("liverecord", QVariant(true));
+        args.insert("playback", QVariant(false));
+        qDebug() << "Set liverecord to true";
+        break;
+    }
+
+    pthread_mutex_lock(&mutex);
+    reply = iface.status();
+    reply.waitForFinished();
+    pthread_mutex_unlock(&mutex);
+
+    qDebug() << reply.value();
+
+    if (reply.isError()) {
+        qDebug() << "Can't set videoState!";
+    }
 }
 
 UInt32 Video::getPosition(void)
@@ -100,10 +144,13 @@ UInt32 Video::getPosition(void)
 	reply = iface.status();
 	reply.waitForFinished();
 	pthread_mutex_unlock(&mutex);
+
 	if (reply.isError()) {
 		return 0;
 	}
+
 	map = reply.value();
+
 	return map["position"].toUInt();
 }
 

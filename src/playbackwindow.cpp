@@ -72,12 +72,13 @@ playbackWindow::playbackWindow(QWidget *parent, Camera * cameraInst, bool autosa
 	ui->verticalSlider->setValue(playFrame);
 	ui->cmdLoop->setVisible(appSettings.value("camera/demoMode", false).toBool());
 	markInFrame = 1;
+    currentFrame = markInFrame;
 	markOutFrame = totalFrames;
 	ui->verticalSlider->setHighlightRegion(markInFrame, markOutFrame);
 	ui->verticalSlider->setFocusProxy(this);
 
 	camera->setPlayMode(true);
-	camera->vinst->setPosition(0);
+    camera->vinst->setPosition(0);
 	connect(camera->vinst, SIGNAL(started(VideoState)), this, SLOT(videoStarted(VideoState)));
 	connect(camera->vinst, SIGNAL(ended(VideoState, QString)), this, SLOT(videoEnded(VideoState, QString)));
 
@@ -115,8 +116,13 @@ playbackWindow::~playbackWindow()
 
 void playbackWindow::videoStarted(VideoState state)
 {
+    qDebug() << "Enter videoStarted functon";
+
 	/* When starting a filesave, increase the frame timing for maximum speed */
 	if (state == VIDEO_STATE_FILESAVE) {
+
+        qDebug() << "videoState: filesave";
+
 		camera->recordingData.hasBeenSaved = true;
 		//TODO turn off sensor
 
@@ -134,17 +140,27 @@ void playbackWindow::videoStarted(VideoState state)
 		if(markOutFrame - markInFrame < 25 || (markOutFrame - markInFrame < 230 && getSaveFormat() == SAVE_MODE_H264)) ui->cmdSave->setEnabled(false);
 		else ui->cmdSave->setEnabled(true);
 	} else {
+
+        qDebug() << "videoState: play";
+
 		ui->cmdSave->setText("Save");
 		ui->cmdSave->setEnabled(true);
 		setControlEnable(true);
 		emit enableSaveSettingsButtons(true);
 	}
+
+    qDebug() << "End videoStarted function";
 	/* TODO: Other start events might occur on HDMI hotplugs. */
 }
 
 void playbackWindow::videoEnded(VideoState state, QString err)
 {
+    qDebug() << "Enter videoEnded function";
+
 	if (state == VIDEO_STATE_FILESAVE) { //Filesave has just ended
+
+        qDebug() << "videoState: filesave";
+
 		QMessageBox msg;
 
 		/* When ending a filesave, restart the sensor and return to live display timing. */
@@ -178,6 +194,8 @@ void playbackWindow::videoEnded(VideoState state, QString err)
 			delete this;
 		}
 	}
+
+    qDebug() << "End videoEnded function";
 }
 
 void playbackWindow::on_verticalSlider_sliderMoved(int position)
@@ -439,6 +457,7 @@ void playbackWindow::saveSettingsClosed(){
 void playbackWindow::on_cmdMarkIn_clicked()
 {
 	markInFrame = playFrame + 1;
+    currentFrame = markInFrame;
 	if(markOutFrame < markInFrame)
 		markOutFrame = markInFrame;
 	ui->verticalSlider->setHighlightRegion(markInFrame, markOutFrame);
@@ -530,12 +549,22 @@ void playbackWindow::checkForSaveDone()
 {
 	VideoStatus st;
 	camera->vinst->getStatus(&st);
+    currentFrame = st.position;
+
+    qDebug() << "former frame:" << formerFrame;
+    qDebug() << "current frame:" << currentFrame;
+
+    if (currentFrame < formerFrame) {
+        qDebug() << "Double check for saving end";
+        camera->vinst->setStatus(VIDEO_STATE_PLAYBACK);
+    }
+
 	if(st.state == VIDEO_STATE_FILESAVE) {
 		setControlEnable(false);
 
 		struct statvfs statvfsBuf;
 		statvfs(camera->cinst->fileDirectory, &statvfsBuf);
-		qDebug("Free space: %llu  (%lu * %lu)", statvfsBuf.f_bsize * (uint64_t)statvfsBuf.f_bfree, statvfsBuf.f_bsize, statvfsBuf.f_bfree);
+        //qDebug("Free space: %llu  (%lu * %lu)", statvfsBuf.f_bsize * (uint64_t)statvfsBuf.f_bfree, statvfsBuf.f_bsize, statvfsBuf.f_bfree);
 		
 		/* Prevent the user from pressing the abort/save button just after the last frame,
 		 * as that can make the camera try to save a 2nd video too soon, crashing the camapp.*/
@@ -558,6 +587,8 @@ void playbackWindow::checkForSaveDone()
 		}
 		
 		updateSWText();
+
+        formerFrame = currentFrame;
 	}
 }
 
