@@ -98,7 +98,6 @@ void Video::setStatus(VideoState state) {
     getStatus(&st);
     qDebug() << "current state:" << st.state;
 
-
     QVariantMap args;
     QDBusPendingReply<QVariantMap> reply;
 
@@ -112,7 +111,7 @@ void Video::setStatus(VideoState state) {
     case VIDEO_STATE_PLAYBACK:
         args.insert("filesave", QVariant(false));
         args.insert("liverecord", QVariant(false));
-        args.insert("playback", QVariant(TRUE));
+        args.insert("playback", QVariant(true));
         qDebug() << "Set playback to true";
         break;
     default:
@@ -134,6 +133,7 @@ void Video::setStatus(VideoState state) {
         qDebug() << "Can't set videoState!";
     }
 }
+
 
 UInt32 Video::getPosition(void)
 {

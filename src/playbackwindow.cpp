@@ -140,7 +140,6 @@ void playbackWindow::videoStarted(VideoState state)
 		if(markOutFrame - markInFrame < 25 || (markOutFrame - markInFrame < 230 && getSaveFormat() == SAVE_MODE_H264)) ui->cmdSave->setEnabled(false);
 		else ui->cmdSave->setEnabled(true);
 	} else {
-
         qDebug() << "videoState: play";
 
 		ui->cmdSave->setText("Save");
@@ -551,13 +550,16 @@ void playbackWindow::checkForSaveDone()
 	camera->vinst->getStatus(&st);
     currentFrame = st.position;
 
+
     qDebug() << "former frame:" << formerFrame;
     qDebug() << "current frame:" << currentFrame;
 
-    if (currentFrame < formerFrame) {
-        qDebug() << "Double check for saving end";
-        camera->vinst->setStatus(VIDEO_STATE_PLAYBACK);
+    if ( currentFrame < formerFrame ) {
+        qDebug() << "==============================";
+        camera->vinst->stopRecording();
+        qDebug() << "==============================";
     }
+
 
 	if(st.state == VIDEO_STATE_FILESAVE) {
 		setControlEnable(false);
@@ -569,9 +571,10 @@ void playbackWindow::checkForSaveDone()
 		/* Prevent the user from pressing the abort/save button just after the last frame,
 		 * as that can make the camera try to save a 2nd video too soon, crashing the camapp.*/
 		UInt32 framerate = (UInt32) st.framerate;
-		if(playFrame + framerate > markOutFrame)
-			ui->cmdSave->setEnabled(false);
-		
+        if(playFrame + framerate > markOutFrame){
+            ui->cmdSave->setEnabled(false);
+        }
+
 		/*Abort the save if insufficient free space,
 		but not if the save has already been aborted,
 		or if the save button is not enabled(unsafe to abort at that time)(except if save mode is RAW)*/
