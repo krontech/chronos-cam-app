@@ -516,12 +516,15 @@ void IOSettingsWindow::on_radioIO1FSOut_toggled(bool checked)
 
 void IOSettingsWindow::on_radioIO1ToggleTrig_toggled(bool checked)
 {
-
+    ui->chkIO1Pull->setEnabled(!checked);
+    ui->chkIO1WeakPull->setEnabled(!checked);
+    ui->chkIO1Debounce->setEnabled(!checked);
+    ui->chkIO1Invert->setEnabled(!checked);
 }
 
 void IOSettingsWindow::on_radioIO2FSOut_toggled(bool checked)
 {
-	ui->chkIO2Pull->setEnabled(!checked);
+    ui->chkIO2Pull->setEnabled(!checked);
 }
 
 void IOSettingsWindow::on_radioIO2TriggeredShutter_toggled(bool checked)
