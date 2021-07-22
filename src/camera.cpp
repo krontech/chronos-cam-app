@@ -468,7 +468,6 @@ Int32 Camera::blackCalAllStdRes(bool factory, QProgressDialog *dialog)
 
 	/* Disable the video port during calibration. */
 	vinst->pauseDisplay();
-
 	//For each gain
 	int progress = 0;
 	for(g = sensorInfo.minGain; g <= sensorInfo.maxGain; g *= 2)
@@ -498,6 +497,8 @@ Int32 Camera::blackCalAllStdRes(bool factory, QProgressDialog *dialog)
 			settings.prerecordFrames = 1;
 			settings.segmentLengthFrames = timing.cameraMaxFrames;
 			settings.segments = 1;
+
+            settings.recTrigDelay = 0; // force this to zero when doing a black cal of all frames
 
 			/* Update the progress dialog. */
 			progress++;
