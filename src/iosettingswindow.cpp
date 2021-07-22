@@ -15,21 +15,25 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.   *
  ****************************************************************************/
 #include <qdebug.h>
+#include "triggerdelaywindow.h"
 #include "iosettingswindow.h"
 #include "ui_iosettingswindow.h"
+#include <QMessageBox>
 
 IOSettingsWindow::IOSettingsWindow(QWidget *parent, Camera * cameraInst) :
 	QWidget(parent),
 	ui(new Ui::IOSettingsWindow)
 {
 	ui->setupUi(this);
-	this->setWindowFlags(Qt::Dialog | Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
+    this->setWindowFlags(Qt::Dialog /* | Qt::WindowStaysOnTopHint */ | Qt::FramelessWindowHint);
 	this->move(0,0);
 
 	connect(ui->cmdCancel, SIGNAL(clicked()), this, SLOT(close()));
 
 	camera = cameraInst;
 
+    is = new ImagerSettings_t;
+    camera->cinst->getImagerSettings(is);
 	getIoSettings();
 
 	lastIn = getIoLevels();
@@ -483,6 +487,26 @@ void IOSettingsWindow::on_cmdApply_clicked()
 {
 	/* Do it the new way using the D-Bus API */
 	setIoSettings();
+
+    if (is->recTrigDelay != 0) // check for trigger delay
+    {
+        QMessageBox::StandardButton reply ;
+
+        reply = QMessageBox::question(this, "Reset Delay?", QString("Trigger delay is set to %1 frames; would you like to reset it to default (zero)?\n"
+                                                                    "\nIf yes, the input signal will immediately activate the trigger."
+                                                                    "\nIf no, the input signal will activate the trigger after a delay of %1 frames."
+                                                                    ).arg(is->recTrigDelay), QMessageBox::Yes|QMessageBox::No) ;
+        if (reply == QMessageBox::Yes)
+        {
+            is->recTrigDelay = 0;
+            // do something to update these settings
+            QVariantMap values;
+            values.insert("recTrigDelay", QVariant(is->recTrigDelay));
+
+            /* Apply the settings via D-Bus */
+            camera->cinst->setPropertyGroup(values);
+        }
+    }
 }
 
 void IOSettingsWindow::on_radioIO1TriggeredShutter_toggled(bool checked)
@@ -571,4 +595,23 @@ void IOSettingsWindow::on_radioIO3TriggeredShutter_toggled(bool checked)
 void IOSettingsWindow::on_radioIO3ShutterGating_toggled(bool checked)
 {
 	on_radioIO3TriggeredShutter_toggled(checked);
+}
+
+
+void IOSettingsWindow::on_cmdDelaySettings_clicked()
+{
+    if(is->mode == RECORD_MODE_GATED_BURST)
+    {
+        QMessageBox msg;
+        msg.setText("Record mode is set to Gated Burst. This mode has no adjustable trigger time settings.");
+        msg.exec();
+        return;
+    }
+    else
+    {
+        triggerDelayWindow *w = new triggerDelayWindow(NULL, camera, is);
+        w->setAttribute(Qt::WA_DeleteOnClose);;
+        w->show();
+        w->raise();
+    }
 }

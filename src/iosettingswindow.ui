@@ -739,10 +739,10 @@
     <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
    </property>
   </widget>
-  <widget class="QLabel" name="lblRes_16">
+  <widget class="QLabel" name="lblToggleSB">
    <property name="geometry">
     <rect>
-     <x>56</x>
+     <x>60</x>
      <y>130</y>
      <width>131</width>
      <height>21</height>
@@ -760,6 +760,34 @@
     <string>(Switch/Button)</string>
    </property>
   </widget>
+  <widget class="QPushButton" name="cmdDelaySettings">
+   <property name="geometry">
+    <rect>
+     <x>576</x>
+     <y>420</y>
+     <width>98</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>16</pointsize>
+    </font>
+   </property>
+   <property name="text">
+    <string>Trigger
+Delay</string>
+   </property>
+  </widget>
+  <zorder>groupIO1</zorder>
+  <zorder>groupIO2</zorder>
+  <zorder>cmdOK</zorder>
+  <zorder>cmdCancel</zorder>
+  <zorder>groupIO3</zorder>
+  <zorder>cmdApply</zorder>
+  <zorder>lblToggleSB</zorder>
+  <zorder>lblStatus</zorder>
+  <zorder>cmdDelaySettings</zorder>
  </widget>
  <customwidgets>
   <customwidget>

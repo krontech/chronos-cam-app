@@ -63,6 +63,8 @@ private slots:
 
 	void on_radioIO3ShutterGating_toggled(bool checked);
 
+    void on_cmdDelaySettings_clicked();
+
 private:
 	void getIoTriggerConfig(QVariantMap &config);
 	void getIoShutterConfig(QVariantMap &config, QString expMode);
@@ -79,6 +81,7 @@ private:
 	Camera * camera;
 	UInt32 lastIn;
 	QTimer * timer;
+    ImagerSettings_t * is;
 };
 
 #endif // IOSETTINGSWINDOW_H
