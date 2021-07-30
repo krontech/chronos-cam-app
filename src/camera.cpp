@@ -466,8 +466,22 @@ Int32 Camera::blackCalAllStdRes(bool factory, QProgressDialog *dialog)
 		dialog->setAutoReset(false);
 	}
 
+    qDebug("Making sure the startRecording trigger is disabled");
+
+   /* disable the start recording trigger so the camera doesn't try recording while doing calibration */
+    QVariantMap config;
+    config.insert("debounce", QVariant(false));
+    config.insert("invert", QVariant(false));
+    config.insert("source", QVariant("none"));
+
+   cinst->setProperty("ioMappingStartRec", config);
+
+    qDebug("Making sure the camera isn't already recording");
+
+    cinst->stopRecording(); // make sure we're not already recording
+
 	/* Disable the video port during calibration. */
-	vinst->pauseDisplay();
+    vinst->pauseDisplay();
 	//For each gain
 	int progress = 0;
 	for(g = sensorInfo.minGain; g <= sensorInfo.maxGain; g *= 2)
