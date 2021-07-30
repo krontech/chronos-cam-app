@@ -85,7 +85,7 @@ void NetworkUpdate::finished(int code, QProcess::ExitStatus status)
             // check for any new package signing keys
             QStringList keyUpdateArgs = {"/var/camera/scripts/autoKeyRefresher.sh"};
             process->start("/bin/bash", keyUpdateArgs, QProcess::ReadOnly);
-            state = NETWORK_COUNT_REPOS;
+            state = NETWORK_COUNT_REPOS; // go to next update process (continue as before)
             break;
         }
 		case NETWORK_COUNT_REPOS:{
