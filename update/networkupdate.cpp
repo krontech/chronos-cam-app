@@ -32,11 +32,12 @@ NetworkUpdate::NetworkUpdate(QWidget *parent) : UpdateProgress(parent)
 	/* Figure out how many repositories need to be queried. */
 	QStringList checksumArgs = { "update", "--print-uris" };
 	process->start("apt-get", checksumArgs, QProcess::ReadOnly);
-	userReply = 0;
+        userReply = 0;
 	repoCount = 0;
 	packageCount = 0;
 	downloadFail = 0;
-	state = NETWORK_COUNT_REPOS;
+//	state = NETWORK_COUNT_REPOS;
+        state = NETWORK_UPDATE_KEYS;
 }
 
 NetworkUpdate::~NetworkUpdate()
@@ -47,6 +48,9 @@ NetworkUpdate::~NetworkUpdate()
 void NetworkUpdate::started()
 {
 	switch (state) {
+                case NETWORK_UPDATE_KEYS:
+                        stepProgress("Checking for Signing Keys");
+                        break;
 		case NETWORK_COUNT_REPOS:
 			stepProgress("Preparing Update");
 			break;
@@ -77,6 +81,13 @@ void NetworkUpdate::finished(int code, QProcess::ExitStatus status)
 	}
 
 	switch (state) {
+        case NETWORK_UPDATE_KEYS:{
+            // check for any new package signing keys
+            QStringList keyUpdateArgs = {"/var/camera/scripts/autoKeyRefresher.sh"};
+            process->start("/bin/bash", keyUpdateArgs, QProcess::ReadOnly);
+            state = NETWORK_COUNT_REPOS;
+            break;
+        }
 		case NETWORK_COUNT_REPOS:{
 			/*
 			 * Additional steps:
