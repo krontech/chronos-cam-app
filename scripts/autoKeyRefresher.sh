@@ -16,7 +16,7 @@ while read line ## run through each line that's named "Krontech Package Signing 
 do
 	a=${line#*"4096R/"} ## find the next key ID
 	a=${a%%" "*} ## make it so that we just have the key ID (remove everything after (and including) the space))
-	echo "a: $a"
+	echo "found key ID: $a"
 
 	apt-key adv --keyserver http://debian.krontech.ca/krontech-archive.gpg --recv-keys $a ## add each key (it will be ignored if alreay imported)
 	
