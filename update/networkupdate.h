@@ -20,6 +20,7 @@
 #include "updateprogress.h"
 
 enum NetworkUpdateStates {
+        NETWORK_UPDATE_KEYS,
 	NETWORK_COUNT_REPOS,
 	NETWORK_UPDATE_LISTS,
 	NETWORK_PREPARE_METAPACKAGE,
