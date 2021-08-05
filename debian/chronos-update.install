@@ -1,1 +1,2 @@
 /usr/bin/camUpdate
+scripts/autoKeyRefresher.sh var/camera/scripts
