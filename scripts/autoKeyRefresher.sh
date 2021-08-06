@@ -26,10 +26,3 @@ if [[ $? -eq 2 ]]
 then
 	echo "ignoring unused data"
 fi
-
-
-## gpg: key D387E8DA: public key "Krontech Package Signing Key <it@krontech.ca>" ## this was Sanjay's key
-## gpg: key DCE92114: "Krontech Package Signing Key (nf) (Signing key made by Nicholas) <software@krontech.ca>" ## my key
-## gpg: key C43184EA: "Krontech Package Signing Key <software@krontech.ca>" ## old key
-
-## Check a password for a key: echo "1234" | gpg -o /dev/null --local-user D06917EB58347EEE6EF50443FD9367E9DCE92114 -as - && echo "The correct passphrase was entered for this key"
