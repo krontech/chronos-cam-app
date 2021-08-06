@@ -22,6 +22,10 @@ do
 	
 done <<< "$list" ## run through each line
 
+if [[ $? -eq 2 ]]
+then
+	echo "ignoring unused data"
+fi
 
 
 ## gpg: key D387E8DA: public key "Krontech Package Signing Key <it@krontech.ca>" ## this was Sanjay's key
