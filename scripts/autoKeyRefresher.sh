@@ -1,6 +1,6 @@
 #!/bin/bash
 
-## This program attempts to automatically update the package-signing keys (from debian.krontech.ca) so that new signing keys can be used,
+## This program attempts to automatically update the package-signing keys (from debian.krontech.ca) so that new signing keys can be used.
 
 ## Nicholas Faliszewski
 ## August 2021
