@@ -26,6 +26,7 @@
 #include "statuswindow.h"
 #include "util.h"
 #include "camera.h"
+#include "video.h"
 
 namespace Ui {
 class CamMainWindow;
@@ -95,6 +96,9 @@ private slots:
 	void buttonsEnabled(bool en);
     void checkForCalibration(void);
 
+    void runTimer();
+    void stopTimer();
+
 private:
 	void updateCurrentSettingsLabel(void);
 	void updateExpSliderLimits(void);
@@ -122,6 +126,8 @@ private:
 	UInt32 expSliderFramePeriod;
 
 	ImagerSettings_t is;
+
+    CaKrontechChronosControlInterface iface;
 };
 
 #endif // CAMMAINWINDOW_H

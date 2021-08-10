@@ -51,7 +51,8 @@ uint_fast8_t powerLoopCount = 0;
 
 CamMainWindow::CamMainWindow(QWidget *parent) :
 	QDialog(parent),
-	ui(new Ui::CamMainWindow)
+    ui(new Ui::CamMainWindow),
+    iface("ca.krontech.chronos.control", "/ca/krontech/chronos/control", QDBusConnection::systemBus())
 {
 	QSettings appSettings;
 	CameraErrortype retVal;
@@ -114,9 +115,10 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 
 	lastShutterButton = interface->getShutterButton();
 	recording = (camera->cinst->getProperty("state", "unknown").toString() == "recording");
-	timer = new QTimer(this);
-	connect(timer, SIGNAL(timeout()), this, SLOT(on_MainWindowTimer()));
-	timer->start(16);
+
+    timer = new QTimer(this);
+    connect(timer, SIGNAL(timeout()), this, SLOT(on_MainWindowTimer()));
+    timer->start(16);
 
 	connect(camera->vinst, SIGNAL(newSegment(VideoStatus *)), this, SLOT(on_newVideoSegment(VideoStatus *)));
 
@@ -156,6 +158,10 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	camera->setPlayMode(false);
 
     QTimer::singleShot(500, this, SLOT(checkForCalibration())); // wait a moment, then check for calibration at startup
+
+    QDBusConnection conn = iface.connection();
+    conn.connect("ca.krontech.chronos.control", "/ca/krontech/chronos/control", "ca.krontech.chronos.control",
+                 "notify", this, SLOT(runTimer()));
 }
 
 CamMainWindow::~CamMainWindow()
@@ -165,6 +171,26 @@ CamMainWindow::~CamMainWindow()
 
 	delete ui;
 	delete camera;
+}
+
+void CamMainWindow::runTimer()
+{
+    qDebug() << "Enter runTimer";
+
+    VideoStatus st;
+    vinst->getStatus(&st);
+
+    if (st.state == VIDEO_STATE_LIVEDISPLAY)
+    {
+        qDebug() << "Enter IF";
+        timer->start();
+    }
+}
+
+void CamMainWindow::stopTimer()
+{
+    qDebug() << "Enter stopTimer";
+    timer->stop();
 }
 
 void CamMainWindow::checkForCalibration() // see if the camera has been calibrated or not
@@ -327,6 +353,8 @@ void CamMainWindow::on_cmdRec_clicked()
 
 void CamMainWindow::on_cmdPlay_clicked()
 {
+    stopTimer();
+
 	if(recording) {
 		if(QMessageBox::Yes != question("Stop recording?", "This action will stop recording; is this okay?"))
 			return;
