@@ -85,7 +85,7 @@ playbackWindow::playbackWindow(QWidget *parent, Camera * cameraInst, bool autosa
 
     timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(updatePlayFrame()));
-    timer->start(400);
+    timer->start(200);
 
 	updateStatusText();
 
