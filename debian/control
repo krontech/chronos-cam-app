@@ -36,7 +36,7 @@ Description: User Interface for the Chronos Camera
 Package: chronos-update
 Architecture: armel
 Depends: ${shlibs:Depends}, ${misc:Depends}, libqt4-chronos
-Description: Software Updater for the Chrnos Camera
+Description: Software Updater for the Chronos Camera
  Qt4 user interface runs locally on the camera and manages the
  software update process and package configuration.
 
