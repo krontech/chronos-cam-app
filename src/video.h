@@ -125,7 +125,7 @@ public:
 	UInt32 framerate;
 	UInt32 profile;
 	UInt32 level;
-	char liveRecFileDirectory[1000];
+    char liveRecFileDirectory[1000];
 
 signals:
 	void started(VideoState state);
@@ -140,7 +140,7 @@ private:
 	void checkpid(void);
 	int mkfilename(char *path, save_mode_type save_mode);
 
-	CaKrontechChronosVideoInterface iface;
+    CaKrontechChronosVideoInterface iface;
 
 	UInt32 displayWindowXSize;
 	UInt32 displayWindowYSize;

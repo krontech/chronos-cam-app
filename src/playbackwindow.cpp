@@ -83,9 +83,9 @@ playbackWindow::playbackWindow(QWidget *parent, Camera * cameraInst, bool autosa
 
 	playbackExponent = 0;
 
-	timer = new QTimer(this);
-	connect(timer, SIGNAL(timeout()), this, SLOT(updatePlayFrame()));
-	timer->start(30);
+    timer = new QTimer(this);
+    connect(timer, SIGNAL(timeout()), this, SLOT(updatePlayFrame()));
+    timer->start(200);
 
 	updateStatusText();
 
@@ -122,9 +122,9 @@ void playbackWindow::videoStarted(VideoState state)
 
 		ui->cmdSave->setText("Abort\nSave");
 
-		saveDoneTimer = new QTimer(this);
-		connect(saveDoneTimer, SIGNAL(timeout()), this, SLOT(checkForSaveDone()));
-		saveDoneTimer->start(1000);
+        //saveDoneTimer = new QTimer(this);
+        //connect(saveDoneTimer, SIGNAL(timeout()), this, SLOT(checkForSaveDone()));
+        //saveDoneTimer->start(2000);
 		saveAbortedAutomatically = false;
 
 		/* Prevent the user from pressing the abort/save button just after the last frame,
@@ -512,24 +512,53 @@ void playbackWindow::updatePlayFrame()
 	char playRateStr[100];
 	camera->vinst->getStatus(&st);
 
-	/* Update the position */
+    /* Update the position */
 	playFrame = st.position;
 	ui->verticalSlider->setValue(st.position);
 	updateStatusText();
+    if (st.state == VIDEO_STATE_FILESAVE)
+    {
+        struct statvfs statvfsBuf;
+        statvfs(camera->cinst->fileDirectory, &statvfsBuf);
+        qDebug("Free space: %llu  (%lu * %lu)", statvfsBuf.f_bsize * (uint64_t)statvfsBuf.f_bfree, statvfsBuf.f_bsize, statvfsBuf.f_bfree);
 
-	/* Update the framerate. */
+        /* Prevent the user from pressing the abort/save button just after the last frame,
+         * as that can make the camera try to save a 2nd video too soon, crashing the camapp.*/
+        UInt32 framerate = (UInt32) st.framerate;
+        if(playFrame + framerate > markOutFrame)
+            ui->cmdSave->setEnabled(false);
+
+        /*Abort the save if insufficient free space,
+        but not if the save has already been aborted,
+        or if the save button is not enabled(unsafe to abort at that time)(except if save mode is RAW)*/
+        bool insufficientFreeSpaceCurrent = (MIN_FREE_SPACE > statvfsBuf.f_bsize * (uint64_t)statvfsBuf.f_bfree);
+        if(insufficientFreeSpaceCurrent &&
+           insufficientFreeSpaceEstimate &&
+           !saveAborted &&
+            (ui->cmdSave->isEnabled() || getSaveFormat() != SAVE_MODE_H264)
+           )
+        {
+            saveAbortedAutomatically = true;
+            on_cmdSave_clicked();
+        }
+
+        updateSWText();
+    }
+
+    /* Update the framerate. */
 	if (st.state != VIDEO_STATE_FILESAVE) {
 		st.framerate = (playbackExponent >= 0) ? (60 << playbackExponent) : 60.0 / (1 - playbackExponent);
 	}
 	sprintf(playRateStr, "%.1ffps", st.framerate);
-	ui->lblFrameRate->setText(playRateStr);
+    ui->lblFrameRate->setText(playRateStr);
 }
 
 //Once save is done, re-enable the window
 void playbackWindow::checkForSaveDone()
 {
 	VideoStatus st;
-	camera->vinst->getStatus(&st);
+    camera->vinst->getStatus(&st);
+
 	if(st.state == VIDEO_STATE_FILESAVE) {
 		setControlEnable(false);
 
