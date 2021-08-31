@@ -544,6 +544,15 @@ void playbackWindow::updatePlayFrame()
 
         updateSWText();
     }
+    else
+    {
+        if (markOutFrame - markInFrame < 10 && getSaveFormat() == SAVE_MODE_H264) ui->cmdSave->setEnabled(false);
+        else
+        {
+            if (ui->cmdMarkIn->isEnabled())
+                ui->cmdSave->setEnabled(true);
+        }
+    }
 
     /* Update the framerate. */
 	if (st.state != VIDEO_STATE_FILESAVE) {
