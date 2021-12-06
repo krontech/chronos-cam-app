@@ -499,14 +499,15 @@ void IOSettingsWindow::on_cmdApply_clicked()
         if (reply == QMessageBox::Yes)
         {
             is->recTrigDelay = 0;
-            // do something to update these settings
-            QVariantMap values;
-            values.insert("recTrigDelay", QVariant(is->recTrigDelay));
-
-            /* Apply the settings via D-Bus */
-            camera->cinst->setPropertyGroup(values);
         }
     }
+
+    // do something to update these settings
+    QVariantMap values;
+    values.insert("recTrigDelay", QVariant(is->recTrigDelay));
+
+    /* Apply the settings via D-Bus */
+    camera->cinst->setPropertyGroup(values);
 }
 
 void IOSettingsWindow::on_radioIO1TriggeredShutter_toggled(bool checked)
