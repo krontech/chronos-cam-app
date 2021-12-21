@@ -14,6 +14,8 @@
  *  You should have received a copy of the GNU General Public License       *
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.   *
  ****************************************************************************/
+#define _FILE_OFFSET_BITS 64
+
 #include <time.h>
 #include <sys/stat.h>
 #include <sys/statvfs.h>
@@ -249,6 +251,7 @@ void playbackWindow::on_cmdSave_clicked()
 		}
 
 		if (!statfs(camera->cinst->fileDirectory, &statfsBuf)) {
+
 			unsigned int numFrames = (markOutFrame - markInFrame + 3);
 			uint64_t freeSpace = statfsBuf.f_bsize * (uint64_t)statfsBuf.f_bfree;
 			uint64_t fileOverhead = 4096;
@@ -335,8 +338,11 @@ void playbackWindow::on_cmdSave_clicked()
 		struct stat sb;
 		struct stat sbP;
 
-		if (stat(camera->cinst->fileDirectory, &sb) == 0 && S_ISDIR(sb.st_mode) &&
-				stat(parentPath, &sbP) == 0 && sb.st_dev != sbP.st_dev)		//If location is directory and is a mount point (device ID of parent is different from device ID of path)
+        qDebug() << stat(camera->cinst->fileDirectory, &sb);
+        perror("stat");
+
+        if (stat(camera->cinst->fileDirectory, &sb) == 0 && S_ISDIR(sb.st_mode) &&
+            stat(parentPath, &sbP) == 0 && sb.st_dev != sbP.st_dev)		//If location is directory and is a mount point (device ID of parent is different from device ID of path)
 		{
 			UInt32 bppBitrate = camera->vinst->bitsPerPixel * frame.pixels() * camera->vinst->framerate;
 			UInt32 realBitrate = min(bppBitrate, min(60000000, (UInt32)(camera->vinst->maxBitrate * 1000000.0)));

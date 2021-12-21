@@ -175,21 +175,17 @@ CamMainWindow::~CamMainWindow()
 
 void CamMainWindow::runTimer()
 {
-    qDebug() << "Enter runTimer";
-
     VideoStatus st;
     vinst->getStatus(&st);
 
     if (st.state == VIDEO_STATE_LIVEDISPLAY)
     {
-        qDebug() << "Enter IF";
         timer->start();
     }
 }
 
 void CamMainWindow::stopTimer()
 {
-    qDebug() << "Enter stopTimer";
     timer->stop();
 }
 
