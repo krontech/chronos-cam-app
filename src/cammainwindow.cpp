@@ -275,6 +275,9 @@ void CamMainWindow::checkForNfsStorage()
             return;
         }
     }
+    else {
+        checkforSmbStorage();
+    }
 }
 
 void CamMainWindow::checkforSmbStorage()
