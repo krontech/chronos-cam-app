@@ -38,6 +38,13 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 
+#include <sys/mount.h>
+#include <sys/vfs.h>
+#include <sys/sendfile.h>
+#include <mntent.h>
+#include <sys/statvfs.h>
+#include "defines.h"
+
 extern "C" {
 #include "siText.h"
 }
@@ -158,6 +165,7 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	camera->setPlayMode(false);
 
     QTimer::singleShot(500, this, SLOT(checkForCalibration())); // wait a moment, then check for calibration at startup
+    QTimer::singleShot(15000, this, SLOT(checkForNfsStorage()));
 
     QDBusConnection conn = iface.connection();
     conn.connect("ca.krontech.chronos.control", "/ca/krontech/chronos/control", "ca.krontech.chronos.control",
@@ -227,6 +235,82 @@ void CamMainWindow::checkForCalibration() // see if the camera has been calibrat
         }
     }
 
+}
+
+void CamMainWindow::checkForNfsStorage()
+{
+    QSettings appSettings;
+
+    if ((appSettings.value("network/nfsAddress").toString().length()) && (appSettings.value("network/nfsMount").toString().length())) {
+        QMessageBox netConnBox;
+        netConnBox.setWindowTitle("NFS Connection Status");
+        netConnBox.setWindowFlags(Qt::WindowStaysOnTopHint); // on top
+        netConnBox.setStandardButtons(QMessageBox::Ok);
+        netConnBox.setModal(true); // should not be able to click somewhere else
+        netConnBox.hide();
+
+        umount2(NFS_STORAGE_MOUNT, MNT_DETACH);
+        checkAndCreateDir(NFS_STORAGE_MOUNT);
+
+        QCoreApplication::processEvents();
+        if (!isReachable(appSettings.value("network/nfsAddress").toString())) {
+            netConnBox.setText(appSettings.value("network/nfsAddress").toString() + " is not reachable!");
+            netConnBox.show();
+            netConnBox.exec();
+            checkforSmbStorage();
+            return;
+        }
+
+        QString mountString = buildNfsString();
+        mountString.append(" 2>&1");
+        QString returnString = runCommand(mountString.toLatin1());
+        if (returnString != "") {
+            netConnBox.setText("Mount failed: " + returnString);
+            netConnBox.show();
+            netConnBox.exec();
+            checkforSmbStorage();
+            return;
+        }
+        else {
+            return;
+        }
+    }
+}
+
+void CamMainWindow::checkforSmbStorage()
+{
+    QSettings appSettings;
+
+    if ((appSettings.value("network/smbUser").toString().length()) && (appSettings.value("network/smbShare").toString().length()) && (appSettings.value("network/smbPassword").toString().length())) {
+        QMessageBox netConnBox;
+        netConnBox.setWindowTitle("SMB Connection Status");
+        netConnBox.setWindowFlags(Qt::WindowStaysOnTopHint); // on top
+        netConnBox.setStandardButtons(QMessageBox::Ok);
+        netConnBox.setModal(true); // should not be able to click somewhere else
+        netConnBox.hide();
+
+        umount2(SMB_STORAGE_MOUNT, MNT_DETACH);
+        checkAndCreateDir(SMB_STORAGE_MOUNT);
+
+        QCoreApplication::processEvents();
+        QString smbServer = parseSambaServer(appSettings.value("network/smbShare").toString());
+        if (!isReachable(smbServer)) {
+            netConnBox.setText(smbServer + " is not reachable!");
+            netConnBox.show();
+            netConnBox.exec();
+            return;
+        }
+
+        QString mountString = buildSambaString();
+        mountString.append(" 2>&1");
+        QString returnString = runCommand(mountString.toLatin1());
+        if (returnString != "") {
+            netConnBox.setText("Mount failed: " + returnString);
+            netConnBox.show();
+            netConnBox.exec();
+            return;
+        }
+    }
 }
 
 void CamMainWindow::on_videoState_valueChanged(const QVariant &value)

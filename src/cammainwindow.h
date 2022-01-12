@@ -95,6 +95,8 @@ private slots:
 
 	void buttonsEnabled(bool en);
     void checkForCalibration(void);
+    void checkForNfsStorage(void);
+    void checkforSmbStorage(void);
 
     void runTimer();
     void stopTimer();
