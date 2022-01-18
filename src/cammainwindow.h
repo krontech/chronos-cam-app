@@ -96,7 +96,8 @@ private slots:
 	void buttonsEnabled(bool en);
     void checkForCalibration(void);
     void checkForNfsStorage(void);
-    void checkforSmbStorage(void);
+    void checkForSmbStorage(void);
+    void checkForWebMount(void);
 
     void runTimer();
     void stopTimer();
@@ -113,6 +114,7 @@ private:
 	UserInterface * interface;
 	StatusWindow * sw;
 	QTimer *timer;
+    QTimer *mountTimer;
 	bool recording;
 	bool lastShutterButton;
 	int windowsAlwaysOpen;

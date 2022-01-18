@@ -20,6 +20,8 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <QSettings>
+#include <QFile>
+#include <QTextStream>
 
 #include "userInterface.h"
 #include "mainwindow.h"
@@ -164,6 +166,10 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	/* Go into live display after initialization */
 	camera->setPlayMode(false);
 
+    mountTimer = new QTimer(this);
+    connect(mountTimer, SIGNAL(timeout()), this, SLOT(checkForWebMount()));
+    mountTimer->start(5000);
+
     QTimer::singleShot(500, this, SLOT(checkForCalibration())); // wait a moment, then check for calibration at startup
     QTimer::singleShot(15000, this, SLOT(checkForNfsStorage()));
 
@@ -257,7 +263,7 @@ void CamMainWindow::checkForNfsStorage()
             netConnBox.setText(appSettings.value("network/nfsAddress").toString() + " is not reachable!");
             netConnBox.show();
             netConnBox.exec();
-            checkforSmbStorage();
+            checkForSmbStorage();
             return;
         }
 
@@ -268,7 +274,7 @@ void CamMainWindow::checkForNfsStorage()
             netConnBox.setText("Mount failed: " + returnString);
             netConnBox.show();
             netConnBox.exec();
-            checkforSmbStorage();
+            checkForSmbStorage();
             return;
         }
         else {
@@ -276,11 +282,11 @@ void CamMainWindow::checkForNfsStorage()
         }
     }
     else {
-        checkforSmbStorage();
+        checkForSmbStorage();
     }
 }
 
-void CamMainWindow::checkforSmbStorage()
+void CamMainWindow::checkForSmbStorage()
 {
     QSettings appSettings;
 
@@ -314,6 +320,34 @@ void CamMainWindow::checkforSmbStorage()
             return;
         }
     }
+}
+
+void CamMainWindow::checkForWebMount()
+{
+    qDebug() << "check for web mount";
+    QSettings appSettings;
+
+    QFile netFile("/var/camera/webNfsMount.txt");
+    if (netFile.open(QIODevice::ReadWrite | QIODevice::Text)) {
+        QTextStream netFileStream(&netFile);
+
+        while(!netFileStream.atEnd()) {
+            QString line = netFileStream.readLine();
+            if (line == "") {
+                appSettings.setValue("network/nfsAddress", "");
+                appSettings.setValue("network/nfsMount", "");
+            }
+            QStringList mountInfo = line.split(" ");
+            if (mountInfo.length() == 2) {
+                if ((mountInfo[0] != appSettings.value("network/nfsAddress").toString()) ||
+                    (mountInfo[1] != appSettings.value("network/nfsMount").toString())) {
+                    appSettings.setValue("network/nfsAddress", mountInfo[0]);
+                    appSettings.setValue("network/nfsMount", mountInfo[1]);
+                }
+            }
+        }
+    }
+    netFile.close();
 }
 
 void CamMainWindow::on_videoState_valueChanged(const QVariant &value)
