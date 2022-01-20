@@ -20,6 +20,8 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <QSettings>
+#include <QFile>
+#include <QTextStream>
 
 #include "userInterface.h"
 #include "mainwindow.h"
@@ -37,6 +39,13 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/un.h>
+
+#include <sys/mount.h>
+#include <sys/vfs.h>
+#include <sys/sendfile.h>
+#include <mntent.h>
+#include <sys/statvfs.h>
+#include "defines.h"
 
 extern "C" {
 #include "siText.h"
@@ -157,7 +166,12 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	/* Go into live display after initialization */
 	camera->setPlayMode(false);
 
+    mountTimer = new QTimer(this);
+    connect(mountTimer, SIGNAL(timeout()), this, SLOT(checkForWebMount()));
+    mountTimer->start(5000);
+
     QTimer::singleShot(500, this, SLOT(checkForCalibration())); // wait a moment, then check for calibration at startup
+    QTimer::singleShot(15000, this, SLOT(checkForNfsStorage()));
 
     QDBusConnection conn = iface.connection();
     conn.connect("ca.krontech.chronos.control", "/ca/krontech/chronos/control", "ca.krontech.chronos.control",
@@ -227,6 +241,138 @@ void CamMainWindow::checkForCalibration() // see if the camera has been calibrat
         }
     }
 
+}
+
+void CamMainWindow::checkForNfsStorage()
+{
+    QSettings appSettings;
+
+    if ((appSettings.value("network/nfsAddress").toString().length()) && (appSettings.value("network/nfsMount").toString().length())) {
+        QMessageBox netConnBox;
+        netConnBox.setWindowTitle("NFS Connection Status");
+        netConnBox.setWindowFlags(Qt::WindowStaysOnTopHint); // on top
+        netConnBox.setStandardButtons(QMessageBox::Ok);
+        netConnBox.setModal(true); // should not be able to click somewhere else
+        netConnBox.hide();
+
+        umount2(NFS_STORAGE_MOUNT, MNT_DETACH);
+        checkAndCreateDir(NFS_STORAGE_MOUNT);
+
+        QCoreApplication::processEvents();
+        if (!isReachable(appSettings.value("network/nfsAddress").toString())) {
+            netConnBox.setText(appSettings.value("network/nfsAddress").toString() + " is not reachable!");
+            netConnBox.show();
+            netConnBox.exec();
+            checkForSmbStorage();
+            return;
+        }
+
+        QString mountString = buildNfsString();
+        mountString.append(" 2>&1");
+        QString returnString = runCommand(mountString.toLatin1());
+        if (returnString != "") {
+            netConnBox.setText("Mount failed: " + returnString);
+            netConnBox.show();
+            netConnBox.exec();
+            checkForSmbStorage();
+            return;
+        }
+        else {
+            return;
+        }
+    }
+    else {
+        checkForSmbStorage();
+    }
+}
+
+void CamMainWindow::checkForSmbStorage()
+{
+    QSettings appSettings;
+
+    if ((appSettings.value("network/smbUser").toString().length()) && (appSettings.value("network/smbShare").toString().length()) && (appSettings.value("network/smbPassword").toString().length())) {
+        QMessageBox netConnBox;
+        netConnBox.setWindowTitle("SMB Connection Status");
+        netConnBox.setWindowFlags(Qt::WindowStaysOnTopHint); // on top
+        netConnBox.setStandardButtons(QMessageBox::Ok);
+        netConnBox.setModal(true); // should not be able to click somewhere else
+        netConnBox.hide();
+
+        umount2(SMB_STORAGE_MOUNT, MNT_DETACH);
+        checkAndCreateDir(SMB_STORAGE_MOUNT);
+
+        QCoreApplication::processEvents();
+        QString smbServer = parseSambaServer(appSettings.value("network/smbShare").toString());
+        if (!isReachable(smbServer)) {
+            netConnBox.setText(smbServer + " is not reachable!");
+            netConnBox.show();
+            netConnBox.exec();
+            return;
+        }
+
+        QString mountString = buildSambaString();
+        mountString.append(" 2>&1");
+        QString returnString = runCommand(mountString.toLatin1());
+        if (returnString != "") {
+            netConnBox.setText("Mount failed: " + returnString);
+            netConnBox.show();
+            netConnBox.exec();
+            return;
+        }
+    }
+}
+
+void CamMainWindow::checkForWebMount()
+{
+    qDebug() << "check for web mount";
+    QSettings appSettings;
+
+    QFile nfsFile("/var/camera/webNfsMount.txt");
+    if (nfsFile.open(QIODevice::ReadWrite | QIODevice::Text)) {
+        QTextStream nfsFileStream(&nfsFile);
+
+        while(!nfsFileStream.atEnd()) {
+            QString line = nfsFileStream.readLine();
+            if (line == "") {
+                appSettings.setValue("network/nfsAddress", "");
+                appSettings.setValue("network/nfsMount", "");
+            }
+            QStringList mountInfo = line.split(" ");
+            if (mountInfo.length() == 2) {
+                if ((mountInfo[0] != appSettings.value("network/nfsAddress").toString()) ||
+                    (mountInfo[1] != appSettings.value("network/nfsMount").toString())) {
+                    appSettings.setValue("network/nfsAddress", mountInfo[0]);
+                    appSettings.setValue("network/nfsMount", mountInfo[1]);
+                }
+            }
+        }
+    }
+    nfsFile.close();
+
+    QFile smbFile("/var/camera/webSmbMount.txt");
+    if (smbFile.open(QIODevice::ReadWrite | QIODevice::Text)) {
+        QTextStream smbFileStream(&smbFile);
+
+        while(!smbFileStream.atEnd()) {
+            QString line = smbFileStream.readLine();
+            if (line == "") {
+                appSettings.setValue("network/smbShare", "");
+                appSettings.setValue("network/smbUser", "");
+                appSettings.setValue("network/smbPassword", "");
+            }
+            QStringList mountInfo = line.split(" ");
+            if (mountInfo.length() == 3) {
+                if ((mountInfo[0] != appSettings.value("network/smbShare").toString())  ||
+                    (mountInfo[1] != appSettings.value("network/smbUser").toString()) ||
+                    (mountInfo[2] != appSettings.value("network/smbPassword"))) {
+                    appSettings.setValue("network/smbShare", mountInfo[0]);
+                    appSettings.setValue("network/smbUser", mountInfo[1]);
+                    appSettings.setValue("network/smbPassword", mountInfo[2]);
+                }
+            }
+        }
+    }
+    smbFile.close();
 }
 
 void CamMainWindow::on_videoState_valueChanged(const QVariant &value)

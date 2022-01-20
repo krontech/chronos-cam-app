@@ -28,6 +28,8 @@
 #include <QListView>
 #include <QApplication>
 #include <QProcess>
+#include <QFile>
+#include <QTextStream>
 
 #include <stdio.h>
 #include <fcntl.h>
@@ -1397,6 +1399,13 @@ void UtilWindow::on_cmdSmbApply_clicked()
 		appSettings.setValue("network/smbPassword", ui->lineSmbPassword->text());
 	}
 
+    QFile netFile("/var/camera/webSmbMount.txt");
+    netFile.remove();
+    if (netFile.open(QIODevice::ReadWrite)) {
+            QTextStream stream(&netFile);
+            stream << appSettings.value("network/smbShare").toString() << " " << appSettings.value("network/smbUser").toString() << " " << appSettings.value("network/smbPassword").toString() << endl;
+    }
+
 	/* Disconnect any mounted storage. */
 	umount2(SMB_STORAGE_MOUNT, MNT_DETACH);
 	checkAndCreateDir(SMB_STORAGE_MOUNT);
@@ -1493,6 +1502,13 @@ void UtilWindow::on_cmdNfsApply_clicked()
 	/* Store the updated NFS settings. */
 	appSettings.setValue("network/nfsAddress", ui->lineNfsAddress->text());
 	appSettings.setValue("network/nfsMount", ui->lineNfsMount->text());
+
+    QFile netFile("/var/camera/webNfsMount.txt");
+    netFile.remove();
+    if (netFile.open(QIODevice::ReadWrite)) {
+            QTextStream stream(&netFile);
+            stream << appSettings.value("network/nfsAddress").toString() << " " << appSettings.value("network/nfsMount").toString() << endl;
+    }
 
 	/* Disconnect any mounted storage. */
 	umount2(NFS_STORAGE_MOUNT, MNT_DETACH);

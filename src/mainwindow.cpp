@@ -34,6 +34,7 @@
 
 #include "video.h"
 #include "types.h"
+#include "util.h"
 extern "C" {
 }
 
