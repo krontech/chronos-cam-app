@@ -327,12 +327,12 @@ void CamMainWindow::checkForWebMount()
     qDebug() << "check for web mount";
     QSettings appSettings;
 
-    QFile netFile("/var/camera/webNfsMount.txt");
-    if (netFile.open(QIODevice::ReadWrite | QIODevice::Text)) {
-        QTextStream netFileStream(&netFile);
+    QFile nfsFile("/var/camera/webNfsMount.txt");
+    if (nfsFile.open(QIODevice::ReadWrite | QIODevice::Text)) {
+        QTextStream nfsFileStream(&nfsFile);
 
-        while(!netFileStream.atEnd()) {
-            QString line = netFileStream.readLine();
+        while(!nfsFileStream.atEnd()) {
+            QString line = nfsFileStream.readLine();
             if (line == "") {
                 appSettings.setValue("network/nfsAddress", "");
                 appSettings.setValue("network/nfsMount", "");
@@ -347,7 +347,32 @@ void CamMainWindow::checkForWebMount()
             }
         }
     }
-    netFile.close();
+    nfsFile.close();
+
+    QFile smbFile("/var/camera/webSmbMount.txt");
+    if (smbFile.open(QIODevice::ReadWrite | QIODevice::Text)) {
+        QTextStream smbFileStream(&smbFile);
+
+        while(!smbFileStream.atEnd()) {
+            QString line = smbFileStream.readLine();
+            if (line == "") {
+                appSettings.setValue("network/smbShare", "");
+                appSettings.setValue("network/smbUser", "");
+                appSettings.setValue("network/smbPassword", "");
+            }
+            QStringList mountInfo = line.split(" ");
+            if (mountInfo.length() == 3) {
+                if ((mountInfo[0] != appSettings.value("network/smbShare").toString())  ||
+                    (mountInfo[1] != appSettings.value("network/smbUser").toString()) ||
+                    (mountInfo[2] != appSettings.value("network/smbPassword"))) {
+                    appSettings.setValue("network/smbShare", mountInfo[0]);
+                    appSettings.setValue("network/smbUser", mountInfo[1]);
+                    appSettings.setValue("network/smbPassword", mountInfo[2]);
+                }
+            }
+        }
+    }
+    smbFile.close();
 }
 
 void CamMainWindow::on_videoState_valueChanged(const QVariant &value)

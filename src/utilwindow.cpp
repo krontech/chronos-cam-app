@@ -1399,6 +1399,13 @@ void UtilWindow::on_cmdSmbApply_clicked()
 		appSettings.setValue("network/smbPassword", ui->lineSmbPassword->text());
 	}
 
+    QFile netFile("/var/camera/webSmbMount.txt");
+    netFile.remove();
+    if (netFile.open(QIODevice::ReadWrite)) {
+            QTextStream stream(&netFile);
+            stream << appSettings.value("network/smbShare").toString() << " " << appSettings.value("network/smbUser").toString() << " " << appSettings.value("network/smbPassword").toString() << endl;
+    }
+
 	/* Disconnect any mounted storage. */
 	umount2(SMB_STORAGE_MOUNT, MNT_DETACH);
 	checkAndCreateDir(SMB_STORAGE_MOUNT);
@@ -1500,7 +1507,7 @@ void UtilWindow::on_cmdNfsApply_clicked()
     netFile.remove();
     if (netFile.open(QIODevice::ReadWrite)) {
             QTextStream stream(&netFile);
-            stream << appSettings.value("network/nfsAddress").toString() << " " << appSettings.value("network/nfsMount" ).toString() << endl;
+            stream << appSettings.value("network/nfsAddress").toString() << " " << appSettings.value("network/nfsMount").toString() << endl;
     }
 
 	/* Disconnect any mounted storage. */
