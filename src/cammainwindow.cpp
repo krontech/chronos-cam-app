@@ -804,6 +804,10 @@ void CamMainWindow::on_newVideoSegment(VideoStatus *st)
 		camera->cinst->getImagerSettings(&camera->recordingData.is);
 		camera->recordingData.valid = true;
 		camera->recordingData.hasBeenSaved = false;
+
+        cinst->saveRecording(previousFrame-1, st->totalFrames, SAVE_MODE_H264, vinst->framerate, 60000000);
+
+        previousFrame = st->totalFrames;
 	}
 }
 
@@ -989,7 +993,7 @@ void CamMainWindow::on_cmdUtil_clicked()
 	if(recording) {
 		if(QMessageBox::Yes != question("Stop recording?", "This action will stop recording and erase the video; is this okay?"))
 			return;
-		autoSaveActive = false;
+        autoSaveActive = false;
 		camera->stopRecording();
 	}
 	UtilWindow *w = new UtilWindow(NULL, camera);

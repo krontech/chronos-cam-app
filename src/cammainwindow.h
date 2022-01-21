@@ -132,6 +132,8 @@ private:
 	ImagerSettings_t is;
 
     CaKrontechChronosControlInterface iface;
+
+    int previousFrame = 1;
 };
 
 #endif // CAMMAINWINDOW_H

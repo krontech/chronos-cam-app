@@ -40,7 +40,7 @@ playbackWindow::playbackWindow(QWidget *parent, Camera * cameraInst, bool autosa
 	QWidget(parent),
 	ui(new Ui::playbackWindow)
 {
-	QSettings appSettings;
+    QSettings appSettings;
 	VideoStatus vStatus;
 	ui->setupUi(this);
 	this->setWindowFlags(Qt::Dialog /*| Qt::WindowStaysOnTopHint*/ | Qt::FramelessWindowHint);
