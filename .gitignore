@@ -14,3 +14,4 @@ chronos-cam-app_*.changes
 .DS_Store
 *\~
 .directory
+.idea
