@@ -176,6 +176,8 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
     QDBusConnection conn = iface.connection();
     conn.connect("ca.krontech.chronos.control", "/ca/krontech/chronos/control", "ca.krontech.chronos.control",
                  "notify", this, SLOT(runTimer()));
+
+    connect(camera->vinst, SIGNAL(ended(VideoState,QString)), this, SLOT(saveNextSegment(VideoState)));
 }
 
 CamMainWindow::~CamMainWindow()
@@ -364,7 +366,7 @@ void CamMainWindow::checkForWebMount()
             if (mountInfo.length() == 3) {
                 if ((mountInfo[0] != appSettings.value("network/smbShare").toString())  ||
                     (mountInfo[1] != appSettings.value("network/smbUser").toString()) ||
-                    (mountInfo[2] != appSettings.value("network/smbPassword"))) {
+                    (mountInfo[2] != appSettings.value("network/smbPassword").toString())) {
                     appSettings.setValue("network/smbShare", mountInfo[0]);
                     appSettings.setValue("network/smbUser", mountInfo[1]);
                     appSettings.setValue("network/smbPassword", mountInfo[2]);
@@ -805,10 +807,29 @@ void CamMainWindow::on_newVideoSegment(VideoStatus *st)
 		camera->recordingData.valid = true;
 		camera->recordingData.hasBeenSaved = false;
 
-        cinst->saveRecording(previousFrame-1, st->totalFrames, SAVE_MODE_H264, vinst->framerate, 60000000);
+        /***/
+        if (st->totalSegments == 1) {
+            nextSegments = {};
+            cinst->saveRecording(0, st->totalFrames, SAVE_MODE_H264, vinst->framerate, 60000000);
+        }
 
-        previousFrame = st->totalFrames;
+        nextSegments.append(st->totalFrames);
 	}
+}
+
+void CamMainWindow::saveNextSegment(VideoState state)
+{
+    qDebug() << "End saving segment";
+    qDebug() << nextSegments;
+    if ((state == VIDEO_STATE_FILESAVE) && (nextSegments.length() > 1))
+    {
+        qDebug() << "start saving the next segment";
+        int markIn = nextSegments[0].toInt();
+        int markOut = nextSegments[1].toInt();
+
+        cinst->saveRecording(markIn+1, markOut-markIn-1, SAVE_MODE_H264, vinst->framerate, 60000000);
+        nextSegments.removeFirst();
+    }
 }
 
 void CamMainWindow::on_chkFocusAid_clicked(bool focusAidEnabled)

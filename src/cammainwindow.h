@@ -65,6 +65,7 @@ private slots:
 
 	void on_MainWindowTimer();
 	void on_newVideoSegment(VideoStatus *st);
+    void saveNextSegment(VideoState state);
 
 	void on_chkFocusAid_clicked(bool focusAidEnabled);
 
@@ -133,7 +134,7 @@ private:
 
     CaKrontechChronosControlInterface iface;
 
-    int previousFrame = 1;
+    QVariantList nextSegments = {};
 };
 
 #endif // CAMMAINWINDOW_H
