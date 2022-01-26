@@ -19,6 +19,7 @@ recModeWindow::recModeWindow(QWidget *parent, Camera * cameraInst, ImagerSetting
 	sensor = camera->getSensorInfo();
 
     ui->chkDisableRing->setChecked(is->disableRingBuffer);
+    ui->chkRunNGun->setChecked(camera->get_runngun());
 
 	showLoopInformation();
 
@@ -33,7 +34,8 @@ recModeWindow::recModeWindow(QWidget *parent, Camera * cameraInst, ImagerSetting
             ui->radioNormal->setChecked(true);
             ui->stackedWidget->setCurrentIndex(0);
             ui->grpSegmented->setVisible(false);
-		  ui->chkDisableRing->setVisible(false);
+            ui->chkDisableRing->setVisible(false);
+            ui->chkRunNGun->setVisible(false);
             ui->lblNormal->setText("Records frames in a single buffer");
         break;
 
@@ -41,7 +43,8 @@ recModeWindow::recModeWindow(QWidget *parent, Camera * cameraInst, ImagerSetting
             ui->radioSegmented->setChecked(true);
             ui->stackedWidget->setCurrentIndex(0);
             ui->grpSegmented->setVisible(true);
-		  ui->chkDisableRing->setVisible(true);
+            ui->chkDisableRing->setVisible(true);
+            ui->chkRunNGun->setVisible(true);
             ui->lblNormal->setText("Records frames in a segmented buffer, one buffer per trigger");
         break;
 
@@ -50,12 +53,15 @@ recModeWindow::recModeWindow(QWidget *parent, Camera * cameraInst, ImagerSetting
 			ui->stackedWidget->setCurrentIndex(1);
 			ui->grpSegmented->setVisible(false);
 			ui->chkDisableRing->setVisible(false);
+            ui->chkRunNGun->setVisible(false);
 		break;
 
 		case RECORD_MODE_LIVE:
 			ui->radioLive->setChecked(true);
 			ui->stackedWidget->setCurrentIndex(2);
 			ui->grpSegmented->setVisible(false);
+            ui->chkDisableRing->setVisible(false);
+            ui->chkRunNGun->setVisible(false);
 		break;
 
 		case RECORD_MODE_FPN:
@@ -124,6 +130,7 @@ void recModeWindow::on_cmdOK_clicked()
 {
 	QSettings appSettings;
 	is->disableRingBuffer = (ui->radioSegmented->isChecked() && ui->chkDisableRing->isChecked());
+    camera->set_runngun(ui->radioSegmented->isChecked() && ui->chkRunNGun->isChecked());
 
 	camera->liveSlowMotion = false;
 
@@ -177,6 +184,7 @@ void recModeWindow::on_radioNormal_clicked()
     ui->grpSegmented->setVisible(false);
     ui->lblNormal->setText("Records frames in a single buffer");
     ui->chkDisableRing->setVisible(false);
+    ui->chkRunNGun->setVisible(false);
 }
 
 void recModeWindow::on_radioSegmented_clicked()
@@ -185,17 +193,21 @@ void recModeWindow::on_radioSegmented_clicked()
     ui->grpSegmented->setVisible(true);
     ui->lblNormal->setText("Records frames in a segmented buffer, one buffer per trigger");
     ui->chkDisableRing->setVisible(true);
+    ui->chkRunNGun->setVisible(true);
 }
 
 void recModeWindow::on_radioGated_clicked()
 {
     ui->stackedWidget->setCurrentIndex(1);
     ui->chkDisableRing->setVisible(false);
+    ui->chkRunNGun->setVisible(false);
 }
 
 void recModeWindow::on_radioLive_clicked()
 {
 	ui->stackedWidget->setCurrentIndex(2);
+    ui->chkDisableRing->setVisible(false);
+    ui->chkRunNGun->setVisible(false);
 }
 
 void recModeWindow::on_cmdMax_clicked()

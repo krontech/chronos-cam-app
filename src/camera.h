@@ -222,6 +222,7 @@ public:
 
 	bool videoHasBeenReviewed;
 	bool autoSave;
+    bool runNGun;
 	int autoSavePercent;
 	bool autoSavePercentEnabled;
 	bool shippingMode;
@@ -234,6 +235,9 @@ public:
 	int playbackFps = 60;
 	QTimer * loopTimer;
 	double liveFramePeriod;
+
+    void set_runngun(bool state);
+    bool get_runngun();
 
 	void set_autoSave(bool state);
 	bool get_autoSave();

@@ -879,7 +879,7 @@ slow motion, continuously</string>
    <property name="geometry">
     <rect>
      <x>540</x>
-     <y>260</y>
+     <y>290</y>
      <width>211</width>
      <height>41</height>
     </rect>
@@ -889,6 +889,25 @@ slow motion, continuously</string>
    </property>
    <property name="text">
     <string>Disable ring buffer</string>
+   </property>
+  </widget>
+  <widget class="QCheckBox" name="chkRunNGun">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="geometry">
+    <rect>
+     <x>540</x>
+     <y>240</y>
+     <width>211</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true"/>
+   </property>
+   <property name="text">
+    <string>Run N Gun Mode</string>
    </property>
   </widget>
  </widget>

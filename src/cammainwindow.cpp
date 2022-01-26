@@ -143,7 +143,6 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	if (camera->get_autoSave()) autoSaveActive = true;
 	else                        autoSaveActive = false;
 
-
 	if(camera->UpsideDownDisplay && camera->RotationArgumentIsSet()){
 		camera->upsideDownTransform(2);//2 for upside down, 0 for normal
 	} else  camera->UpsideDownDisplay = false;//if the rotation argument has not been added, this should be set to false
@@ -458,8 +457,6 @@ void CamMainWindow::on_cmdDebugWnd_clicked()
 
 void CamMainWindow::on_cmdRec_clicked()
 {
-    nextSegments = {};
-
 	if (camera->liveSlowMotion)
 	{
 		if (camera->loopTimerEnabled)
@@ -809,50 +806,64 @@ void CamMainWindow::on_newVideoSegment(VideoStatus *st)
         camera->recordingData.hasBeenSaved = false;
 
         /*------ Run and Gun Mode ------*/
-        qDebug() << "Segment mode: " << st->totalSegments;
-        qDebug() << "next segments from newVideoSegmant before: " << nextSegments;
+        if (camera->get_runngun()) {
+            formatForRunGun = getSaveFormatForRunGun();
+            realBitrateForRunGun = getBitrateForRunGun(formatForRunGun);
 
-        /* ring buffer is not full */
-        if (nextSegments.size() < camera->recordingData.is.segments) {
-            nextSegments.insert(startFrame+1, st->totalFrames - startFrame);
-            totalSegCount++;
-            startFrame = st->totalFrames;
-        }
-        /* ring buffter is full, starting overwriting */
-        else {
-            int firstSegLenght = nextSegments.begin().value();
-            nextSegments.erase(nextSegments.begin());
+            qDebug() << "Segment mode: " << st->totalSegments;
+            qDebug() << "total segments: " << totalSegCount << " " << "saved segments: " << savedSegCount;
 
-            QMap<int, int> temp = {};
-            QMap<int, int>::iterator it;
-            for (it = nextSegments.begin(); it != nextSegments.end(); it++) {
-                int tempKey = it.key() - firstSegLenght;
-                int tempValue = it.value();
-                temp.insert(tempKey, tempValue);
+            if (clearFlag) {
+                clearFlag = false;
+                return;
             }
-            nextSegments = temp;
+            else {
+                /* ring buffer is not full */
+                if (nextSegments.size() < camera->recordingData.is.segments) {
+                    nextSegments.insert(startFrame+1, st->totalFrames - startFrame);
+                    totalSegCount++;
+                    startFrame = st->totalFrames;
+                }
+                /* ring buffter is full, starting overwriting */
+                else {
+                    int firstSegLenght = nextSegments.begin().value();
+                    nextSegments.erase(nextSegments.begin());
 
-            it = nextSegments.end() - 1;
-            startFrame = it.key() + it.value();
-            nextSegments.insert(startFrame, st->totalFrames - startFrame + 1);
-            totalSegCount++;
-        }
-        qDebug() << "next segments from newVideoSegmant after: " << nextSegments;
+                    QMap<int, int> temp = {};
+                    QMap<int, int>::iterator it;
+                    for (it = nextSegments.begin(); it != nextSegments.end(); it++) {
+                        int tempKey = it.key() - firstSegLenght;
+                        int tempValue = it.value();
+                        temp.insert(tempKey, tempValue);
+                    }
+                    nextSegments = temp;
 
+                    it = nextSegments.end() - 1;
+                    startFrame = it.key() + it.value();
+                    nextSegments.insert(startFrame, st->totalFrames - startFrame + 1);
+                    totalSegCount++;
+                }
 
-        if ((nextSegments.size() == 1)) {
-            qDebug() << "start saving for the first segment";
-            QMap<int, int>::iterator it = nextSegments.begin();
-            cinst->saveRecording(it.key(), it.value(), SAVE_MODE_H264, vinst->framerate, 60000000);
-            savedSegCount++;
+                if ((nextSegments.size() == 1)) {
+                    qDebug() << "start saving for the first segment";
+                    QMap<int, int>::iterator it = nextSegments.begin();
+                    cinst->saveRecording(it.key(), it.value(), formatForRunGun, vinst->framerate, realBitrateForRunGun);
+                    savedSegCount++;
+                }
+            }
         }
 	}
 }
 
 void CamMainWindow::saveNextSegment(VideoState state)
 {
+    VideoStatus st;
+    vinst->getStatus(&st);
+
     qDebug() << "next segments from saveNextSegment: " << nextSegments;
-    if ((state == VIDEO_STATE_FILESAVE) && (nextSegments.size() > 1)) // the last segment saving just ends
+    qDebug() << "position when the last segment is ended: " << st.position;
+
+    if ((state == VIDEO_STATE_FILESAVE) && (nextSegments.size() >= 1)) // the last segment saving just ends
     {
         qDebug() << "start saving the next segment";
         qDebug() << "total number of segments: " << totalSegCount;
@@ -863,12 +874,10 @@ void CamMainWindow::saveNextSegment(VideoState state)
         int segLength = 0;
 
         if (savedSegCount != totalSegCount) {
-            if (totalSegCount > 4) {
-                it = nextSegments.end() - 1;
-                start = it.key();
-                segLength = it.value();
+            if (totalSegCount > camera->recordingData.is.segments) {
+                // TO DO
 
-                cinst->saveRecording(start, segLength, SAVE_MODE_H264, vinst->framerate, 60000000);
+                cinst->saveRecording(start, segLength, formatForRunGun, vinst->framerate, realBitrateForRunGun);
                 savedSegCount++;
             }
             else {
@@ -876,14 +885,76 @@ void CamMainWindow::saveNextSegment(VideoState state)
                 start = it.key();
                 segLength = it.value();
 
-                cinst->saveRecording(start, segLength, SAVE_MODE_H264, vinst->framerate, 60000000);
+                cinst->saveRecording(start, segLength, formatForRunGun, vinst->framerate, realBitrateForRunGun);
                 savedSegCount++;
             }
         }
         else {
+            startFrame = 0;
+            totalSegCount = 0;
+            savedSegCount = 0;
+            nextSegments = {};
+            clearFlag = true;
             return;
         }
     }
+}
+
+save_mode_type CamMainWindow::getSaveFormatForRunGun()
+{
+    QSettings appSettings;
+
+    switch (appSettings.value("recorder/saveFormat", SAVE_MODE_H264).toUInt()) {
+    case 0:  return SAVE_MODE_H264;
+    case 1:  return SAVE_MODE_RAW16;
+    case 2:  return SAVE_MODE_RAW12;
+    case 3:  return SAVE_MODE_DNG;
+    case 4:  return SAVE_MODE_TIFF;
+    case 5:  return SAVE_MODE_TIFF_RAW;
+    default: return SAVE_MODE_H264;
+    }
+}
+
+UInt32 CamMainWindow::getBitrateForRunGun(save_mode_type format)
+{
+    QSettings appSettings;
+    FrameGeometry frame;
+    double bpp = appSettings.value("recorder/bitsPerPixel", camera->vinst->bitsPerPixel).toDouble();
+
+    /* Estimate bits per pixel, by format. */
+    switch(format) {
+    case SAVE_MODE_H264:
+        bpp *= 1.2;	/* Add a fudge factor. */
+        break;
+    case SAVE_MODE_DNG:
+    case SAVE_MODE_TIFF_RAW:
+        //fileOverMaxSize = false;
+        //fileOverhead *= numFrames;
+    case SAVE_MODE_RAW16:
+        bpp = 16;
+        break;
+    case SAVE_MODE_RAW12:
+        bpp = 12;
+        break;
+    case SAVE_MODE_TIFF:
+        //fileOverMaxSize = false;
+        //fileOverhead *= numFrames;
+        if (camera->getIsColor()) {
+            bpp = 24;
+        } else {
+            bpp = 8;
+        }
+        break;
+
+    default:
+        bpp = 16;
+        break;
+    }
+
+    UInt32 bppBitrate = camera->vinst->bitsPerPixel * frame.pixels() * camera->vinst->framerate;
+    UInt32 realBitrate = min(bppBitrate, min(60000000, (UInt32)(camera->vinst->maxBitrate * 1000000.0)));
+
+    return realBitrate;
 }
 
 void CamMainWindow::on_chkFocusAid_clicked(bool focusAidEnabled)

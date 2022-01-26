@@ -690,6 +690,17 @@ void Camera::setAutoPowerMode(int newSetting)
 	cinst->setPropertyGroup(values);
 }
 
+void Camera::set_runngun(bool state) {
+    QSettings appSettings;
+    runNGun = state;
+    appSettings.setValue("camera/runNGun", state);
+}
+
+bool Camera::get_runngun() {
+    QSettings appSettings;
+    return appSettings.value("camera/runNGun", false).toBool();
+}
+
 void Camera::set_autoSave(bool state) {
 	QSettings appSettings;
 	autoSave = state;

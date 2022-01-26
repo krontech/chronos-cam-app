@@ -66,6 +66,8 @@ private slots:
 	void on_MainWindowTimer();
     void on_newVideoSegment(VideoStatus *st);
     void saveNextSegment(VideoState state);
+    save_mode_type getSaveFormatForRunGun();
+    UInt32 getBitrateForRunGun(save_mode_type format);
 
 	void on_chkFocusAid_clicked(bool focusAidEnabled);
 
@@ -138,6 +140,10 @@ private:
     int startFrame = 0;
     int savedSegCount = 0;
     int totalSegCount = 0;
+    bool clearFlag = false;
+
+    save_mode_type formatForRunGun;
+    UInt32 realBitrateForRunGun;
 };
 
 #endif // CAMMAINWINDOW_H
