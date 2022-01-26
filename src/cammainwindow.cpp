@@ -129,7 +129,7 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
     connect(timer, SIGNAL(timeout()), this, SLOT(on_MainWindowTimer()));
     timer->start(16);
 
-	connect(camera->vinst, SIGNAL(newSegment(VideoStatus *)), this, SLOT(on_newVideoSegment(VideoStatus *)));
+    connect(camera->vinst, SIGNAL(newSegment(VideoStatus *)), this, SLOT(on_newVideoSegment(VideoStatus *)));
 
 	if (appSettings.value("debug/hideDebug", true).toBool()) {
 		ui->cmdDebugWnd->setVisible(false);
@@ -326,7 +326,6 @@ void CamMainWindow::checkForSmbStorage()
 
 void CamMainWindow::checkForWebMount()
 {
-    qDebug() << "check for web mount";
     QSettings appSettings;
 
     QFile nfsFile("/var/camera/webNfsMount.txt");
@@ -459,6 +458,8 @@ void CamMainWindow::on_cmdDebugWnd_clicked()
 
 void CamMainWindow::on_cmdRec_clicked()
 {
+    nextSegments = {};
+
 	if (camera->liveSlowMotion)
 	{
 		if (camera->loopTimerEnabled)
@@ -805,30 +806,83 @@ void CamMainWindow::on_newVideoSegment(VideoStatus *st)
 	else if (st->totalFrames) {
 		camera->cinst->getImagerSettings(&camera->recordingData.is);
 		camera->recordingData.valid = true;
-		camera->recordingData.hasBeenSaved = false;
+        camera->recordingData.hasBeenSaved = false;
 
-        /***/
-        if (st->totalSegments == 1) {
-            nextSegments = {};
-            cinst->saveRecording(0, st->totalFrames, SAVE_MODE_H264, vinst->framerate, 60000000);
+        /*------ Run and Gun Mode ------*/
+        qDebug() << "Segment mode: " << st->totalSegments;
+        qDebug() << "next segments from newVideoSegmant before: " << nextSegments;
+
+        /* ring buffer is not full */
+        if (nextSegments.size() < camera->recordingData.is.segments) {
+            nextSegments.insert(startFrame+1, st->totalFrames - startFrame);
+            totalSegCount++;
+            startFrame = st->totalFrames;
         }
+        /* ring buffter is full, starting overwriting */
+        else {
+            int firstSegLenght = nextSegments.begin().value();
+            nextSegments.erase(nextSegments.begin());
 
-        nextSegments.append(st->totalFrames);
+            QMap<int, int> temp = {};
+            QMap<int, int>::iterator it;
+            for (it = nextSegments.begin(); it != nextSegments.end(); it++) {
+                int tempKey = it.key() - firstSegLenght;
+                int tempValue = it.value();
+                temp.insert(tempKey, tempValue);
+            }
+            nextSegments = temp;
+
+            it = nextSegments.end() - 1;
+            startFrame = it.key() + it.value();
+            nextSegments.insert(startFrame, st->totalFrames - startFrame + 1);
+            totalSegCount++;
+        }
+        qDebug() << "next segments from newVideoSegmant after: " << nextSegments;
+
+
+        if ((nextSegments.size() == 1)) {
+            qDebug() << "start saving for the first segment";
+            QMap<int, int>::iterator it = nextSegments.begin();
+            cinst->saveRecording(it.key(), it.value(), SAVE_MODE_H264, vinst->framerate, 60000000);
+            savedSegCount++;
+        }
 	}
 }
 
 void CamMainWindow::saveNextSegment(VideoState state)
 {
-    qDebug() << "End saving segment";
-    qDebug() << nextSegments;
-    if ((state == VIDEO_STATE_FILESAVE) && (nextSegments.length() > 1))
+    qDebug() << "next segments from saveNextSegment: " << nextSegments;
+    if ((state == VIDEO_STATE_FILESAVE) && (nextSegments.size() > 1)) // the last segment saving just ends
     {
         qDebug() << "start saving the next segment";
-        int markIn = nextSegments[0].toInt();
-        int markOut = nextSegments[1].toInt();
+        qDebug() << "total number of segments: " << totalSegCount;
+        qDebug() << "number of saved segments: " << savedSegCount;
 
-        cinst->saveRecording(markIn+1, markOut-markIn-1, SAVE_MODE_H264, vinst->framerate, 60000000);
-        nextSegments.removeFirst();
+        QMap<int, int>::iterator it;
+        int start = 0;
+        int segLength = 0;
+
+        if (savedSegCount != totalSegCount) {
+            if (totalSegCount > 4) {
+                it = nextSegments.end() - 1;
+                start = it.key();
+                segLength = it.value();
+
+                cinst->saveRecording(start, segLength, SAVE_MODE_H264, vinst->framerate, 60000000);
+                savedSegCount++;
+            }
+            else {
+                it = nextSegments.begin() + savedSegCount;
+                start = it.key();
+                segLength = it.value();
+
+                cinst->saveRecording(start, segLength, SAVE_MODE_H264, vinst->framerate, 60000000);
+                savedSegCount++;
+            }
+        }
+        else {
+            return;
+        }
     }
 }
 
