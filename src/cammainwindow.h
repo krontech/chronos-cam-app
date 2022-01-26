@@ -68,6 +68,7 @@ private slots:
     void saveNextSegment(VideoState state);
     save_mode_type getSaveFormatForRunGun();
     UInt32 getBitrateForRunGun(save_mode_type format);
+    void test();
 
 	void on_chkFocusAid_clicked(bool focusAidEnabled);
 

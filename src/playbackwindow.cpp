@@ -411,6 +411,9 @@ void playbackWindow::on_cmdSave_clicked()
 		ui->verticalSlider->setHighlightRegion(markInFrame, markOutFrame);
 		saveAborted = true;
 		autoRecordFlag = false;
+
+        QSettings appSettings;
+        appSettings.setValue("playback/abortSave", true);
 	}
 }
 

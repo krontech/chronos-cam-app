@@ -861,10 +861,21 @@ void CamMainWindow::saveNextSegment(VideoState state)
     vinst->getStatus(&st);
 
     qDebug() << "next segments from saveNextSegment: " << nextSegments;
-    qDebug() << "position when the last segment is ended: " << st.position;
 
     if ((state == VIDEO_STATE_FILESAVE) && (nextSegments.size() >= 1)) // the last segment saving just ends
     {
+        QSettings appSettings;
+        if (appSettings.value("playback/abortSave", false).toBool()) {
+            appSettings.setValue("playback/abortSave", false);
+            startFrame = 0;
+            totalSegCount = 0;
+            savedSegCount = 0;
+            nextSegments = {};
+            clearFlag = true;
+            camera->recordingData.hasBeenSaved = true;
+            return;
+        }
+
         qDebug() << "start saving the next segment";
         qDebug() << "total number of segments: " << totalSegCount;
         qDebug() << "number of saved segments: " << savedSegCount;
@@ -956,6 +967,11 @@ UInt32 CamMainWindow::getBitrateForRunGun(save_mode_type format)
     UInt32 realBitrate = min(bppBitrate, min(60000000, (UInt32)(camera->vinst->maxBitrate * 1000000.0)));
 
     return realBitrate;
+}
+
+void CamMainWindow::test()
+{
+    qDebug() << "Abort Save";
 }
 
 void CamMainWindow::on_chkFocusAid_clicked(bool focusAidEnabled)
