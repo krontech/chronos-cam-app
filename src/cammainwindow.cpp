@@ -895,6 +895,7 @@ void CamMainWindow::saveNextSegment(VideoState state)
             savedSegCount = 0;
             nextSegments = {};
             clearFlag = true;
+            camera->recordingData.hasBeenSaved = true;
             return;
         }
     }

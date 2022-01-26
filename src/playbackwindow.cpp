@@ -70,7 +70,7 @@ playbackWindow::playbackWindow(QWidget *parent, Camera * cameraInst, bool autosa
 	connect(ui->cmdClose, SIGNAL(clicked()), this, SLOT(close()));
 
 	ui->verticalSlider->setMinimum(0);
-	ui->verticalSlider->setMaximum(totalFrames - 1);
+    ui->verticalSlider->setMaximum(totalFrames - 1);
 	ui->verticalSlider->setValue(playFrame);
 	ui->cmdLoop->setVisible(appSettings.value("camera/demoMode", false).toBool());
 	markInFrame = 1;
@@ -102,6 +102,11 @@ playbackWindow::playbackWindow(QWidget *parent, Camera * cameraInst, bool autosa
 	}
 
     ui->lblFrame->setText("Current Frame");
+
+    if (camera->vinst->getStatus(NULL) == VIDEO_STATE_FILESAVE) {
+        setControlEnable(false);
+        ui->cmdSave->setText("Abort\nSave");
+    }
 	
 }
 
