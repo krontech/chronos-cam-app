@@ -857,9 +857,6 @@ void CamMainWindow::on_newVideoSegment(VideoStatus *st)
 
 void CamMainWindow::saveNextSegment(VideoState state)
 {
-    VideoStatus st;
-    vinst->getStatus(&st);
-
     qDebug() << "next segments from saveNextSegment: " << nextSegments;
 
     if ((state == VIDEO_STATE_FILESAVE) && (nextSegments.size() >= 1)) // the last segment saving just ends
