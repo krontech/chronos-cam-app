@@ -41,6 +41,9 @@ public:
 	short getWindowsAlwaysOpen();
 	~CamMainWindow();
 
+signals:
+    void banNewSegment();
+
 public slots:
     void updateCamMainWindowPosition();
 

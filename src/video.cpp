@@ -419,6 +419,11 @@ void Video::segment(const QVariantMap &args)
 	emit newSegment(parseVideoStatus(args, &st));
 }
 
+void Video::noNewSegment()
+{
+    qDebug() << "no new segment";
+}
+
 Video::Video() : QWidget(NULL),
 	iface("ca.krontech.chronos.video", "/ca/krontech/chronos/video", QDBusConnection::systemBus())
 {

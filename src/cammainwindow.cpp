@@ -177,6 +177,7 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
                  "notify", this, SLOT(runTimer()));
 
     connect(camera->vinst, SIGNAL(ended(VideoState,QString)), this, SLOT(saveNextSegment(VideoState)));
+    connect(this, SIGNAL(banNewSegment()), camera->vinst, SLOT(noNewSegment()));
 }
 
 CamMainWindow::~CamMainWindow()
@@ -808,6 +809,7 @@ void CamMainWindow::on_newVideoSegment(VideoStatus *st)
 
         /*------ Run and Gun Mode ------*/
         if (camera->get_runngun()) {
+            int segCount = camera->recordingData.is.segments;
             formatForRunGun = getSaveFormatForRunGun();
             realBitrateForRunGun = getBitrateForRunGun(formatForRunGun);
 
@@ -843,6 +845,11 @@ void CamMainWindow::on_newVideoSegment(VideoStatus *st)
                     startFrame = it.key() + it.value();
                     nextSegments.insert(startFrame, st->totalFrames - startFrame + 1);
                     totalSegCount++;
+                }
+
+                if (totalSegCount % segCount + 1 == segCount) {
+                    qDebug() << "Be prepared";
+                    emit banNewSegment();
                 }
 
                 if ((nextSegments.size() == 1)) {
