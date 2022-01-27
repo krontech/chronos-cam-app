@@ -846,7 +846,7 @@ void CamMainWindow::on_newVideoSegment(VideoStatus *st)
                     totalSegCount++;
                 }
 
-                if (totalSegCount % segCount + 1 == segCount) {
+                if (((segCount + (savedSegCount - 1)) % totalSegCount) == 1) {
                     qDebug() << "Be prepared";
                     emit banNewSegment();
                 }
