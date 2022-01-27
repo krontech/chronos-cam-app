@@ -814,7 +814,6 @@ void CamMainWindow::on_newVideoSegment(VideoStatus *st)
             realBitrateForRunGun = getBitrateForRunGun(formatForRunGun);
 
             qDebug() << "Segment mode: " << st->totalSegments;
-            qDebug() << "total segments: " << totalSegCount << " " << "saved segments: " << savedSegCount;
 
             if (clearFlag) {
                 clearFlag = false;
@@ -859,6 +858,7 @@ void CamMainWindow::on_newVideoSegment(VideoStatus *st)
                     savedSegCount++;
                 }
             }
+            qDebug() << "total segments: " << totalSegCount << " " << "saved segments: " << savedSegCount;
         }
 	}
 }
