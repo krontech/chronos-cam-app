@@ -513,6 +513,7 @@ void CamMainWindow::createNewPlaybackWindow(){
 	//w->camera = camera;
 	w->setAttribute(Qt::WA_DeleteOnClose);
 	w->show();
+    connect(w, SIGNAL(abortSave()), this, SLOT(abortRunGunSave()));
 }
 
 void CamMainWindow::playFinishedSaving()
@@ -861,18 +862,6 @@ void CamMainWindow::saveNextSegment(VideoState state)
 
     if ((state == VIDEO_STATE_FILESAVE) && (nextSegments.size() >= 1)) // the last segment saving just ends
     {
-        QSettings appSettings;
-        if (appSettings.value("playback/abortSave", false).toBool()) {
-            appSettings.setValue("playback/abortSave", false);
-            startFrame = 0;
-            totalSegCount = 0;
-            savedSegCount = 0;
-            nextSegments = {};
-            clearFlag = true;
-            camera->recordingData.hasBeenSaved = true;
-            return;
-        }
-
         qDebug() << "start saving the next segment";
         qDebug() << "total number of segments: " << totalSegCount;
         qDebug() << "number of saved segments: " << savedSegCount;
@@ -966,9 +955,17 @@ UInt32 CamMainWindow::getBitrateForRunGun(save_mode_type format)
     return realBitrate;
 }
 
-void CamMainWindow::test()
+void CamMainWindow::abortRunGunSave()
 {
-    qDebug() << "Abort Save";
+    qDebug() << "Abort RUn-N-Gun Save";
+
+    startFrame = 0;
+    totalSegCount = 0;
+    savedSegCount = 0;
+    nextSegments = {};
+    clearFlag = true;
+    camera->recordingData.hasBeenSaved = true;
+    return;
 }
 
 void CamMainWindow::on_chkFocusAid_clicked(bool focusAidEnabled)

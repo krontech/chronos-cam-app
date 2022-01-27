@@ -106,8 +106,8 @@ playbackWindow::playbackWindow(QWidget *parent, Camera * cameraInst, bool autosa
     if (camera->vinst->getStatus(NULL) == VIDEO_STATE_FILESAVE) {
         setControlEnable(false);
         ui->cmdSave->setText("Abort\nSave");
+        sw->show();
     }
-	
 }
 
 playbackWindow::~playbackWindow()
@@ -412,8 +412,7 @@ void playbackWindow::on_cmdSave_clicked()
 		saveAborted = true;
 		autoRecordFlag = false;
 
-        QSettings appSettings;
-        appSettings.setValue("playback/abortSave", true);
+        emit abortSave();
 	}
 }
 

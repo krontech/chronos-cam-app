@@ -106,6 +106,7 @@ private:
 signals:
 	void finishedSaving();
 	void enableSaveSettingsButtons(bool);
+    void abortSave();
 };
 
 #endif // PLAYBACKWINDOW_H
