@@ -416,12 +416,7 @@ void Video::eof(const QVariantMap &args)
 void Video::segment(const QVariantMap &args)
 {
 	static VideoStatus st;
-	emit newSegment(parseVideoStatus(args, &st));
-}
-
-void Video::noNewSegment()
-{
-    qDebug() << "no new segment";
+    emit newSegment(parseVideoStatus(args, &st));
 }
 
 Video::Video() : QWidget(NULL),

@@ -163,8 +163,6 @@ private slots:
 	void sof(const QVariantMap &args);
 	void eof(const QVariantMap &args);
 	void segment(const QVariantMap &args);
-
-    void noNewSegment();
 };
 
 #endif // VIDEO_H
