@@ -818,35 +818,6 @@ void CamMainWindow::on_newVideoSegment(VideoStatus *st)
                 return;
             }
             else {
-                // New trigger will end current segment and start a new segment
-                // This new segment will overwrite an old segment in ring buffer
-                // If this old segment is still being saved, then we should
-                // Ban new trigger but allow stop recording
-                // Stopping recording will end current segment without starting a new segment
-                int currentRecordingSeg = totalSegCount + 1;
-                qDebug() << "The segment that is recording is segment#" << currentRecordingSeg;
-                qDebug() << "If end current segment#" << currentRecordingSeg << " with a new trigger, it would also start a new segment#" << currentRecordingSeg + 1;
-                if (currentRecordingSeg + 1 - segCount > 0 ) {
-                    qDebug() << "Segment#" << currentRecordingSeg + 1 << " would overwrite the old segment#" << currentRecordingSeg + 1 - segCount;
-                }
-                else {
-                    qDebug() << "Segment#" << currentRecordingSeg + 1 << " would NOT overwrite any old segment";
-                }
-                if (savedSegCount > 0) {
-                    qDebug() << "The segment that is currently being saved is segment#" << savedSegCount;
-                }
-                else {
-                    qDebug() << "No segment is being saved for now";
-                }
-
-                // Whether the old segment that will be overwritten is still being saved
-                if ((currentRecordingSeg + 1 - segCount) == savedSegCount) {
-                    qDebug() << "ignore trigger";
-                    // Ban triggers
-                    // Allow stopRecording bt physical button or button in GUI
-                    return;
-                }
-
                 /* ring buffer is not full */
                 if (nextSegments.size() < camera->recordingData.is.segments) {
                     nextSegments.insert(startFrame+1, st->totalFrames - startFrame);
@@ -879,6 +850,41 @@ void CamMainWindow::on_newVideoSegment(VideoStatus *st)
                     cinst->saveRecording(it.key(), it.value(), formatForRunGun, vinst->framerate, realBitrateForRunGun);
                     savedSegCount++;
                 }
+
+                // New trigger will end current segment and start a new segment
+                // This new segment will overwrite an old segment in ring buffer
+                // If this old segment is still being saved, then we should
+                // Ban new trigger but allow stop recording
+                // Stopping recording will end current segment without starting a new segment
+                int endLastSeg = totalSegCount;
+                int currentRecordingSeg = totalSegCount + 1;
+                qDebug() << "This trigger ends the last segment#" << endLastSeg << "and starts recording od the next segment";
+                qDebug() << "The segment that is recording is segment#" << currentRecordingSeg;
+                qDebug() << "If a new trigger ends current segment#" << currentRecordingSeg << ", it would also start a new segment#" << currentRecordingSeg + 1;
+                if (currentRecordingSeg + 1 - segCount > 0 ) {
+                    qDebug() << "Segment#" << currentRecordingSeg + 1 << " would overwrite the old segment#" << currentRecordingSeg + 1 - segCount;
+                    qDebug() << "The old segment#" << currentRecordingSeg + 1 - segCount << "is located at the #" << (currentRecordingSeg + 1 - segCount) % segCount << "in Ring Buffer";
+                }
+                else {
+                    qDebug() << "Segment#" << currentRecordingSeg + 1 << " would NOT overwrite any old segment";
+                }
+                qDebug() << "The segment that is currently being saved is segment#" << savedSegCount;
+
+                // Whether the old segment that will be overwritten is still being saved
+                if ((currentRecordingSeg + 1 - segCount) == savedSegCount) {
+                    qDebug() << "Ignore trigger until segment#" << savedSegCount << "saving is done";
+                    // TO DO
+                    // Ban triggers -> no new segment in waitlist (GUI) & no new segment recorded (cam-control)
+                    // Allow stopRecording bt physical button or button in GUI
+                    QVariant ioMappingTrigger = camera->cinst->getProperty("ioMappingTrigger");
+
+                    ioMappingTrigger.value<QDBusArgument>() >> triggerConfig;
+                    qDebug() << triggerConfig;
+
+                    QVariantMap temp;
+                    temp.insert("source", QVariant("none"));
+                    camera->cinst->setProperty("ioMappingTrigger", temp);
+                }
             }
         }
 	}
@@ -901,7 +907,7 @@ void CamMainWindow::saveNextSegment(VideoState state)
         if (savedSegCount != totalSegCount) {
             if (totalSegCount > camera->recordingData.is.segments) {
                 // TO DO
-
+                // Set right start and length
                 cinst->saveRecording(start, segLength, formatForRunGun, vinst->framerate, realBitrateForRunGun);
                 savedSegCount++;
             }
@@ -912,6 +918,12 @@ void CamMainWindow::saveNextSegment(VideoState state)
 
                 cinst->saveRecording(start, segLength, formatForRunGun, vinst->framerate, realBitrateForRunGun);
                 savedSegCount++;
+            }
+
+            if (triggerConfig.size() != 0) {
+                qDebug() << "triggerConfig is not empty: " << triggerConfig;
+                camera->cinst->setProperty("ioMappingTrigger", triggerConfig);
+                triggerConfig = {};
             }
         }
         else {
@@ -985,7 +997,7 @@ UInt32 CamMainWindow::getBitrateForRunGun(save_mode_type format)
 
 void CamMainWindow::abortRunGunSave()
 {
-    qDebug() << "Abort RUn-N-Gun Save";
+    qDebug() << "Abort Run-N-Gun Save";
 
     startFrame = 0;
     totalSegCount = 0;

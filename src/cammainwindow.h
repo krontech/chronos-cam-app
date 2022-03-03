@@ -148,6 +148,8 @@ private:
 
     save_mode_type formatForRunGun;
     UInt32 realBitrateForRunGun;
+
+    QVariantMap triggerConfig;
 };
 
 #endif // CAMMAINWINDOW_H
