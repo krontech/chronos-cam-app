@@ -873,9 +873,8 @@ void CamMainWindow::on_newVideoSegment(VideoStatus *st)
                 // Whether the old segment that will be overwritten is still being saved
                 if ((currentRecordingSeg + 1 - segCount) == savedSegCount) {
                     qDebug() << "Ignore trigger until segment#" << savedSegCount << "saving is done";
-                    // TO DO
-                    // Ban triggers -> no new segment in waitlist (GUI) & no new segment recorded (cam-control)
-                    // Allow stopRecording bt physical button or button in GUI
+                    // Ban triggers
+                    // Allow stopRecording by physical button or button in GUI
                     QVariant ioMappingTrigger = camera->cinst->getProperty("ioMappingTrigger");
 
                     ioMappingTrigger.value<QDBusArgument>() >> triggerConfig;
