@@ -275,6 +275,9 @@ protected slots:
 	void api_colorMatrix_valueChanged(const QVariant &value);
 
 	void onLoopTimer();
+
+signals:
+    void finishedRecording();
 };
 
 #endif // CAMERA_H

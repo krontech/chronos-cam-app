@@ -130,6 +130,7 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
     timer->start(16);
 
     connect(camera->vinst, SIGNAL(newSegment(VideoStatus *)), this, SLOT(on_newVideoSegment(VideoStatus *)));
+    connect(camera, SIGNAL(finishedRecording()), this, SLOT(stopRecordingFromBtn()));
 
 	if (appSettings.value("debug/hideDebug", true).toBool()) {
 		ui->cmdDebugWnd->setVisible(false);
@@ -636,7 +637,7 @@ void CamMainWindow::on_cmdIOSettings_clicked()
 
 void CamMainWindow::on_state_valueChanged(const QVariant &value)
 {
-	QString state = value.toString();
+    QString state = value.toString();
 	qDebug() << "CamMainWindow state changed to" << state;
 	if(!recording) {
 		/* Check if recording has started. */
@@ -813,6 +814,7 @@ void CamMainWindow::on_newVideoSegment(VideoStatus *st)
             formatForRunGun = getSaveFormatForRunGun();
             realBitrateForRunGun = getBitrateForRunGun(formatForRunGun);
 
+            /* Clear unsaved recordings */
             if (clearFlag) {
                 clearFlag = false;
                 return;
@@ -843,46 +845,55 @@ void CamMainWindow::on_newVideoSegment(VideoStatus *st)
                     nextSegments.insert(startFrame, st->totalFrames - startFrame + 1);
                     totalSegCount++;
                 }
+                qDebug() << "segments in waitlist: " << nextSegments;
 
-                if ((nextSegments.size() == 1)) {
-                    qDebug() << "start saving for the first segment";
-                    QMap<int, int>::iterator it = nextSegments.begin();
-                    cinst->saveRecording(it.key(), it.value(), formatForRunGun, vinst->framerate, realBitrateForRunGun);
+                /* Start new saving */
+                if (camera->vinst->getStatus(NULL) != VIDEO_STATE_FILESAVE) {
+                    /* Start first segment saving in whole recording */
+                    if (nextSegments.size() == 1) {
+                        qDebug() << "start saving for the first segment";
+                        QMap<int, int>::iterator it = nextSegments.begin();
+                        cinst->saveRecording(it.key(), it.value(), formatForRunGun, vinst->framerate, realBitrateForRunGun);
+                    }
+                    /* Re-start saving for the newest segment */
+                    /* All exisiting segments finished saving before confirmed (by Record End Trigger) this new one */
+                    /* saveNextSegment() function cannot start saving for this new segment because it only would be called when the last segment saving is done */
+                    else {
+                        qDebug() << "new segment is done recording and start saving it";
+                        QMap<int, int>::iterator it = nextSegments.end() - 1;
+                        cinst->saveRecording(it.key(), it.value(), formatForRunGun, vinst->framerate, realBitrateForRunGun);
+                    }
                     savedSegCount++;
                 }
 
-                // New trigger will end current segment and start a new segment
-                // This new segment will overwrite an old segment in ring buffer
-                // If this old segment is still being saved, then we should
-                // Ban new trigger but allow stop recording
-                // Stopping recording will end current segment without starting a new segment
-                int endLastSeg = totalSegCount;
+                /* New trigger will end current segment and start a new segment */
+                /* This new segment will overwrite an old segment in ring buffer once it is ended */
+                /* If this old segment is still being saved, then we should: */
+                /* Disbale new Record End Trigger from IOs, but should allow stopRecording from buttons (physical or GUI) to finish whole recording */
+                /* Stopping whole recording will end current segment without starting a new segment */
                 int currentRecordingSeg = totalSegCount + 1;
-                qDebug() << "This trigger ends the last segment#" << endLastSeg << "and starts recording od the next segment";
-                qDebug() << "The segment that is recording is segment#" << currentRecordingSeg;
-                qDebug() << "If a new trigger ends current segment#" << currentRecordingSeg << ", it would also start a new segment#" << currentRecordingSeg + 1;
-                if (currentRecordingSeg + 1 - segCount > 0 ) {
-                    qDebug() << "Segment#" << currentRecordingSeg + 1 << " would overwrite the old segment#" << currentRecordingSeg + 1 - segCount;
-                    qDebug() << "The old segment#" << currentRecordingSeg + 1 - segCount << "is located at the #" << (currentRecordingSeg + 1 - segCount) % segCount << "in Ring Buffer";
+
+                /* If the new segment (a new segment is done not started) signal is from buttons */
+                if (stopFromBtn) {
+                    qDebug() << "End whole recording";
+                    stopFromBtn = false;
                 }
+                /* If the new segment (a new segment is done not started) signal is from IOs */
                 else {
-                    qDebug() << "Segment#" << currentRecordingSeg + 1 << " would NOT overwrite any old segment";
-                }
-                qDebug() << "The segment that is currently being saved is segment#" << savedSegCount;
+                    /* The old segment that will be overwritten is still being saved */
+                    if ((currentRecordingSeg + 1 - segCount) == savedSegCount) {
+                        qDebug() << "Ignore trigger from IOs until segment#" << savedSegCount << "saving is done";
+                        /* Disbale triggers from IOs */
+                        // Save current settings of IO trigger
+                        QVariant ioMappingTrigger = camera->cinst->getProperty("ioMappingTrigger");
+                        ioMappingTrigger.value<QDBusArgument>() >> triggerConfig;
 
-                // Whether the old segment that will be overwritten is still being saved
-                if ((currentRecordingSeg + 1 - segCount) == savedSegCount) {
-                    qDebug() << "Ignore trigger until segment#" << savedSegCount << "saving is done";
-                    // Ban triggers
-                    // Allow stopRecording by physical button or button in GUI
-                    QVariant ioMappingTrigger = camera->cinst->getProperty("ioMappingTrigger");
-
-                    ioMappingTrigger.value<QDBusArgument>() >> triggerConfig;
-                    qDebug() << triggerConfig;
-
-                    QVariantMap temp;
-                    temp.insert("source", QVariant("none"));
-                    camera->cinst->setProperty("ioMappingTrigger", temp);
+                        // Set IO trigger to none
+                        qDebug() << "Disable Record End Trigger from IOs";
+                        QVariantMap temp;
+                        temp.insert("source", QVariant("alwaysHigh"));
+                        camera->cinst->setProperty("ioMappingTrigger", temp);
+                    }
                 }
             }
         }
@@ -891,11 +902,8 @@ void CamMainWindow::on_newVideoSegment(VideoStatus *st)
 
 void CamMainWindow::saveNextSegment(VideoState state)
 {
-    qDebug() << "next segments from saveNextSegment: " << nextSegments;
-
     if ((state == VIDEO_STATE_FILESAVE) && (nextSegments.size() >= 1)) // the last segment saving just ends
     {
-        qDebug() << "start saving the next segment";
         qDebug() << "total number of segments: " << totalSegCount;
         qDebug() << "number of saved segments: " << savedSegCount;
 
@@ -903,13 +911,47 @@ void CamMainWindow::saveNextSegment(VideoState state)
         int start = 0;
         int segLength = 0;
 
-        if (savedSegCount != totalSegCount) {
+        /* All exisiting segments finished saving */
+        if (savedSegCount == totalSegCount) {
+            /* Whole recording is finished */
+            if (camera->cinst->getProperty("state", "unknown").toString() != "recording") {
+                startFrame = 0;
+                totalSegCount = 0;
+                savedSegCount = 0;
+                nextSegments = {};
+                triggerConfig = {};
+                clearFlag = true;
+                stopFromBtn = false;
+                camera->recordingData.hasBeenSaved = true;
+            }
+            /* Recording is still running */
+            else {
+                // waiting for next trigger to add new segment
+                qDebug() << "waiting for next segment";
+                /* Re-enable Record End Trigger from IOs if it is diabled now */
+                if (triggerConfig.size() != 0) {
+                    qDebug() << "Record End Trigger from IOs is disabled";
+                    qDebug() << "Reset ioMappingTrigger to enable";
+
+                    camera->cinst->setProperty("ioMappingTrigger", triggerConfig);
+                    triggerConfig = {};
+                }
+                return;
+            }
+        }
+        /* Have unsaved segments in waitlist */
+        else {
+            /* Overwriting in Ring Buffer already happened */
             if (totalSegCount > camera->recordingData.is.segments) {
-                // TO DO
-                // Set right start and length
+                // Choose the first unsaved segment
+                it = nextSegments.begin() + (savedSegCount - (totalSegCount - camera->recordingData.is.segments));
+                start = it.key();
+                segLength = it.value();
+
                 cinst->saveRecording(start, segLength, formatForRunGun, vinst->framerate, realBitrateForRunGun);
                 savedSegCount++;
             }
+            /* Overwriting hasn't happened */
             else {
                 it = nextSegments.begin() + savedSegCount;
                 start = it.key();
@@ -918,21 +960,15 @@ void CamMainWindow::saveNextSegment(VideoState state)
                 cinst->saveRecording(start, segLength, formatForRunGun, vinst->framerate, realBitrateForRunGun);
                 savedSegCount++;
             }
-
-            if (triggerConfig.size() != 0) {
-                qDebug() << "triggerConfig is not empty: " << triggerConfig;
-                camera->cinst->setProperty("ioMappingTrigger", triggerConfig);
-                triggerConfig = {};
-            }
         }
-        else {
-            startFrame = 0;
-            totalSegCount = 0;
-            savedSegCount = 0;
-            nextSegments = {};
-            clearFlag = true;
-            camera->recordingData.hasBeenSaved = true;
-            return;
+
+        /* Re-enable Record End Trigger from IOs if it is diabled now */
+        if (triggerConfig.size() != 0) {
+            qDebug() << "Record End Trigger from IOs is disabled";
+            qDebug() << "Reset ioMappingTrigger to enable";
+
+            camera->cinst->setProperty("ioMappingTrigger", triggerConfig);
+            triggerConfig = {};
         }
     }
 }
@@ -1005,6 +1041,12 @@ void CamMainWindow::abortRunGunSave()
     clearFlag = true;
     camera->recordingData.hasBeenSaved = true;
     return;
+}
+
+void CamMainWindow::stopRecordingFromBtn()
+{
+    qDebug() << "Stop whole recording";
+    stopFromBtn = true;
 }
 
 void CamMainWindow::on_chkFocusAid_clicked(bool focusAidEnabled)

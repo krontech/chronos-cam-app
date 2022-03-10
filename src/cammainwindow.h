@@ -41,9 +41,6 @@ public:
 	short getWindowsAlwaysOpen();
 	~CamMainWindow();
 
-signals:
-    void banNewSegment();
-
 public slots:
     void updateCamMainWindowPosition();
 
@@ -72,6 +69,7 @@ private slots:
     save_mode_type getSaveFormatForRunGun();
     UInt32 getBitrateForRunGun(save_mode_type format);
     void abortRunGunSave();
+    void stopRecordingFromBtn();
 
 	void on_chkFocusAid_clicked(bool focusAidEnabled);
 
@@ -149,7 +147,8 @@ private:
     save_mode_type formatForRunGun;
     UInt32 realBitrateForRunGun;
 
-    QVariantMap triggerConfig;
+    QVariantMap triggerConfig = {};
+    bool stopFromBtn = false;
 };
 
 #endif // CAMMAINWINDOW_H

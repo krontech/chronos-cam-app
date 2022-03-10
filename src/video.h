@@ -130,7 +130,7 @@ public:
 signals:
 	void started(VideoState state);
 	void ended(VideoState state, QString error);
-	void newSegment(VideoStatus *status);
+    void newSegment(VideoStatus *status);
 
 private:
 	int pid;

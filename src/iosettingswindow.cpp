@@ -246,7 +246,7 @@ void IOSettingsWindow::setIoSettings()
 		io1config.insert("drive", QVariant(io1pull));
 	}
 
-	/* Configure the IO2 output drivers. */
+    /* Configure the IO2 output drivers. */
 	if (ui->radioIO2FSOut->isChecked()) {
 		io2config.insert("debounce", QVariant(ui->chkIO2Debounce->isChecked()));
 		io2config.insert("invert", QVariant(ui->chkIO2Invert->isChecked()));

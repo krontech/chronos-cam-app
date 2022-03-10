@@ -179,6 +179,7 @@ private:
 
 signals:
 	void valueChanged(const QVariant &value);
+    void finishedRecording();
 };
 
 #endif // CONTROL_H

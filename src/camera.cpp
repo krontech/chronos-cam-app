@@ -304,6 +304,8 @@ Int32 Camera::stopRecording(void)
 	if (liveRecord)
 		vinst->stopRecording();
 
+    emit finishedRecording();
+
 	return SUCCESS;
 }
 
