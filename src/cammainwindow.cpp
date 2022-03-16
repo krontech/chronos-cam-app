@@ -828,6 +828,33 @@ void CamMainWindow::on_newVideoSegment(VideoStatus *st)
                 }
                 /* ring buffter is full, starting overwriting */
                 else {
+                    if (camera->vinst->getStatus(NULL) == VIDEO_STATE_FILESAVE) {
+                        stopCurrentSeg = true;
+                        int currentPosition = camera->vinst->getPosition();
+
+                        CameraErrortype result = camera->vinst->stopRecording();
+                        //delayms(1000);
+                        if (result == SUCCESS) {
+                            qDebug() << "End saving of current segment";
+                        }
+
+                        newStart = currentPosition + 1 - nextSegments.begin().value();
+                        int savedSegLength = currentPosition - currentSavingSeg.begin().key() + 1;
+                        newSegLength = currentSavingSeg.begin().value() - savedSegLength;
+
+                        qDebug() << "current saved position: " << camera->vinst->getPosition();
+                        qDebug() << "current saved length: " << savedSegLength;
+                        qDebug() << "new start position: " << newStart;
+                        qDebug() << "new length: " << newSegLength;
+
+                        //result = cinst->saveRecording(newStart, newSegLength, formatForRunGun, vinst->framerate, realBitrateForRunGun);
+                        //delayms(2000);
+                        //if (result == SUCCESS) {
+                        //    qDebug() << "Start saving of the rest part of current segment";
+                        //}
+
+                    }
+
                     int firstSegLenght = nextSegments.begin().value();
                     nextSegments.erase(nextSegments.begin());
 
@@ -857,7 +884,7 @@ void CamMainWindow::on_newVideoSegment(VideoStatus *st)
                     }
                     /* Re-start saving for the newest segment */
                     /* All exisiting segments finished saving before confirmed (by Record End Trigger) this new one */
-                    /* saveNextSegment() function cannot start saving for this new segment because it only would be called when the last segment saving is done */
+                    /* saveNextSegment() function cannot start saving for this new segment because it would only be called when the last segment saving is done */
                     else {
                         qDebug() << "new segment is done recording and start saving it";
                         QMap<int, int>::iterator it = nextSegments.end() - 1;
@@ -902,6 +929,13 @@ void CamMainWindow::on_newVideoSegment(VideoStatus *st)
 
 void CamMainWindow::saveNextSegment(VideoState state)
 {
+    if (stopCurrentSeg == true) {
+        qDebug() << "Stop";
+        stopCurrentSeg = false;
+        cinst->saveRecording(newStart, newSegLength, formatForRunGun, vinst->framerate, realBitrateForRunGun);
+        return;
+    }
+
     if ((state == VIDEO_STATE_FILESAVE) && (nextSegments.size() >= 1)) // the last segment saving just ends
     {
         qDebug() << "total number of segments: " << totalSegCount;
@@ -911,8 +945,9 @@ void CamMainWindow::saveNextSegment(VideoState state)
         int start = 0;
         int segLength = 0;
 
-        /* All exisiting segments finished saving */
+        /* All exisiting segments in waitlist finished saving */
         if (savedSegCount == totalSegCount) {
+            currentSavingSeg = {};
             /* Whole recording is finished */
             if (camera->cinst->getProperty("state", "unknown").toString() != "recording") {
                 startFrame = 0;
@@ -948,6 +983,9 @@ void CamMainWindow::saveNextSegment(VideoState state)
                 start = it.key();
                 segLength = it.value();
 
+                currentSavingSeg.clear();
+                currentSavingSeg.insert(start, segLength);
+
                 cinst->saveRecording(start, segLength, formatForRunGun, vinst->framerate, realBitrateForRunGun);
                 savedSegCount++;
             }
@@ -956,6 +994,9 @@ void CamMainWindow::saveNextSegment(VideoState state)
                 it = nextSegments.begin() + savedSegCount;
                 start = it.key();
                 segLength = it.value();
+
+                currentSavingSeg.clear();
+                currentSavingSeg.insert(start, segLength);
 
                 cinst->saveRecording(start, segLength, formatForRunGun, vinst->framerate, realBitrateForRunGun);
                 savedSegCount++;

@@ -579,8 +579,7 @@ Control::~Control()
 void Control::notify(const QVariantMap &args)
 {
 	for (auto e : args.keys()) {
-
-        qDebug() << "args from notify: " << e;
+        //qDebug() << "args from notify: " << e;
 		notifyParam(e, args.value(e));
 	}
 }

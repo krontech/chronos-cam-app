@@ -139,6 +139,7 @@ private:
     CaKrontechChronosControlInterface iface;
 
     QMap<int, int> nextSegments = {};
+    QMap<int, int> currentSavingSeg = {};
     int startFrame = 0;
     int savedSegCount = 0;
     int totalSegCount = 0;
@@ -149,6 +150,10 @@ private:
 
     QVariantMap triggerConfig = {};
     bool stopFromBtn = false;
+
+    int newStart;
+    int newSegLength;
+    bool stopCurrentSeg = false;
 };
 
 #endif // CAMMAINWINDOW_H
