@@ -828,16 +828,21 @@ void CamMainWindow::on_newVideoSegment(VideoStatus *st)
                 }
                 /* ring buffter is full, starting overwriting */
                 else {
+                    /* When new segment causes overwriting while another segment is being saved */
                     if (camera->vinst->getStatus(NULL) == VIDEO_STATE_FILESAVE) {
+                        // Set stopCurrentSeg to TRUE for saveNextSegment function
                         stopCurrentSeg = true;
+                        // Mark the end position of this partial clip
+                        // TO DO: some delay -3 ?
                         int currentPosition = camera->vinst->getPosition();
 
+                        // stopRecording -> end current segment saving -> ended function -> saveNextSegment function
                         CameraErrortype result = camera->vinst->stopRecording();
-                        //delayms(1000);
                         if (result == SUCCESS) {
                             qDebug() << "End saving of current segment";
                         }
 
+                        /* Calculate new starting position and length for another part of the segment */
                         newStart = currentPosition + 1 - nextSegments.begin().value();
                         int savedSegLength = currentPosition - currentSavingSeg.begin().key() + 1;
                         newSegLength = currentSavingSeg.begin().value() - savedSegLength;
@@ -846,18 +851,14 @@ void CamMainWindow::on_newVideoSegment(VideoStatus *st)
                         qDebug() << "current saved length: " << savedSegLength;
                         qDebug() << "new start position: " << newStart;
                         qDebug() << "new length: " << newSegLength;
-
-                        //result = cinst->saveRecording(newStart, newSegLength, formatForRunGun, vinst->framerate, realBitrateForRunGun);
-                        //delayms(2000);
-                        //if (result == SUCCESS) {
-                        //    qDebug() << "Start saving of the rest part of current segment";
-                        //}
-
                     }
 
+                    // Mark the length of the first segment
                     int firstSegLenght = nextSegments.begin().value();
+                    // Remove the first segment
                     nextSegments.erase(nextSegments.begin());
 
+                    /* Move forward all rest segments by one length of the first segment */
                     QMap<int, int> temp = {};
                     QMap<int, int>::iterator it;
                     for (it = nextSegments.begin(); it != nextSegments.end(); it++) {
@@ -867,12 +868,13 @@ void CamMainWindow::on_newVideoSegment(VideoStatus *st)
                     }
                     nextSegments = temp;
 
+                    /* Add the new segment */
                     it = nextSegments.end() - 1;
                     startFrame = it.key() + it.value();
                     nextSegments.insert(startFrame, st->totalFrames - startFrame + 1);
                     totalSegCount++;
                 }
-                qDebug() << "segments in waitlist: " << nextSegments;
+                qDebug() << "segments in list: " << nextSegments;
 
                 /* Start new saving */
                 if (camera->vinst->getStatus(NULL) != VIDEO_STATE_FILESAVE) {
@@ -884,7 +886,7 @@ void CamMainWindow::on_newVideoSegment(VideoStatus *st)
                     }
                     /* Re-start saving for the newest segment */
                     /* All exisiting segments finished saving before confirmed (by Record End Trigger) this new one */
-                    /* saveNextSegment() function cannot start saving for this new segment because it would only be called when the last segment saving is done */
+                    /* saveNextSegment function cannot start saving for this new segment because it would only be called when the last segment saving is done */
                     else {
                         qDebug() << "new segment is done recording and start saving it";
                         QMap<int, int>::iterator it = nextSegments.end() - 1;
@@ -915,7 +917,7 @@ void CamMainWindow::on_newVideoSegment(VideoStatus *st)
                         QVariant ioMappingTrigger = camera->cinst->getProperty("ioMappingTrigger");
                         ioMappingTrigger.value<QDBusArgument>() >> triggerConfig;
 
-                        // Set IO trigger to none
+                        // Set IO trigger to 'alwaysHigh' -> disable trigger
                         qDebug() << "Disable Record End Trigger from IOs";
                         QVariantMap temp;
                         temp.insert("source", QVariant("alwaysHigh"));
@@ -929,14 +931,19 @@ void CamMainWindow::on_newVideoSegment(VideoStatus *st)
 
 void CamMainWindow::saveNextSegment(VideoState state)
 {
+    /* Segment is ended manually because new overwritten segment is confirmed while another segment is being saved */
     if (stopCurrentSeg == true) {
-        qDebug() << "Stop";
+        qDebug() << "Stop current saving";
         stopCurrentSeg = false;
+        // save the rest of the current segment
         cinst->saveRecording(newStart, newSegLength, formatForRunGun, vinst->framerate, realBitrateForRunGun);
         return;
     }
 
-    if ((state == VIDEO_STATE_FILESAVE) && (nextSegments.size() >= 1)) // the last segment saving just ends
+    /* When the last segment saving just ends -> start saving of the next segment if there is any unsaved segment */
+    /*                                           end whole saving and clear all parameters */
+    /*                                           wait for new segment to be added */
+    if ((state == VIDEO_STATE_FILESAVE) && (nextSegments.size() >= 1))
     {
         qDebug() << "total number of segments: " << totalSegCount;
         qDebug() << "number of saved segments: " << savedSegCount;
@@ -945,7 +952,7 @@ void CamMainWindow::saveNextSegment(VideoState state)
         int start = 0;
         int segLength = 0;
 
-        /* All exisiting segments in waitlist finished saving */
+        /* All exisiting segments in segment list finished saving */
         if (savedSegCount == totalSegCount) {
             currentSavingSeg = {};
             /* Whole recording is finished */
@@ -960,9 +967,10 @@ void CamMainWindow::saveNextSegment(VideoState state)
                 camera->recordingData.hasBeenSaved = true;
             }
             /* Recording is still running */
+            /* Current exisiting segments are all saved, but recording is not stopped*/
             else {
-                // waiting for next trigger to add new segment
-                qDebug() << "waiting for next segment";
+                /* waiting for next trigger to add new segment */
+                qDebug() << "waiting for next new segment";
                 /* Re-enable Record End Trigger from IOs if it is diabled now */
                 if (triggerConfig.size() != 0) {
                     qDebug() << "Record End Trigger from IOs is disabled";
@@ -974,15 +982,16 @@ void CamMainWindow::saveNextSegment(VideoState state)
                 return;
             }
         }
-        /* Have unsaved segments in waitlist */
+        /* Have unsaved segments in segment list */
         else {
             /* Overwriting in Ring Buffer already happened */
             if (totalSegCount > camera->recordingData.is.segments) {
-                // Choose the first unsaved segment
+                // Choose the next unsaved segment
                 it = nextSegments.begin() + (savedSegCount - (totalSegCount - camera->recordingData.is.segments));
                 start = it.key();
                 segLength = it.value();
 
+                // Save parameters for interruption by overwritting
                 currentSavingSeg.clear();
                 currentSavingSeg.insert(start, segLength);
 
@@ -991,10 +1000,12 @@ void CamMainWindow::saveNextSegment(VideoState state)
             }
             /* Overwriting hasn't happened */
             else {
+                // Read parameters for next unsaved segment
                 it = nextSegments.begin() + savedSegCount;
                 start = it.key();
                 segLength = it.value();
 
+                // Save parameters for interruption by overwritting
                 currentSavingSeg.clear();
                 currentSavingSeg.insert(start, segLength);
 
@@ -1003,7 +1014,7 @@ void CamMainWindow::saveNextSegment(VideoState state)
             }
         }
 
-        /* Re-enable Record End Trigger from IOs if it is diabled now */
+        /* Re-enable Record End Trigger from IOs if it is disabled now */
         if (triggerConfig.size() != 0) {
             qDebug() << "Record End Trigger from IOs is disabled";
             qDebug() << "Reset ioMappingTrigger to enable";
@@ -1014,6 +1025,7 @@ void CamMainWindow::saveNextSegment(VideoState state)
     }
 }
 
+/* Get the save format from QSettings <- Playback screen Setting window */
 save_mode_type CamMainWindow::getSaveFormatForRunGun()
 {
     QSettings appSettings;
@@ -1029,6 +1041,7 @@ save_mode_type CamMainWindow::getSaveFormatForRunGun()
     }
 }
 
+/* Calculate biterate for Run-N-Gun Mode */
 UInt32 CamMainWindow::getBitrateForRunGun(save_mode_type format)
 {
     QSettings appSettings;
@@ -1071,6 +1084,8 @@ UInt32 CamMainWindow::getBitrateForRunGun(save_mode_type format)
     return realBitrate;
 }
 
+/* End Run-N-Gun saving by 'abort save' from Playback */
+/* Clean all parameters */
 void CamMainWindow::abortRunGunSave()
 {
     qDebug() << "Abort Run-N-Gun Save";
@@ -1084,6 +1099,7 @@ void CamMainWindow::abortRunGunSave()
     return;
 }
 
+/* Mark flag when stop whole recording from physical or GUI button */
 void CamMainWindow::stopRecordingFromBtn()
 {
     qDebug() << "Stop whole recording";
