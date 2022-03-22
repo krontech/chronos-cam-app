@@ -130,6 +130,8 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
     timer->start(16);
 
     connect(camera->vinst, SIGNAL(newSegment(VideoStatus *)), this, SLOT(on_newVideoSegment(VideoStatus *)));
+
+    // Call stopRecordingFromBtn function to set flag when finishedRecording signal is emitted
     connect(camera, SIGNAL(finishedRecording()), this, SLOT(stopRecordingFromBtn()));
 
 	if (appSettings.value("debug/hideDebug", true).toBool()) {
@@ -177,6 +179,7 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
     conn.connect("ca.krontech.chronos.control", "/ca/krontech/chronos/control", "ca.krontech.chronos.control",
                  "notify", this, SLOT(runTimer()));
 
+    // Call saveNextSegment function to handle next step when video clip saving ends
     connect(camera->vinst, SIGNAL(ended(VideoState,QString)), this, SLOT(saveNextSegment(VideoState)));
 }
 
@@ -477,7 +480,6 @@ void CamMainWindow::on_cmdRec_clicked()
 		if(recording)
 		{
 			camera->stopRecording();
-            qDebug() << "Stop Recording by GUI button";
 		}
 		else
 		{
@@ -515,6 +517,7 @@ void CamMainWindow::createNewPlaybackWindow(){
 	//w->camera = camera;
 	w->setAttribute(Qt::WA_DeleteOnClose);
 	w->show();
+    // Send signal when aborting save from Playback to clean all RUn-N-Gun parameters
     connect(w, SIGNAL(abortSave()), this, SLOT(abortRunGunSave()));
 }
 
