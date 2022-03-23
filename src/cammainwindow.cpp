@@ -873,7 +873,7 @@ void CamMainWindow::on_newVideoSegment(VideoStatus *st)
             else {
                 /* ring buffer is not full */
                 if (nextSegments.size() < camera->recordingData.is.segments) {
-                    nextSegments.insert(startFrame+1, st->totalFrames - startFrame);
+                    nextSegments.insert(startFrame, st->totalFrames - startFrame);
                     totalSegCount++;
                     startFrame = st->totalFrames;
                 }
@@ -922,8 +922,14 @@ void CamMainWindow::on_newVideoSegment(VideoStatus *st)
                     /* Add the new segment */
                     it = nextSegments.end() - 1;
                     startFrame = it.key() + it.value();
-                    nextSegments.insert(startFrame, st->totalFrames - startFrame + 1);
+                    nextSegments.insert(startFrame, st->totalFrames - startFrame);
                     totalSegCount++;
+
+                    if (stopCurrentSeg) {
+                        currentSavingSeg.clear();
+                        it = nextSegments.begin() + (savedSegCount - (totalSegCount - camera->recordingData.is.segments) - 1);
+                        currentSavingSeg.insert(it.key(), it.value());
+                    }
                 }
                 qDebug() << "segments in list: " << nextSegments;
 
