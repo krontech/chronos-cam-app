@@ -16,12 +16,12 @@
   <property name="styleSheet">
    <string notr="true"/>
   </property>
-  <widget class="QLabel" name="lblRunGun">
+  <widget class="QLabel" name="lblRecMode">
    <property name="geometry">
     <rect>
-     <x>220</x>
+     <x>0</x>
      <y>0</y>
-     <width>250</width>
+     <width>100</width>
      <height>30</height>
     </rect>
    </property>
@@ -31,18 +31,36 @@
     </font>
    </property>
    <property name="styleSheet">
-    <string notr="true"/>
+    <string notr="true">outline: black;</string>
    </property>
    <property name="text">
     <string>TextLabel</string>
    </property>
   </widget>
-  <widget class="QLabel" name="lblRecMode">
+  <widget class="QLabel" name="lblRGInfo">
    <property name="geometry">
     <rect>
-     <x>0</x>
+     <x>120</x>
      <y>0</y>
-     <width>200</width>
+     <width>300</width>
+     <height>30</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>16</pointsize>
+    </font>
+   </property>
+   <property name="text">
+    <string>TextLabel</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="lblTrigger">
+   <property name="geometry">
+    <rect>
+     <x>450</x>
+     <y>0</y>
+     <width>150</width>
      <height>30</height>
     </rect>
    </property>

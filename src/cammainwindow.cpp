@@ -120,6 +120,8 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 	sw = new StatusWindow;
 
     inw = new IndicateWindow;
+    inw->setRGInfoText("");
+    inw->setTriggerText("");
     updateIndicateWindow();
 
 	updateExpSliderLimits();
@@ -543,7 +545,9 @@ void CamMainWindow::updateIndicateWindow()
 {
     camera->cinst->getImagerSettings(&is);
 
-    inw->setRunGunText("");
+    if (camera->liveSlowMotion) {
+        is.mode = RECORD_MODE_LIVE;
+    }
 
     switch (is.mode) {
         case RECORD_MODE_NORMAL:
@@ -553,7 +557,7 @@ void CamMainWindow::updateIndicateWindow()
         case RECORD_MODE_SEGMENTED:
            inw->setRecModeText("Segmented");
            if(camera->get_runngun()) {
-               inw->setRunGunText("Run-N-Gun");
+               inw->setRecModeText("Run-N-Gun");
            }
         break;
 
@@ -859,6 +863,7 @@ void CamMainWindow::on_newVideoSegment(VideoStatus *st)
             int segCount = camera->recordingData.is.segments;
             formatForRunGun = getSaveFormatForRunGun();
             realBitrateForRunGun = getBitrateForRunGun(formatForRunGun);
+            inw->setTriggerText("trigger: on");
 
             /* Clear unsaved recordings */
             if (clearFlag) {
@@ -951,7 +956,7 @@ void CamMainWindow::on_newVideoSegment(VideoStatus *st)
                 /* If the new segment (a new segment is done not started) signal is from buttons */
                 if (stopFromBtn) {
                     qDebug() << "End whole recording";
-                    stopFromBtn = false;
+                    inw->setTriggerText("");
                 }
                 /* If the new segment (a new segment is done not started) signal is from IOs */
                 else {
@@ -962,15 +967,27 @@ void CamMainWindow::on_newVideoSegment(VideoStatus *st)
                         // Save current settings of IO trigger
                         QVariant ioMappingTrigger = camera->cinst->getProperty("ioMappingTrigger");
                         ioMappingTrigger.value<QDBusArgument>() >> triggerConfig;
+                        qDebug() << triggerConfig["invert"];
 
                         // Set IO trigger to 'alwaysHigh' -> disable trigger
                         qDebug() << "Disable Record End Trigger from IOs";
                         QVariantMap temp;
-                        temp.insert("source", QVariant("alwaysHigh"));
+
+                        if (triggerConfig["invert"] == true) {
+                            temp.insert("source", QVariant("none"));
+                        }
+                        else {
+                            temp.insert("source", QVariant("alwaysHigh"));
+                        }
+
                         camera->cinst->setProperty("ioMappingTrigger", temp);
+
+                        inw->setTriggerText("trigger: off");
                     }
                 }
             }
+            QString runGunInfo = "total: " + QString::number(totalSegCount) + "  saving: seg#" + QString::number(savedSegCount);
+            inw->setRGInfoText(runGunInfo);
         }
 	}
 }
@@ -1008,9 +1025,13 @@ void CamMainWindow::saveNextSegment(VideoState state)
                 savedSegCount = 0;
                 nextSegments = {};
                 triggerConfig = {};
+
                 clearFlag = true;
                 stopFromBtn = false;
                 camera->recordingData.hasBeenSaved = true;
+
+                inw->setRGInfoText("");
+                inw->setTriggerText("");
             }
             /* Recording is still running */
             /* Current exisiting segments are all saved, but recording is not stopped*/
@@ -1024,7 +1045,13 @@ void CamMainWindow::saveNextSegment(VideoState state)
 
                     camera->cinst->setProperty("ioMappingTrigger", triggerConfig);
                     triggerConfig = {};
+
+                    inw->setTriggerText("trigger: on");
                 }
+
+                QString runGunInfo = "total: " + QString::number(totalSegCount) + "  saving: none";
+                inw->setRGInfoText(runGunInfo);
+
                 return;
             }
         }
@@ -1058,6 +1085,8 @@ void CamMainWindow::saveNextSegment(VideoState state)
                 cinst->saveRecording(start, segLength, formatForRunGun, vinst->framerate, realBitrateForRunGun);
                 savedSegCount++;
             }
+            QString runGunInfo = "total: " + QString::number(totalSegCount) + "  saving: seg#" + QString::number(savedSegCount);
+            inw->setRGInfoText(runGunInfo);
         }
 
         /* Re-enable Record End Trigger from IOs if it is disabled now */
@@ -1067,6 +1096,10 @@ void CamMainWindow::saveNextSegment(VideoState state)
 
             camera->cinst->setProperty("ioMappingTrigger", triggerConfig);
             triggerConfig = {};
+
+            if (!stopFromBtn) {
+                inw->setTriggerText("trigger: on");
+            }
         }
     }
 }
@@ -1140,8 +1173,20 @@ void CamMainWindow::abortRunGunSave()
     totalSegCount = 0;
     savedSegCount = 0;
     nextSegments = {};
+
     clearFlag = true;
+    stopFromBtn = false;
     camera->recordingData.hasBeenSaved = true;
+
+    inw->setRGInfoText("");
+
+    if (triggerConfig.size() != 0) {
+        qDebug() << "Record End Trigger from IOs is disabled";
+        qDebug() << "Reset ioMappingTrigger to enable";
+
+        camera->cinst->setProperty("ioMappingTrigger", triggerConfig);
+        triggerConfig = {};
+    }
     return;
 }
 

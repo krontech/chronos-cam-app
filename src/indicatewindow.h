@@ -15,7 +15,8 @@ public:
     explicit IndicateWindow(QWidget *parent = 0);
     ~IndicateWindow();
     void setRecModeText(QString str);
-    void setRunGunText(QString str);
+    void setRGInfoText(QString str);
+    void setTriggerText(QString str);
 
 private:
     Ui::IndicateWindow *ui;

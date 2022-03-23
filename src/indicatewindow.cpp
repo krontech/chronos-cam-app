@@ -29,12 +29,18 @@ void IndicateWindow::setRecModeText(QString str)
                 QApplication::desktop()->screenGeometry().height() - height());
 }
 
-void IndicateWindow::setRunGunText(QString str)
+void IndicateWindow::setRGInfoText(QString str)
 {
-    ui->lblRunGun->setStyleSheet("color: white;");
-    ui->lblRunGun->setText(str);
-    ui->lblRunGun->adjustSize();
+    ui->lblRGInfo->setStyleSheet("color: white;");
+    ui->lblRGInfo->setText(str);
+    ui->lblRGInfo->adjustSize();
     this->adjustSize();
-    this->move( 0,
-                QApplication::desktop()->screenGeometry().height() - height());
+}
+
+void IndicateWindow::setTriggerText(QString str)
+{
+    ui->lblTrigger->setStyleSheet("color: white;");
+    ui->lblTrigger->setText(str);
+    ui->lblTrigger->adjustSize();
+    this->adjustSize();
 }
