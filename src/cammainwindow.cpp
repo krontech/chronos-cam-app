@@ -967,18 +967,15 @@ void CamMainWindow::on_newVideoSegment(VideoStatus *st)
                         // Save current settings of IO trigger
                         QVariant ioMappingTrigger = camera->cinst->getProperty("ioMappingTrigger");
                         ioMappingTrigger.value<QDBusArgument>() >> triggerConfig;
-                        qDebug() << triggerConfig["invert"];
 
                         // Set IO trigger to 'alwaysHigh' -> disable trigger
                         qDebug() << "Disable Record End Trigger from IOs";
                         QVariantMap temp;
 
-                        if (triggerConfig["invert"] == true) {
+                        if (triggerConfig["invert"] == true)
                             temp.insert("source", QVariant("none"));
-                        }
-                        else {
+                        else
                             temp.insert("source", QVariant("alwaysHigh"));
-                        }
 
                         camera->cinst->setProperty("ioMappingTrigger", temp);
 
