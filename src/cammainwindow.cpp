@@ -119,6 +119,9 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 
 	sw = new StatusWindow;
 
+    inw = new IndicateWindow;
+    updateIndicateWindow();
+
 	updateExpSliderLimits();
 	updateCurrentSettingsLabel();
 
@@ -187,6 +190,7 @@ CamMainWindow::~CamMainWindow()
 {
 	timer->stop();
 	delete sw;
+    delete inw;
 
 	delete ui;
 	delete camera;
@@ -508,7 +512,9 @@ void CamMainWindow::on_cmdPlay_clicked()
 		camera->stopRecording();
 		delayms(100);
 	}
+
 	createNewPlaybackWindow();
+    inw->hide();
 }
 
 void CamMainWindow::createNewPlaybackWindow(){
@@ -519,6 +525,7 @@ void CamMainWindow::createNewPlaybackWindow(){
 	w->show();
     // Send signal when aborting save from Playback to clean all RUn-N-Gun parameters
     connect(w, SIGNAL(abortSave()), this, SLOT(abortRunGunSave()));
+    connect(w, SIGNAL(finishedSaving()), this, SLOT(updateIndicateWindow()));
 }
 
 void CamMainWindow::playFinishedSaving()
@@ -530,6 +537,42 @@ void CamMainWindow::playFinishedSaving()
 		camera->startRecording();
 		qDebug("--- started recording ---");
 	}
+}
+
+void CamMainWindow::updateIndicateWindow()
+{
+    camera->cinst->getImagerSettings(&is);
+
+    inw->setRunGunText("");
+
+    switch (is.mode) {
+        case RECORD_MODE_NORMAL:
+            inw->setRecModeText("Normal");
+        break;
+
+        case RECORD_MODE_SEGMENTED:
+           inw->setRecModeText("Segmented");
+           if(camera->get_runngun()) {
+               inw->setRunGunText("Run-N-Gun");
+           }
+        break;
+
+        case RECORD_MODE_GATED_BURST:
+            inw->setRecModeText("Gated Burst");
+        break;
+
+        case RECORD_MODE_LIVE:
+            inw->setRecModeText("Live Slow Motion");
+        break;
+
+        case RECORD_MODE_FPN:
+        default:
+            /* Internal recording modes only. */
+        break;
+    }
+
+    inw->show();
+    inw->lower();
 }
 
 bool CamMainWindow::okToStopLive()
@@ -1148,6 +1191,7 @@ void CamMainWindow::recSettingsClosed()
 {
 	updateExpSliderLimits();
 	updateCurrentSettingsLabel();
+    updateIndicateWindow();
 }
 
 //Update the exposure slider limits and step size.

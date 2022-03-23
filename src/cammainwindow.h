@@ -24,6 +24,7 @@
 #include <QTimer>
 
 #include "statuswindow.h"
+#include "indicatewindow.h"
 #include "util.h"
 #include "camera.h"
 #include "video.h"
@@ -104,6 +105,8 @@ private slots:
     void checkForSmbStorage(void);
     void checkForWebMount(void);
 
+    void updateIndicateWindow(void);
+
     void runTimer();
     void stopTimer();
 
@@ -118,6 +121,7 @@ private:
 	Ui::CamMainWindow *ui;
 	UserInterface * interface;
 	StatusWindow * sw;
+    IndicateWindow * inw;
 	QTimer *timer;
     QTimer *mountTimer;
 	bool recording;
@@ -134,7 +138,7 @@ private:
 	bool apiUpdate = false;
 	UInt32 expSliderFramePeriod;
 
-	ImagerSettings_t is;
+    ImagerSettings_t is;
 
     CaKrontechChronosControlInterface iface;
 

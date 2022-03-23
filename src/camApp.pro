@@ -96,7 +96,8 @@ SOURCES += main.cpp\
     networkconfig.cpp \
     extbrowser.cpp \
     extbrowserdelegate.cpp \
-    extbrowserparser.cpp
+    extbrowserparser.cpp \
+    indicatewindow.cpp
 
 ## Generate version.cpp on every build
 versionTarget.target = version.cpp
@@ -154,7 +155,8 @@ HEADERS  += mainwindow.h \
     extbrowserdelegate.h \
     movedirection.h \
     extbrowserparser.h \
-    storagedevice_info.h
+    storagedevice_info.h \
+    indicatewindow.h
 
 FORMS    += mainwindow.ui \
     cammainwindow.ui \
@@ -171,7 +173,8 @@ FORMS    += mainwindow.ui \
     keyboardnumeric.ui \
     whitebalancedialog.ui \
     colorwindow.ui \
-    extbrowser.ui
+    extbrowser.ui \
+    indicatewindow.ui
 
 RESOURCES += \
     Images.qrc
