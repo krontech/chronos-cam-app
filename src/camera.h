@@ -278,6 +278,7 @@ protected slots:
 
 signals:
     void finishedRecording();
+    void beganRecording();
 };
 
 #endif // CAMERA_H

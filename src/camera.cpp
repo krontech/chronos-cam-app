@@ -289,6 +289,8 @@ Int32 Camera::startRecording(void)
 	recordingData.hasBeenViewed = false;
 	recordingData.ignoreSegments = 0;
 
+    emit beganRecording();
+
 	return SUCCESS;
 }
 

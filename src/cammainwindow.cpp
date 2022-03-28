@@ -139,6 +139,9 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
     // Call stopRecordingFromBtn function to set flag when finishedRecording signal is emitted
     connect(camera, SIGNAL(finishedRecording()), this, SLOT(stopRecordingFromBtn()));
 
+    // Call setTriggerTextStartRecording function to set trigger label to "on"
+    connect(camera, SIGNAL(beganRecording()), this, SLOT(setTriggerTextStartRecording()));
+
 	if (appSettings.value("debug/hideDebug", true).toBool()) {
 		ui->cmdDebugWnd->setVisible(false);
 		ui->cmdClose->setVisible(false);
@@ -863,7 +866,6 @@ void CamMainWindow::on_newVideoSegment(VideoStatus *st)
             int segCount = camera->recordingData.is.segments;
             formatForRunGun = getSaveFormatForRunGun();
             realBitrateForRunGun = getBitrateForRunGun(formatForRunGun);
-            inw->setTriggerText("trigger: on");
 
             /* Clear unsaved recordings */
             if (clearFlag) {
@@ -1198,6 +1200,24 @@ void CamMainWindow::stopRecordingFromBtn()
 {
     qDebug() << "Stop whole recording";
     stopFromBtn = true;
+}
+
+/* Set Trigger to "on" when start recording under Run-N-Gun mode */
+void CamMainWindow::setTriggerTextStartRecording()
+{
+    if (camera->get_runngun()) {
+        if (camera->recordingData.is.segments == 1) {
+            QVariantMap temp;
+            temp.insert("source", QVariant("alwaysHigh"));
+
+            camera->cinst->setProperty("ioMappingTrigger", temp);
+
+            inw->setTriggerText("trigger: off");
+        }
+        else {
+            inw->setTriggerText("trigger: on");
+        }
+    }
 }
 
 void CamMainWindow::on_chkFocusAid_clicked(bool focusAidEnabled)

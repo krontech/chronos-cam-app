@@ -65,12 +65,17 @@ private slots:
 	void on_cmdIOSettings_clicked();
 
 	void on_MainWindowTimer();
+
     void on_newVideoSegment(VideoStatus *st);
+
     void saveNextSegment(VideoState state);
+
     save_mode_type getSaveFormatForRunGun();
     UInt32 getBitrateForRunGun(save_mode_type format);
+
     void abortRunGunSave();
     void stopRecordingFromBtn();
+    void setTriggerTextStartRecording();
 
 	void on_chkFocusAid_clicked(bool focusAidEnabled);
 
