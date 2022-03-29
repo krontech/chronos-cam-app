@@ -158,6 +158,7 @@ private:
     UInt32 realBitrateForRunGun;
 
     QVariantMap triggerConfig = {};
+    QVariantMap io1Config = {}, io2Config = {};
     bool stopFromBtn = false;
 
     int newStart;

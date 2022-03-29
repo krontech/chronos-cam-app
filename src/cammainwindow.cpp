@@ -495,8 +495,10 @@ void CamMainWindow::on_cmdRec_clicked()
 			//If there is unsaved video in RAM, prompt to start record.  unsavedWarnEnabled values: 0=always, 1=if not reviewed, 2=never
 			if(false == camera->recordingData.hasBeenSaved && (0 != camera->unsavedWarnEnabled && (2 == camera->unsavedWarnEnabled || !camera->recordingData.hasBeenViewed)))
             {
-				if(QMessageBox::Yes != question("Unsaved video in RAM", "Start recording anyway and discard the unsaved video in RAM?"))
+                if(QMessageBox::Yes != question("Unsaved video in RAM", "Start recording anyway and discard the unsaved video in RAM?"))
 					return;
+                else
+                    clearFlag = true;
 			}
 
 			camera->startRecording();
@@ -783,6 +785,7 @@ void CamMainWindow::on_MainWindowTimer()
 					{
 						if(QMessageBox::Yes == question("Unsaved video in RAM", "Start recording anyway and discard the unsaved video in RAM?"))
 						{
+                            clearFlag = true;
 							camera->startRecording();
 							if (camera->get_liveRecord()) vinst->liveRecord();
 						}
@@ -874,7 +877,7 @@ void CamMainWindow::on_newVideoSegment(VideoStatus *st)
             }
             else {
                 /* ring buffer is not full */
-                if (nextSegments.size() < camera->recordingData.is.segments) {
+                if (nextSegments.size() < segCount) {
                     nextSegments.insert(startFrame, st->totalFrames - startFrame);
                     totalSegCount++;
                     startFrame = st->totalFrames;
@@ -929,7 +932,7 @@ void CamMainWindow::on_newVideoSegment(VideoStatus *st)
 
                     if (stopCurrentSeg) {
                         currentSavingSeg.clear();
-                        it = nextSegments.begin() + (savedSegCount - (totalSegCount - camera->recordingData.is.segments) - 1);
+                        it = nextSegments.begin() + (savedSegCount - (totalSegCount - segCount) - 1);
                         currentSavingSeg.insert(it.key(), it.value());
                     }
                 }
@@ -980,11 +983,12 @@ void CamMainWindow::on_newVideoSegment(VideoStatus *st)
                         qDebug() << "Disable Record End Trigger from IOs";
                         QVariantMap temp;
 
-                        if (triggerConfig["invert"] == true)
+                        if (triggerConfig["invert"] == true) {
                             temp.insert("source", QVariant("none"));
-                        else
+                        }
+                        else {
                             temp.insert("source", QVariant("alwaysHigh"));
-
+                        }
                         camera->cinst->setProperty("ioMappingTrigger", temp);
 
                         inw->setTriggerText("trigger: off");
@@ -1206,7 +1210,7 @@ void CamMainWindow::stopRecordingFromBtn()
 void CamMainWindow::setTriggerTextStartRecording()
 {
     if (camera->get_runngun()) {
-        if (camera->recordingData.is.segments == 1) {
+        if (is.segments == 1) {
             QVariantMap temp;
             temp.insert("source", QVariant("alwaysHigh"));
 
