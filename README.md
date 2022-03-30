@@ -21,26 +21,26 @@ However, we can't use *Invert* for Run-N-Gun mode for now because trigger needs 
 
 ## Record Mode State on Main Window
 
-A record mdee state label is added at the bottom of main window, so users can know what record mode the camera is under without going to check in Record Settings -> Record Mode window.
+A record mode state label is added at the bottom of main window, so users can know what record mode the camera is under without going to check in Record Settings -> Record Mode window.
 
-This label would also show the total number of recorded segments, the current saving segment numbder and trigger status while RUn-N-Gun recording is running.
+This label would also show the total number of recorded segments, the current saving segment numbder and trigger status while Run-N-Gun recording is running.
 
 The background of the state label is transparent, so it would not block the view of footages.
 
 ## Operation of a Run-N-Gun Recording
 
-After all settings and preparations are done, return to main window. The record mode state label show show *RUn-N-Gun* at the bottom of the screen.
+After all settings and preparations are done, return to main window. The record mode state label shows *Run-N-Gun* at the bottom of the screen.
 
-Press red recording button or record button on main window UI to start a RUn-N-Gun recording.
+Press red recording button or record button on main window UI to start a Run-N-Gun recording.
 
 A trigger state label shows at the bottom of the screen after recording starts. 
 
 * on: allow Record End Trigger to end current recording segment and start the next segment of recording
-* off: trigger is disabled, current segment would not br ended even if trigger is input
+* off: trigger is disabled, current segment would not be ended even if trigger is input
 
 At this stage, footages are shown on the screen.
 
-Input the first trigger from IO signals or BNC trigger switch. A Run-N-Gun progress label shows between the record mode state label and trigger state label. This progress label presents the total number of recorded segment and current saving segment. The footages go blank while saving is running.
+Input the first trigger from IO signals or BNC trigger switch. A Run-N-Gun progress label shows between the record mode state label and trigger state label. This progress label presents the total number of recorded segments and current saving segment. The footages go blank while saving is running.
 
 Trigger is disabled (*off*) if the next segment would overwrite an old segment that is still being saved. Wait until trigger is back to *on* and input trigger to end current segment and start next segment or press red recording button or record button in main window UI to end current segment and the whole recording.
 
