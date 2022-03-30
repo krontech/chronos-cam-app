@@ -9,7 +9,7 @@ Under Run-N-Gun mode, new segments would be allowed to overwrite the old saved s
 
 ## Record Mode Selection
 
-Run-N-Gun mode is based on *Segmented* record mode that Chronos 1.4 & 2.1 already has. Therefore, a *Run-N-Gun Mode* check box is added under *Segmented* record mode page in *Record Mode* window.
+Run-N-Gun mode is based on *Segmented* record mode that Chronos 1.4 & 2.1 already have. Therefore, a *Run-N-Gun Mode* check box is added under *Segmented* record mode page in *Record Mode* window.
 
 To use Run-N-Gun mode, select and set *Segmented* record mode, then check *Run-N-Gun Mode* check box.
 
@@ -17,7 +17,7 @@ To use Run-N-Gun mode, select and set *Segmented* record mode, then check *Run-N
 
 Run-N-GUn mode requires *Record End Trigger* to end segments. Select IO(s) in Trigger/IO Settings window, set its/their function as *Record End Trigger* and choose settings for IO(s), like *Debounce* and *Pull-up*, and trigger delay as needed.
 
-However, we can't use *Invert* for Run-N-Gun mode for now because trigger needs to be disabled sometimes when overwriting is not allowed and *Invert* setting causes problems in some IO settings and with BNC trigger switch cable.
+However, we can't use *Invert* for Run-N-Gun mode for now because trigger needs to be disabled and re-enabled sometimes when overwriting is not allowed and *Invert* setting causes problems in some IO settings and with BNC trigger switch cable.
 
 ## Record Mode State on Main Window
 
