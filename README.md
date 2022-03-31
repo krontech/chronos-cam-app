@@ -1,7 +1,7 @@
 # Run-N-Gun Mode
 Run-N-Gun mode for Chronos 1.4 & 2.1 is a new record mode that allows the camera to save a segment of video while another segment is being recorded.
 
-Under RUn-N-Gun mode, videos are recorded in a segmented buffer. One Record End Trigger ends a segment and starts the saving of it or puts it into a saving waitlist if another segment is still being saved.
+Under Run-N-Gun mode, videos are recorded in a segmented buffer. One Record End Trigger ends a segment and starts the saving of it or puts it into a saving waitlist if another segment is still being saved.
 
 Under Segmented mode, the whole buffer is divided into *x* segments. If *ring buffer* is enabled (which is by default), new segments would overwrite old segments when the number of recording segments exceeds *x*. 
 
