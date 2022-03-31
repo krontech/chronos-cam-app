@@ -694,9 +694,14 @@ void CamMainWindow::on_state_valueChanged(const QVariant &value)
 {
     QString state = value.toString();
 	qDebug() << "CamMainWindow state changed to" << state;
+
+    if (state != "recording") {
+        inw->setTriggerText("");
+    }
+
 	if(!recording) {
 		/* Check if recording has started. */
-		if (state != "recording") return;
+        if (state != "recording") return;
 		recording = true;
 		if (!camera->loopTimerEnabled)
 		{
@@ -709,7 +714,7 @@ void CamMainWindow::on_state_valueChanged(const QVariant &value)
 	}
 	else {
 		/* Check if recording has ended. */
-		if (state != "idle") return;
+        if (state != "idle") return;
 		recording = false;
 
 		/* Recording has ended */
@@ -877,10 +882,15 @@ void CamMainWindow::on_newVideoSegment(VideoStatus *st)
             }
             else {
                 /* ring buffer is not full */
-                if (nextSegments.size() < segCount) {
-                    nextSegments.insert(startFrame, st->totalFrames - startFrame);
-                    totalSegCount++;
-                    startFrame = st->totalFrames;
+                if ((nextSegments.size() < segCount) || (is.disableRingBuffer)) {
+                    if ((is.disableRingBuffer) && (nextSegments.size() == segCount)) {
+                        qDebug() << "Ignore segment";
+                    }
+                    else {
+                        nextSegments.insert(startFrame, st->totalFrames - startFrame);
+                        totalSegCount++;
+                        startFrame = st->totalFrames;
+                    }
                 }
                 /* ring buffter is full, starting overwriting */
                 else {
@@ -957,6 +967,11 @@ void CamMainWindow::on_newVideoSegment(VideoStatus *st)
                     savedSegCount++;
                 }
 
+                if ((is.disableRingBuffer) && (totalSegCount == segCount)) {
+                    camera->stopRecording();
+                    stopFromBtn = true;
+                }
+
                 /* New trigger will end current segment and start a new segment */
                 /* This new segment will overwrite an old segment in ring buffer once it is ended */
                 /* If this old segment is still being saved, then we should: */
@@ -973,25 +988,27 @@ void CamMainWindow::on_newVideoSegment(VideoStatus *st)
                 else {
                     /* The old segment that will be overwritten is still being saved */
                     if ((currentRecordingSeg + 1 - segCount) == savedSegCount) {
-                        qDebug() << "Ignore trigger from IOs until segment#" << savedSegCount << "saving is done";
-                        /* Disbale triggers from IOs */
-                        // Save current settings of IO trigger
-                        QVariant ioMappingTrigger = camera->cinst->getProperty("ioMappingTrigger");
-                        ioMappingTrigger.value<QDBusArgument>() >> triggerConfig;
+                        if (!is.disableRingBuffer) {
+                            qDebug() << "Ignore trigger from IOs until segment#" << savedSegCount << "saving is done";
+                            /* Disbale triggers from IOs */
+                            // Save current settings of IO trigger
+                            QVariant ioMappingTrigger = camera->cinst->getProperty("ioMappingTrigger");
+                            ioMappingTrigger.value<QDBusArgument>() >> triggerConfig;
 
-                        // Set IO trigger to 'alwaysHigh' -> disable trigger
-                        qDebug() << "Disable Record End Trigger from IOs";
-                        QVariantMap temp;
+                            // Set IO trigger to 'alwaysHigh' -> disable trigger
+                            qDebug() << "Disable Record End Trigger from IOs";
+                            QVariantMap temp;
 
-                        if (triggerConfig["invert"] == true) {
-                            temp.insert("source", QVariant("none"));
+                            if (triggerConfig["invert"] == true) {
+                                temp.insert("source", QVariant("none"));
+                            }
+                            else {
+                                temp.insert("source", QVariant("alwaysHigh"));
+                            }
+                            camera->cinst->setProperty("ioMappingTrigger", temp);
+
+                            inw->setTriggerText("trigger: off");
                         }
-                        else {
-                            temp.insert("source", QVariant("alwaysHigh"));
-                        }
-                        camera->cinst->setProperty("ioMappingTrigger", temp);
-
-                        inw->setTriggerText("trigger: off");
                     }
                 }
             }
@@ -1067,9 +1084,9 @@ void CamMainWindow::saveNextSegment(VideoState state)
         /* Have unsaved segments in segment list */
         else {
             /* Overwriting in Ring Buffer already happened */
-            if (totalSegCount > camera->recordingData.is.segments) {
+            if (totalSegCount > is.segments) {
                 // Choose the next unsaved segment
-                it = nextSegments.begin() + (savedSegCount - (totalSegCount - camera->recordingData.is.segments));
+                it = nextSegments.begin() + (savedSegCount - (totalSegCount - is.segments));
                 start = it.key();
                 segLength = it.value();
 
@@ -1188,6 +1205,7 @@ void CamMainWindow::abortRunGunSave()
     camera->recordingData.hasBeenSaved = true;
 
     inw->setRGInfoText("");
+    inw->setTriggerText("");
 
     if (triggerConfig.size() != 0) {
         qDebug() << "Record End Trigger from IOs is disabled";
