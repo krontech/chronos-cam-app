@@ -15,7 +15,7 @@ To use Run-N-Gun mode, select and set *Segmented* record mode, then check *Run-N
 
 ## Record End Trigger Settings
 
-Run-N-GUn mode requires *Record End Trigger* to end segments. Select IO(s) in Trigger/IO Settings window, set its/their function as *Record End Trigger* and choose settings for IO(s), like *Debounce* and *Pull-up*, and trigger delay as needed.
+Run-N-Gun mode requires *Record End Trigger* to end segments. Select IO(s) in Trigger/IO Settings window, set its/their function as *Record End Trigger* and choose settings for IO(s), like *Debounce* and *Pull-up*, and trigger delay as needed.
 
 However, we can't use *Invert* for Run-N-Gun mode for now because trigger needs to be disabled and re-enabled sometimes when overwriting is not allowed and *Invert* setting causes problems in some IO settings and with BNC trigger switch cable.
 
