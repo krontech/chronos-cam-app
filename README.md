@@ -17,9 +17,9 @@ In Run-N-Gun mode, unused recording time is not returned for future segments to 
 
 ## Run-N-Gun Process Explanation
 
-[![Slides with animation]](https://drive.google.com/file/d/1XO76vrhFBuV-pFRWxcuNkJys2jCd3SYl/view?usp=sharing) 
+[Slides with animation](https://drive.google.com/file/d/1XO76vrhFBuV-pFRWxcuNkJys2jCd3SYl/view?usp=sharing) 
 
 ## Run-N-Gun Manual
 
-[![Guide for operating a Run-N-Gun recording]](https://drive.google.com/file/d/1gvN6YcH32AUDo9-r2rWQeu0YlR3mQkVL/view?usp=sharing)
+[Guide for operating a Run-N-Gun recording](https://drive.google.com/file/d/1gvN6YcH32AUDo9-r2rWQeu0YlR3mQkVL/view?usp=sharing)
 
