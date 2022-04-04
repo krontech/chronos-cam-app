@@ -1000,7 +1000,8 @@ void CamMainWindow::on_newVideoSegment(VideoStatus *st)
                             QVariantMap temp;
 
                             if (triggerConfig["invert"] == true) {
-                                temp.insert("source", QVariant("none"));
+                                temp.insert("source", QVariant("alwaysHigh"));
+                                temp.insert("invert", QVariant("true"));
                             }
                             else {
                                 temp.insert("source", QVariant("alwaysHigh"));
