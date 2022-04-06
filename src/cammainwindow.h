@@ -167,6 +167,10 @@ private:
     int newStart;
     int newSegLength;
     bool stopCurrentSeg = false;
+
+signals:
+    void swIsShown();
+    void swIsHidden();
 };
 
 #endif // CAMMAINWINDOW_H

@@ -139,6 +139,10 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
     // Call stopRecordingFromBtn function to set flag when finishedRecording signal is emitted
     connect(camera, SIGNAL(finishedRecording()), this, SLOT(stopRecordingFromBtn()));
 
+
+    connect(this, SIGNAL(swIsShown()), camera, SLOT(swShow()));
+    connect(this, SIGNAL(swIsHidden()), camera, SLOT(swHide()));
+
     // Call setTriggerTextStartRecording function to set trigger label to "on"
     connect(camera, SIGNAL(beganRecording()), this, SLOT(setTriggerTextStartRecording()));
 
@@ -184,6 +188,7 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
             ((appSettings.value("network/smbUser").toString().length()) && (appSettings.value("network/smbShare").toString().length()) && (appSettings.value("network/smbPassword").toString().length()))) {
         sw->setText("Connecting to saved network storage device...");
         sw->show();
+        emit swIsShown();
     }
 
     QTimer::singleShot(500, this, SLOT(checkForCalibration())); // wait a moment, then check for calibration at startup
@@ -281,6 +286,7 @@ void CamMainWindow::checkForNfsStorage()
         QCoreApplication::processEvents();
         if (!isReachable(appSettings.value("network/nfsAddress").toString())) {
             sw->hide();
+            emit swIsHidden();
 
             netConnBox.setText(appSettings.value("network/nfsAddress").toString() + " is not reachable!");
             netConnBox.show();
@@ -294,6 +300,7 @@ void CamMainWindow::checkForNfsStorage()
         QString returnString = runCommand(mountString.toLatin1());
         if (returnString != "") {
             sw->hide();
+            emit swIsHidden();
 
             netConnBox.setText("Mount failed: " + returnString);
             netConnBox.show();
@@ -303,6 +310,7 @@ void CamMainWindow::checkForNfsStorage()
         }
         else {
             sw->hide();
+            emit swIsHidden();
             return;
         }
     }
@@ -330,6 +338,7 @@ void CamMainWindow::checkForSmbStorage()
         QString smbServer = parseSambaServer(appSettings.value("network/smbShare").toString());
         if (!isReachable(smbServer)) {
             sw->hide();
+            emit swIsHidden();
 
             netConnBox.setText(smbServer + " is not reachable!");
             netConnBox.show();
@@ -342,6 +351,7 @@ void CamMainWindow::checkForSmbStorage()
         QString returnString = runCommand(mountString.toLatin1());
         if (returnString != "") {
             sw->hide();
+            emit swIsHidden();
 
             netConnBox.setText("Mount failed: " + returnString);
             netConnBox.show();
@@ -350,6 +360,7 @@ void CamMainWindow::checkForSmbStorage()
         }
         else {
             sw->hide();
+            emit swIsHidden();
             return;
         }
     }
@@ -512,7 +523,7 @@ void CamMainWindow::on_cmdRec_clicked()
 		else
 		{
 			//If there is unsaved video in RAM, prompt to start record.  unsavedWarnEnabled values: 0=always, 1=if not reviewed, 2=never
-			if(false == camera->recordingData.hasBeenSaved && (0 != camera->unsavedWarnEnabled && (2 == camera->unsavedWarnEnabled || !camera->recordingData.hasBeenViewed)))
+            if (false == camera->recordingData.hasBeenSaved && (0 != camera->unsavedWarnEnabled && (2 == camera->unsavedWarnEnabled || !camera->recordingData.hasBeenViewed)))
             {
                 if(QMessageBox::Yes != question("Unsaved video in RAM", "Start recording anyway and discard the unsaved video in RAM?"))
 					return;
@@ -665,11 +676,13 @@ void CamMainWindow::on_cmdFPNCal_clicked()//Black cal
 
 	sw->setText("Performing black calibration...");
 	sw->show();
+    emit swIsShown();
 	QCoreApplication::processEvents();
 
 	camera->cinst->startCalibration({"analogCal", "blackCal"}, true);
 
 	sw->hide();
+    emit swIsHidden();
 }
 
 void CamMainWindow::on_cmdWB_clicked()

@@ -266,6 +266,8 @@ public:
 
 	void on_spinLiveLoopTime_valueChanged(double arg1);
 
+    bool swIsShown = false;
+
 private:
 	QString lastState = "idle";
 
@@ -275,6 +277,10 @@ protected slots:
 	void api_colorMatrix_valueChanged(const QVariant &value);
 
 	void onLoopTimer();
+
+private slots:
+    void swShow();
+    void swHide();
 
 signals:
     void finishedRecording();

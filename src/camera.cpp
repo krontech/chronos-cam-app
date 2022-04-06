@@ -268,30 +268,45 @@ void Camera::updateVideoPosition()
 	vinst->setDisplayPosition(ButtonsOnLeft ^ UpsideDownDisplay);
 }
 
+void Camera::swShow()
+{
+    swIsShown = true;
+}
+
+void Camera::swHide()
+{
+    swIsShown = false;
+}
+
 Int32 Camera::startRecording(void)
 {
-	qDebug("===== Camera::startRecording()");
+    if (!swIsShown) {
+        qDebug("===== Camera::startRecording()");
 
-	cinst->stopRecording();
+        cinst->stopRecording();
 
-	if(recording)
-		return CAMERA_ALREADY_RECORDING;
-	if(playbackMode)
-		return CAMERA_IN_PLAYBACK_MODE;
+        if(recording)
+            return CAMERA_ALREADY_RECORDING;
+        if(playbackMode)
+            return CAMERA_IN_PLAYBACK_MODE;
 
-	recordingData.valid = false;
-	recordingData.hasBeenSaved = false;
-	vinst->flushRegions();
+        recordingData.valid = false;
+        recordingData.hasBeenSaved = false;
+        vinst->flushRegions();
 
-	cinst->startRecording();
+        cinst->startRecording();
 
-	recording = true;
-	recordingData.hasBeenViewed = false;
-	recordingData.ignoreSegments = 0;
+        recording = true;
+        recordingData.hasBeenViewed = false;
+        recordingData.ignoreSegments = 0;
 
-    emit beganRecording();
+        emit beganRecording();
 
-	return SUCCESS;
+        return SUCCESS;
+    }
+    else {
+        return SUCCESS;
+    }
 }
 
 Int32 Camera::stopRecording(void)
