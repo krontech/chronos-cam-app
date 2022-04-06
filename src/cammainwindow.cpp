@@ -180,6 +180,12 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
     connect(mountTimer, SIGNAL(timeout()), this, SLOT(checkForWebMount()));
     mountTimer->start(5000);
 
+    if (((appSettings.value("network/nfsAddress").toString().length()) && (appSettings.value("network/nfsMount").toString().length())) ||
+            ((appSettings.value("network/smbUser").toString().length()) && (appSettings.value("network/smbShare").toString().length()) && (appSettings.value("network/smbPassword").toString().length()))) {
+        sw->setText("Connecting to saved network storage device...");
+        sw->show();
+    }
+
     QTimer::singleShot(500, this, SLOT(checkForCalibration())); // wait a moment, then check for calibration at startup
     QTimer::singleShot(15000, this, SLOT(checkForNfsStorage()));
 
@@ -274,6 +280,8 @@ void CamMainWindow::checkForNfsStorage()
 
         QCoreApplication::processEvents();
         if (!isReachable(appSettings.value("network/nfsAddress").toString())) {
+            sw->hide();
+
             netConnBox.setText(appSettings.value("network/nfsAddress").toString() + " is not reachable!");
             netConnBox.show();
             netConnBox.exec();
@@ -285,6 +293,8 @@ void CamMainWindow::checkForNfsStorage()
         mountString.append(" 2>&1");
         QString returnString = runCommand(mountString.toLatin1());
         if (returnString != "") {
+            sw->hide();
+
             netConnBox.setText("Mount failed: " + returnString);
             netConnBox.show();
             netConnBox.exec();
@@ -292,6 +302,7 @@ void CamMainWindow::checkForNfsStorage()
             return;
         }
         else {
+            sw->hide();
             return;
         }
     }
@@ -318,6 +329,8 @@ void CamMainWindow::checkForSmbStorage()
         QCoreApplication::processEvents();
         QString smbServer = parseSambaServer(appSettings.value("network/smbShare").toString());
         if (!isReachable(smbServer)) {
+            sw->hide();
+
             netConnBox.setText(smbServer + " is not reachable!");
             netConnBox.show();
             netConnBox.exec();
@@ -328,9 +341,15 @@ void CamMainWindow::checkForSmbStorage()
         mountString.append(" 2>&1");
         QString returnString = runCommand(mountString.toLatin1());
         if (returnString != "") {
+            sw->hide();
+
             netConnBox.setText("Mount failed: " + returnString);
             netConnBox.show();
             netConnBox.exec();
+            return;
+        }
+        else {
+            sw->hide();
             return;
         }
     }
@@ -871,6 +890,21 @@ void CamMainWindow::on_newVideoSegment(VideoStatus *st)
 
         /*------ Run and Gun Mode ------*/
         if (camera->get_runngun()) {
+            strcpy(camera->cinst->filename, USE_AUTONAME_FOR_SAVE);
+
+            camera->set_autoSave(false);
+            autoSaveActive = false;
+
+            camera->set_autoRecord(false);
+
+            UInt32 ret;
+            QMessageBox msg;
+            char parentPath[1000];
+
+            // Build the parent path of the save directory to determine if it's a mount point
+            strcpy(parentPath, camera->cinst->fileDirectory);
+            strcat(parentPath, "/..");
+
             int segCount = camera->recordingData.is.segments;
             formatForRunGun = getSaveFormatForRunGun();
             realBitrateForRunGun = getBitrateForRunGun(formatForRunGun);
@@ -878,6 +912,10 @@ void CamMainWindow::on_newVideoSegment(VideoStatus *st)
             /* Clear unsaved recordings */
             if (clearFlag) {
                 clearFlag = false;
+                return;
+            }
+            else if (saveFlag) {
+                saveFlag = false;
                 return;
             }
             else {
@@ -952,9 +990,47 @@ void CamMainWindow::on_newVideoSegment(VideoStatus *st)
                 if (camera->vinst->getStatus(NULL) != VIDEO_STATE_FILESAVE) {
                     /* Start first segment saving in whole recording */
                     if (nextSegments.size() == 1) {
-                        qDebug() << "start saving for the first segment";
-                        QMap<int, int>::iterator it = nextSegments.begin();
-                        cinst->saveRecording(it.key(), it.value(), formatForRunGun, vinst->framerate, realBitrateForRunGun);
+                        // Check that teh path exists
+                        struct stat sb;
+                        struct stat sbP;
+
+                        if (stat(camera->cinst->fileDirectory, &sb) == 0 && S_ISDIR(sb.st_mode) &&
+                            stat(parentPath, &sbP) == 0 && sb.st_dev != sbP.st_dev) {
+
+                            qDebug() << "start saving for the first segment";
+                            QMap<int, int>::iterator it = nextSegments.begin();
+                            ret = cinst->saveRecording(it.key(), it.value(), formatForRunGun, vinst->framerate, realBitrateForRunGun);
+
+                            if (RECORD_FOLDER_DOES_NOT_EXIST == ret) {
+                                strncpy(camera->cinst->fileFolder, "\0", 1);
+                                cinst->saveRecording(it.key(), it.value(), formatForRunGun, vinst->framerate, realBitrateForRunGun);
+                            }
+                            else if (RECORD_DIRECTORY_NOT_WRITABLE == ret) {
+                                strncpy(camera->cinst->fileFolder, "\0", 1);
+                                cinst->saveRecording(it.key(), it.value(), formatForRunGun, vinst->framerate, realBitrateForRunGun);
+                            }
+                            else if (RECORD_INSUFFICIENT_SPACE == ret) {
+                                msg.setText("Selected device does not have sufficient free space");
+                                msg.exec();
+
+                                if (!stopFromBtn) {
+                                    saveFlag = true;
+                                }
+                                camera->stopRecording();
+                                abortRunGunSave();
+                                return;
+                            }
+                        }
+                        else {
+                            msg.setText(QString("Save location ") + QString(camera->cinst->fileDirectory) + " not found, set save location in Settings");
+                            msg.exec();
+                            if (!stopFromBtn) {
+                                saveFlag = true;
+                            }
+                            camera->stopRecording();
+                            abortRunGunSave();
+                            return;
+                        }
                     }
                     /* Re-start saving for the newest segment */
                     /* All exisiting segments finished saving before confirmed (by Record End Trigger) this new one */

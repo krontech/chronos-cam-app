@@ -29,6 +29,8 @@
 #include "camera.h"
 #include "video.h"
 
+#define USE_AUTONAME_FOR_SAVE ""
+
 namespace Ui {
 class CamMainWindow;
 }
@@ -153,6 +155,7 @@ private:
     int savedSegCount = 0;
     int totalSegCount = 0;
     bool clearFlag = false;
+    bool saveFlag = false;
 
     save_mode_type formatForRunGun;
     UInt32 realBitrateForRunGun;
