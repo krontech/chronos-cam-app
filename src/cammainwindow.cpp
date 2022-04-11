@@ -610,6 +610,10 @@ void CamMainWindow::updateIndicateWindow()
         break;
     }
 
+    if ((is.mode != RECORD_MODE_SEGMENTED) && camera->get_runngun()) {
+        camera->set_runngun(false);
+    }
+
     inw->show();
     inw->lower();
 }
@@ -923,8 +927,14 @@ void CamMainWindow::on_newVideoSegment(VideoStatus *st)
             realBitrateForRunGun = getBitrateForRunGun(formatForRunGun);
 
             /* Clear unsaved recordings */
-            if (clearFlag) {
-                clearFlag = false;
+            if (clearFlag || startWholeRecording) {
+                if (clearFlag) {
+                    clearFlag = false;
+                }
+                if (startWholeRecording) {
+                    startWholeRecording = false;
+                }
+
                 return;
             }
             else if (saveFlag) {
@@ -1143,6 +1153,7 @@ void CamMainWindow::saveNextSegment(VideoState state)
                 triggerConfig = {};
 
                 clearFlag = true;
+                startWholeRecording = false;
                 stopFromBtn = false;
                 camera->recordingData.hasBeenSaved = true;
 
@@ -1291,6 +1302,7 @@ void CamMainWindow::abortRunGunSave()
     nextSegments = {};
 
     clearFlag = true;
+    startWholeRecording = false;
     stopFromBtn = false;
     camera->recordingData.hasBeenSaved = true;
 
@@ -1318,6 +1330,7 @@ void CamMainWindow::stopRecordingFromBtn()
 void CamMainWindow::setTriggerTextStartRecording()
 {
     if (camera->get_runngun()) {
+        startWholeRecording = true;
         if (is.segments == 1) {
             QVariantMap temp;
             temp.insert("source", QVariant("alwaysHigh"));
