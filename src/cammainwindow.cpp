@@ -1529,6 +1529,7 @@ void CamMainWindow::on_cmdUtil_clicked()
 void CamMainWindow::UtilWindow_closed()
 {
 	ui->chkFocusAid->setChecked(camera->getFocusPeakEnable());
+    updateIndicateWindow();
 }
 
 void CamMainWindow::updateCamMainWindowPosition(){
