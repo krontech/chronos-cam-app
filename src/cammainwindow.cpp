@@ -927,7 +927,7 @@ void CamMainWindow::on_newVideoSegment(VideoStatus *st)
             realBitrateForRunGun = getBitrateForRunGun(formatForRunGun);
 
             /* Clear unsaved recordings */
-            if (clearFlag || startWholeRecording) {
+            if (clearFlag) {
                 if (clearFlag) {
                     clearFlag = false;
                 }
