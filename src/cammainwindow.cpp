@@ -1189,8 +1189,11 @@ void CamMainWindow::saveNextSegment(VideoState state)
                 currentSavingSeg.clear();
                 currentSavingSeg.insert(start, segLength);
 
+                ui->cmdPlay->setEnabled(false);
                 cinst->saveRecording(start, segLength, formatForRunGun, vinst->framerate, realBitrateForRunGun);
                 savedSegCount++;
+                while (camera->vinst->getStatus(NULL) != VIDEO_STATE_FILESAVE) {}
+                ui->cmdPlay->setEnabled(true);
             }
             /* Overwriting hasn't happened */
             else {
@@ -1203,8 +1206,11 @@ void CamMainWindow::saveNextSegment(VideoState state)
                 currentSavingSeg.clear();
                 currentSavingSeg.insert(start, segLength);
 
+                ui->cmdPlay->setEnabled(false);
                 cinst->saveRecording(start, segLength, formatForRunGun, vinst->framerate, realBitrateForRunGun);
                 savedSegCount++;
+                while (camera->vinst->getStatus(NULL) != VIDEO_STATE_FILESAVE) {}
+                ui->cmdPlay->setEnabled(true);
             }
             QString runGunInfo = "total: " + QString::number(totalSegCount) + "  saving: seg#" + QString::number(savedSegCount);
             inw->setRGInfoText(runGunInfo);
@@ -1512,7 +1518,6 @@ void CamMainWindow::updateCurrentSettingsLabel()
 
 }
 
-
 void CamMainWindow::on_cmdUtil_clicked()
 {
 	if (!okToStopLive()) return;
@@ -1529,12 +1534,18 @@ void CamMainWindow::on_cmdUtil_clicked()
 	w->show();
 	connect(w, SIGNAL(moveCamMainWindow()), this, SLOT(updateCamMainWindowPosition()));
 	connect(w, SIGNAL(destroyed()), this, SLOT(UtilWindow_closed()));
+    connect(w, SIGNAL(blackCalAll()), this, SLOT(blackCallAllFromUtil()));
 }
 
 void CamMainWindow::UtilWindow_closed()
 {
 	ui->chkFocusAid->setChecked(camera->getFocusPeakEnable());
     updateIndicateWindow();
+}
+
+void CamMainWindow::blackCallAllFromUtil()
+{
+    clearFlag = true;
 }
 
 void CamMainWindow::updateCamMainWindowPosition(){

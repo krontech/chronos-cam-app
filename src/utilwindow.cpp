@@ -513,6 +513,7 @@ void UtilWindow::on_cmdBlackCalAll_clicked()
         msg.setWindowFlags(Qt::WindowStaysOnTopHint);
 		msg.exec();
 	}
+    emit blackCalAll();
 }
 
 void UtilWindow::on_cmdCloseApp_clicked()

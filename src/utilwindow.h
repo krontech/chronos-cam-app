@@ -37,6 +37,7 @@ public:
 
 signals:
 	void moveCamMainWindow();
+    void blackCalAll();
 	
 private slots:
 	void on_cmdSWUpdate_clicked();

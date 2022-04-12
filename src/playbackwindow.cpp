@@ -105,6 +105,9 @@ playbackWindow::playbackWindow(QWidget *parent, Camera * cameraInst, bool autosa
 
     if (camera->vinst->getStatus(NULL) == VIDEO_STATE_FILESAVE) {
         setControlEnable(false);
+        if (camera->get_runngun()) {
+            ui->cmdClose->setEnabled(true);
+        }
         ui->cmdSave->setText("Abort\nSave");
         sw->show();
     }
@@ -407,6 +410,7 @@ void playbackWindow::on_cmdSave_clicked()
 		//or when save is automatically aborted due to full storage
 		camera->vinst->stopRecording();
 		ui->cmdSave->setEnabled(false);
+        ui->cmdClose->setEnabled(false);
 		ui->verticalSlider->removeLastRegionFromList();
 		ui->verticalSlider->setHighlightRegion(markInFrame, markOutFrame);
 		saveAborted = true;

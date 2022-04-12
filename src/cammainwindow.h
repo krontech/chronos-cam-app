@@ -113,6 +113,7 @@ private slots:
     void checkForWebMount(void);
 
     void updateIndicateWindow(void);
+    void blackCallAllFromUtil(void);
 
     void runTimer();
     void stopTimer();
