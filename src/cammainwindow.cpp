@@ -555,7 +555,7 @@ void CamMainWindow::on_cmdPlay_clicked()
 
 	createNewPlaybackWindow();
     inw->hide();
-    estTimer->stop();
+    //estTimer->stop();
 }
 
 void CamMainWindow::createNewPlaybackWindow(){
@@ -567,7 +567,6 @@ void CamMainWindow::createNewPlaybackWindow(){
     // Send signal when aborting save from Playback to clean all RUn-N-Gun parameters
     connect(w, SIGNAL(abortSave()), this, SLOT(abortRunGunSave()));
     connect(w, SIGNAL(finishedSaving()), this, SLOT(updateIndicateWindow()));
-    estTimer->start(1000);
 }
 
 void CamMainWindow::playFinishedSaving()
@@ -636,7 +635,9 @@ void CamMainWindow::updateSaveEstTime()
     float restEstTime = restLength / st_time.framerate;
     int estTime = (int)restEstTime;
 
-    inw->setEstimatedTime(estTime);
+    if (estTime >= 0) {
+        inw->setEstimatedTime(estTime);
+    }
 }
 
 bool CamMainWindow::okToStopLive()
@@ -1150,6 +1151,7 @@ void CamMainWindow::saveNextSegment(VideoState state)
         stopCurrentSeg = false;
         // save the rest of the current segment
         cinst->saveRecording(newStart, newSegLength, formatForRunGun, vinst->framerate, realBitrateForRunGun);
+        while (camera->vinst->getStatus(NULL) != VIDEO_STATE_FILESAVE) {}
         estTimer->start(1000);
         return;
     }
@@ -1168,6 +1170,8 @@ void CamMainWindow::saveNextSegment(VideoState state)
 
         /* All exisiting segments in segment list finished saving */
         if (savedSegCount == totalSegCount) {
+            estTimer->stop();
+            inw->setEstimatedTime(0);
             currentSavingSeg = {};
             /* Whole recording is finished */
             if (camera->cinst->getProperty("state", "unknown").toString() != "recording") {
@@ -1182,10 +1186,7 @@ void CamMainWindow::saveNextSegment(VideoState state)
                 camera->recordingData.hasBeenSaved = true;
 
                 inw->setRGInfoText("");
-                inw->setTriggerText("");
-
-                estTimer->stop();
-                inw->setEstimatedTime(0);
+                inw->setTriggerText("");  
             }
             /* Recording is still running */
             /* Current exisiting segments are all saved, but recording is not stopped*/
@@ -1205,9 +1206,6 @@ void CamMainWindow::saveNextSegment(VideoState state)
 
                 QString runGunInfo = "total: " + QString::number(totalSegCount) + "  saving: none";
                 inw->setRGInfoText(runGunInfo);
-
-                estTimer->stop();
-                inw->setEstimatedTime(0);
 
                 return;
             }
@@ -1343,6 +1341,9 @@ void CamMainWindow::abortRunGunSave()
 
     inw->setRGInfoText("");
     inw->setTriggerText("");
+
+    estTimer->stop();
+    inw->setEstimatedTime(0);
 
     if (triggerConfig.size() != 0) {
         qDebug() << "Record End Trigger from IOs is disabled";
