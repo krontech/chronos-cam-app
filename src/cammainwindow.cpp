@@ -917,6 +917,7 @@ void CamMainWindow::on_newVideoSegment(VideoStatus *st)
             UInt32 ret;
             QMessageBox msg;
             char parentPath[1000];
+            int index = 0;
 
             // Build the parent path of the save directory to determine if it's a mount point
             strcpy(parentPath, camera->cinst->fileDirectory);
@@ -926,15 +927,9 @@ void CamMainWindow::on_newVideoSegment(VideoStatus *st)
             formatForRunGun = getSaveFormatForRunGun();
             realBitrateForRunGun = getBitrateForRunGun(formatForRunGun);
 
-            /* Clear unsaved recordings */
+            /* Clear last segment */
             if (clearFlag) {
-                if (clearFlag) {
-                    clearFlag = false;
-                }
-                if (startWholeRecording) {
-                    startWholeRecording = false;
-                }
-
+                clearFlag = false;
                 return;
             }
             else if (saveFlag) {
@@ -1153,7 +1148,6 @@ void CamMainWindow::saveNextSegment(VideoState state)
                 triggerConfig = {};
 
                 clearFlag = true;
-                startWholeRecording = false;
                 stopFromBtn = false;
                 camera->recordingData.hasBeenSaved = true;
 
@@ -1302,7 +1296,6 @@ void CamMainWindow::abortRunGunSave()
     nextSegments = {};
 
     clearFlag = true;
-    startWholeRecording = false;
     stopFromBtn = false;
     camera->recordingData.hasBeenSaved = true;
 
@@ -1330,7 +1323,6 @@ void CamMainWindow::stopRecordingFromBtn()
 void CamMainWindow::setTriggerTextStartRecording()
 {
     if (camera->get_runngun()) {
-        startWholeRecording = true;
         if (is.segments == 1) {
             QVariantMap temp;
             temp.insert("source", QVariant("alwaysHigh"));

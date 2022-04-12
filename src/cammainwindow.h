@@ -167,7 +167,6 @@ private:
     int newStart;
     int newSegLength;
     bool stopCurrentSeg = false;
-    bool startWholeRecording = false;
 
 signals:
     void swIsShown();
