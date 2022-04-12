@@ -17,6 +17,7 @@ public:
     void setRecModeText(QString str);
     void setRGInfoText(QString str);
     void setTriggerText(QString str);
+    void setEstimatedTime(int seconds);
 
 private:
     Ui::IndicateWindow *ui;

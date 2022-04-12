@@ -113,6 +113,7 @@ private slots:
     void checkForWebMount(void);
 
     void updateIndicateWindow(void);
+    void updateSaveEstTime(void);
     void blackCallAllFromUtil(void);
 
     void runTimer();
@@ -132,6 +133,7 @@ private:
     IndicateWindow * inw;
 	QTimer *timer;
     QTimer *mountTimer;
+    QTimer *estTimer;
 	bool recording;
 	bool lastShutterButton;
 	int windowsAlwaysOpen;

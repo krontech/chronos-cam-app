@@ -122,7 +122,10 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
     inw = new IndicateWindow;
     inw->setRGInfoText("");
     inw->setTriggerText("");
+    inw->setEstimatedTime(0);
     updateIndicateWindow();
+    estTimer = new QTimer(this);
+    connect(estTimer, SIGNAL(timeout()), this, SLOT(updateSaveEstTime()));
 
 	updateExpSliderLimits();
 	updateCurrentSettingsLabel();
@@ -552,6 +555,7 @@ void CamMainWindow::on_cmdPlay_clicked()
 
 	createNewPlaybackWindow();
     inw->hide();
+    estTimer->stop();
 }
 
 void CamMainWindow::createNewPlaybackWindow(){
@@ -563,6 +567,7 @@ void CamMainWindow::createNewPlaybackWindow(){
     // Send signal when aborting save from Playback to clean all RUn-N-Gun parameters
     connect(w, SIGNAL(abortSave()), this, SLOT(abortRunGunSave()));
     connect(w, SIGNAL(finishedSaving()), this, SLOT(updateIndicateWindow()));
+    estTimer->start(1000);
 }
 
 void CamMainWindow::playFinishedSaving()
@@ -616,6 +621,22 @@ void CamMainWindow::updateIndicateWindow()
 
     inw->show();
     inw->lower();
+}
+
+void CamMainWindow::updateSaveEstTime()
+{
+    VideoStatus st_time;
+    camera->vinst->getStatus(&st_time);
+
+    UInt32 playFrame = st_time.position;
+    int segStart = currentSavingSeg.begin().key();
+    int segLength = currentSavingSeg.begin().value();
+    int restLength = segLength - (playFrame - segStart + 1);
+
+    float restEstTime = restLength / st_time.framerate;
+    int estTime = (int)restEstTime;
+
+    inw->setEstimatedTime(estTime);
 }
 
 bool CamMainWindow::okToStopLive()
@@ -952,6 +973,8 @@ void CamMainWindow::on_newVideoSegment(VideoStatus *st)
                 else {
                     /* When new segment causes overwriting while another segment is being saved */
                     if (camera->vinst->getStatus(NULL) == VIDEO_STATE_FILESAVE) {
+                        estTimer->stop();
+
                         // Set stopCurrentSeg to TRUE for saveNextSegment function
                         stopCurrentSeg = true;
                         // Mark the end position of this partial clip
@@ -1038,6 +1061,9 @@ void CamMainWindow::on_newVideoSegment(VideoStatus *st)
                                 abortRunGunSave();
                                 return;
                             }
+                            currentSavingSeg.clear();
+                            currentSavingSeg.insert(it.key(), it.value());
+                            estTimer->start(1000);
                         }
                         else {
                             msg.setText(QString("Save location ") + QString(camera->cinst->fileDirectory) + " not found, set save location in Settings");
@@ -1057,6 +1083,9 @@ void CamMainWindow::on_newVideoSegment(VideoStatus *st)
                         qDebug() << "new segment is done recording and start saving it";
                         QMap<int, int>::iterator it = nextSegments.end() - 1;
                         cinst->saveRecording(it.key(), it.value(), formatForRunGun, vinst->framerate, realBitrateForRunGun);
+                        currentSavingSeg.clear();
+                        currentSavingSeg.insert(it.key(), it.value());
+                        estTimer->start(1000);
                     }
                     savedSegCount++;
                 }
@@ -1121,6 +1150,7 @@ void CamMainWindow::saveNextSegment(VideoState state)
         stopCurrentSeg = false;
         // save the rest of the current segment
         cinst->saveRecording(newStart, newSegLength, formatForRunGun, vinst->framerate, realBitrateForRunGun);
+        estTimer->start(1000);
         return;
     }
 
@@ -1153,6 +1183,9 @@ void CamMainWindow::saveNextSegment(VideoState state)
 
                 inw->setRGInfoText("");
                 inw->setTriggerText("");
+
+                estTimer->stop();
+                inw->setEstimatedTime(0);
             }
             /* Recording is still running */
             /* Current exisiting segments are all saved, but recording is not stopped*/
@@ -1172,6 +1205,9 @@ void CamMainWindow::saveNextSegment(VideoState state)
 
                 QString runGunInfo = "total: " + QString::number(totalSegCount) + "  saving: none";
                 inw->setRGInfoText(runGunInfo);
+
+                estTimer->stop();
+                inw->setEstimatedTime(0);
 
                 return;
             }

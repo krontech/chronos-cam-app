@@ -44,3 +44,21 @@ void IndicateWindow::setTriggerText(QString str)
     ui->lblTrigger->adjustSize();
     this->adjustSize();
 }
+
+void IndicateWindow::setEstimatedTime(int seconds)
+{
+    QString estTime;
+    if (seconds == 0) {
+        estTime = "";
+    }
+    else {
+        int textMinutes = seconds / 60;
+        int textSeconds = seconds % 60;
+        estTime = QString::number(textMinutes) + "m" + QString::number(textSeconds) + "s";
+    }
+
+    ui->lblEstTime->setStyleSheet("color: white;");
+    ui->lblEstTime->setText(estTime);
+    ui->lblEstTime->adjustSize();
+    this->adjustSize();
+}
