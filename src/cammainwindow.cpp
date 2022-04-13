@@ -1064,7 +1064,7 @@ void CamMainWindow::on_newVideoSegment(VideoStatus *st)
                             }
                             currentSavingSeg.clear();
                             currentSavingSeg.insert(it.key(), it.value());
-                            estTimer->start(1000);
+                            estTimer->start(1500);
                         }
                         else {
                             msg.setText(QString("Save location ") + QString(camera->cinst->fileDirectory) + " not found, set save location in Settings");
@@ -1086,7 +1086,7 @@ void CamMainWindow::on_newVideoSegment(VideoStatus *st)
                         cinst->saveRecording(it.key(), it.value(), formatForRunGun, vinst->framerate, realBitrateForRunGun);
                         currentSavingSeg.clear();
                         currentSavingSeg.insert(it.key(), it.value());
-                        estTimer->start(1000);
+                        estTimer->start(1500);
                     }
                     savedSegCount++;
                 }
@@ -1152,7 +1152,7 @@ void CamMainWindow::saveNextSegment(VideoState state)
         // save the rest of the current segment
         cinst->saveRecording(newStart, newSegLength, formatForRunGun, vinst->framerate, realBitrateForRunGun);
         while (camera->vinst->getStatus(NULL) != VIDEO_STATE_FILESAVE) {}
-        estTimer->start(1000);
+        estTimer->start(1500);
         return;
     }
 
