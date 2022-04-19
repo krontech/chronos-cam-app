@@ -189,7 +189,7 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 
     if (((appSettings.value("network/nfsAddress").toString().length()) && (appSettings.value("network/nfsMount").toString().length())) ||
             ((appSettings.value("network/smbUser").toString().length()) && (appSettings.value("network/smbShare").toString().length()) && (appSettings.value("network/smbPassword").toString().length()))) {
-        sw->setText("Connecting to saved network storage device...");
+        sw->setText("Connecting to Network Storage...");
         sw->show();
         emit swIsShown();
     }
@@ -1137,7 +1137,7 @@ void CamMainWindow::on_newVideoSegment(VideoStatus *st)
                     }
                 }
             }
-            QString runGunInfo = "total: " + QString::number(totalSegCount) + "  saving: seg#" + QString::number(savedSegCount);
+            QString runGunInfo = "Total Seg: " + QString::number(totalSegCount) + "  Now Saving: Seg#" + QString::number(savedSegCount);
             inw->setRGInfoText(runGunInfo);
         }
 	}
@@ -1204,7 +1204,7 @@ void CamMainWindow::saveNextSegment(VideoState state)
                     inw->setTriggerText("trigger: on");
                 }
 
-                QString runGunInfo = "total: " + QString::number(totalSegCount) + "  saving: none";
+                QString runGunInfo = "Total Seg: " + QString::number(totalSegCount) + "  Now Saving: none";
                 inw->setRGInfoText(runGunInfo);
 
                 return;
@@ -1246,7 +1246,7 @@ void CamMainWindow::saveNextSegment(VideoState state)
                 while (camera->vinst->getStatus(NULL) != VIDEO_STATE_FILESAVE) {}
                 ui->cmdPlay->setEnabled(true);
             }
-            QString runGunInfo = "total: " + QString::number(totalSegCount) + "  saving: seg#" + QString::number(savedSegCount);
+            QString runGunInfo = "Total Seg: " + QString::number(totalSegCount) + "  Now Saving: Seg#" + QString::number(savedSegCount);
             inw->setRGInfoText(runGunInfo);
         }
 

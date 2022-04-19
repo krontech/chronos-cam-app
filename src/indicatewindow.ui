@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>600</width>
-    <height>25</height>
+    <height>45</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,9 +20,9 @@
    <property name="geometry">
     <rect>
      <x>0</x>
-     <y>0</y>
+     <y>25</y>
      <width>100</width>
-     <height>30</height>
+     <height>20</height>
     </rect>
    </property>
    <property name="font">
@@ -40,10 +40,10 @@
   <widget class="QLabel" name="lblRGInfo">
    <property name="geometry">
     <rect>
-     <x>120</x>
-     <y>0</y>
+     <x>95</x>
+     <y>25</y>
      <width>300</width>
-     <height>30</height>
+     <height>20</height>
     </rect>
    </property>
    <property name="font">
@@ -58,10 +58,10 @@
   <widget class="QLabel" name="lblTrigger">
    <property name="geometry">
     <rect>
-     <x>450</x>
-     <y>0</y>
-     <width>150</width>
-     <height>30</height>
+     <x>515</x>
+     <y>25</y>
+     <width>85</width>
+     <height>20</height>
     </rect>
    </property>
    <property name="font">
@@ -76,10 +76,10 @@
   <widget class="QLabel" name="lblEstTime">
    <property name="geometry">
     <rect>
-     <x>320</x>
-     <y>0</y>
+     <x>325</x>
+     <y>25</y>
      <width>150</width>
-     <height>30</height>
+     <height>20</height>
     </rect>
    </property>
    <property name="font">

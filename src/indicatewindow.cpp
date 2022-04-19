@@ -10,8 +10,9 @@ IndicateWindow::IndicateWindow(QWidget *parent) :
     ui->setupUi(this);
     this->setWindowFlags(Qt::Dialog | Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
 
-    this->move(0,0);
-    this->setStyleSheet("background-color: rgba(255, 255, 255, 0%)");
+    this->move(0,
+               QApplication::desktop()->screenGeometry().height() - height());
+    this->setStyleSheet("background-color: rgba(0, 0, 255, 0%);");
 }
 
 IndicateWindow::~IndicateWindow()
@@ -21,28 +22,26 @@ IndicateWindow::~IndicateWindow()
 
 void IndicateWindow::setRecModeText(QString str)
 {
-    ui->lblRecMode->setStyleSheet("color: white;");
+    ui->lblRecMode->setStyleSheet("color: white; font-size: 14pt;");
     ui->lblRecMode->setText(str);
     ui->lblRecMode->adjustSize();
-    this->adjustSize();
-    this->move( 0,
-                QApplication::desktop()->screenGeometry().height() - height());
+    //this->adjustSize();
 }
 
 void IndicateWindow::setRGInfoText(QString str)
 {
-    ui->lblRGInfo->setStyleSheet("color: white;");
+    ui->lblRGInfo->setStyleSheet("color: white; font-size: 14pt;");
     ui->lblRGInfo->setText(str);
     ui->lblRGInfo->adjustSize();
-    this->adjustSize();
+    //this->adjustSize();
 }
 
 void IndicateWindow::setTriggerText(QString str)
 {
-    ui->lblTrigger->setStyleSheet("color: white;");
+    ui->lblTrigger->setStyleSheet("color: white; font-size: 14pt;");
     ui->lblTrigger->setText(str);
     ui->lblTrigger->adjustSize();
-    this->adjustSize();
+    //this->adjustSize();
 }
 
 void IndicateWindow::setEstimatedTime(int seconds)
@@ -52,13 +51,14 @@ void IndicateWindow::setEstimatedTime(int seconds)
         estTime = "";
     }
     else {
-        int textMinutes = seconds / 60;
-        int textSeconds = seconds % 60;
-        estTime = QString::number(textMinutes) + "m" + QString::number(textSeconds) + "s";
+        //int textMinutes = seconds / 60;
+        //int textSeconds = seconds % 60;
+        //estTime = QString::number(textMinutes) + "m" + QString::number(textSeconds) + "s";
+        estTime = "- est. " + QString::number(seconds) + " sec remaining";
     }
 
-    ui->lblEstTime->setStyleSheet("color: white;");
+    ui->lblEstTime->setStyleSheet("color: white; font-size: 14pt;");
     ui->lblEstTime->setText(estTime);
     ui->lblEstTime->adjustSize();
-    this->adjustSize();
+    //this->adjustSize();
 }
