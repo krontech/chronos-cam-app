@@ -1137,7 +1137,7 @@ void CamMainWindow::on_newVideoSegment(VideoStatus *st)
                     }
                 }
             }
-            QString runGunInfo = "Total Seg: " + QString::number(totalSegCount) + "  Now Saving: Seg#" + QString::number(savedSegCount);
+            QString runGunInfo = "Total Segments: " + QString::number(totalSegCount) + "  Now Saving: Seg#" + QString::number(savedSegCount);
             inw->setRGInfoText(runGunInfo);
         }
 	}
@@ -1204,7 +1204,7 @@ void CamMainWindow::saveNextSegment(VideoState state)
                     inw->setTriggerText("trigger: on");
                 }
 
-                QString runGunInfo = "Total Seg: " + QString::number(totalSegCount) + "  Now Saving: none";
+                QString runGunInfo = "Total Segments: " + QString::number(totalSegCount) + "  Now Saving: none";
                 inw->setRGInfoText(runGunInfo);
 
                 return;
@@ -1246,7 +1246,7 @@ void CamMainWindow::saveNextSegment(VideoState state)
                 while (camera->vinst->getStatus(NULL) != VIDEO_STATE_FILESAVE) {}
                 ui->cmdPlay->setEnabled(true);
             }
-            QString runGunInfo = "Total Seg: " + QString::number(totalSegCount) + "  Now Saving: Seg#" + QString::number(savedSegCount);
+            QString runGunInfo = "Total Segments: " + QString::number(totalSegCount) + "  Now Saving: Seg#" + QString::number(savedSegCount);
             inw->setRGInfoText(runGunInfo);
         }
 

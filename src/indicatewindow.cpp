@@ -54,7 +54,7 @@ void IndicateWindow::setEstimatedTime(int seconds)
         //int textMinutes = seconds / 60;
         //int textSeconds = seconds % 60;
         //estTime = QString::number(textMinutes) + "m" + QString::number(textSeconds) + "s";
-        estTime = "- est. " + QString::number(seconds) + " sec remaining";
+        estTime = "- est. " + QString::number(seconds) + " sec left";
     }
 
     ui->lblEstTime->setStyleSheet("color: white; font-size: 14pt;");
