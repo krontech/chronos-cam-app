@@ -503,7 +503,7 @@ void CamMainWindow::on_cmdDebugWnd_clicked()
 
 void CamMainWindow::on_cmdRec_clicked()
 {
-    if (camera->vinst->getStatus(NULL) == VIDEO_STATE_FILESAVE) {
+    if (camera->vinst->getStatus(NULL) == VIDEO_STATE_FILESAVE && !recording) {
         return;
     }
 
