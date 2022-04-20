@@ -654,7 +654,7 @@ void playbackWindow::stopPlayLoop(void)
 
 void playbackWindow::on_cmdClose_clicked()
 {
-	camera->recordingData.hasBeenViewed = true;
+    camera->recordingData.hasBeenViewed = true;
 	camera->autoRecord = false;
 }
 
