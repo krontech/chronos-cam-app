@@ -586,6 +586,7 @@ void CamMainWindow::playFinishedSaving()
 
 void CamMainWindow::updateIndicateWindow()
 {
+    int unsavedRamIndex;
     camera->cinst->getImagerSettings(&is);
 
     if (camera->liveSlowMotion) {
@@ -601,6 +602,7 @@ void CamMainWindow::updateIndicateWindow()
            inw->setRecModeText("Segmented");
            if(camera->get_runngun()) {
                inw->setRecModeText("Run-N-Gun");
+               camera->setUnsavedWarnEnable(2);
            }
         break;
 
@@ -1190,7 +1192,7 @@ void CamMainWindow::saveNextSegment(VideoState state)
                 camera->recordingData.hasBeenSaved = true;
 
                 inw->setRGInfoText("");
-                inw->setTriggerText("");  
+                inw->setTriggerText("");
             }
             /* Recording is still running */
             /* Current exisiting segments are all saved, but recording is not stopped*/
