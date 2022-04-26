@@ -155,7 +155,7 @@ CamMainWindow::CamMainWindow(QWidget *parent) :
 		ui->cmdDPCButton->setVisible(false);
 	}
 
-	if (camera->get_autoRecord()) {
+    if (camera->get_autoRecord()) {
 		camera->startRecording();
 	}
 	if (camera->get_autoSave()) autoSaveActive = true;
@@ -586,7 +586,6 @@ void CamMainWindow::playFinishedSaving()
 
 void CamMainWindow::updateIndicateWindow()
 {
-    int unsavedRamIndex;
     camera->cinst->getImagerSettings(&is);
 
     if (camera->liveSlowMotion) {
@@ -602,7 +601,13 @@ void CamMainWindow::updateIndicateWindow()
            inw->setRecModeText("Segmented");
            if(camera->get_runngun()) {
                inw->setRecModeText("Run-N-Gun");
+               // Always ask for unsaved non-Run-N-Gun video before starting Run-N-Gun recording
                camera->setUnsavedWarnEnable(2);
+               // Disable Auto Save, Auto Record & Live Record during Run-N-Gun
+               camera->set_autoSave(false);
+               autoSaveActive = false;
+               camera->set_autoRecord(false);
+               camera->set_liveRecord(false);
            }
         break;
 
@@ -937,15 +942,9 @@ void CamMainWindow::on_newVideoSegment(VideoStatus *st)
         if (camera->get_runngun()) {
             strcpy(camera->cinst->filename, USE_AUTONAME_FOR_SAVE);
 
-            camera->set_autoSave(false);
-            autoSaveActive = false;
-
-            camera->set_autoRecord(false);
-
             UInt32 ret;
             QMessageBox msg;
             char parentPath[1000];
-            int index = 0;
 
             // Build the parent path of the save directory to determine if it's a mount point
             strcpy(parentPath, camera->cinst->fileDirectory);
