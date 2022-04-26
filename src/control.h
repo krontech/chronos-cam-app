@@ -24,6 +24,7 @@
 
 typedef enum CameraRecordModes
 {
+    RECORD_MODE_LAST = -1,
 	RECORD_MODE_NORMAL = 0,
 	RECORD_MODE_SEGMENTED,
 	RECORD_MODE_GATED_BURST,

@@ -171,6 +171,9 @@ private:
     int newSegLength;
     bool stopCurrentSeg = false;
 
+    CameraRecordModes lastRecMode = RECORD_MODE_LAST;
+    QVariantList originalSettings = {};
+
 signals:
     void swIsShown();
     void swIsHidden();

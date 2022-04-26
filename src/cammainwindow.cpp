@@ -592,38 +592,57 @@ void CamMainWindow::updateIndicateWindow()
         is.mode = RECORD_MODE_LIVE;
     }
 
-    switch (is.mode) {
-        case RECORD_MODE_NORMAL:
-            inw->setRecModeText("Normal");
-        break;
+    if (lastRecMode != is.mode) {
+        switch (is.mode) {
+            case RECORD_MODE_NORMAL:
+                inw->setRecModeText("Normal");
+                /* // Set back to original settings before switch to Run-N-Gun
+                if (originalSettings.size() != 0) {
+                    camera->set_autoSave(originalSettings[0].toBool());
+                    camera->set_autoRecord(originalSettings[1].toBool());
+                    camera->set_liveRecord(originalSettings[2].toBool());
+                    camera->setUnsavedWarnEnable(originalSettings[3].toInt());
+                } */
+            break;
 
-        case RECORD_MODE_SEGMENTED:
-           inw->setRecModeText("Segmented");
-           if(camera->get_runngun()) {
-               inw->setRecModeText("Run-N-Gun");
-               // Always ask for unsaved non-Run-N-Gun video before starting Run-N-Gun recording
-               camera->setUnsavedWarnEnable(2);
-               // Disable Auto Save, Auto Record & Live Record during Run-N-Gun
-               camera->set_autoSave(false);
-               autoSaveActive = false;
-               camera->set_autoRecord(false);
-               camera->set_liveRecord(false);
-           }
-        break;
+            case RECORD_MODE_SEGMENTED:
+               inw->setRecModeText("Segmented");
+               if(camera->get_runngun()) {
+                   inw->setRecModeText("Run-N-Gun");
+                   /* // record current settings
+                   originalSettings.append(camera->get_autoSave());
+                   originalSettings.append(camera->get_autoRecord());
+                   originalSettings.append(camera->get_liveRecord());
+                   originalSettings.append(camera->getUnsavedWarnEnable()); */
 
-        case RECORD_MODE_GATED_BURST:
-            inw->setRecModeText("Gated Burst");
-        break;
+                   // Disable Auto Save, Auto Record & Live Record during Run-N-Gun
+                   camera->set_autoSave(false);
+                   autoSaveActive = false;
+                   camera->set_autoRecord(false);
+                   camera->set_liveRecord(false);
+                   // Always ask for unsaved non-Run-N-Gun video before starting Run-N-Gun recording
+                   camera->setUnsavedWarnEnable(2);
+               }
+            break;
 
-        case RECORD_MODE_LIVE:
-            inw->setRecModeText("Live Slow Motion");
-        break;
+            case RECORD_MODE_GATED_BURST:
+                inw->setRecModeText("Gated Burst");
+            break;
 
-        case RECORD_MODE_FPN:
-        default:
-            /* Internal recording modes only. */
-        break;
+            case RECORD_MODE_LIVE:
+                inw->setRecModeText("Live Slow Motion");
+            break;
+
+            case RECORD_MODE_FPN:
+            default:
+                /* Internal recording modes only. */
+            break;
+        }
+        lastRecMode = is.mode;
+        qDebug() << "current record mode: " << lastRecMode;
     }
+
+
 
     if ((is.mode != RECORD_MODE_SEGMENTED) && camera->get_runngun()) {
         camera->set_runngun(false);
