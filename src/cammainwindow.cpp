@@ -843,6 +843,10 @@ void CamMainWindow::on_MainWindowTimer()
 		QWidgetList qwl = QApplication::topLevelWidgets();	//Hack to stop you from starting record when another window is open. Need to get modal dialogs working for proper fix
 		if(qwl.count() <= windowsAlwaysOpen)				//Now that the numeric keypad has been added, there are four windows: cammainwindow, debug buttons window, and both keyboards
 		{
+            if (camera->vinst->getStatus(NULL) == VIDEO_STATE_FILESAVE && !recording) {
+                return;
+            }
+
 			if (camera->liveSlowMotion)
 			{
 				if (camera->loopTimerEnabled)
