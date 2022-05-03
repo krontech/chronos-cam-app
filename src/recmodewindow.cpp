@@ -119,6 +119,11 @@ recModeWindow::recModeWindow(QWidget *parent, Camera * cameraInst, ImagerSetting
 
 
 	windowOpening = false;
+
+    if (ui->chkRunNGun->isChecked() && (ui->spinSegmentCount->value() == 1)) {
+        ui->chkDisableRing->setChecked(false);
+        ui->chkDisableRing->setEnabled(false);
+    }
 }
 
 recModeWindow::~recModeWindow()
@@ -256,6 +261,28 @@ void recModeWindow::on_spinRecLengthFrames_valueChanged(int arg1)
 void recModeWindow::on_spinSegmentCount_valueChanged(int arg1)
 {
     updateSegmentSizeText(arg1);
+
+    if (ui->chkRunNGun->isChecked()) {
+        if (arg1 == 1) {
+            ui->chkDisableRing->setChecked(false);
+            ui->chkDisableRing->setEnabled(false);
+        }
+        else {
+            ui->chkDisableRing->setEnabled(true);
+        }
+    }
+
+}
+
+void recModeWindow::on_chkRunNGun_clicked(bool runNGunEnabled)
+{
+    if (runNGunEnabled && (ui->spinSegmentCount->value() == 1)) {
+        ui->chkDisableRing->setChecked(false);
+        ui->chkDisableRing->setEnabled(false);
+    }
+    else {
+        ui->chkDisableRing->setEnabled(true);
+    }
 }
 
 void recModeWindow::updateSegmentSizeText(UInt32 segmentCount)

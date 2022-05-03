@@ -50,6 +50,8 @@ private slots:
 
 	void on_comboPlaybackRate_currentIndexChanged(int index);
 
+    void on_chkRunNGun_clicked(bool runNGunEnabled);
+
 private:
     Camera * camera;
     ImagerSettings_t * is;
